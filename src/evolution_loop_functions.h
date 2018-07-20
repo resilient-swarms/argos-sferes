@@ -1,6 +1,6 @@
 /****************************************/
 /****************************************/
-/* ARGoS-related headers */
+/* ARGoS related headers */
 /* The NN controller */
 #include "epuck_nn_controller.h"
 
@@ -10,6 +10,8 @@
 
 /****************************************/
 /****************************************/
+/* Sferes related headers */
+
 #include <sferes/phen/parameters.hpp>
 
 #include <Eigen/Core>
@@ -48,7 +50,8 @@ using namespace argos;
 
 struct Params
 {
-    struct ea {
+    struct ea
+    {
         SFERES_CONST size_t behav_dim = 1;
         SFERES_CONST double epsilon = 0;//0.05;
         SFERES_ARRAY(size_t, behav_shape, 10);
@@ -56,21 +59,22 @@ struct Params
 
     struct dnn
     {
-        static constexpr size_t nb_inputs       = 8; // 8 ir sensors
+        static constexpr size_t nb_inputs       = 9; //! 8 ir sensors + bias input at +1
         static constexpr size_t nb_outputs      = 2; // 2 motors: left and right wheel
-        static constexpr size_t min_nb_neurons  = 74;
-        static constexpr size_t max_nb_neurons  = 124;
-        static constexpr size_t min_nb_conns    = 8;
-        static constexpr size_t max_nb_conns    = 250;
 
         static constexpr int io_param_evolving = true;
-        static constexpr float m_rate_add_conn	= 0.00f;
-        static constexpr float m_rate_del_conn	= 0.00f;
+        static constexpr float m_rate_add_conn	= 0.05f;
+        static constexpr float m_rate_del_conn	= 0.1f;
         static constexpr float m_rate_change_conn = 0.05f;
-        static constexpr float m_rate_add_neuron  = 0.00f;
-        static constexpr float m_rate_del_neuron  = 0.00f;
+        static constexpr float m_rate_add_neuron  = 0.05f;
+        static constexpr float m_rate_del_neuron  = 0.1f;
 
-        static constexpr init_t init = ff;
+        static constexpr init_t init = ff; //random_topology or ff (feed-forward)
+        //these only count w/ random init, instead of feed forward
+        static constexpr size_t min_nb_neurons  = 0;
+        static constexpr size_t max_nb_neurons  = 0;
+        static constexpr size_t min_nb_conns    = 0;
+        static constexpr size_t max_nb_conns    = 0;
     };
 
     struct parameters
@@ -94,9 +98,9 @@ struct Params
     struct pop
     {
         // number of initial random points
-        SFERES_CONST size_t init_size = 1000;
+        SFERES_CONST size_t init_size = 10;//1000;
         // size of a batch
-        SFERES_CONST size_t size = 1000;
+        SFERES_CONST size_t size = 10; //1000;
         SFERES_CONST size_t nb_gen = 1001;
         SFERES_CONST size_t dump_period = 100;
     };
@@ -115,6 +119,7 @@ typedef Connection <weight_t> connection_t;
 typedef sferes::gen::Dnn< neuron_t, connection_t, Params> gen_t;
 typedef typename gen_t::nn_t nn_t; // not sure if typename should be here?
 }
+
 /****************************************/
 /****************************************/
 
@@ -136,11 +141,11 @@ public:
         m_unCurrentTrial = un_trial;
     }
 
-    /* Configures the robot controller from the genome */
-    void ConfigureFromGenome(robots_nn::nn_t& ctrl)
-    {
-        _ctrlrob = ctrl;
-    }
+//    /* Configures the robot controller from the genome */
+//    void ConfigureFromGenome(robots_nn::nn_t& ctrl)
+//    {
+//        _ctrlrob = ctrl;
+//    }
 
     virtual void  PreStep();
     virtual void  PostStep();
@@ -154,21 +159,23 @@ private:
         CQuaternion Orientation;
     };
 
-    size_t m_unCurrentTrial;
+    //CEPuckEntity* m_pcEPuck;
+    //CEPuckNNController* m_pcController;
+    std::vector<CEPuckEntity*>  m_pcvecEPuck;
+    std::vector<CEPuckNNController*>  m_pcvecController;
 
-    CEPuckEntity* m_pcEPuck;
-    CEPuckNNController* m_pcController;
 
 public:
     CRandom::CRNG* m_pcRNG;
 
 public:
     std::vector<SInitSetup> m_vecInitSetup;
+    size_t m_unNumberTrials, m_unCurrentTrial, m_unNumberRobots;
 
 
 public:
-    //NN _ctrlrob;
     robots_nn::nn_t _ctrlrob;
+    std::vector<robots_nn::nn_t> _vecctrlrob;
     std::vector<float> outf, inputs;
 
     Real nb_coll, stand_still;
@@ -217,8 +224,6 @@ FIT_MAP(FitObstacleMapElites)
         ind.nn().simplify();
         ind.nn().init();
 
-        //std::ofstream ofs("/tmp/nn.dot");
-        //ind.nn().write(ofs);
 
         /****************************************/
         /****************************************/
@@ -232,11 +237,14 @@ FIT_MAP(FitObstacleMapElites)
 
         /* Get a reference to the loop functions */
         static CEvolutionLoopFunctions& cLoopFunctions = dynamic_cast<CEvolutionLoopFunctions&>(cSimulator.GetLoopFunctions());
+        for(size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
+            cLoopFunctions._vecctrlrob[j] = ind.nn1();
+
         /*
-      * Run x trials and take the worst performance as final value.
-      */
+         * Run x trials and take the worst performance as final value.
+        */
         Real fFitness = INFINITY;
-        for(size_t i = 0; i < cLoopFunctions.m_vecInitSetup.size(); ++i)
+        for(size_t i = 0; i < cLoopFunctions.m_unNumberTrials; ++i)
         {
             cLoopFunctions.nb_coll=0;
             cLoopFunctions.stop_eval=false;
@@ -245,37 +253,43 @@ FIT_MAP(FitObstacleMapElites)
             cLoopFunctions.old_pos   = CVector3(0.0f, 0.0f, 0.0f);
             cLoopFunctions.old_theta = CRadians(0.0f);
             cLoopFunctions.num_ds = 0.0;
-            cLoopFunctions.num_senact.resize(0); cLoopFunctions.num_senact.resize(Params::dnn::nb_inputs, 0.0f); // 8 = num of ir sensors
+            cLoopFunctions.num_senact.resize(0); cLoopFunctions.num_senact.resize(Params::dnn::nb_inputs - 1, 0.0f); // Params::dnn::nb_inputs includes sensors and a bias input
 
             /* Tell the loop functions to get ready for the i-th trial */
             cLoopFunctions.SetTrial(i);
             /* Reset the experiment.
-           * This internally calls also CEvolutionLoopFunctions::Reset(). */
+             * This internally calls also CEvolutionLoopFunctions::Reset(). */
             cSimulator.Reset();
-
 
             /* Configure the controller with the indiv gen */
             //cLoopFunctions.ConfigureFromGenome(ind.nn());
-            cLoopFunctions._ctrlrob = ind.nn();
-            cLoopFunctions._ctrlrob.init(); // a copied nn object needs to be init before use
+            //cLoopFunctions._ctrlrob = ind.nn1();
+            //cLoopFunctions._ctrlrob.init(); // a copied nn object needs to be init before use
 
+
+            for(size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
+                cLoopFunctions._vecctrlrob[j].init(); // a copied nn object needs to be init before use
 
             /* Run the experiment */
             cSimulator.Execute();
-
-            /* Update fitness; fFtiness is the worst fitness across all trials */
-            //fFitness = Min(fFitness,(cLoopFunctions.lin_speed/(float)cSimulator.GetMaxSimulationClock())*1.0/(float)(1+cLoopFunctions.nb_coll));
 
             if (this->mode() == fit::mode::view)
             {
                 printf("\n\n lin_speed = %f", cLoopFunctions.lin_speed);
                 printf("\n\n nb_coll = %f", cLoopFunctions.nb_coll);
+                printf("\n\n nb_coll = %f", cLoopFunctions.nb_coll);
+                printf("\n\n fitness in trial %lu is %f", i,
+                       cLoopFunctions.lin_speed / (Real)cSimulator.GetMaxSimulationClock() * (Real)cLoopFunctions.nb_coll / (Real)cSimulator.GetMaxSimulationClock());
+
+                if(i==0)
+                {
+                    std::ofstream ofs("nn.dot");
+                    ind.nn().write(ofs);
+                }
             }
 
             //Floreano & Mondada '94
             fFitness = Min(fFitness,(cLoopFunctions.lin_speed/(Real)cSimulator.GetMaxSimulationClock())*(Real)cLoopFunctions.nb_coll/(Real)cSimulator.GetMaxSimulationClock());
-
-            //std::cerr << fFitness << std::endl;
         }
         /****************************************/
         /****************************************/
@@ -285,18 +299,18 @@ FIT_MAP(FitObstacleMapElites)
 
         std::vector<float> data;
         data.push_back(cLoopFunctions.m_pcRNG->Uniform(CRange<Real>(0.0,1.0)));
-        //data.push_back(0.25);
         this->set_desc(data);
 
-        // BD1
+        // BD1 -- characterizes the number of times the robot turns.
         //data.push_back(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock());
         //assert(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() >= 0.0 && cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() <= 1.0);
         //this->set_desc(data);
 
-        // BD2
+        // BD2 -- characterizes the number of times the different IR proximity sensors on the robot return a high value
         /*for(size_t i = 0; i < cLoopFunctions.num_senact.size(); ++i)
             data.push_back(cLoopFunctions.num_senact[i] / (Real)cSimulator.GetMaxSimulationClock());
         this->set_desc(data);*/
+
 
         if (this->mode() == fit::mode::view)
             printf("\n\n fFitness = %f", fFitness);

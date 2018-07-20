@@ -41,7 +41,9 @@
   <!-- * Loop functions * -->
   <!-- ****************** -->
   <loop_functions library="lib/libevolution_loop_functions.so"
-                  label="evolution_loop_functions" />
+                  label="evolution_loop_functions"
+                                  trials="5"
+                                  robots="1"/>
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
@@ -91,7 +93,7 @@
   <!-- ****************** -->
   <!-- We don't want nor need a visualization during evolution -->
   <visualization>
-      <!--<qt-opengl /> -->
+      <qt-opengl />
   </visualization>
 
 </argos-configuration>

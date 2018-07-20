@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(epuck_obsavoid_nn)
 
+set(SFERES_PATH ${PROJECT_SOURCE_DIR}/sferes2) # location of sferes2 - where https://github.com/sferes2/sferes2 has been cloned
+
 if(UNIX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
 endif()
@@ -37,24 +39,16 @@ add_definitions(-std=c++0x)
 add_definitions( -DEIGEN3_ENABLED )
 add_definitions( -DNO_PARALLEL )
 add_definitions( -DNDEBUG )
-add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" )
+add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
-###include_directories(/home/hexapod/include)
+include_directories(/usr/include)
 include_directories(/usr/include/eigen3)
-###include_directories(/usr/include/boost)
-include_directories(/home/danesh/sferes2)
-include_directories(/usr/include) # Eigen3 includes
+include_directories(${SFERES_PATH})
 
 
 # Check whether all the necessary libs have been installed to compile the
 # code that depends on Qt and OpenGL
 include(ARGoSCheckQTOpenGL)
-
-# Look for the (optional) galib library
-#find_package(GALIB)
-#if(GALIB_FOUND)
-#  include_directories(${GALIB_INCLUDE_DIRS})
-#endif(GALIB_FOUND)
 
 # Find the GSL package
 find_package(GSL REQUIRED)
@@ -111,29 +105,5 @@ if(Boost_FOUND)
 
 else(NOT Boost_FOUND)
 
-    target_link_libraries(epuck_nn
-      argos3core_simulator
-      #argos3plugin_simulator_actuators
-      argos3plugin_simulator_epuck
-      argos3plugin_simulator_genericrobot
-      #argos3plugin_simulator_sensors
-      )
-
-    target_link_libraries(evolution_loop_functions
-      footbot_nn
-      argos3core_simulator
-      #argos3plugin_simulator_actuators
-      argos3plugin_simulator_dynamics2d
-      argos3plugin_simulator_entities
-      argos3plugin_simulator_epuck
-      argos3plugin_simulator_genericrobot
-      argos3plugin_simulator_media
-      #argos3plugin_simulator_sensors
-      )
-
-    target_link_libraries(argos_galib
-      epuck_nn
-      evolution_loop_functions
-      argos3core_simulator)
-
+ 
 endif()
