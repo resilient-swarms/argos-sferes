@@ -55,4 +55,4 @@ To run the EA
 
 To try out an evolved solution
 
-    argos-sferes/bin/argos_galib --load \<path to generation file\>/gen_\<number\> -o \<output file\> -n \<index of individual in MAP\>
+    argos-sferes/bin/argos_galib --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
