@@ -43,7 +43,7 @@
   <loop_functions library="lib/libevolution_loop_functions.so"
                   label="evolution_loop_functions"
                                   trials="5"
-                                  robots="1"/>
+                                  robots="10"/>
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
