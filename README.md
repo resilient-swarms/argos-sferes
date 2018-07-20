@@ -7,37 +7,37 @@ An interface for using the ARGoS swarm robotics simulator with the Sferes evolut
 Instruction for compilation (using MAP-Elites and neural-network modules)
 -------------
 
-Install ARGoS https://www.argos-sim.info/ (via binary packages or source)
+1. Install ARGoS https://www.argos-sim.info/ (via binary packages or source)
 
-Download argos-sferes code
+2. Download argos-sferes code
 
-git clone https://github.com/daneshtarapore/argos-sferes.git
-
-
-Now download the sferes2 code -- all header files, so don't need compilation (unless you want to run the sferes2 test cases).
-
-cd argos-sferes
-
-git clone https://github.com/sferes2/sferes2.git 
+    git clone https://github.com/daneshtarapore/argos-sferes.git
 
 
-As nn2 and map_elites code are in header files, they don't need to be compiled -- so no need to add them to modules.conf
+3. Now download the sferes2 code -- all header files, so don't need compilation (unless you want to run the sferes2 test cases).
 
-cd sferes2/modules
+    cd argos-sferes
 
-git clone https://github.com/sferes2/map_elites.git --branch generic_print
-
-git clone https://github.com/sferes2/nn2.git
+    git clone https://github.com/sferes2/sferes2.git 
 
 
+4. As nn2 and map_elites code are in header files, they don't need to be compiled -- so no need to add them to modules.conf
 
-Go back to the argos-sferes directory
+    cd sferes2/modules
 
-cd ../..
+    git clone https://github.com/sferes2/map_elites.git --branch generic_print
 
-mkdir build
+    git clone https://github.com/sferes2/nn2.git
 
-cmake ..
+
+
+5. Go back to the argos-sferes directory
+
+    cd ../..
+
+    mkdir build
+
+    cmake ..
 
 
 Instruction for running
@@ -45,14 +45,14 @@ Instruction for running
 
 Edit the ARGoS experiment configuration file for your own experiment setup
 
-emacs argos-sferes/experiments/evolution.argos
+    emacs argos-sferes/experiments/evolution.argos
 
 
 To run the EA
 
-argos-sferes/bin/argos_galib
+    argos-sferes/bin/argos_galib
 
 
 To try out an evolved solution
 
-argos-sferes/bin/argos_galib --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
+    argos-sferes/bin/argos_galib --load \<path to generation file\>/gen_\<number\> -o \<output file\> -n \<index of individual in MAP\>
