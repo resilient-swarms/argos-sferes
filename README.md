@@ -35,7 +35,7 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
 
     cd ../..
 
-    mkdir build
+    mkdir build && cd build
 
     cmake ..
 
