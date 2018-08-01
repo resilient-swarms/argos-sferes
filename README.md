@@ -38,6 +38,8 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
     mkdir build
 
     cmake ..
+    
+    make
 
 
 Instruction for running
