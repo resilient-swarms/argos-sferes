@@ -24,24 +24,24 @@
   <!-- *************** -->
   <controllers>
 
-    <epuck_nn_controller id="enn"
-                           library="lib/libepuck_nn.so">
+    <obsavoid_nn_controller id="tnn"
+                           library="lib/libobsavoid_nn_controller.so">
       <actuators>
         <differential_steering implementation="default" />
       </actuators>
       <sensors>
-        <proximity implementation="default"    show_rays="true" />
+        <Thymio_proximity implementation="default"    show_rays="true" />
       </sensors>
       <params/>
-    </epuck_nn_controller>
+    </obsavoid_nn_controller>
 
   </controllers>
 
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libevolution_loop_functions.so"
-                  label="evolution_loop_functions"
+  <loop_functions library="lib/libobsavoid_evol_loopfunctions.so"
+                  label="obsavoid_evol_loopfunctions"
                                   trials="5"
                                   robots="10"/>
 

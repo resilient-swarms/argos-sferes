@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.12)
-project(epuck_obsavoid_nn)
+project(argos_sferes)
 
 set(SFERES_PATH ${PROJECT_SOURCE_DIR}/sferes2) # location of sferes2 - where https://github.com/sferes2/sferes2 has been cloned
 
@@ -64,46 +64,44 @@ link_directories(${ARGOS_LIBRARY_DIRS} ${PROJECT_SOURCE_DIR}/lib)
 
 # Descend into the controllers directory
 
-add_library(epuck_nn SHARED
-  src/epuck_nn_controller.h
-  src/epuck_nn_controller.cpp
+add_library(obsavoid_nn_controller SHARED
+  src/obsavoid/nn_controller.h
+  src/obsavoid/nn_controller.cpp
 )
 
-add_library(evolution_loop_functions SHARED
-  src/evolution_loop_functions.h
-  src/evolution_loop_functions.cpp
+add_library(obsavoid_evol_loopfunctions SHARED
+  src/obsavoid/evol_loop_functions.h
+  src/obsavoid/evol_loop_functions.cpp
 )
 
-add_executable(argos_galib src/main.cpp)
+add_executable(obsavoid_evol src/obsavoid/main.cpp)
 
 
 if(Boost_FOUND)
-    target_link_libraries(epuck_nn
+    target_link_libraries(obsavoid_nn_controller
       argos3core_simulator
       #argos3plugin_simulator_actuators
-      argos3plugin_simulator_epuck
+      argos3plugin_simulator_thymio
       argos3plugin_simulator_genericrobot
       #argos3plugin_simulator_sensors
       ${Boost_LIBRARIES})
 
-    target_link_libraries(evolution_loop_functions
-      epuck_nn
+    target_link_libraries(obsavoid_evol_loopfunctions
+      obsavoid_nn_controller
       argos3core_simulator
       #argos3plugin_simulator_actuators
       argos3plugin_simulator_dynamics2d
       argos3plugin_simulator_entities
-      argos3plugin_simulator_epuck
+      argos3plugin_simulator_thymio
       argos3plugin_simulator_genericrobot
       argos3plugin_simulator_media
       #argos3plugin_simulator_sensors
       ${Boost_LIBRARIES})
 
-    target_link_libraries(argos_galib
-      epuck_nn
-      evolution_loop_functions
+    target_link_libraries(obsavoid_evol
+      obsavoid_nn_controller
+      obsavoid_evol_loopfunctions
       argos3core_simulator ${Boost_LIBRARIES})
-
-else(NOT Boost_FOUND)
-
- 
+  else(NOT Boost_FOUND)
+    message(FATAL_ERROR "Unable to continue without BOOST")
 endif()
