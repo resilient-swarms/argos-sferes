@@ -3,10 +3,11 @@
 # to this file, or copy/append its contents into .gitignore 
 
 # General:
-build
-bin
-lib
+build/
+bin/
+lib/
 *.*~
 
 
 # Specific for present project:
+sferes2/
