@@ -1,0 +1,12 @@
+# dot.gitignore is part of org-mode for LaTeX papers
+# In your local git repository create a link from .gitignore 
+# to this file, or copy/append its contents into .gitignore 
+
+# General:
+build
+bin
+lib
+*.*~
+
+
+# Specific for present project:

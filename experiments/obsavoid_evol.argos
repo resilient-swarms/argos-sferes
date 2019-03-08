@@ -43,7 +43,7 @@
   <loop_functions library="lib/libobsavoid_evol_loopfunctions.so"
                   label="obsavoid_evol_loopfunctions"
                                   trials="5"
-                                  robots="10"/>
+                                  robots="1"/>
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
