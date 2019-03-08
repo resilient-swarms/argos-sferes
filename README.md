@@ -8,6 +8,7 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
 -------------
 
 1. Install ARGoS https://www.argos-sim.info/ (via binary packages or source)
+   Install Thymio simulation plugin for ARGoS from https://github.com/resilient-swarms/thymio
 
 2. Download argos-sferes code
 
