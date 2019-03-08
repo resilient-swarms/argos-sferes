@@ -52,9 +52,10 @@ Edit the ARGoS experiment configuration file for your own experiment setup
 
 To run the EA
 
-    argos-sferes/bin/argos_galib
+    cd argos-sferes
+    ./bin/obsavoid_evol
 
 
 To try out an evolved solution
 
-    argos-sferes/bin/argos_galib --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
+    ./bin/obsavoid_evol --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
