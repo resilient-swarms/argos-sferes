@@ -38,7 +38,7 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
     try
     {
         GetNodeAttribute(t_node, "robots", m_unNumberRobots);
-        m_pcvecEPuck.resize(m_unNumberRobots);
+        m_pcvecRobot.resize(m_unNumberRobots);
         m_pcvecController.resize(m_unNumberRobots);
         _vecctrlrob.resize(m_unNumberRobots);
     }
@@ -49,12 +49,12 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
 
     for(size_t i = 0; i < m_unNumberRobots; ++i)
     {
-        m_pcvecEPuck[i] = new CThymioEntity(
+        m_pcvecRobot[i] = new CThymioEntity(
                     std::string("th") + std::to_string(i),    // entity id
                     "tnn"    // controller id as set in the XML
                     );
-        AddEntity(*m_pcvecEPuck[i]);
-        m_pcvecController[i] = &dynamic_cast<CThymioNNController&>(m_pcvecEPuck[i]->GetControllableEntity().GetController());
+        AddEntity(*m_pcvecRobot[i]);
+        m_pcvecController[i] = &dynamic_cast<CThymioNNController&>(m_pcvecRobot[i]->GetControllableEntity().GetController());
     }
 
 
@@ -127,7 +127,7 @@ void CObsAvoidEvolLoopFunctions::Reset()
                                     CRadians::ZERO
                                     );
 
-        while(!MoveEntity(m_pcvecEPuck[i]->GetEmbodiedEntity(),             // move the body of the robot
+        while(!MoveEntity(m_pcvecRobot[i]->GetEmbodiedEntity(),             // move the body of the robot
                    Position,    // to this position
                    Orientation, // with this orientation
                    false                                         // this is not a check, leave the robot there

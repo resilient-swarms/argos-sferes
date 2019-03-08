@@ -71,7 +71,6 @@
     <box id="wall_west" size="0.1,5,0.5" movable="false">
       <body position="5,2.5,0" orientation="0,0,0" />
     </box>
-
   </arena>
 
   <!-- ******************* -->
@@ -93,7 +92,9 @@
   <!-- ****************** -->
   <!-- We don't want nor need a visualization during evolution -->
   <visualization>
-      <qt-opengl />
+    <!--
+	<qt-opengl/>
+    -->    
   </visualization>
 
 </argos-configuration>

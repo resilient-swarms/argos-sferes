@@ -59,7 +59,7 @@ struct Params
 
     struct dnn
     {
-        static constexpr size_t nb_inputs       = 6; //! 5 ir sensors + bias input at +1
+        static constexpr size_t nb_inputs       = 8; //! 7 ir sensors + bias input at +1
         static constexpr size_t nb_outputs      = 2; // 2 motors: left and right wheel
 
         static constexpr int io_param_evolving = true;
@@ -161,7 +161,7 @@ private:
 
     //CEPuckEntity* m_pcEPuck;
     //CEPuckNNController* m_pcController;
-    std::vector<CThymioEntity*>  m_pcvecEPuck;
+    std::vector<CThymioEntity*>  m_pcvecRobot;
     std::vector<CThymioNNController*>  m_pcvecController;
 
 
@@ -298,25 +298,24 @@ FIT_MAP(FitObstacleMapElites)
         this->_value   = fFitness;
 
         std::vector<float> data;
-        data.push_back(cLoopFunctions.m_pcRNG->Uniform(CRange<Real>(0.0,1.0)));
-        this->set_desc(data);
 
         // BD1 -- characterizes the number of times the robot turns.
-        //data.push_back(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock());
-        //assert(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() >= 0.0 && cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() <= 1.0);
-        //this->set_desc(data);
+        data.push_back(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock());
+        assert(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() >= 0.0 && cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() <= 1.0);
+        this->set_desc(data);
 
         // BD2 -- characterizes the number of times the different IR proximity sensors on the robot return a high value
-        /*for(size_t i = 0; i < cLoopFunctions.num_senact.size(); ++i)
+        for(size_t i = 0; i < cLoopFunctions.num_senact.size(); ++i)
             data.push_back(cLoopFunctions.num_senact[i] / (Real)cSimulator.GetMaxSimulationClock());
-        this->set_desc(data);*/
+
+	
+        this->set_desc(data);
 
 
         if (this->mode() == fit::mode::view)
             printf("\n\n fFitness = %f", fFitness);
 
     } // *** end of eval ***
-
 };
 }
 
