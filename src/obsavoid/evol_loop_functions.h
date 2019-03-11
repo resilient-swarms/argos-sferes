@@ -52,7 +52,7 @@ struct Params
 {
     struct ea
     {
-        SFERES_CONST size_t behav_dim = 1;
+        SFERES_CONST size_t behav_dim = 8;
         SFERES_CONST double epsilon = 0;//0.05;
         SFERES_ARRAY(size_t, behav_shape, 10);
     };
@@ -302,7 +302,6 @@ FIT_MAP(FitObstacleMapElites)
         // BD1 -- characterizes the number of times the robot turns.
         data.push_back(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock());
         assert(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() >= 0.0 && cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() <= 1.0);
-        this->set_desc(data);
 
         // BD2 -- characterizes the number of times the different IR proximity sensors on the robot return a high value
         for(size_t i = 0; i < cLoopFunctions.num_senact.size(); ++i)
