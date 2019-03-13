@@ -54,7 +54,7 @@ struct Params
     {
         SFERES_CONST size_t behav_dim = 8;
         SFERES_CONST double epsilon = 0;//0.05;
-        SFERES_ARRAY(size_t, behav_shape, 10);
+        SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10, 10, 10);
     };
 
     struct dnn
@@ -303,7 +303,7 @@ FIT_MAP(FitObstacleMapElites)
         data.push_back(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock());
         assert(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() >= 0.0 && cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() <= 1.0);
 
-        // BD2 -- characterizes the number of times the different IR proximity sensors on the robot return a high value
+        // BD2 - BD8 -- characterizes the number of times the different IR proximity sensors on the robot return a high value
         for(size_t i = 0; i < cLoopFunctions.num_senact.size(); ++i)
             data.push_back(cLoopFunctions.num_senact[i] / (Real)cSimulator.GetMaxSimulationClock());
 
