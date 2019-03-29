@@ -35,19 +35,18 @@ endif()
 
 # find TBB libs
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/FindTBB)
-#find_package(TBB COMPONENTS tbbmalloc tbbmalloc_proxy)
-#if(TBB_FOUND)
-#  include_directories(${TBB_INCLUDE_DIRS})
-#  message("Found TBB - " ${TBB_INCLUDE_DIRS}  "  & "  ${TBB_LIBRARIES} "  & " ${TBB_DEFINITIONS})
-#else(NOT TBB_FOUND)
-#  message(FATAL_ERROR "Unable to continue without TBB")
-#endif()
+find_package(TBB)
+if(TBB_FOUND)
+  include_directories(${TBB_INCLUDE_DIRS})
+else(NOT TBB_FOUND)
+  message(FATAL_ERROR "Unable to continue without TBB")
+endif()
 
 link_directories(/usr/lib)
 
 add_definitions(-std=c++0x)
 add_definitions( -DEIGEN3_ENABLED )
-add_definitions( -DNO_PARALLEL )
+#add_definitions( -DNO_PARALLEL )
 add_definitions( -DNDEBUG )
 add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
@@ -94,8 +93,8 @@ if(Boost_FOUND)
       argos3plugin_simulator_thymio
       argos3plugin_simulator_genericrobot
       #argos3plugin_simulator_sensors
-      ${Boost_LIBRARIES})
-#      ${TBB_LIBRARIES})
+      ${Boost_LIBRARIES}
+      ${TBB_LIBRARIES})
 
     target_link_libraries(obsavoid_evol_loopfunctions
       obsavoid_nn_controller
@@ -107,13 +106,13 @@ if(Boost_FOUND)
       argos3plugin_simulator_genericrobot
       argos3plugin_simulator_media
       #argos3plugin_simulator_sensors
-      ${Boost_LIBRARIES})
-#      ${TBB_LIBRARIES})
+      ${Boost_LIBRARIES}
+      ${TBB_LIBRARIES})
 
     target_link_libraries(obsavoid_evol
       obsavoid_nn_controller
       obsavoid_evol_loopfunctions
-      argos3core_simulator ${Boost_LIBRARIES})# ${TBB_LIBRARIES})
+      argos3core_simulator ${Boost_LIBRARIES} ${TBB_LIBRARIES})
   else(NOT Boost_FOUND)
     message(FATAL_ERROR "Unable to continue without BOOST")
 endif()
