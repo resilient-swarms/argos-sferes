@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     //typedef FitObstacle<Params> fit_t;
     typedef FitObstacleMapElites<Params> fit_t;
     typedef phen::Dnn<robots_nn::gen_t, fit_t, Params> phen_t;
-    typedef eval::Parallel<Params> eval_t;
+    typedef eval::Eval<Params> eval_t;
     //typedef boost::fusion::vector<sferes::stat::ParetoFront<phen_t, Params> >  stat_t;
 
     typedef boost::fusion::vector<
@@ -52,7 +52,6 @@ int main(int argc, char** argv)
     /*
     * Dispose of ARGoS stuff
     */
-    //cSimulator.Destroy();
     argos::CSimulator::GetInstance().Destroy();
 
     /* All is OK */

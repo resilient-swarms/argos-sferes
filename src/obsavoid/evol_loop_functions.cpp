@@ -6,6 +6,12 @@
 /****************************************/
 /****************************************/
 
+#define SENSOR_ACTIVATION_THRESHOLD 0.5
+
+/****************************************/
+/****************************************/
+
+
 CObsAvoidEvolLoopFunctions::CObsAvoidEvolLoopFunctions() :
     m_unCurrentTrial(0),
     m_vecInitSetup(0), //arg is number of trials
@@ -57,45 +63,6 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
         m_pcvecController[i] = &dynamic_cast<CThymioNNController&>(m_pcvecRobot[i]->GetControllableEntity().GetController());
     }
 
-
-//    /*
-//    * Create the foot-bot and get a reference to its controller
-//    */
-//    m_pcEPuck = new CEPuckEntity(
-//                "eb",    // entity id
-//                "enn"    // controller id as set in the XML
-//                );
-//    AddEntity(*m_pcEPuck);
-//    m_pcController = &dynamic_cast<CEPuckNNController&>(m_pcEPuck->GetControllableEntity().GetController());
-
-
-    /*
-    * Create the initial setup for each trial
-    * The robot is placed 4.5 meters away from the light
-    * (which is in the origin) at angles
-    * { PI/12, 2*PI/12, 3*PI/12, 4*PI/12, 5*PI/12 }
-    * wrt to the world reference.
-    * Also, the rotation of the robot is chosen at random
-    * from a uniform distribution.
-    */
-//    CRadians cOrient;
-//    for(size_t i = 0; i < m_vecInitSetup.size(); ++i)
-//    {
-//        /* Set position */
-//        m_vecInitSetup[i].Position.FromSphericalCoords(
-//                    4.5f,                                          // distance from origin
-//                    CRadians::PI_OVER_TWO,                         // angle with Z axis
-//                    static_cast<Real>(i+1) * CRadians::PI / 12.0f // rotation around Z
-//                    );
-//        /* Set orientation */
-//        cOrient = m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE);
-//        m_vecInitSetup[i].Orientation.FromEulerAngles(
-//                    cOrient,        // rotation around Z
-//                    CRadians::ZERO, // rotation around Y
-//                    CRadians::ZERO  // rotation around X
-//                    );
-//    }
-
     /*
     * Process trial information
     */
@@ -116,10 +83,12 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
 /****************************************/
 /****************************************/
 
-void CObsAvoidEvolLoopFunctions::Reset()
+void CObsAvoidEvolLoopFunctions::ResetToSeedPositions()
 {
     for(size_t i = 0; i < m_unNumberRobots; ++i)
     {
+        // TODO: Set bounds for positions from configuration file
+        // TODO: Store and use the same positions -- different for different trials numbers
         CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), 0.0f);
         CQuaternion Orientation;
         Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
@@ -141,36 +110,6 @@ void CObsAvoidEvolLoopFunctions::Reset()
 
         }
     }
-//    /*
-//    * Move robot to the initial position corresponding to the current trial
-//    */
-
-//    /* Set position */
-//    m_vecInitSetup[m_unCurrentTrial].Position = CVector3(m_pcRNG->Uniform(CRange<Real>(1.0, 4.0)), m_pcRNG->Uniform(CRange<Real>(1.0, 4.0)), 0.0f);
-//    //std::cout << "Pos " << m_vecInitSetup[m_unCurrentTrial].Position << std::endl;
-
-
-//    /* Set orientation */
-//    m_vecInitSetup[m_unCurrentTrial].Orientation.FromEulerAngles(
-//                m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),        // rotation around Z
-//                CRadians::ZERO, // rotation around Y
-//                CRadians::ZERO  // rotation around X
-//                );
-
-//    if(!MoveEntity(
-//                m_pcEPuck->GetEmbodiedEntity(),             // move the body of the robot
-//                m_vecInitSetup[m_unCurrentTrial].Position,    // to this position
-//                m_vecInitSetup[m_unCurrentTrial].Orientation, // with this orientation
-//                false                                         // this is not a check, leave the robot there
-//                ))
-//    {
-//        LOGERR << "Can't move robot in <"
-//               << m_vecInitSetup[m_unCurrentTrial].Position
-//               << ">, <"
-//               << m_vecInitSetup[m_unCurrentTrial].Orientation
-//               << ">"
-//               << std::endl;
-//    }
 }
 
 /****************************************/
@@ -195,11 +134,11 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         {
             inputs[i] = cController.m_pcProximity->GetReadings()[i].Value;
             MaxIRSensor = Max(MaxIRSensor, (Real) inputs[i]);
-            num_senact[i] += (inputs[i] >= 0.1) ? 1.0 : 0.0;
+            num_senact[i] += (inputs[i] >= SENSOR_ACTIVATION_THRESHOLD) ? 1.0 : 0.0;
         }
         inputs[Params::dnn::nb_inputs - 1] = +1.0; //Bias input
 
-        _ctrlrob.step(inputs);
+//      _ctrlrob.step(inputs);
         _vecctrlrob[robotindex].step(inputs);
         _vecctrlrob[robotindex].get_outf();
 
@@ -218,7 +157,8 @@ void CObsAvoidEvolLoopFunctions::PreStep()
             if(std::isnan(_vecctrlrob[robotindex].get_outf()[j]))
                 outf[j] = 0.0;
             else
-                outf[j]=10.0f*(2.0f*_vecctrlrob[robotindex].get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
+                outf[j]=10.0f*_vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
+                //outf[j]=10.0f*(2.0f*_vecctrlrob[robotindex].get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
 
 
         cController.m_fLeftSpeed  = outf[0];

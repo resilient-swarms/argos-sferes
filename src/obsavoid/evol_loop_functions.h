@@ -52,9 +52,9 @@ struct Params
 {
     struct ea
     {
-        SFERES_CONST size_t behav_dim = 8;
+        SFERES_CONST size_t behav_dim = 7;
         SFERES_CONST double epsilon = 0;//0.05;
-        SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10, 10, 10);
+        SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10, 10);
     };
 
     struct dnn
@@ -69,12 +69,12 @@ struct Params
         static constexpr float m_rate_add_neuron  = 0.05f;
         static constexpr float m_rate_del_neuron  = 0.1f;
 
-        static constexpr init_t init = ff; //random_topology or ff (feed-forward)
+        static constexpr init_t init = random_topology; //random_topology or ff (feed-forward)
         //these only count w/ random init, instead of feed forward
-        static constexpr size_t min_nb_neurons  = 0;
-        static constexpr size_t max_nb_neurons  = 0;
-        static constexpr size_t min_nb_conns    = 0;
-        static constexpr size_t max_nb_conns    = 0;
+        static constexpr size_t min_nb_neurons  = 4; // does not include input and output neurons
+        static constexpr size_t max_nb_neurons  = 10; // does not include input and output neurons
+        static constexpr size_t min_nb_conns    = nb_inputs*nb_outputs;
+        static constexpr size_t max_nb_conns    = 40;
     };
 
     struct parameters
@@ -98,11 +98,11 @@ struct Params
     struct pop
     {
         // number of initial random points
-        SFERES_CONST size_t init_size = 10;//1000;
+        SFERES_CONST size_t init_size = 200;//1000;
         // size of a batch
-        SFERES_CONST size_t size = 10; //1000;
-        SFERES_CONST size_t nb_gen = 1001;
-        SFERES_CONST size_t dump_period = 100;
+        SFERES_CONST size_t size = 200; //1000;
+        SFERES_CONST size_t nb_gen = 1;
+        SFERES_CONST size_t dump_period = 1;
     };
 };
 
@@ -113,7 +113,7 @@ typedef phen::Parameters<gen::EvoFloat<1, Params>, fit::FitDummy<>, Params> weig
 typedef phen::Parameters<gen::EvoFloat<1, Params>, fit::FitDummy<>, Params> bias_t;
 
 typedef PfWSum<weight_t> pf_t;
-typedef AfSigmoidBias<bias_t> af_t;
+typedef AfTanh<bias_t> af_t;
 typedef Neuron<pf_t, af_t>  neuron_t;
 typedef Connection <weight_t> connection_t;
 typedef sferes::gen::Dnn< neuron_t, connection_t, Params> gen_t;
@@ -133,7 +133,7 @@ public:
 
     virtual void Init(TConfigurationNode& t_node);
 
-    virtual void Reset();
+    virtual void ResetToSeedPositions();
 
     /* Called by the evolutionary algorithm to set the current trial */
     inline void SetTrial(size_t un_trial)
@@ -257,9 +257,11 @@ FIT_MAP(FitObstacleMapElites)
 
             /* Tell the loop functions to get ready for the i-th trial */
             cLoopFunctions.SetTrial(i);
-            /* Reset the experiment.
-             * This internally calls also CObsAvoidEvolLoopFunctions::Reset(). */
-            cSimulator.Reset();
+
+            /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
+            //cSimulator.Reset();
+            /* We can instead only reset the positions of the robots */
+            cLoopFunctions.ResetToSeedPositions();
 
             /* Configure the controller with the indiv gen */
             //cLoopFunctions.ConfigureFromGenome(ind.nn());
@@ -269,6 +271,7 @@ FIT_MAP(FitObstacleMapElites)
 
             for(size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
                 cLoopFunctions._vecctrlrob[j].init(); // a copied nn object needs to be init before use
+
 
             /* Run the experiment */
             cSimulator.Execute();
@@ -300,10 +303,10 @@ FIT_MAP(FitObstacleMapElites)
         std::vector<float> data;
 
         // BD1 -- characterizes the number of times the robot turns.
-        data.push_back(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock());
-        assert(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() >= 0.0 && cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() <= 1.0);
+        //data.push_back(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock());
+        //assert(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() >= 0.0 && cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() <= 1.0);
 
-        // BD2 - BD8 -- characterizes the number of times the different IR proximity sensors on the robot return a high value
+        // BD1 - BD7 -- characterizes the number of times the different IR proximity sensors on the robot return a high value
         for(size_t i = 0; i < cLoopFunctions.num_senact.size(); ++i)
             data.push_back(cLoopFunctions.num_senact[i] / (Real)cSimulator.GetMaxSimulationClock());
 

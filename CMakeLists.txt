@@ -33,6 +33,16 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
+# find TBB libs
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/FindTBB)
+#find_package(TBB COMPONENTS tbbmalloc tbbmalloc_proxy)
+#if(TBB_FOUND)
+#  include_directories(${TBB_INCLUDE_DIRS})
+#  message("Found TBB - " ${TBB_INCLUDE_DIRS}  "  & "  ${TBB_LIBRARIES} "  & " ${TBB_DEFINITIONS})
+#else(NOT TBB_FOUND)
+#  message(FATAL_ERROR "Unable to continue without TBB")
+#endif()
+
 link_directories(/usr/lib)
 
 add_definitions(-std=c++0x)
@@ -85,6 +95,7 @@ if(Boost_FOUND)
       argos3plugin_simulator_genericrobot
       #argos3plugin_simulator_sensors
       ${Boost_LIBRARIES})
+#      ${TBB_LIBRARIES})
 
     target_link_libraries(obsavoid_evol_loopfunctions
       obsavoid_nn_controller
@@ -97,11 +108,12 @@ if(Boost_FOUND)
       argos3plugin_simulator_media
       #argos3plugin_simulator_sensors
       ${Boost_LIBRARIES})
+#      ${TBB_LIBRARIES})
 
     target_link_libraries(obsavoid_evol
       obsavoid_nn_controller
       obsavoid_evol_loopfunctions
-      argos3core_simulator ${Boost_LIBRARIES})
+      argos3core_simulator ${Boost_LIBRARIES})# ${TBB_LIBRARIES})
   else(NOT Boost_FOUND)
     message(FATAL_ERROR "Unable to continue without BOOST")
 endif()

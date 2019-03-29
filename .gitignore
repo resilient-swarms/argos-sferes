@@ -8,6 +8,10 @@ bin/
 lib/
 *.*~
 #*#
+argos-sferes-qt-prj.config
+argos-sferes-qt-prj.creator
+argos-sferes-qt-prj.files
+argos-sferes-qt-prj.includes
 
 # Specific for present project:
 sferes2/
