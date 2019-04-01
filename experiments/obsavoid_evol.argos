@@ -16,7 +16,7 @@
     <!-- Each experimental run is 120 seconds long -->
     <experiment length="120"
                 ticks_per_second="10"
-                random_seed="0" />  <!-- if we want a different random seed each time the reset button is pressed -->
+                random_seed="111" />  <!-- if we want a different random seed each time the reset button is pressed -->
   </framework>
 
   <!-- *************** -->

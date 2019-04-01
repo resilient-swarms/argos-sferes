@@ -3,9 +3,13 @@ project(argos_sferes)
 
 set(SFERES_PATH ${PROJECT_SOURCE_DIR}/sferes2) # location of sferes2 - where https://github.com/sferes2/sferes2 has been cloned
 
-if(UNIX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
-endif()
+#if(UNIX)
+#    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+#endif()
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 
 # Deactivate RPATH for MacOSX
 set(CMAKE_MACOSX_RPATH 0)
@@ -33,18 +37,19 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-# find TBB libs
+# find TBB libs -- script from https://github.com/justusc/FindTBB
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/FindTBB)
-find_package(TBB)
+find_package(TBB) #COMPONENTS tbbmalloc tbbmalloc_proxy tbb_preview
 if(TBB_FOUND)
   include_directories(${TBB_INCLUDE_DIRS})
+  message(${TBB_INCLUDE_DIRS} " " ${TBB_LIBRARIES})
 else(NOT TBB_FOUND)
   message(FATAL_ERROR "Unable to continue without TBB")
 endif()
 
 link_directories(/usr/lib)
 
-add_definitions(-std=c++0x)
+#add_definitions(-std=c++0x)
 add_definitions( -DEIGEN3_ENABLED )
 #add_definitions( -DNO_PARALLEL )
 add_definitions( -DNDEBUG )

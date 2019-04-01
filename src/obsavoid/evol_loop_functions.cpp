@@ -76,6 +76,39 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing number of trials", ex);
     }
 
+    m_vecInitSetup.clear();
+    for(size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
+    {
+        m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
+        for(size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
+        {
+            // TODO: Set bounds for positions from configuration file
+            CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), 0.0f);
+            //std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
+            CQuaternion Orientation;
+            Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
+                                        CRadians::ZERO,
+                                        CRadians::ZERO
+                                        );
+
+            while(!MoveEntity(m_pcvecRobot[m_unRobot]->GetEmbodiedEntity(),             // move the body of the robot
+                              Position,    // to this position
+                              Orientation, // with this orientation
+                              false                                         // this is not a check, leave the robot there
+                              ))
+            {
+                Position = CVector3(m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), 0.0f);
+                //std::cout << "Position2 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
+                Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
+                                            CRadians::ZERO,
+                                            CRadians::ZERO
+                                            );
+
+            }
+            m_vecInitSetup[m_unTrial][m_unRobot].Position = Position;
+            m_vecInitSetup[m_unTrial][m_unRobot].Orientation = Orientation;
+        }
+    }
 
     Reset();
 }
@@ -83,32 +116,15 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
 /****************************************/
 /****************************************/
 
-void CObsAvoidEvolLoopFunctions::ResetToSeedPositions()
+void CObsAvoidEvolLoopFunctions::Reset()
 {
-    for(size_t i = 0; i < m_unNumberRobots; ++i)
+    for(size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
     {
-        // TODO: Set bounds for positions from configuration file
-        // TODO: Store and use the same positions -- different for different trials numbers
-        CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), 0.0f);
-        CQuaternion Orientation;
-        Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
-                                    CRadians::ZERO,
-                                    CRadians::ZERO
-                                    );
-
-        while(!MoveEntity(m_pcvecRobot[i]->GetEmbodiedEntity(),             // move the body of the robot
-                   Position,    // to this position
-                   Orientation, // with this orientation
+        MoveEntity(m_pcvecRobot[m_unRobot]->GetEmbodiedEntity(),             // move the body of the robot
+                   m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
+                   m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
                    false                                         // this is not a check, leave the robot there
-                   ))
-        {
-            Position = CVector3(m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), 0.0f);
-            Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
-                                        CRadians::ZERO,
-                                        CRadians::ZERO
-                                        );
-
-        }
+                   );
     }
 }
 
@@ -127,7 +143,7 @@ void CObsAvoidEvolLoopFunctions::PreStep()
 
         assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
 
-        inputs.resize(Params::dnn::nb_inputs);
+        inputs.resize(ParamsDnn::dnn::nb_inputs);
 
         Real MaxIRSensor = -1.0;
         for(size_t i = 0; i < cController.m_pcProximity->GetReadings().size(); ++i )
@@ -136,7 +152,7 @@ void CObsAvoidEvolLoopFunctions::PreStep()
             MaxIRSensor = Max(MaxIRSensor, (Real) inputs[i]);
             num_senact[i] += (inputs[i] >= SENSOR_ACTIVATION_THRESHOLD) ? 1.0 : 0.0;
         }
-        inputs[Params::dnn::nb_inputs - 1] = +1.0; //Bias input
+        inputs[ParamsDnn::dnn::nb_inputs - 1] = +1.0; //Bias input
 
 //      _ctrlrob.step(inputs);
         _vecctrlrob[robotindex].step(inputs);

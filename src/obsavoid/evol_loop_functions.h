@@ -57,6 +57,37 @@ struct Params
         SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10, 10);
     };
 
+    struct parameters
+    {
+        //Min and max weights of MLP?
+        static constexpr float min = -5.0f;
+        static constexpr float max = 5.0f;
+    };
+
+    struct evo_float
+    {
+        static constexpr mutation_t mutation_type = polynomial;
+        //static const cross_over_t cross_over_type = sbx;
+        static constexpr cross_over_t cross_over_type = no_cross_over;
+        static constexpr float cross_rate = 0.0f;
+        static constexpr float mutation_rate = 0.1f;
+        static constexpr float eta_m = 15.0f;
+        static constexpr float eta_c = 10.0f;
+    };
+
+    struct pop
+    {
+        // number of initial random points
+        SFERES_CONST size_t init_size = 200;//1000;
+        // size of a batch
+        SFERES_CONST size_t size = 200; //1000;
+        SFERES_CONST size_t nb_gen = 10001;
+        SFERES_CONST size_t dump_period = 100;
+    };
+};
+
+struct ParamsDnn
+{
     struct dnn
     {
         static constexpr size_t nb_inputs       = 8; //! 7 ir sensors + bias input at +1
@@ -94,29 +125,18 @@ struct Params
         static constexpr float eta_m = 15.0f;
         static constexpr float eta_c = 10.0f;
     };
-
-    struct pop
-    {
-        // number of initial random points
-        SFERES_CONST size_t init_size = 200;//1000;
-        // size of a batch
-        SFERES_CONST size_t size = 200; //1000;
-        SFERES_CONST size_t nb_gen = 10001;
-        SFERES_CONST size_t dump_period = 100;
-    };
 };
-
 
 namespace robots_nn
 {
-typedef phen::Parameters<gen::EvoFloat<1, Params>, fit::FitDummy<>, Params> weight_t;
-typedef phen::Parameters<gen::EvoFloat<1, Params>, fit::FitDummy<>, Params> bias_t;
+typedef phen::Parameters<gen::EvoFloat<1, ParamsDnn>, fit::FitDummy<>, ParamsDnn> weight_t;
+typedef phen::Parameters<gen::EvoFloat<1, ParamsDnn>, fit::FitDummy<>, ParamsDnn> bias_t;
 
 typedef PfWSum<weight_t> pf_t;
 typedef AfTanh<bias_t> af_t;
 typedef Neuron<pf_t, af_t>  neuron_t;
 typedef Connection <weight_t> connection_t;
-typedef sferes::gen::Dnn< neuron_t, connection_t, Params> gen_t;
+typedef sferes::gen::Dnn<neuron_t, connection_t, ParamsDnn> gen_t;
 typedef typename gen_t::nn_t nn_t; // not sure if typename should be here?
 }
 
@@ -133,7 +153,7 @@ public:
 
     virtual void Init(TConfigurationNode& t_node);
 
-    virtual void ResetToSeedPositions();
+    virtual void Reset();
 
     /* Called by the evolutionary algorithm to set the current trial */
     inline void SetTrial(size_t un_trial)
@@ -169,12 +189,12 @@ public:
     CRandom::CRNG* m_pcRNG;
 
 public:
-    std::vector<SInitSetup> m_vecInitSetup;
+    std::vector< std::vector<SInitSetup> > m_vecInitSetup;
     size_t m_unNumberTrials, m_unCurrentTrial, m_unNumberRobots;
 
 
 public:
-    robots_nn::nn_t _ctrlrob;
+    //robots_nn::nn_t _ctrlrob;
     std::vector<robots_nn::nn_t> _vecctrlrob;
     std::vector<float> outf, inputs;
 
@@ -222,7 +242,7 @@ FIT_MAP(FitObstacleMapElites)
         this->_objs.resize(1);
 
         ind.nn().simplify();
-        ind.nn().init();
+        //ind.nn().init();
 
 
         /****************************************/
@@ -253,15 +273,13 @@ FIT_MAP(FitObstacleMapElites)
             cLoopFunctions.old_pos   = CVector3(0.0f, 0.0f, 0.0f);
             cLoopFunctions.old_theta = CRadians(0.0f);
             cLoopFunctions.num_ds = 0.0;
-            cLoopFunctions.num_senact.resize(0); cLoopFunctions.num_senact.resize(Params::dnn::nb_inputs - 1, 0.0f); // Params::dnn::nb_inputs includes sensors and a bias input
+            cLoopFunctions.num_senact.resize(0); cLoopFunctions.num_senact.resize(ParamsDnn::dnn::nb_inputs - 1, 0.0f); // Params::dnn::nb_inputs includes sensors and a bias input
 
             /* Tell the loop functions to get ready for the i-th trial */
             cLoopFunctions.SetTrial(i);
 
             /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
-            //cSimulator.Reset();
-            /* We can instead only reset the positions of the robots */
-            cLoopFunctions.ResetToSeedPositions();
+            cSimulator.Reset();
 
             /* Configure the controller with the indiv gen */
             //cLoopFunctions.ConfigureFromGenome(ind.nn());

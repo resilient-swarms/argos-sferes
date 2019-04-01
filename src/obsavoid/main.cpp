@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 
     //typedef FitObstacle<Params> fit_t;
     typedef FitObstacleMapElites<Params> fit_t;
-    typedef phen::Dnn<robots_nn::gen_t, fit_t, Params> phen_t;
+    typedef phen::Dnn<robots_nn::gen_t, fit_t, ParamsDnn> phen_t;
     typedef eval::Eval<Params> eval_t; //eval::Parallel gives cryptic seg fault for nn. Unrelated but make sure visualization is disabled when parallelizing
     //typedef boost::fusion::vector<sferes::stat::ParetoFront<phen_t, Params> >  stat_t;
 
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
             >  stat_t;
 
     //MODIFIER
-    typedef boost::fusion::vector<modif::Dummy<Params> > modifier_t;
+    typedef modif::Dummy<> modifier_t;
     //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
     typedef ea::MapElites<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
 
