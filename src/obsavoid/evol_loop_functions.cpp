@@ -45,33 +45,7 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
     * Create the random number generator
     */
     m_pcRNG = CRandom::CreateRNG("argos");
-    /* Process behavioural descriptor type  */
-    try
-    {
-        std::string s;
-        GetNodeAttribute(t_node, "descriptortype",s);
-        if (s=="auto")
-        {
-            this->descriptor=new AutoDescriptor();
-        }
-        else if (s=="history")
-        {
-            this->descriptor=new IntuitiveHistoryDescriptor(*this);
-        }
-        else if (s=="average")
-        {
-            this->descriptor=new AverageDescriptor();
-        }
-        else
-        {
-            throw std::runtime_error("descriptortype "+s + " not found");
-        }
 
-    }
-    catch(CARGoSException& ex)
-    {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
-    }
     /* Process bd_dims */
     try
     {
@@ -138,6 +112,45 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
     }
 
+        /* Process behavioural descriptor type  */
+    try
+    {
+        std::string s;
+        GetNodeAttribute(t_node, "descriptortype",s);
+        if (s=="auto")
+        {
+            this->descriptor=new AutoDescriptor();
+        }
+        else if (s=="history")
+        {
+            this->descriptor=new IntuitiveHistoryDescriptor(this);
+            // IntuitiveHistoryDescriptor* descriptor_actual=static_cast<IntuitiveHistoryDescriptor*>(this->descriptor);
+            // this->descriptor->bd.resize(descriptor_actual->behav_dim,0.0f);
+            // //define member variables
+            // descriptor_actual->center = GetSpace().GetArenaCenter();
+            
+            // // initialise grid (for calculating coverage and uniformity)
+            // CVector3 max =GetSpace().GetArenaSize();
+            // CVector3 min = descriptor_actual->center - 0.5*max;
+            // descriptor_actual->max_deviation = StatFuns::get_minkowski_distance(max,descriptor_actual->center);
+            // assert(m_unNumberRobots==1 && "number of robots should be equal to 1 when choosing IntuitiveHistoryDescriptor");
+            // descriptor_actual->total_positions = max/descriptor_actual->grid_step;
+        }
+        else if (s=="average")
+        {
+            this->descriptor=new AverageDescriptor();
+        }
+        else
+        {
+            throw std::runtime_error("descriptortype "+s + " not found");
+        }
+
+    }
+    catch(CARGoSException& ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
+    }
+
 
     /*
     * Process trial information
@@ -145,15 +158,15 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
     try
     {
         GetNodeAttribute(t_node, "trials", m_unNumberTrials);
-        m_vecInitSetup.resize(m_unNumberTrials);
-        this->fitfun->fitness_per_trial.resize(m_unNumberTrials);
+        //m_vecInitSetup.resize(m_unNumberTrials);
+        //this->fitfun->fitness_per_trial.resize(m_unNumberTrials);
     }
     catch(CARGoSException& ex)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing number of trials", ex);
     }
 
-    m_vecInitSetup.clear();
+    //m_vecInitSetup.clear();
     for(size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
     {
         m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
@@ -161,7 +174,9 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
         {
             // TODO: Set bounds for positions from configuration file
             CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), 0.0f);
-            //std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
+            #ifdef PRINTING
+                std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
+            #endif
             CQuaternion Orientation;
             Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
                                         CRadians::ZERO,
@@ -202,7 +217,11 @@ void CObsAvoidEvolLoopFunctions::Reset()
                    m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
                    false                                         // this is not a check, leave the robot there
                    );
+    #ifdef PRINTING
+        std::cout << "position after reset " << get_position(m_pcvecRobot[m_unRobot]);
+    #endif
     }
+
 }
 
 /****************************************/
@@ -262,7 +281,8 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         float s=(fabs(outf[0])+fabs(outf[1]))/20.0; // in [0,1]
         float ds=fabs(outf[0]-outf[1])/20.0; // in [0,1]
         speed+=s;
-        lin_speed+=s*(1.0-sqrt(ds));
+        curr_lin_speed = s*(1.0-sqrt(ds));
+        lin_speed+=curr_lin_speed;
         num_ds += (ds >= 0.1) ? 1.0 : 0.0;
 
 
@@ -339,14 +359,15 @@ std::vector<float> AverageDescriptor::after_trials(Real time,CObsAvoidEvolLoopFu
 void IntuitiveHistoryDescriptor::set_input_descriptor(CObsAvoidEvolLoopFunctions& cLoopFunctions)
 {   
     //add to the deviation (to get the mean after all trials have finished)
-    deviation+=StatFuns::get_minkowski_distance(cLoopFunctions.curr_pos,center);
+    CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[0]);
+    deviation+=StatFuns::get_minkowski_distance(pos,center);// assume single robot 
 
     //count the bin
-    CVector3 bin = get_bin(cLoopFunctions.curr_pos);
+    std::tuple<int, int, int> bin = get_bin(pos);
     auto find_result =  unique_visited_positions.find(bin);
     if (find_result ==  unique_visited_positions.end())
     {
-        unique_visited_positions[bin]=1;
+        unique_visited_positions.insert(std::pair<std::tuple<int, int, int>,size_t>(bin,1));
     }
     else
     {
@@ -358,6 +379,11 @@ void IntuitiveHistoryDescriptor::set_input_descriptor(CObsAvoidEvolLoopFunctions
 
 }
 
+void IntuitiveHistoryDescriptor::set_output_descriptor(CObsAvoidEvolLoopFunctions& cLoopFunctions)
+{
+    velocity_stats.push(cLoopFunctions.curr_lin_speed);
+}
+
 void IntuitiveHistoryDescriptor::end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions)
 {
     /*add behavioural metrics */
@@ -367,18 +393,20 @@ void IntuitiveHistoryDescriptor::end_trial(CObsAvoidEvolLoopFunctions& cLoopFunc
     float uniformity = StatFuns::uniformity(probabilities);
     this->bd[0] += uniformity;
     //deviation from the center
-    this->bd[1] += deviation;
+    float avg_deviation = deviation/(max_deviation*(float)visitation_count);
+    this->bd[1] += avg_deviation;
     //coverage
-    float coverage = unique_visited_positions.size();
+    float coverage = (float) unique_visited_positions.size()/ (float)visitation_count;
     this->bd[2] +=coverage;
     //variability in the speed]
-    float velocity_sd=velocity_stats.std();
+    float velocity_sd=velocity_stats.std()/max_velocitysd;
     this->bd[3] +=velocity_sd;
     //
     
     #ifdef PRINTING
         std::cout<<"uniformity"<<uniformity<<std::endl;
-        std::cout<<"deviation"<<deviation<<std::endl;
+        std::cout<<"Max deviation"<<max_deviation<<std::endl;
+        std::cout<<"deviation"<<avg_deviation<<std::endl;
         std::cout<<"coverage"<<coverage<<std::endl;
         std::cout<<"velocity_sd"<<velocity_sd<<std::endl;
     #endif
@@ -389,8 +417,11 @@ void IntuitiveHistoryDescriptor::end_trial(CObsAvoidEvolLoopFunctions& cLoopFunc
 std::vector<float> IntuitiveHistoryDescriptor::after_trials(Real time, CObsAvoidEvolLoopFunctions& cLoopFunctions)
 {
     // now normalise all the summed bds
-    this->bd[0]/=(float) cLoopFunctions.m_unNumberTrials;
-    this->bd[1]/=max_deviation*(float) cLoopFunctions.m_unNumberTrials*time;
+    for (int i=0; i < bd.size(); ++i)
+    {
+        bd[i]/=cLoopFunctions.m_unNumberTrials;
+    }
+    return bd;
 
 }
 

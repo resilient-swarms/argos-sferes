@@ -289,7 +289,11 @@ public:
     CVector3 get_position(CThymioEntity* robot)
     {
 
-      return robot->GetEmbodiedEntity().GetOriginAnchor().Position;
+      CVector3 position =  robot->GetEmbodiedEntity().GetOriginAnchor().Position;
+      // #ifdef PRINTING
+      //   std::cout<<"position "<<position<<std::endl;
+      // #endif
+      return position;
     }
 
 
@@ -332,6 +336,7 @@ public:
 
     /*descriptors*/
     float num_ds;
+    float curr_lin_speed;
     Descriptor* descriptor;
     FitFun* fitfun;
     int bd_dims;
@@ -375,13 +380,14 @@ public:
     virtual float after_trials(){
         float minfit=StatFuns::min(fitness_per_trial);
         fitness_per_trial.clear();
+        return minfit;
     };
 
 
 };
 
 class MeanSpeed : public FitFun{
-    //Floreano & Mondada '94; minimum of the linear speed
+    // same as FloreanoMondada but take mean instead of minimum
 public:
     MeanSpeed(){}
 
@@ -395,6 +401,7 @@ public:
     virtual float after_trials(){
         float meanfit = StatFuns::mean(fitness_per_trial);
         fitness_per_trial.clear();
+        return meanfit;
     };
 
 
@@ -418,6 +425,7 @@ public:
     virtual float after_trials(){
         float meanfit = StatFuns::mean(fitness_per_trial);
         fitness_per_trial.clear();
+        return meanfit;
     };
     float get_mass(CThymioEntity* robot)
     {
@@ -512,28 +520,34 @@ class IntuitiveHistoryDescriptor: public Descriptor{
     *  after all trials, gather statistics of the observed history
     */
 public:
-    IntuitiveHistoryDescriptor(CLoopFunctions& cLoopFunctions){
-        //bd.resize(ParamsDnn::dnn::nb_inputs + ParamsDnn::dnn::nb_outputs - 1, 0.0f); // Params::dnn::nb_inputs includes sensors and a bias input
+    IntuitiveHistoryDescriptor(CLoopFunctions* cLoopFunctions){
+            bd.resize(behav_dim,0.0f);
+            //define member variables
+            center = cLoopFunctions->GetSpace().GetArenaCenter();
+            
+            // initialise grid (for calculating coverage and uniformity)
+            CVector3 max =cLoopFunctions->GetSpace().GetArenaSize();
+            CVector3 min = center - 0.5*max;
+            max_deviation = StatFuns::get_minkowski_distance(max,center);
+
+            assert(m_unNumberRobots==1 && "number of robots should be equal to 1 when choosing IntuitiveHistoryDescriptor");
+            total_size = max.GetX()*max.GetY()/grid_step;
+
     }
-    std::map<CVector3, size_t> unique_visited_positions;
+    std::map<std::tuple<int, int, int> , size_t> unique_visited_positions;
     RunningStat velocity_stats;
     CVector3 center;
-    const float grid_step=0.50;
+    const float grid_step=0.02;
+    const float max_velocitysd = 0.50;// with min,max=0,1 -> at most 0.5 deviation on average
     size_t visitation_count;
+    float total_size;
     float max_deviation, deviation;
 
 
 
     /* prepare for trials*/
     virtual void before_trials(argos::CSimulator& cSimulator){
-        bd.resize(behav_dim,0.0f);
-        //define member variables
-        center = cSimulator.GetSpace().GetArenaCenter();
-        
-        // initialise grid (for calculating coverage and uniformity)
-        CVector3 max = cSimulator.GetSpace().GetArenaSize();
-        CVector3 min = center - 0.5*cSimulator.GetSpace().GetArenaSize();
-        max_deviation = StatFuns::get_minkowski_distance(max,center);
+
     
 
     }
@@ -546,6 +560,8 @@ public:
     }
     /*after getting inputs, can update the descriptor if needed*/
     virtual void set_input_descriptor(CObsAvoidEvolLoopFunctions& cLoopFunctions);
+    /*after getting outputs, can update the descriptor if needed*/
+    virtual void set_output_descriptor(CObsAvoidEvolLoopFunctions& cLoopFunctions);
     /*end the trial*/
     virtual void end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions);
     /*summarise BD at the end of trials*/
@@ -556,29 +572,30 @@ public:
 
 
 
-    CVector3 get_bin(CVector3 vec)
+    std::tuple<int, int, int> get_bin(CVector3 vec)
     {
-        int binx= (int) (vec.GetX()/grid_step);
-        int biny= (int) (vec.GetY()/grid_step);
-        int binz= (int) (vec.GetZ()/grid_step);
-        CVector3 new_vec = CVector3(binx*grid_step,biny*grid_step,binz*grid_step);
-        #ifdef PRINTING
-            std::cout<<"binned "<< vec  <<"into "<<new_vec<<std::endl;
-        #endif
-        return new_vec;
+        int binx= (int) ((float) vec.GetX()/grid_step);
+        int biny= (int) ((float) vec.GetY()/grid_step);
+        int binz= (int) ((float) vec.GetZ()/grid_step);
+
+       std::tuple<int, int, int> bin(binx,biny,binz);
+        // #ifdef PRINTING
+        //     std::cout<<"binned "<< vec  <<"into "<<binx<<","<<biny<<","<<binz<<std::endl;
+        // #endif
+        return bin;
 
     }
     std::vector<float> get_probs()
     {
         std::vector<float> a;
-         for( auto pair : unique_visited_positions )
+         for( auto& pair : unique_visited_positions )
         {
             a.push_back(pair.second/(float) visitation_count);
             #ifdef PRINTING
                 std::cout<<"total visits"<<visitation_count<<std::endl;
-                std::cout<<"location "<<pair.first<<std::endl;
+                std::cout<<"location "<<std::get<0>(pair.first)<<","<<std::get<1>(pair.first)<<","<<std::get<2>(pair.first)<<std::endl;
                 std::cout<<"visits " << pair.second<<std::endl;
-                std::cout<<"a.back() " << a.back()<<std::endl;
+                std::cout<<"probability " << a.back()<<std::endl;
             #endif
 
         }
