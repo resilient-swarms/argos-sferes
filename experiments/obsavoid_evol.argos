@@ -25,7 +25,8 @@
   <controllers>
 
     <obsavoid_nn_controller id="tnn"
-                           library="lib/libobsavoid_nn_controller.so">
+                           library="lib/libobsavoid_nn_controller.so"                      
+                    >
       <actuators>
         <differential_steering implementation="default" />
       </actuators>
@@ -42,8 +43,12 @@
   <!-- ****************** -->
   <loop_functions library="lib/libobsavoid_evol_loopfunctions.so"
                   label="obsavoid_evol_loopfunctions"
-                                  trials="5"
-                                  robots="1"/>
+                  trials="5"
+                  robots="10"
+                  descriptortype="history"    
+                  fitfuntype="MeanSpeed"
+                  bd_dims=7
+                    />
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->

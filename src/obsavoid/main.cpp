@@ -5,7 +5,7 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/loop_functions.h>
 
-#include <src/obsavoid/evol_loop_functions.h>
+#include <src/obsavoid/FitMap.h>
 /****************************************/
 /****************************************/
 
@@ -27,7 +27,7 @@ int main(int argc, char** argv)
     /* Load it to configure ARGoS */
     cSimulator.LoadExperiment();
 
-
+    static CObsAvoidEvolLoopFunctions& cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions&>(cSimulator.GetLoopFunctions());
     //typedef FitObstacle<Params> fit_t;
     typedef FitObstacleMapElites<Params> fit_t;
     typedef phen::Dnn<robots_nn::gen_t, fit_t, ParamsDnn> phen_t;

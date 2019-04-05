@@ -18,8 +18,16 @@ CObsAvoidEvolLoopFunctions::CObsAvoidEvolLoopFunctions() :
     //m_pcEPuck(NULL),
     //m_pcController(NULL),
     m_pcRNG(NULL)
+    
 {
+
 }
+
+
+
+
+
+
 
 /****************************************/
 /****************************************/
@@ -37,6 +45,44 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
     * Create the random number generator
     */
     m_pcRNG = CRandom::CreateRNG("argos");
+    /* Process behavioural descriptor type  */
+    try
+    {
+        std::string s;
+        GetNodeAttribute(t_node, "descriptortype",s);
+        if (s=="auto")
+        {
+            this->descriptor=new AutoDescriptor();
+        }
+        else if (s=="history")
+        {
+            this->descriptor=new IntuitiveHistoryDescriptor(*this);
+        }
+        else if (s=="average")
+        {
+            this->descriptor=new AverageDescriptor();
+        }
+        else
+        {
+            throw std::runtime_error("descriptortype "+s + " not found");
+        }
+
+    }
+    catch(CARGoSException& ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
+    }
+    /* Process bd_dims */
+    try
+    {
+        
+        GetNodeAttribute(t_node, "bd_dims",this->bd_dims);
+
+    }
+    catch(CARGoSException& ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
+    }
 
     /*
     * Process number of robots in swarm
@@ -63,6 +109,36 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
         m_pcvecController[i] = &dynamic_cast<CThymioNNController&>(m_pcvecRobot[i]->GetControllableEntity().GetController());
     }
 
+     /* Process fitness function type  */
+    try
+    {
+        std::string s;
+        GetNodeAttribute(t_node, "fitfuntype",s);
+        if (s=="FloreanoMondada")
+        {
+            this->fitfun=new FloreanoMondada();
+        }
+        else if(s=="MeanSpeed")
+        {
+            this->fitfun=new MeanSpeed();
+        }
+        else if(s=="Aggregation")
+        {
+            this->fitfun=new Aggregation();
+            assert(m_unNumberRobots>1 && "number of robots should be > 1 when choosing Aggregation fitnessfunction");
+        }
+        else
+        {
+            throw std::runtime_error("fitfuntype "+s + "not found");
+        }
+
+    }
+    catch(CARGoSException& ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
+    }
+
+
     /*
     * Process trial information
     */
@@ -70,6 +146,7 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
     {
         GetNodeAttribute(t_node, "trials", m_unNumberTrials);
         m_vecInitSetup.resize(m_unNumberTrials);
+        this->fitfun->fitness_per_trial.resize(m_unNumberTrials);
     }
     catch(CARGoSException& ex)
     {
@@ -150,8 +227,9 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         {
             inputs[i] = cController.m_pcProximity->GetReadings()[i].Value;
             MaxIRSensor = Max(MaxIRSensor, (Real) inputs[i]);
-            num_senact[i] += (inputs[i] >= SENSOR_ACTIVATION_THRESHOLD) ? 1.0 : 0.0;
+            
         }
+        this->descriptor->set_input_descriptor(*this);
         inputs[ParamsDnn::dnn::nb_inputs - 1] = +1.0; //Bias input
 
 //      _ctrlrob.step(inputs);
@@ -216,7 +294,12 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         old_pos     = curr_pos;
         old_theta   = curr_theta;*/
 
+        old_pos = curr_pos;
+        old_theta = curr_theta;
+
         nb_coll += (1.0f - MaxIRSensor);
+
+        this->descriptor->set_output_descriptor(*this);
 
         if(stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., if robot is stuck)
         {
@@ -230,6 +313,89 @@ void CObsAvoidEvolLoopFunctions::PreStep()
 void CObsAvoidEvolLoopFunctions::PostStep()
 {
 }
+
+void AverageDescriptor::set_input_descriptor(CObsAvoidEvolLoopFunctions& cLoopFunctions)
+{   
+
+    for(size_t i = 0; i < cLoopFunctions.inputs.size()-1; ++i )
+    {
+        this->bd[i] += (cLoopFunctions.inputs[i] >= SENSOR_ACTIVATION_THRESHOLD) ? 1.0 : 0.0;
+    }
+
+}
+std::vector<float> AverageDescriptor::after_trials(Real time,CObsAvoidEvolLoopFunctions& cLoopFunctions)
+{
+          // BD1 -- characterizes the number of times the robot turns.
+        //data.push_back(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock());
+        //assert(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() >= 0.0 && cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() <= 1.0);
+
+        // BD1 - BD7 -- characterizes the number of times the different IR proximity sensors on the robot return a high value
+        for(size_t i = 0; i < this->bd.size(); ++i)
+            this->bd[i] /= time*(float)cLoopFunctions.m_unNumberTrials;
+        return this->bd;
+}
+
+
+void IntuitiveHistoryDescriptor::set_input_descriptor(CObsAvoidEvolLoopFunctions& cLoopFunctions)
+{   
+    //add to the deviation (to get the mean after all trials have finished)
+    deviation+=StatFuns::get_minkowski_distance(cLoopFunctions.curr_pos,center);
+
+    //count the bin
+    CVector3 bin = get_bin(cLoopFunctions.curr_pos);
+    auto find_result =  unique_visited_positions.find(bin);
+    if (find_result ==  unique_visited_positions.end())
+    {
+        unique_visited_positions[bin]=1;
+    }
+    else
+    {
+        unique_visited_positions[bin]+=1;
+    }
+    visitation_count+=1;
+
+
+
+}
+
+void IntuitiveHistoryDescriptor::end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions)
+{
+    /*add behavioural metrics */
+
+    //uniformity within the visited locations
+    std::vector<float> probabilities = get_probs();
+    float uniformity = StatFuns::uniformity(probabilities);
+    this->bd[0] += uniformity;
+    //deviation from the center
+    this->bd[1] += deviation;
+    //coverage
+    float coverage = unique_visited_positions.size();
+    this->bd[2] +=coverage;
+    //variability in the speed]
+    float velocity_sd=velocity_stats.std();
+    this->bd[3] +=velocity_sd;
+    //
+    
+    #ifdef PRINTING
+        std::cout<<"uniformity"<<uniformity<<std::endl;
+        std::cout<<"deviation"<<deviation<<std::endl;
+        std::cout<<"coverage"<<coverage<<std::endl;
+        std::cout<<"velocity_sd"<<velocity_sd<<std::endl;
+    #endif
+
+    unique_visited_positions.clear();
+
+}
+std::vector<float> IntuitiveHistoryDescriptor::after_trials(Real time, CObsAvoidEvolLoopFunctions& cLoopFunctions)
+{
+    // now normalise all the summed bds
+    this->bd[0]/=(float) cLoopFunctions.m_unNumberTrials;
+    this->bd[1]/=max_deviation*(float) cLoopFunctions.m_unNumberTrials*time;
+
+}
+
+
+
 
 /****************************************/
 /****************************************/

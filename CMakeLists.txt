@@ -39,7 +39,7 @@ endif()
 
 # find TBB libs -- script from https://github.com/justusc/FindTBB
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/FindTBB)
-find_package(TBB) #COMPONENTS tbbmalloc tbbmalloc_proxy tbb_preview
+find_package(TBB) #COMPONENTS tbbmalloc tbbmalloc_proxy 
 if(TBB_FOUND)
   include_directories(${TBB_INCLUDE_DIRS})
   message(${TBB_INCLUDE_DIRS} " " ${TBB_LIBRARIES})
@@ -121,3 +121,4 @@ if(Boost_FOUND)
   else(NOT Boost_FOUND)
     message(FATAL_ERROR "Unable to continue without BOOST")
 endif()
+
