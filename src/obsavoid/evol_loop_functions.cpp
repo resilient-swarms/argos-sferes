@@ -1,12 +1,18 @@
 /****************************************/
 /****************************************/
 
+
 #include <src/obsavoid/evol_loop_functions.h>
+#include <src/obsavoid/statistics.h>
+#include <src/obsavoid/fitness_functions.h>
+#include <src/obsavoid/descriptors.h>
+
+
 
 /****************************************/
 /****************************************/
 
-#define SENSOR_ACTIVATION_THRESHOLD 0.5
+
 
 /****************************************/
 /****************************************/
@@ -124,17 +130,10 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
         else if (s=="history")
         {
             this->descriptor=new IntuitiveHistoryDescriptor(this);
-            // IntuitiveHistoryDescriptor* descriptor_actual=static_cast<IntuitiveHistoryDescriptor*>(this->descriptor);
-            // this->descriptor->bd.resize(descriptor_actual->behav_dim,0.0f);
-            // //define member variables
-            // descriptor_actual->center = GetSpace().GetArenaCenter();
-            
-            // // initialise grid (for calculating coverage and uniformity)
-            // CVector3 max =GetSpace().GetArenaSize();
-            // CVector3 min = descriptor_actual->center - 0.5*max;
-            // descriptor_actual->max_deviation = StatFuns::get_minkowski_distance(max,descriptor_actual->center);
-            // assert(m_unNumberRobots==1 && "number of robots should be equal to 1 when choosing IntuitiveHistoryDescriptor");
-            // descriptor_actual->total_positions = max/descriptor_actual->grid_step;
+        }
+        else if (s.find("sdbc") == 0)
+        {
+            this->descriptor=new SDBC(this,s);           
         }
         else if (s=="average")
         {
@@ -248,7 +247,7 @@ void CObsAvoidEvolLoopFunctions::PreStep()
             MaxIRSensor = Max(MaxIRSensor, (Real) inputs[i]);
             
         }
-        this->descriptor->set_input_descriptor(*this);
+        this->descriptor->set_input_descriptor(robotindex,*this);
         inputs[ParamsDnn::dnn::nb_inputs - 1] = +1.0; //Bias input
 
 //      _ctrlrob.step(inputs);
@@ -319,7 +318,7 @@ void CObsAvoidEvolLoopFunctions::PreStep()
 
         nb_coll += (1.0f - MaxIRSensor);
 
-        this->descriptor->set_output_descriptor(*this);
+        this->descriptor->set_output_descriptor(robotindex,*this);
 
         if(stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., if robot is stuck)
         {
@@ -334,98 +333,118 @@ void CObsAvoidEvolLoopFunctions::PostStep()
 {
 }
 
-void AverageDescriptor::set_input_descriptor(CObsAvoidEvolLoopFunctions& cLoopFunctions)
-{   
-
-    for(size_t i = 0; i < cLoopFunctions.inputs.size()-1; ++i )
-    {
-        this->bd[i] += (cLoopFunctions.inputs[i] >= SENSOR_ACTIVATION_THRESHOLD) ? 1.0 : 0.0;
-    }
-
-}
-std::vector<float> AverageDescriptor::after_trials(Real time,CObsAvoidEvolLoopFunctions& cLoopFunctions)
-{
-          // BD1 -- characterizes the number of times the robot turns.
-        //data.push_back(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock());
-        //assert(cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() >= 0.0 && cLoopFunctions.num_ds / (Real)cSimulator.GetMaxSimulationClock() <= 1.0);
-
-        // BD1 - BD7 -- characterizes the number of times the different IR proximity sensors on the robot return a high value
-        for(size_t i = 0; i < this->bd.size(); ++i)
-            this->bd[i] /= time*(float)cLoopFunctions.m_unNumberTrials;
-        return this->bd;
-}
-
-
-void IntuitiveHistoryDescriptor::set_input_descriptor(CObsAvoidEvolLoopFunctions& cLoopFunctions)
-{   
-    //add to the deviation (to get the mean after all trials have finished)
-    CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[0]);
-    deviation+=StatFuns::get_minkowski_distance(pos,center);// assume single robot 
-
-    //count the bin
-    std::tuple<int, int, int> bin = get_bin(pos);
-    auto find_result =  unique_visited_positions.find(bin);
-    if (find_result ==  unique_visited_positions.end())
-    {
-        unique_visited_positions.insert(std::pair<std::tuple<int, int, int>,size_t>(bin,1));
-    }
-    else
-    {
-        unique_visited_positions[bin]+=1;
-    }
-    visitation_count+=1;
 
 
 
-}
+    // template<typename Indiv>
+    // void FitObstacleMapElites<Params>::print_progress(Indiv& ind,CObsAvoidEvolLoopFunctions& cLoopFunctions, Real time)
+    // {
+    //             printf("\n\n lin_speed = %f", cLoopFunctions.lin_speed);
+    //             printf("\n\n nb_coll = %f", cLoopFunctions.nb_coll);
+    //             int trial=cLoopFunctions.m_unCurrentTrial;
+    //             printf("\n\n fitness in trial %lu is %f", trial,cLoopFunctions.fitfun->fitness_per_trial[trial]);
 
-void IntuitiveHistoryDescriptor::set_output_descriptor(CObsAvoidEvolLoopFunctions& cLoopFunctions)
-{
-    velocity_stats.push(cLoopFunctions.curr_lin_speed);
-}
+    //             if(trial==0)
+    //             {
+    //                 std::ofstream ofs("nn.dot");
+    //                 ind.nn().write(ofs);
+    //             }
 
-void IntuitiveHistoryDescriptor::end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions)
-{
-    /*add behavioural metrics */
-
-    //uniformity within the visited locations
-    std::vector<float> probabilities = get_probs();
-    float uniformity = StatFuns::uniformity(probabilities);
-    this->bd[0] += uniformity;
-    //deviation from the center
-    float avg_deviation = deviation/(max_deviation*(float)visitation_count);
-    this->bd[1] += avg_deviation;
-    //coverage
-    float coverage = (float) unique_visited_positions.size()/ (float)visitation_count;
-    this->bd[2] +=coverage;
-    //variability in the speed]
-    float velocity_sd=velocity_stats.std()/max_velocitysd;
-    this->bd[3] +=velocity_sd;
-    //
+    // }
     
-    #ifdef PRINTING
-        std::cout<<"uniformity"<<uniformity<<std::endl;
-        std::cout<<"Max deviation"<<max_deviation<<std::endl;
-        std::cout<<"deviation"<<avg_deviation<<std::endl;
-        std::cout<<"coverage"<<coverage<<std::endl;
-        std::cout<<"velocity_sd"<<velocity_sd<<std::endl;
-    #endif
 
-    unique_visited_positions.clear();
+    
 
-}
-std::vector<float> IntuitiveHistoryDescriptor::after_trials(Real time, CObsAvoidEvolLoopFunctions& cLoopFunctions)
-{
-    // now normalise all the summed bds
-    for (int i=0; i < bd.size(); ++i)
-    {
-        bd[i]/=cLoopFunctions.m_unNumberTrials;
-    }
-    return bd;
+    // template<typename Indiv>
+    // void FitObstacleMapElites<Params>::eval(Indiv& ind)
+    // {
+    //     this->_objs.resize(1);
 
-}
+    //     ind.nn().simplify();
+    //     //ind.nn().init();
 
 
+    //     /****************************************/
+    //     /****************************************/
+    //     /* The CSimulator class of ARGoS is a singleton. Therefore, to
+    //   * manipulate an ARGoS experiment, it is enough to get its instance.
+    //   * This variable is declared 'static' so it is created
+    //   * once and then reused at each call of this function.
+    //   * This line would work also without 'static', but written this way
+    //   * it is faster. */
+    //     static argos::CSimulator& cSimulator = argos::CSimulator::GetInstance();
+
+    //     /* Get a reference to the loop functions */
+    //     static CObsAvoidEvolLoopFunctions& cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions&>(cSimulator.GetLoopFunctions());
+    //     for(size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
+    //         cLoopFunctions._vecctrlrob[j] = ind.nn_cpy();
+
+    //     cLoopFunctions.descriptor->before_trials(cSimulator);
+
+    //     /*
+    //      * Run x trials and take the worst performance as final value.
+    //     */
+        
+    //     for(size_t i = 0; i < cLoopFunctions.m_unNumberTrials; ++i)
+    //     {
+    //         cLoopFunctions.nb_coll=0;
+    //         cLoopFunctions.stop_eval=false;
+    //         cLoopFunctions.speed=0.0f; cLoopFunctions.lin_speed=0.0f;
+    //         // cLoopFunctions.stand_still = 0;
+    //         // cLoopFunctions.old_pos   = CVector3(0.0f, 0.0f, 0.0f);
+    //         // cLoopFunctions.old_theta = CRadians(0.0f);
+    //         cLoopFunctions.num_ds = 0.0;
+    //         cLoopFunctions.descriptor->start_trial();
+
+    //         /* Tell the loop functions to get ready for the i-th trial */
+    //         cLoopFunctions.SetTrial(i);
+
+    //         /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
+    //         cSimulator.Reset();
+
+    //         /* Configure the controller with the indiv gen */
+    //         //cLoopFunctions.ConfigureFromGenome(ind.nn());
+    //         //cLoopFunctions._ctrlrob = ind.nn_cpy();
+    //         //cLoopFunctions._ctrlrob.init(); // a copied nn object needs to be init before use
+
+
+    //         for(size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
+    //             cLoopFunctions._vecctrlrob[j].init(); // a copied nn object needs to be init before use
+
+
+    //         /* Run the experiment */
+    //         cSimulator.Execute();
+    //         Real time = (Real)cSimulator.GetMaxSimulationClock();
+
+
+            
+    //         cLoopFunctions.fitfun->apply(cLoopFunctions,time);
+    //         #ifdef PRINTING
+                
+    //             print_progress(ind,cLoopFunctions,time);
+    //         #endif
+
+    //         cLoopFunctions.descriptor->end_trial(cLoopFunctions);
+
+
+
+    //     }
+    //     /****************************************/
+    //     /****************************************/
+    //     float fFitness=cLoopFunctions.fitfun->after_trials();
+    //     this->_objs[0] = fFitness;
+    //     this->_value   = fFitness;
+
+    //     Real time=(Real)cSimulator.GetMaxSimulationClock();
+    //     std::vector<float> behavioural_descriptor=cLoopFunctions.descriptor->after_trials(time,cLoopFunctions);
+        
+    //     this->set_desc(behavioural_descriptor);
+
+    //     #ifdef PRINTING
+    //         printf("\n\n fFitness = %f", fFitness);
+    //     #endif
+
+    // } // *** end of eval ***
 
 
 /****************************************/

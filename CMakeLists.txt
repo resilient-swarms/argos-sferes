@@ -83,6 +83,21 @@ add_library(obsavoid_nn_controller SHARED
   src/obsavoid/nn_controller.cpp
 )
 
+add_library(descriptors SHARED
+  src/obsavoid/descriptors.h
+  src/obsavoid/descriptors.cpp
+)
+
+add_library(fitness_functions SHARED
+  src/obsavoid/fitness_functions.h
+  src/obsavoid/fitness_functions.cpp
+)
+
+add_library(statistics SHARED
+  src/obsavoid/statistics.h
+  src/obsavoid/statistics.cpp
+)
+
 add_library(obsavoid_evol_loopfunctions SHARED
   src/obsavoid/evol_loop_functions.h
   src/obsavoid/evol_loop_functions.cpp
@@ -117,6 +132,9 @@ if(Boost_FOUND)
     target_link_libraries(obsavoid_evol
       obsavoid_nn_controller
       obsavoid_evol_loopfunctions
+      descriptors
+      fitness_functions
+       statistics
       argos3core_simulator ${Boost_LIBRARIES} ${TBB_LIBRARIES})
   else(NOT Boost_FOUND)
     message(FATAL_ERROR "Unable to continue without BOOST")

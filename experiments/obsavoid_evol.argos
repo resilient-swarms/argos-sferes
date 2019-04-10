@@ -45,7 +45,7 @@
                   label="obsavoid_evol_loopfunctions"
                   trials="5"
                   robots="1"
-                  descriptortype="history"    
+                  descriptortype="sdbc_walls_and_robots"    
                   fitfuntype="MeanSpeed"
                   bd_dims=7
                     />

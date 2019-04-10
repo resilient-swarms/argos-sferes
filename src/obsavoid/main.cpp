@@ -5,7 +5,12 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/loop_functions.h>
 
-#include <src/obsavoid/FitMap.h>
+
+#include <src/obsavoid/evol_loop_functions.h>
+#include <src/obsavoid/statistics.h>
+#include <src/obsavoid/fitness_functions.h>
+#include <src/obsavoid/descriptors.h>
+
 /****************************************/
 /****************************************/
 
