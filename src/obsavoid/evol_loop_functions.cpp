@@ -52,17 +52,17 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
     */
     m_pcRNG = CRandom::CreateRNG("argos");
 
-    /* Process bd_dims */
-    try
-    {
+    // /* Process bd_dims */
+    // try
+    // {
         
-        GetNodeAttribute(t_node, "bd_dims",this->bd_dims);
+    //     GetNodeAttribute(t_node, "bd_dims",this->bd_dims);
 
-    }
-    catch(CARGoSException& ex)
-    {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
-    }
+    // }
+    // catch(CARGoSException& ex)
+    // {
+    //     THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
+    // }
 
     /*
     * Process number of robots in swarm
@@ -163,6 +163,16 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode& t_node)
     catch(CARGoSException& ex)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing number of trials", ex);
+    }
+
+    try
+    {
+        GetNodeAttribute(t_node, "output_folder", output_folder);
+        // TODO: create some statistics files in this folder
+    }
+    catch(CARGoSException& ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing output_folder", ex);
     }
 
     //m_vecInitSetup.clear();

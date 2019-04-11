@@ -16,7 +16,7 @@
     <!-- Each experimental run is 120 seconds long -->
     <experiment length="120"
                 ticks_per_second="10"
-                 random_seed="111" />  <!-- if we want a different random seed each time the reset button is pressed -->
+                 random_seed="SEED" />  <!-- if we want a different random seed each time the reset button is pressed -->
   </framework>
 
   <!-- *************** -->
@@ -43,11 +43,12 @@
   <!-- ****************** -->
   <loop_functions library="lib/libobsavoid_evol_loopfunctions.so"
                   label="obsavoid_evol_loopfunctions"
-                  trials="5"
-                  robots="1"
-                  descriptortype="history"    
-                  fitfuntype="MeanSpeed"
-                  bd_dims="3"
+                  trials="TRIALS"
+                  robots="ROBOTS"
+                  descriptortype="DESCRIPTOR_TYPE"    
+                  fitfuntype="FITFUN_TYPE"
+                  bd_dims="BD_DIMS"
+                  output_folder="OUTPUTFOLDER"
                     />
 
   <!-- *********************** -->

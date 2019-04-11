@@ -7,7 +7,7 @@
 #include <tuple>
 #include <cmath>
 #include <numeric>
-#include <algorithm>
+
 #include <assert.h>
 
 
@@ -52,6 +52,25 @@
 
 
     sum += std::pow(std::abs(x.GetZ() -y.GetZ()), k);
+
+    return std::pow(sum, 1.0 / (float) k);
+}
+ float StatFuns::get_minkowski_distance(std::vector<float> x, std::vector<float> y,int k) {
+    /* get the minkowski-distance between two 3D vectors ; k is the parameter that determines e.g. manhattan vs Euclid vs 3D movements 
+       on a flat surface, the Thymio can only move in two directions, so in that case use k=2
+       in general, surface may not be flat, then k=3 makes sense
+
+       alternative in Argos is Distance
+       https://www.argos-sim.info/api/a00293_source.php#l00205
+       l. 684; problem is it always uses k=2
+    */
+    float sum = 0.0f;
+    size_t s = x.size();
+    assert(s==y.size());
+    for (size_t i=0; i < s; ++i)
+    {
+    	sum += std::pow(std::abs(x[i] -y[i]), k);
+    }
 
     return std::pow(sum, 1.0 / (float) k);
 }

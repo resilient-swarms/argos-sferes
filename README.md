@@ -55,7 +55,7 @@ Edit the ARGoS experiment configuration file for your own experiment setup
 To run the EA
 
     cd argos-sferes
-    ./bin/obsavoid_evol
+    ./bin/obsavoid_evol experiments/obsavoid_evol.argos
 
 
 To try out an evolved solution

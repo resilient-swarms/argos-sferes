@@ -23,21 +23,16 @@ class RunningStat;
 class Descriptor{
 public:
     Descriptor(){        
-
+    	    	bd.resize(behav_dim);
     }
-
+    size_t num_updates, current_trial;
     static const size_t behav_dim; // for now all the same
     /* final value of bd*/
-    std::vector<float> bd;
+    std::vector<std::vector<float>> bd;
         /* prepare for trials*/
-    virtual void before_trials(argos::CSimulator& cSimulator){
-
-        bd.resize(behav_dim,0.0f);
-    }
-        /*reset BD at the start of a trial*/
-    virtual void start_trial()
-    {
-    }
+    virtual void before_trials(CObsAvoidEvolLoopFunctions& cLoopFunctions);
+    /*reset BD at the start of a trial*/
+    virtual void start_trial();
     /*after getting inputs, can update the descriptor if needed*/
     virtual void set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& cLoopFunctions){};
 
@@ -53,7 +48,7 @@ public:
     }
 
     /*summarise BD at the end of trials*/
-    virtual std::vector<float> after_trials(Real time, CObsAvoidEvolLoopFunctions& cLoopFunctions)=0;
+    virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions& cLoopFunctions);
 
 };
 
@@ -70,9 +65,9 @@ public:
     /*after getting inputs, can update the descriptor if needed*/
     virtual void set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& cLoopFunctions);
 
+    /*end the trial*/
+    virtual void end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions);
 
-    /*summarise BD at the end of trials*/
-    virtual std::vector<float> after_trials(Real time, CObsAvoidEvolLoopFunctions& cLoopFunctions);
 };
 
 
@@ -88,14 +83,12 @@ public:
     argos::CVector3 center;
     const float grid_step=0.02;
     const float max_velocitysd = 0.50;// with min,max=0,1 -> at most 0.5 deviation on average
-    size_t visitation_count;
     float total_size;
     float max_deviation, deviation;
 
 
 
-    /* prepare for trials*/
-    virtual void before_trials(argos::CSimulator& cSimulator);
+ 
     /*reset BD at the start of a trial*/
     virtual void start_trial();
 
@@ -105,8 +98,7 @@ public:
     virtual void set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& cLoopFunctions);
     /*end the trial*/
     virtual void end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions);
-    /*summarise BD at the end of trials*/
-    virtual std::vector<float> after_trials(Real time, CObsAvoidEvolLoopFunctions& cLoopFunctions);
+
 
 
 
@@ -131,9 +123,9 @@ public:
         std::vector<float> a;
          for( auto& pair : unique_visited_positions )
         {
-            a.push_back(pair.second/(float) visitation_count);
+            a.push_back(pair.second/(float) num_updates);
             #ifdef PRINTING
-                std::cout<<"total visits"<<visitation_count<<std::endl;
+                std::cout<<"total visits"<<num_updates<<std::endl;
                 std::cout<<"location "<<std::get<0>(pair.first)<<","<<std::get<1>(pair.first)<<","<<std::get<2>(pair.first)<<std::endl;
                 std::cout<<"visits " << pair.second<<std::endl;
                 std::cout<<"probability " << a.back()<<std::endl;
@@ -153,9 +145,16 @@ public:
 struct Entity
 {
 	std::vector<float> attributes;
-	std::vector<float> constants;
+	CVector3 position;
 	Entity(){}
 	float& operator[](size_t idx){ return attributes[idx]; }
+	static float distance(const Entity e1, const Entity e2);
+	void set_attributes(const std::vector<float> new_vec, CVector3 pos)
+	{
+		attributes=new_vec;
+		position=pos;
+	}
+
 };
 
 
@@ -214,11 +213,11 @@ class SDBC: public Descriptor{
 public:
 	size_t bd_index, num_groups;
 	std::map<std::string,Entity_Group> entity_groups;
+	std::vector<std::string> comparison_groups;// contains the keys of groups with max_size > 1
+	std::vector<std::string> variable_groups;// contains the keys of groups with variable sizes
     SDBC(CLoopFunctions* cLoopFunctions, std::string init_type);
     void init_walls_and_robots(CLoopFunctions* cLoopFunctions);
 	void init_robots(CLoopFunctions* cLoopFunctions);
-
-    static float distance_function(argos::CVector3 e1, argos::CVector3 e2);
 
     /* group sizes are the first BD dimensions*/
     void add_group_sizes();
@@ -244,8 +243,7 @@ public:
 	virtual void set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& cLoopFunctions);
 	/*end the trial*/
 	virtual void end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions);
-	/*summarise BD at the end of trials*/
-	virtual std::vector<float> after_trials(Real time, CObsAvoidEvolLoopFunctions& cLoopFunctions);
+
 
 
 };

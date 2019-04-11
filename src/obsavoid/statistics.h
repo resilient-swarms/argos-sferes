@@ -76,6 +76,7 @@ public:
            l. 684; problem is it always uses k=2
         */
     static float get_minkowski_distance(argos::CVector3 x, argos::CVector3 y,int k=3);
+    static float get_minkowski_distance(std::vector<float> x, std::vector<float> y,int k=3);
     static float uniform_prob(size_t n);
     static float max_variation_distance(size_t n);
     static float min_variation_distance();

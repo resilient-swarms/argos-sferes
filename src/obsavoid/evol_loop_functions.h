@@ -52,7 +52,9 @@
 //#include <src/obsavoid/base_classes.h>
 
 
-#define PRINTING
+//#define PRINTING
+
+#define HANDCRAFTED
 
 /****************************************/
 /****************************************/
@@ -195,6 +197,7 @@ public:
 
 
 public:
+    std::string output_folder;
     //robots_nn::nn_t _ctrlrob;
     std::vector<robots_nn::nn_t> _vecctrlrob;
     std::vector<float> outf, inputs;
@@ -208,7 +211,6 @@ public:
     float curr_lin_speed;
     Descriptor* descriptor;
     FitFun* fitfun;
-    int bd_dims;
 
 
     // only used for the checks which are not used (presumably the checks quite expensive) ?; also not suitable for multi-agent ?
@@ -229,9 +231,17 @@ struct Params
 {
     struct ea
     {
-        SFERES_CONST size_t behav_dim = 7;
+        
         SFERES_CONST double epsilon = 0;//0.05;
-        SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10, 10);
+        #ifdef HANDCRAFTED
+
+            SFERES_CONST size_t behav_dim = 3;
+            SFERES_ARRAY(size_t, behav_shape, 10, 10, 10);
+        #else
+            SFERES_CONST size_t behav_dim = 7;
+            SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10, 10);
+        #endif
+        
     };
 
     struct parameters
@@ -334,7 +344,7 @@ FIT_MAP(FitObstacleMapElites)
         for(size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
             cLoopFunctions._vecctrlrob[j] = ind.nn_cpy();
 
-        cLoopFunctions.descriptor->before_trials(cSimulator);
+        cLoopFunctions.descriptor->before_trials(cLoopFunctions);
 
         /*
          * Run x trials and take the worst performance as final value.
@@ -391,7 +401,7 @@ FIT_MAP(FitObstacleMapElites)
         this->_value   = fFitness;
 
         Real time=(Real)cSimulator.GetMaxSimulationClock();
-        std::vector<float> behavioural_descriptor=cLoopFunctions.descriptor->after_trials(time,cLoopFunctions);
+        std::vector<float> behavioural_descriptor=cLoopFunctions.descriptor->after_trials(cLoopFunctions);
         
         this->set_desc(behavioural_descriptor);
 

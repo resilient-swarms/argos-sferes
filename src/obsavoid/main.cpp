@@ -17,7 +17,6 @@
 
 int main(int argc, char** argv)
 {
-    srand(time(0));
 
     /*
      * Initialize ARGoS
@@ -28,7 +27,8 @@ int main(int argc, char** argv)
     /* Set the .argos configuration file
      * This is a relative path which assumed that you launch the executable
      * from argos3-examples (as said also in the README) */
-    cSimulator.SetExperimentFileName("experiments/obsavoid_evol.argos");
+    cSimulator.SetExperimentFileName(argv[1]);
+
     /* Load it to configure ARGoS */
     cSimulator.LoadExperiment();
 
