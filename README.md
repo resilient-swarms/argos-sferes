@@ -49,7 +49,7 @@ Instruction for running
 
 Edit the ARGoS experiment configuration file for your own experiment setup
 
-    emacs argos-sferes/experiments/evolution.argos
+    emacs argos-sferes/experiments/obsavoid_evol.argos
 
 
 To run the EA
@@ -60,4 +60,4 @@ To run the EA
 
 To try out an evolved solution
 
-    ./bin/obsavoid_evol --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
+    ./bin/obsavoid_evol experiments/obsavoid_evol.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>

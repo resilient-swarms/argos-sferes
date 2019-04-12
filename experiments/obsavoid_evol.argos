@@ -48,6 +48,7 @@
                   descriptortype="history"    
                   fitfuntype="MeanSpeed"
                   bd_dims="3"
+		  output_folder="experiments"
                     />
 
   <!-- *********************** -->

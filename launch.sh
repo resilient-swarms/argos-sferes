@@ -16,18 +16,24 @@ for FitfunType in MeanSpeed; do
                               trials="TRIALS"
             
             # Take template.argos and make an .argos file for this experiment
-            SUFFIX=${Replicates}${Replicates}${Replicates}
-            Outfolder=$data/${FitfunType}/${DescriptorType}
+            SUFFIX=${Replicates}
+            ConfigFolder=${data}/${FitfunType}/${DescriptorType}
+            Outfolder=${ConfigFolder}/results${SUFFIX}
+	    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
+	    mkdir -p $Outfolder
             sed -e "s|TRIALS|15|" \
                 -e "s|ROBOTS|1|"                    \
-                -e "s|SEED|${Replicates}${Replicates}${Replicates}|"                    \
+                -e "s|SEED|${Replicates}|"                    \
                 -e "s|FITFUN_TYPE|${FitfunType}|"                   \
                 -e "s|DESCRIPTOR_TYPE|${DescriptorType}|"                  \
                 -e "s|OUTPUTFOLDER|${Outfolder}|" \
                 experiments/experiment_template.argos                       \
-                > ${Outfolder}/exp_${SUFFIX}.argos
+                > ${ConfigFile}
             # Call ARGoS
-            #parallel --semaphore -j${maxnumjobs} argos3 -c $data/${FitfunType}/${DescriptorType}/exp_${SUFFIX}.argos &
+            parallel --semaphore -j${maxnumjobs} ./bin/obsavoid_evol ${ConfigFile} -d $Outfolder &
         done
     done
 done
+
+sem --wait
+
