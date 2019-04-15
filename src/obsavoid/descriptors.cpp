@@ -8,10 +8,11 @@
 #define SENSOR_ACTIVATION_THRESHOLD 0.5
 
 
-#ifdef HAND_CRAFTED
+#ifdef  THREE_D_BEHAV
 	const size_t Descriptor::behav_dim=3;
-#else
-	const size_t Descriptor::behav_dim=7;
+#endif
+#ifdef SIX_D_BEHAV
+	const size_t Descriptor::behav_dim=6;
 #endif
 
 // const size_t SDBC::behav_dim=3;
@@ -101,7 +102,7 @@ IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(CLoopFunctions* cLoopFunc
 void IntuitiveHistoryDescriptor::start_trial()
 {
 	Descriptor::start_trial();
-    deviation=0.0;
+    deviation=0.0f;
     //velocity_stats=RunningStat();  // dropped the velocity stats
 }
 void IntuitiveHistoryDescriptor::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& cLoopFunctions)
@@ -192,16 +193,23 @@ SDBC::SDBC(CLoopFunctions* cLoopFunctions, std::string init_type) : Descriptor()
 	for (auto& kv : entity_groups)
 	{
 
-		if(kv.second.max_size > 1)
+		if(kv.second.max_size > 1 && kv.first=="robots")
 		{
-			comparison_groups.push_back(kv.first);
+			within_comparison_groups.push_back(kv.first);// within-group distance computations
 		}
+
+		between_comparison_groups.push_back(kv.first);// between-group distance computations
+
 		if(kv.second.max_size != kv.second.min_size)
 		{
 			variable_groups.push_back(kv.first);
 		}
 		
 	}
+	argos::CVector3 max =cLoopFunctions->GetSpace().GetArenaSize();
+	maxX = max.GetX();
+	maxY = max.GetY();
+	maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
 	
 }
 void SDBC::init_walls_and_robots(CLoopFunctions* cLoopFunctions)
@@ -225,7 +233,8 @@ void SDBC::init_walls_and_robots(CLoopFunctions* cLoopFunctions)
 }
 void SDBC::init_robots(CLoopFunctions* cLoopFunctions)
 {
-	// robot here has 4 features: x,y,wheelvelocity1,wheelvelocity2
+	// robot here has 4 features: x,y,orientation,wheelvelocity1,wheelvelocity2
+	// here it is assumed fixed number of robots
 	std::vector<Entity> robots;
 	size_t num_robots=static_cast<CObsAvoidEvolLoopFunctions*>(cLoopFunctions)->m_unNumberRobots;
 	for (size_t i=0; i < num_robots; ++i)
@@ -233,7 +242,7 @@ void SDBC::init_robots(CLoopFunctions* cLoopFunctions)
 		robots.push_back(Entity());
 	}
 	std::pair<std::string,Entity_Group> robotpair={"robots" ,
-    									Entity_Group(4, num_robots, 0, robots)};
+    									Entity_Group(5, num_robots, num_robots, robots)};  // 5 features
     entity_groups.insert(robotpair);
 }
 
@@ -284,7 +293,7 @@ void SDBC::add_group_meanstates()
 void SDBC::add_within_group_dispersion()
 {
 	float sum;
-	for (std::string key : comparison_groups)
+	for (std::string key : within_comparison_groups)
 	{
 
 		Entity_Group& group=entity_groups[key];
@@ -313,7 +322,7 @@ void SDBC::add_within_group_dispersion()
 				}
 		}
 
-		this->bd[bd_index][current_trial]+=sum/((group.get_absolute_size()-1)*(group.get_absolute_size()-1));
+		this->bd[bd_index][current_trial]+=sum/((float) (group.get_absolute_size()-1)*(group.get_absolute_size()-1) * maxdist);
 		++bd_index;
 
 	}
@@ -322,16 +331,13 @@ void SDBC::add_within_group_dispersion()
 /* avg pair-wise distance between groups, the final BD dimensions*/
 void SDBC::add_between_group_dispersion(){
 	float sum;
-	for (std::string key : comparison_groups)
+	for (size_t i=0; i < between_comparison_groups.size(); ++i)
 	{
+		std::string key=between_comparison_groups[i];
 		Entity_Group& group=entity_groups[key];
-		for (std::string key2 : comparison_groups)
+		for (size_t j=1; j < between_comparison_groups.size() && j != i ; ++j)
 		{
-			
-			if (key==key2)
-			{
-				continue;
-			}
+			std::string key2=between_comparison_groups[j];
 			Entity_Group& group2=entity_groups[key2];
 			#ifdef PRINTING
 				std::cout<<"group1: "<<key<<std::endl;
@@ -357,7 +363,7 @@ void SDBC::add_between_group_dispersion(){
 					}
 				}
 			}
-			bd[bd_index][current_trial]+=sum/(group.get_absolute_size()*group2.get_absolute_size()); // divide by product of group sizes; add for now, we will average the number of times
+			bd[bd_index][current_trial]+=sum/((float) (group.get_absolute_size()*group2.get_absolute_size())*maxdist); // divide by product of group sizes; add for now, we will average the number of times
 			++bd_index;
 		}
 	}
@@ -381,22 +387,30 @@ void SDBC::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& 
 /*after getting outputs, can update the descriptor if needed*/
 void SDBC::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& cLoopFunctions)
 {
-	 // here just set the attributes of robot at index
+	 // here just set the attributes of robot at index; let end
 	 CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[robot_index]);
-	 argos::CVector3 max =cLoopFunctions.GetSpace().GetArenaSize();
-	 float x = pos.GetX()/max.GetX();
-	 float y = pos.GetY()/max.GetY();
+	 
+	 float x = pos.GetX()/maxX;
+	 float y = pos.GetY()/maxY;
+	 float theta = cLoopFunctions.curr_theta.UnsignedNormalize()/CRadians::TWO_PI;// normalise radians to [0,1]
 	 float wheel1 = (10.0f+cLoopFunctions.outf[0])/20.0f;
 	 float wheel2 = (10.0f+cLoopFunctions.outf[1])/20.0f;
 
-	 std::vector<float> new_vec = {x,y,wheel1,wheel2};
+	 std::vector<float> new_vec = {x,y,theta,wheel1,wheel2};
 	 entity_groups["robots"][robot_index].set_attributes(new_vec,pos);
 	 #ifdef PRINTING
-	 	std::cout<<"x,y,w1,w2="<<x<<","<<y<<","<<wheel1<<","<<wheel2<<std::endl;
+	 	std::cout<<"x,y,theta,w1,w2="<<x<<","<<y<<","<<theta<<","<<wheel1<<","<<wheel2<<std::endl;
 	 #endif
-     
-
-
+}
+/*after the looping over robots*/
+void SDBC::after_robotloop(CObsAvoidEvolLoopFunctions& cLoopFunctions)
+{
+	add_group_sizes();
+	add_group_meanstates();
+	add_between_group_dispersion();
+	add_within_group_dispersion();
+	bd_index=0;
+	++num_updates;
 }
 /*end the trial*/
 void SDBC::end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions)
@@ -404,12 +418,10 @@ void SDBC::end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions)
 
     for(size_t i = 0; i < behav_dim; ++i )
     {
-        this->bd[i][current_trial] /= (float) num_updates;
+        this->bd[i][current_trial] /= (float) (num_updates+1);
         if(this->bd[i][current_trial]<0 || this->bd[i][current_trial]>1)
         {
-           	throw std::runtime_error("bd not in [0,1]");
+           	throw std::runtime_error("bd"+std::to_string(i)+" not in [0,1]: "+std::to_string(bd[i][current_trial]));
         };
     }
-
-
 }

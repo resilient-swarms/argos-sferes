@@ -30,11 +30,6 @@ CObsAvoidEvolLoopFunctions::CObsAvoidEvolLoopFunctions() :
 }
 
 
-
-
-
-
-
 /****************************************/
 /****************************************/
 
@@ -246,7 +241,7 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         CThymioEntity& cThymio = *any_cast<CThymioEntity*>(it->second);
         CThymioNNController& cController = dynamic_cast<CThymioNNController&>(cThymio.GetControllableEntity().GetController());
 
-        assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
+        //assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
 
         inputs.resize(ParamsDnn::dnn::nb_inputs);
 
@@ -293,8 +288,11 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         curr_lin_speed = s*(1.0-sqrt(ds));
         lin_speed+=curr_lin_speed;
         num_ds += (ds >= 0.1) ? 1.0 : 0.0;
-
-
+        CVector3 axis;
+        cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta,axis);
+        #ifdef PRINTING
+            std::cout<<"theta="<<curr_theta<<std::endl;
+        #endif
         // *** To save simulation time, we stop evaluation if the robot is stuck for more than 100 time steps ***
         /*curr_pos   = cThymio.GetEmbodiedEntity().GetOriginAnchor().Position;
         CRadians c_y, c_x;
@@ -337,124 +335,12 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         }
         ++robotindex;
     }
+    this->descriptor->after_robotloop(*this);
 }
 
 void CObsAvoidEvolLoopFunctions::PostStep()
 {
 }
-
-
-
-
-    // template<typename Indiv>
-    // void FitObstacleMapElites<Params>::print_progress(Indiv& ind,CObsAvoidEvolLoopFunctions& cLoopFunctions, Real time)
-    // {
-    //             printf("\n\n lin_speed = %f", cLoopFunctions.lin_speed);
-    //             printf("\n\n nb_coll = %f", cLoopFunctions.nb_coll);
-    //             int trial=cLoopFunctions.m_unCurrentTrial;
-    //             printf("\n\n fitness in trial %lu is %f", trial,cLoopFunctions.fitfun->fitness_per_trial[trial]);
-
-    //             if(trial==0)
-    //             {
-    //                 std::ofstream ofs("nn.dot");
-    //                 ind.nn().write(ofs);
-    //             }
-
-    // }
-    
-
-    
-
-    // template<typename Indiv>
-    // void FitObstacleMapElites<Params>::eval(Indiv& ind)
-    // {
-    //     this->_objs.resize(1);
-
-    //     ind.nn().simplify();
-    //     //ind.nn().init();
-
-
-    //     /****************************************/
-    //     /****************************************/
-    //     /* The CSimulator class of ARGoS is a singleton. Therefore, to
-    //   * manipulate an ARGoS experiment, it is enough to get its instance.
-    //   * This variable is declared 'static' so it is created
-    //   * once and then reused at each call of this function.
-    //   * This line would work also without 'static', but written this way
-    //   * it is faster. */
-    //     static argos::CSimulator& cSimulator = argos::CSimulator::GetInstance();
-
-    //     /* Get a reference to the loop functions */
-    //     static CObsAvoidEvolLoopFunctions& cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions&>(cSimulator.GetLoopFunctions());
-    //     for(size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
-    //         cLoopFunctions._vecctrlrob[j] = ind.nn_cpy();
-
-    //     cLoopFunctions.descriptor->before_trials(cSimulator);
-
-    //     /*
-    //      * Run x trials and take the worst performance as final value.
-    //     */
-        
-    //     for(size_t i = 0; i < cLoopFunctions.m_unNumberTrials; ++i)
-    //     {
-    //         cLoopFunctions.nb_coll=0;
-    //         cLoopFunctions.stop_eval=false;
-    //         cLoopFunctions.speed=0.0f; cLoopFunctions.lin_speed=0.0f;
-    //         // cLoopFunctions.stand_still = 0;
-    //         // cLoopFunctions.old_pos   = CVector3(0.0f, 0.0f, 0.0f);
-    //         // cLoopFunctions.old_theta = CRadians(0.0f);
-    //         cLoopFunctions.num_ds = 0.0;
-    //         cLoopFunctions.descriptor->start_trial();
-
-    //         /* Tell the loop functions to get ready for the i-th trial */
-    //         cLoopFunctions.SetTrial(i);
-
-    //         /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
-    //         cSimulator.Reset();
-
-    //         /* Configure the controller with the indiv gen */
-    //         //cLoopFunctions.ConfigureFromGenome(ind.nn());
-    //         //cLoopFunctions._ctrlrob = ind.nn_cpy();
-    //         //cLoopFunctions._ctrlrob.init(); // a copied nn object needs to be init before use
-
-
-    //         for(size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
-    //             cLoopFunctions._vecctrlrob[j].init(); // a copied nn object needs to be init before use
-
-
-    //         /* Run the experiment */
-    //         cSimulator.Execute();
-    //         Real time = (Real)cSimulator.GetMaxSimulationClock();
-
-
-            
-    //         cLoopFunctions.fitfun->apply(cLoopFunctions,time);
-    //         #ifdef PRINTING
-                
-    //             print_progress(ind,cLoopFunctions,time);
-    //         #endif
-
-    //         cLoopFunctions.descriptor->end_trial(cLoopFunctions);
-
-
-
-    //     }
-    //     /****************************************/
-    //     /****************************************/
-    //     float fFitness=cLoopFunctions.fitfun->after_trials();
-    //     this->_objs[0] = fFitness;
-    //     this->_value   = fFitness;
-
-    //     Real time=(Real)cSimulator.GetMaxSimulationClock();
-    //     std::vector<float> behavioural_descriptor=cLoopFunctions.descriptor->after_trials(time,cLoopFunctions);
-        
-    //     this->set_desc(behavioural_descriptor);
-
-    //     #ifdef PRINTING
-    //         printf("\n\n fFitness = %f", fFitness);
-    //     #endif
-
-    // } // *** end of eval ***
 
 
 /****************************************/

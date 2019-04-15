@@ -52,10 +52,6 @@
 //#include <src/obsavoid/base_classes.h>
 
 
-//#define PRINTING
-
-#define HANDCRAFTED
-
 /****************************************/
 /****************************************/
 
@@ -233,13 +229,14 @@ struct Params
     {
         
         SFERES_CONST double epsilon = 0;//0.05;
-        #ifdef HANDCRAFTED
+        #ifdef THREE_D_BEHAV
 
             SFERES_CONST size_t behav_dim = 3;
             SFERES_ARRAY(size_t, behav_shape, 10, 10, 10);
-        #else
-            SFERES_CONST size_t behav_dim = 7;
-            SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10, 10);
+        #endif
+        #ifdef SIX_D_BEHAV
+            SFERES_CONST size_t behav_dim = 6;
+            SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10);
         #endif
         
     };

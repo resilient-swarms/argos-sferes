@@ -10,7 +10,7 @@ mkdir -p $data
 
 
 for FitfunType in MeanSpeed; do
-    for DescriptorType in history; do
+    for DescriptorType in sdbc_walls_and_robots; do
         mkdir -p $data/${FitfunType}/${DescriptorType}
         for Replicates in $(seq 1 5); do
                               trials="TRIALS"
@@ -30,10 +30,11 @@ for FitfunType in MeanSpeed; do
                 experiments/experiment_template.argos                       \
                 > ${ConfigFile}
             # Call ARGoS
-            parallel --semaphore -j${maxnumjobs} ./bin/obsavoid_evol3D ${ConfigFile} -d $Outfolder &
+            parallel --semaphore -j${maxnumjobs} ./bin/obsavoid_evol6D ${ConfigFile} -d $Outfolder &
         done
     done
 done
 
 sem --wait
+
 
