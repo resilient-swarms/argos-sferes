@@ -62,6 +62,8 @@ add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d770544
 include_directories(/usr/include)
 include_directories(/usr/include/eigen3)
 include_directories(${SFERES_PATH})
+include_directories(${HOME}/geometric-median)
+
 
 
 # Check whether all the necessary libs have been installed to compile the

@@ -29,7 +29,9 @@ public:
     static const size_t behav_dim; // for now all the same
     /* final value of bd*/
     std::vector<std::vector<float>> bd;
-        /* prepare for trials*/
+    
+
+    /* prepare for trials*/
     virtual void before_trials(CObsAvoidEvolLoopFunctions& cLoopFunctions);
     /*reset BD at the start of a trial*/
     virtual void start_trial();
@@ -141,10 +143,6 @@ public:
 
         return a;
     }
-
-
-
-
 };
 
 
@@ -198,7 +196,17 @@ struct Entity_Group
 		mean_state/=(float) entities.size();
 		return mean_state;
 	}
+    float sd_state_vec(size_t feature_index,float mean_state)
+	{
+		float sd=0;
+		for (auto& entity: entities)
+		{
 
+			sd+=std::pow(entity[feature_index]-mean_state,2);
+		}
+		sd/=(float) entities.size();
+		return std::pow(sd,0.5);
+	}
 	void add_entity(Entity e)
 	{
 		entities.push_back(e);
@@ -217,6 +225,7 @@ class SDBC: public Descriptor{
     *  Systematically Derived Behavioral Characterisation
     */
 public:
+    bool include_std;
 	size_t bd_index, num_groups;
     float maxdist,maxX,maxY;
 	std::map<std::string,Entity_Group> entity_groups;
@@ -306,7 +315,72 @@ public:
 /* typedef function pointer, useful for fitness functions */
 //typedef void (*functionPtr)();
 
+/* given a group of sensory activations, average their input activation, and get the correspinding bin
+*/
+static size_t get_group_inputactivation(size_t num_bins, std::vector<size_t> group,CObsAvoidEvolLoopFunctions& cLoopFunctions);
+
+class MutualinfoDescriptor: public Descriptor{
+public:
+    /* number of bins used for the probability distribution*/
+    const size_t num_bins=5;
+    /* indexes per group of sensors*/
+    std::vector<std::vector<size_t>> sensory_groups;
+
+    /* track the frequencies of the different bins for all groups*/
+    std::vector<std::vector<float>> freqs;
+    MutualinfoDescriptor(size_t bins) : num_bins(bins){    
+
+    }
+
+        /* prepare for trials*/
+    virtual void before_trials(CObsAvoidEvolLoopFunctions& cLoopFunctions);
+    /*reset BD at the start of a trial*/
+    virtual void start_trial();
+    /*after getting inputs, can update the descriptor if needed*/
+    virtual void set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& cLoopFunctions);
+
+
+    /*after the looping over robots*/
+    virtual void after_robotloop(CObsAvoidEvolLoopFunctions& cLoopFunctions);
+
+    /*end the trial*/
+    virtual void end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions);
 
 
 
+    /*summarise BD at the end of trials*/
+    virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions& cLoopFunctions);
+};
+
+
+class CompressionDescriptor: public Descriptor{
+public:
+
+    CompressionDescriptor(){    
+
+    }
+    /* given a group of sensory activations, average their activation*/
+    float get_group_activation(std::vector<size_t> group,CObsAvoidEvolLoopFunctions& cLoopFunctions);
+        /* prepare for trials*/
+    virtual void before_trials(CObsAvoidEvolLoopFunctions& cLoopFunctions);
+    /*reset BD at the start of a trial*/
+    virtual void start_trial();
+    /*after getting inputs, can update the descriptor if needed*/
+    virtual void set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& cLoopFunctions);
+
+    /*after getting outputs, can update the descriptor if needed*/
+    virtual void set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& cLoopFunctions);
+
+
+    /*after the looping over robots*/
+    virtual void after_robotloop(CObsAvoidEvolLoopFunctions& cLoopFunctions);
+
+    /*end the trial*/
+    virtual void end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions);
+
+
+
+    /*summarise BD at the end of trials*/
+    virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions& cLoopFunctions);
+};
 // #endif

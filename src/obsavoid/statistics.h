@@ -61,10 +61,15 @@ public:
 
 class StatFuns{
 public:
+    static float log(float number, size_t base=NULL);
     /*  Combine info across trials  */
     static float mean(std::vector<float> results);
+    static float quantile(std::vector<float> results,float cumul_dens,bool sorted=false);
     static float standard_dev(std::vector<float> results);
     static float min(std::vector<float> results) ;
+    static float max(std::vector<float> results); 
+    static float range(std::vector<float> results); 
+    static float IQR(std::vector<float> results,bool sorted=false);
     static float sum(std::vector<float> results);
 
     /* get the minkowski-distance between two 3D vectors ; k is the parameter that determines e.g. manhattan vs Euclid vs 3D movements 
@@ -75,8 +80,8 @@ public:
            https://www.argos-sim.info/api/a00293_source.php#l00205
            l. 684; problem is it always uses k=2
         */
-    static float get_minkowski_distance(argos::CVector3 x, argos::CVector3 y,int k=3);
-    static float get_minkowski_distance(std::vector<float> x, std::vector<float> y,int k=3);
+    static float get_minkowski_distance(argos::CVector3 x, argos::CVector3 y,size_t k=3);
+    static float get_minkowski_distance(std::vector<float> x, std::vector<float> y,size_t k=3);
     static float uniform_prob(size_t n);
     static float max_variation_distance(size_t n);
     static float min_variation_distance();
@@ -85,7 +90,24 @@ public:
     *  it is defined as the largest possible probability difference for the same event
     */
     static float uniformity(std::vector<float> probabilities);
-    static float get_avg_dist(std::vector<argos::CVector3> positions , argos::CVector3 cm);
+    static float get_avg_dist(std::vector<argos::CVector3> pos,argos::CVector3 cm);
+
+    /* entropy based on log with custom base; however, does the correction imply always use natural log ? */
+    static std::pair<float,float> entropy(std::vector<float> p,float time,size_t base=NULL);
+    static float joint_entropy(std::vector<float> joint_p, float S_x, float S_y, float time,size_t base=NULL);
+    static float mutual_information(std::vector<float> joint_p, std::vector<float> p_x, std::vector<float> p_y,float time, size_t base=NULL);
+
+    /* similar to mutual information but not symmetric; it measures the difference between distributions 
+       Note: only use if p(x_i)=0 implies p(y_i)=0
+       can be seen as the average number of bits required to obtain p from q
+    */
+    static float relative_entropy( std::vector<float> p_x, std::vector<float> p_y,float time, size_t base);
+    
+
+    float algorithmic_prob(double complexity,size_t symbols);
+    //float StatFuns::complexity();// use zlib's compress2
+    // /* normalised compression distance, similar to mutual information in AIT */  // use ncd.h
+    // float StatFuns::NCD(NcdDataObject object1,std::vector<NcdDataObject> objectsVector, bool averageValues);
 };
 
 

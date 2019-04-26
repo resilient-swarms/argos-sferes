@@ -177,17 +177,18 @@ float Entity::distance(const Entity e1, const Entity e2)
 
 SDBC::SDBC(CLoopFunctions* cLoopFunctions, std::string init_type) : Descriptor()
 {
-	if(init_type=="sdbc_walls_and_robots")
+	if(init_type.find("sdbc_walls_and_robots")==0)
 	{
 		init_walls_and_robots(cLoopFunctions);
 	}
-	else if ("sdbc_robots")
+	else if (init_type.find("sdbc_robots")==0)
 	{
 		init_walls_and_robots(cLoopFunctions);
 	}
 	else{
 		throw std::runtime_error("init type "+init_type+ "not found");
 	}
+	include_std=init_type.find("std")==0 ? true : false;// will calculate standard deviations as well
 
 	num_groups=entity_groups.size();
 	for (auto& kv : entity_groups)
@@ -233,7 +234,7 @@ void SDBC::init_walls_and_robots(CLoopFunctions* cLoopFunctions)
 }
 void SDBC::init_robots(CLoopFunctions* cLoopFunctions)
 {
-	// robot here has 4 features: x,y,orientation,wheelvelocity1,wheelvelocity2
+	// robot here has 5 features: x,y,orientation,wheelvelocity1,wheelvelocity2
 	// here it is assumed fixed number of robots
 	std::vector<Entity> robots;
 	size_t num_robots=static_cast<CObsAvoidEvolLoopFunctions*>(cLoopFunctions)->m_unNumberRobots;
@@ -280,6 +281,12 @@ void SDBC::add_group_meanstates()
 			float mean_state=group.mean_state_vec(i);
 
 			bd[bd_index][current_trial]+=mean_state;
+			if (include_std)
+			{
+				bd_index++;
+				float sd_state=group.sd_state_vec(i,mean_state);
+				bd[bd_index][current_trial]+=sd_state;
+			}
 			bd_index++;
 			#ifdef PRINTING
 				std::cout<<"attribute "<<i<<": "<<mean_state<<std::endl;
@@ -425,3 +432,71 @@ void SDBC::end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions)
         };
     }
 }
+
+
+
+	/* given a group of sensory activations, sum their activation, and get the correspinding bin*/
+	size_t get_group_inputactivation(size_t num_bins, std::vector<size_t> group,CObsAvoidEvolLoopFunctions& cLoopFunctions)
+	{
+		float sum = 0.0f;
+		for(const size_t& idx: group )
+		{
+			sum+=cLoopFunctions.inputs[idx];
+		}
+		sum/=group.size();
+		float dx=1./(float) num_bins;
+		float s= dx;
+		for(size_t i ; i < num_bins; ++i)
+		{
+			if (sum <=dx)
+			{
+				return i;
+			}
+			s+=dx;
+		}
+		throw std::runtime_error("not assigned to any bin");
+	}
+	/* prepare for trials*/
+    void MutualinfoDescriptor::before_trials(CObsAvoidEvolLoopFunctions& cLoopFunctions)
+	{
+
+	}
+    /*reset BD at the start of a trial*/
+    void MutualinfoDescriptor::start_trial()
+	{
+
+	}
+    /*after getting inputs, can update the descriptor if needed*/
+    void MutualinfoDescriptor::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions& cLoopFunctions)
+	{
+		
+		for(const std::vector<size_t>& group : sensory_groups)
+		{
+			// get the activation bin
+			size_t bin = get_group_inputactivation(num_bins,group,cLoopFunctions);
+			// push it to the sensory group's history
+			
+		}
+	}
+
+
+
+
+    /*after the looping over robots*/
+    void MutualinfoDescriptor::after_robotloop(CObsAvoidEvolLoopFunctions& cLoopFunctions)
+    {
+        
+    }
+
+    /*end the trial*/
+    void MutualinfoDescriptor::end_trial(CObsAvoidEvolLoopFunctions& cLoopFunctions)
+    {
+    }
+
+
+
+    /*summarise BD at the end of trials*/
+     std::vector<float> MutualinfoDescriptor::after_trials(CObsAvoidEvolLoopFunctions& cLoopFunctions)
+	 {
+
+	 }
