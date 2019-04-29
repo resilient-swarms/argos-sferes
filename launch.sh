@@ -30,7 +30,7 @@ for FitfunType in MeanSpeed; do
                 experiments/experiment_template.argos                       \
                 > ${ConfigFile}
             # Call ARGoS
-            parallel --semaphore -j${maxnumjobs} ./bin/obsavoid_evol3D ${ConfigFile} -d $Outfolder &
+            ./bin/obsavoid_evol3D ${ConfigFile} -d $Outfolder &
         done
     done
 done
