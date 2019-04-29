@@ -5,7 +5,6 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/loop_functions.h>
 
-
 #include <src/obsavoid/evol_loop_functions.h>
 #include <src/obsavoid/statistics.h>
 #include <src/obsavoid/fitness_functions.h>
@@ -14,8 +13,7 @@
 /****************************************/
 /****************************************/
 
-
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 
     /*
@@ -23,7 +21,7 @@ int main(int argc, char** argv)
      */
     /* The CSimulator class of ARGoS is a singleton. Therefore, to
      * manipulate an ARGoS experiment, it is enough to get its instance */
-    argos::CSimulator& cSimulator = argos::CSimulator::GetInstance();
+    argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
     /* Set the .argos configuration file
      * This is a relative path which assumed that you launch the executable
      * from argos3-examples (as said also in the README) */
@@ -32,10 +30,7 @@ int main(int argc, char** argv)
     /* Load it to configure ARGoS */
     cSimulator.LoadExperiment();
 
-    
-
-    static CObsAvoidEvolLoopFunctions& cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions&>(cSimulator.GetLoopFunctions());
-
+    static CObsAvoidEvolLoopFunctions &cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions &>(cSimulator.GetLoopFunctions());
 
     //typedef FitObstacle<Params> fit_t;
     typedef FitObstacleMapElites<Params> fit_t;
@@ -44,9 +39,9 @@ int main(int argc, char** argv)
     //typedef boost::fusion::vector<sferes::stat::ParetoFront<phen_t, Params> >  stat_t;
 
     typedef boost::fusion::vector<
-            sferes::stat::Map<phen_t, Params>,
-            sferes::stat::MapProgress<phen_t, Params>
-            >  stat_t;
+        sferes::stat::Map<phen_t, Params>,
+        sferes::stat::MapProgress<phen_t, Params>>
+        stat_t;
 
     //MODIFIER
     typedef modif::Dummy<> modifier_t;
@@ -56,7 +51,6 @@ int main(int argc, char** argv)
     ea_t ea;
 
     run_ea(argc, argv, ea);
-
 
     /*
     * Dispose of ARGoS stuff

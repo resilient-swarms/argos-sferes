@@ -17,22 +17,20 @@ CThymioNNController::~CThymioNNController()
 /****************************************/
 /****************************************/
 
-void CThymioNNController::Init(TConfigurationNode& t_node)
+void CThymioNNController::Init(TConfigurationNode &t_node)
 {
     /*
     * Get sensor/actuator handles
     */
     try
     {
-        m_pcWheels    = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
-        m_pcProximity = GetSensor  <CCI_ThymioProximitySensor       >("Thymio_proximity"     );	
+        m_pcWheels = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
+        m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
     }
-    catch(CARGoSException& ex)
+    catch (CARGoSException &ex)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing sensors/actuators", ex);
     }
-
-
 }
 
 /****************************************/
@@ -41,8 +39,8 @@ void CThymioNNController::Init(TConfigurationNode& t_node)
 void CThymioNNController::ControlStep()
 {
     m_pcWheels->SetLinearVelocity(
-                m_fLeftSpeed,
-                m_fRightSpeed);
+        m_fLeftSpeed,
+        m_fRightSpeed);
 }
 
 /****************************************/
@@ -50,7 +48,7 @@ void CThymioNNController::ControlStep()
 
 void CThymioNNController::Reset()
 {
-//    m_cPerceptron.Reset();
+    //    m_cPerceptron.Reset();
 }
 
 /****************************************/
@@ -58,7 +56,7 @@ void CThymioNNController::Reset()
 
 void CThymioNNController::Destroy()
 {
-//    m_cPerceptron.Destroy();
+    //    m_cPerceptron.Destroy();
 }
 
 /****************************************/

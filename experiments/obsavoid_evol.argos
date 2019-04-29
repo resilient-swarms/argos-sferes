@@ -77,6 +77,19 @@
     <box id="wall_west" size="0.1,5,0.5" movable="false">
       <body position="5,2.5,0" orientation="0,0,0" />
     </box>
+     <!--
+        We distribute cylinders uniformly in position and with
+        constant rotation (rotating a cylinder around Z does not
+        matter)
+    -->
+    <distribute>
+      <position method="uniform" min="0,0,0" max="5,5,0" />
+      <orientation method="constant" values="0,0,0" />
+      <entity quantity="12" max_trials="200">
+        <cylinder id="c" height="0.5" radius="0.25" movable="false" />
+      </entity>
+    </distribute>
+
   </arena>
 
   <!-- ******************* -->

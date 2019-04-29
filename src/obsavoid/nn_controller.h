@@ -26,27 +26,23 @@ using namespace argos;
 class CThymioNNController : public CCI_Controller
 {
 
-public:
-
+  public:
     CThymioNNController();
     virtual ~CThymioNNController();
 
-    void Init(TConfigurationNode& t_node);
+    void Init(TConfigurationNode &t_node);
     void ControlStep();
     void Reset();
     void Destroy();
 
-
-//private:
-public:
-
+    //private:
+  public:
     /* Pointer to the differential steering actuator */
-    CCI_DifferentialSteeringActuator* m_pcWheels;
+    CCI_DifferentialSteeringActuator *m_pcWheels;
     /* Pointer to the foot-bot proximity sensor */
-    CCI_ThymioProximitySensor* m_pcProximity;
+    CCI_ThymioProximitySensor *m_pcProximity;
 
     /* Wheel speeds */
     Real m_fLeftSpeed, m_fRightSpeed;
-
 };
 #endif
