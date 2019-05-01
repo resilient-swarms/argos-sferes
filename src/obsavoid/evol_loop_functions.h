@@ -36,19 +36,10 @@
 #include <sferes/gen/evo_float.hpp>
 //#include <sferes/ea/nsga2.hpp>
 
-#ifdef CVT
-    #include <modules/cvt_map_elites/cvt_map_elites.hpp>
-    #include <modules/cvt_map_elites/fit_map.hpp>
-    #include <modules/cvt_map_elites/stat_map.hpp>
-    #include <modules/cvt_map_elites/stat_progress.hpp>
-#else
-    #include <modules/map_elites/map_elites.hpp>
-    #include <modules/map_elites/fit_map.hpp>
-    #include <modules/map_elites/stat_map.hpp>
+#include <modules/map_elites/map_elites.hpp>
+#include <modules/map_elites/fit_map.hpp>
+#include <modules/map_elites/stat_map.hpp>
 #include <modules/map_elites/stat_progress.hpp>
-
-#endif
-//#include <sferes/ea/nsga2.hpp>
 
 #include <sferes/fit/fitness.hpp>
 #include <sferes/eval/parallel.hpp>
@@ -56,7 +47,6 @@
 #include <sferes/stat/pareto_front.hpp>
 #include <sferes/stat/best_fit.hpp>
 #include <sferes/modif/dummy.hpp>
-
 
 
 //#include <src/obsavoid/base_classes.h>
@@ -69,8 +59,6 @@ using namespace sferes;
 using namespace sferes::gen::evo_float;
 using namespace sferes::gen::dnn;
 using namespace nn;
-
-
 
 
 struct ParamsDnn
@@ -116,43 +104,22 @@ struct ParamsDnn
 
 
 struct Params
-{   
-    #ifdef CVT
-        struct ea {
-            SFERES_CONST size_t number_of_clusters = 1000;
-            #ifdef THREE_D_BEHAV
-                SFERES_CONST size_t number_of_dimensions = 3;
-            #endif
-            #ifdef SIX_D_BEHAV
-                SFERES_CONST size_t number_of_dimensions = 6;;
-            #endif
-            #ifdef FOURTYTWO_D_BEHAV
-                SFERES_CONST size_t number_of_dimensions = 150;
-            #endif
-            #ifdef HUNDREDFIFTY_D_BEHAV
-                SFERES_CONST size_t number_of_dimensions = 150;
-            #endif
-            typedef boost::array<double, number_of_dimensions> point_t;
-            static std::vector<point_t> centroids;
-        };
+{
+    struct ea
+    {
+        
+        SFERES_CONST double epsilon = 0;//0.05;
+        #ifdef THREE_D_BEHAV
 
-    #else
-        struct ea
-        {
-            
-            SFERES_CONST double epsilon = 0;//0.05;
-            #ifdef THREE_D_BEHAV
-
-                SFERES_CONST size_t behav_dim = 3;
-                SFERES_ARRAY(size_t, behav_shape, 10, 10, 10);
-            #endif
-            #ifdef SIX_D_BEHAV
-                SFERES_CONST size_t behav_dim = 6;
-                SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10);
-            #endif
-            
-        };
-    #endif
+            SFERES_CONST size_t behav_dim = 3;
+            SFERES_ARRAY(size_t, behav_shape, 10, 10, 10);
+        #endif
+        #ifdef SIX_D_BEHAV
+            SFERES_CONST size_t behav_dim = 6;
+            SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10);
+        #endif
+        
+    };
 
     struct parameters
     {
@@ -194,8 +161,6 @@ typedef Neuron<pf_t, af_t>  neuron_t;
 typedef Connection <weight_t> connection_t;
 typedef sferes::gen::Dnn<neuron_t, connection_t, ParamsDnn> gen_t;
 typedef typename gen_t::nn_t nn_t; // not sure if typename should be here?
-
-
 }
 
 

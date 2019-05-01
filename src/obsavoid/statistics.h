@@ -67,7 +67,6 @@ class StatFuns
     static float range(std::vector<float> results);
     static float IQR(std::vector<float> results, bool sorted = false);
     static float sum(std::vector<float> results);
-    static float normalise(std::vector<float> &results,float C);
 
     /* get the minkowski-distance between two 3D vectors ; k is the parameter that determines e.g. manhattan vs Euclid vs 3D movements 
            on a flat surface, the Thymio can only move in two directions, so in that case use k=2

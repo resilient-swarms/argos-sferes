@@ -45,9 +45,9 @@
                   label="obsavoid_evol_loopfunctions"
                   trials="5"
                   robots="1"
-                  descriptortype="cvt_mutualinfo"    
+                  descriptortype="sdbc_walls_and_robots"    
                   fitfuntype="MeanSpeed"
-                  bd_dims="150"
+                  bd_dims="3"
 		  output_folder="experiments"
                     />
 
@@ -111,7 +111,7 @@
   <!-- ****************** -->
   <!-- We don't want nor need a visualization during evolution -->
   <visualization>
-    <!-- <qt-opengl/>-->
+    <qt-opengl/>
   </visualization>
 
 </argos-configuration>

@@ -111,11 +111,7 @@ add_library(obsavoid_evol_loopfunctions SHARED
 
 option(DEFINE_PRINT "print some variables" ON)
 option(3D_BD "3D behaviour description" OFF)
-option(6D_BD "6D behaviour description" OFF)
-option(42D_BD "42D behaviour description" OFF)
-
-option(150D_BD "150D behaviour description" OFF)
-option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites",OFF)
+option(6D_BD "6D behaviour description" ON)
 if(DEFINE_PRINT)
     message("print is defined")
     add_definitions(-DPRINTING)    
@@ -126,35 +122,13 @@ endif()
 if(3D_BD)
   set(BD_SIZE 3)
   add_definitions(-DTHREE_D_BEHAV)
-  message("Using 3D behavioural characterisation")
-elseif(6D_BD)
+  add_executable(obsavoid_evol3D src/obsavoid/main.cpp)
+else(6D_BD)
   set(BD_SIZE 6)
   add_definitions(-DSIX_D_BEHAV)
-  message("Using 6D behavioural characterisation")
-elseif(42D_BD)
-  set(BD_SIZE 42)
-  add_definitions(-DFOURTYTWO_D_BEHAV)
-  message("Using 42D behavioural characterisation")
-
-elseif(150D_BD)
-  set(BD_SIZE 150)
-  add_definitions(-DHUNDREDFIFTY_D_BEHAV)
-  message("Using 150D behavioural characterisation")
-else()
-  set(BD_SIZE 3)
-  add_definitions(-DTHREE_D_BEHAV)
-  message("Using 3D behavioural characterisation")
+  add_executable(obsavoid_evol6D src/obsavoid/main.cpp)
 endif()
 
-
-if(CVT_USAGE)
-  set(CVT_USE cvt)
-  add_definitions(-DCVT)
-  message("Using Centroidal Voronoi Tesselation")
-endif()
-
-set(EXECUTABLE obsavoid_evol${CVT_USE}${BD_SIZE}D)
-add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 
 
 
@@ -181,7 +155,7 @@ if(Boost_FOUND)
       ${Boost_LIBRARIES}
       ${TBB_LIBRARIES})
 
-    target_link_libraries(${EXECUTABLE}
+    target_link_libraries(obsavoid_evol${BD_SIZE}D
       obsavoid_nn_controller
       obsavoid_evol_loopfunctions
       descriptors
@@ -191,4 +165,5 @@ if(Boost_FOUND)
   else(NOT Boost_FOUND)
     message(FATAL_ERROR "Unable to continue without BOOST")
 endif()
+
 
