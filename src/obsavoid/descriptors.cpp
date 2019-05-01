@@ -13,17 +13,9 @@ const size_t Descriptor::behav_dim = 3;
 #ifdef SIX_D_BEHAV
 const size_t Descriptor::behav_dim = 6;
 #endif
-#ifdef FOURTYTWO_D_BEHAV
-const size_t Descriptor::behav_dim = 42;
-#endif
-#ifdef HUNDREDFIFTY_D_BEHAV
-const size_t Descriptor::behav_dim = 150;
-#endif
+
 // const size_t SDBC::behav_dim=3;
-Descriptor::Descriptor()
-{
-	bd.resize(behav_dim);
-}
+
 void Descriptor::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
 	for (size_t t = 0; t < behav_dim; ++t)
@@ -415,109 +407,58 @@ void SDBC::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 	}
 }
 
+/* given a group of sensory activations, sum their activation, and get the correspinding bin*/
+size_t get_group_inputactivation(size_t num_bins, std::vector<size_t> group, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+{
+	float sum = 0.0f;
+	for (const size_t &idx : group)
+	{
+		sum += cLoopFunctions.inputs[idx];
+	}
+	sum /= group.size();
+	float dx = 1. / (float)num_bins;
+	float s = dx;
+	for (size_t i; i < num_bins; ++i)
+	{
+		if (sum <= dx)
+		{
+			return i;
+		}
+		s += dx;
+	}
+	throw std::runtime_error("not assigned to any bin");
+}
 /* prepare for trials*/
-void CVT_MutualInfo::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void MutualinfoDescriptor::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
 }
 /*reset BD at the start of a trial*/
-void CVT_MutualInfo::start_trial()
+void MutualinfoDescriptor::start_trial()
 {
-	// here we don't do anything because  we don't need to reset the number of updates or keep increment the trials
-}
-/* get bin for sensory probabilities  */
-size_t CVT_MutualInfo::get_sensory_bin(float activation) const
-{
-	float dx = 1.0 / (float)num_bins;
-	size_t count = 0;
-	for (int x = dx; x <= 1.0; x += dx)
-	{
-		if (activation <= x)
-		{
-			return count;
-		}
-		++count;
-	}
-	throw std::runtime_error("not in [0,1] ?");
-	return NULL;
 }
 /*after getting inputs, can update the descriptor if needed*/
-void CVT_MutualInfo::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void MutualinfoDescriptor::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
-	size_t joint_index = 0;
-	// frequency + joint_frequency
-	for (size_t i = 0; i < cLoopFunctions.inputs.size(); ++i)
+
+	for (const std::vector<size_t> &group : sensory_groups)
 	{
-		size_t bin = get_sensory_bin(cLoopFunctions.inputs[i]);
-		++freqs[i][bin];
-		for (size_t j = 0; j < cLoopFunctions.inputs.size() && j!=i; ++j)
-		{
-			size_t bin2 = get_sensory_bin(cLoopFunctions.inputs[i]);
-			size_t joint_bin = bin * cLoopFunctions.inputs.size() + bin2;
-			++joint_freqs[i][j][joint_bin];
-		}
+		// get the activation bin
+		size_t bin = get_group_inputactivation(num_bins, group, cLoopFunctions);
+		// push it to the sensory group's history
 	}
-	num_updates++;
 }
 
 /*after the looping over robots*/
-void CVT_MutualInfo::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void MutualinfoDescriptor::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
 }
 
 /*end the trial*/
-void CVT_MutualInfo::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void MutualinfoDescriptor::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
 }
 
 /*summarise BD at the end of trials*/
-std::vector<float> CVT_MutualInfo::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+std::vector<float> MutualinfoDescriptor::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
-	/* final behavioural descriptor  */
-    std::vector<float> final_bd;
-	for (size_t i = 0; i < cLoopFunctions.inputs.size(); ++i)
-	{
-		StatFuns::normalise(freqs[i], num_updates);
-		
-		for (size_t j = 0; j < cLoopFunctions.inputs.size() && j!=i; ++j)
-		{
-			StatFuns::normalise(freqs[j], num_updates);
-			StatFuns::normalise(joint_freqs[i][j], num_updates);
-			final_bd.push_back(StatFuns::mutual_information(joint_freqs[i][j],freqs[i],freqs[j],num_updates));
-		}
-	}
-
-	return final_bd;
-}
-
-void CVT_Trajectory::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
-{
-	final_bd.clear();
-}
-CVT_Trajectory::CVT_Trajectory(CObsAvoidEvolLoopFunctions &cLoopFunctions, size_t num_steps)
-{
-	num_chunks = behav_dim / (2 * cLoopFunctions.m_unNumberTrials);
-
-	periodicity = num_steps / (num_chunks);
-	argos::CVector3 max = cLoopFunctions.GetSpace().GetArenaSize();
-	maxX = max.GetX();
-	maxY = max.GetY();
-}
-/*after getting outputs, can update the descriptor if needed*/
-void CVT_Trajectory::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
-{
-	num_updates++;
-	if (end_chunk())
-	{
-		// here just set the attributes of robot at index; let end
-		CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[robot_index]);
-		float x = pos.GetX() / maxX;
-		float y = pos.GetY() / maxY;
-		final_bd.push_back(x);
-		final_bd.push_back(y);
-	}
-}
-/*summarise BD at the end of trials*/
-std::vector<float> CVT_Trajectory::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
-{
-	return final_bd;
 }
