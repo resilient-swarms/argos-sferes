@@ -23,13 +23,17 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
     git clone https://github.com/sferes2/sferes2.git 
 
 
-4. As nn2 and map_elites code are in header files, they don't need to be compiled -- so no need to add them to modules.conf
+4. As nn2, map_elites and cvt_map_elites code are in header files, they don't need to be compiled -- so no need to add them to modules.conf
 
     cd sferes2/modules
 
     git clone https://github.com/sferes2/map_elites.git --branch generic_print
 
     git clone https://github.com/sferes2/nn2.git
+    
+    git clone https://github.com/sferes2/cvt_map_elites.git
+
+After cloning cvt_map_elites, comment line 57-62 in stat_map.hpp (this allows use of Dnn).
 
 
 

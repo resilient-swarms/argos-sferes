@@ -141,6 +141,17 @@ float StatFuns::uniformity(std::vector<float> probabilities)
     assert(dist <= m);
     return m - dist;
 }
+
+
+float StatFuns::normalise(std::vector<float> &probabilities,float C)
+{
+    for(float &prob: probabilities)
+    {
+        prob/=C;
+    }
+}
+
+
 float StatFuns::get_avg_dist(std::vector<argos::CVector3> positions, argos::CVector3 cm)
 {
     float avg_dist = 0.0f;
@@ -193,7 +204,7 @@ float StatFuns::joint_entropy(std::vector<float> joint_p, float S_x, float S_y, 
 }
 float StatFuns::mutual_information(std::vector<float> joint_p, std::vector<float> p_x, std::vector<float> p_y, float time, size_t base)
 {
-    if (p_y.size() != p_x.size() or p_y.size() != joint_p.size())
+    if (p_y.size()*p_y.size() != joint_p.size())
     {
         throw std::runtime_error("supply equally sized arrays");
     }
