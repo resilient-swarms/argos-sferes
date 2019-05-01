@@ -178,4 +178,3 @@ if(Boost_FOUND)
   else(NOT Boost_FOUND)
     message(FATAL_ERROR "Unable to continue without BOOST")
 endif()
-
