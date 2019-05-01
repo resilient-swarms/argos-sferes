@@ -1,68 +1,81 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(argos_sferes)
 
-set(SFERES_PATH ${PROJECT_SOURCE_DIR}/sferes2) # location of sferes2 - where https://github.com/sferes2/sferes2 has been cloned
+set(SFERES ${PROJECT_SOURCE_DIR}/sferes2) # location of sferes2 - where https://github.com/sferes2/sferes2 has been cloned
+set(THYMIO $ENV{THYMIO}) # location of Thymio plugin installation -- include and libs
+IF( NOT THYMIO )
+    MESSAGE( FATAL_ERROR "Please point the environment variable THYMIO to the location of the Thymio plugin installation")
+ENDIF()
 
-#if(UNIX)
-#    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
-#endif()
+
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 
 # Deactivate RPATH for MacOSX
 set(CMAKE_MACOSX_RPATH 0)
 
 # Set the path where CMake will find additional scripts
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 # Find the ARGoS package
 find_package(PkgConfig)
 pkg_check_modules(ARGOS REQUIRED argos3_simulator)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ARGOS_PREFIX}/share/argos3/cmake)
+list(APPEND CMAKE_MODULE_PATH ${ARGOS_PREFIX}/share/argos3/cmake)
 
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-set(Boost_NO_BOOST_CMAKE      ON)
+#set(Boost_NO_BOOST_CMAKE      ON)
 set(Boost_USE_MULTITHREADED      ON)
-set(BOOST_INCLUDEDIR "/usr/include/boost/") # hint location to search for boost libs
+set(BOOST_INCLUDEDIR "/usr/include/boost/") # hint location to search for boost headers
 set(BOOST_LIBRARYDIR "/usr/lib/x86_64-linux-gnu/") # hint location to search for boost libs
-find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph mpi python thread REQUIRED)
+#find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph mpi python thread REQUIRED)
+find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph python thread REQUIRED)
 if(Boost_FOUND)
   link_directories(${Boost_LIBRARY_DIRS})
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-# find TBB libs -- script from https://github.com/justusc/FindTBB
+#Find TBB libs -- script from https://github.com/justusc/FindTBB
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/FindTBB)
 find_package(TBB) #COMPONENTS tbbmalloc tbbmalloc_proxy 
 if(TBB_FOUND)
   include_directories(${TBB_INCLUDE_DIRS})
   message(${TBB_INCLUDE_DIRS} " " ${TBB_LIBRARIES})
 else(NOT TBB_FOUND)
-  message(FATAL_ERROR "Unable to continue without TBB")
+  message("Unable to find TBB. Will not be able to run sferes eval::Parallel")
+  set(TBB_INCLUDE_DIRS "")
+  set(TBB_LIBRARIES "")
 endif()
 
-link_directories(/usr/lib)
 
-
-
-
+link_directories(/usr/lib) ## careless -- which libs are we trying to link with?
 
 #add_definitions(-std=c++0x)
 add_definitions( -DEIGEN3_ENABLED )
-#add_definitions( -DNO_PARALLEL )
-add_definitions( -DNDEBUG )
+if(NOT TBB_FOUND)
+  add_definitions( -DNO_PARALLEL )
+endif()
+add_definitions( -DNDEBUG ) # non-debug mode
 add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
-include_directories(/usr/include)
-include_directories(/usr/include/eigen3)
-include_directories(${SFERES_PATH})
-include_directories(${HOME}/geometric-median)
+include_directories(/usr/include)  ## careless -- exactly which includes?
+
+#include_directories(/local/software/eigen/3.3.7/include)
+SET(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
+IF(NOT EIGEN3_INCLUDE_DIR )
+    MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
+ENDIF()
+include_directories("${EIGEN3_INCLUDE_DIR}")
+
+include_directories(${SFERES})
+include_directories(${HOME}/geometric-median) #  won't work -- use $ENV{HOME}
+include_directories(${THYMIO}/include)
+message("Thymio path is: " ${THYMIO_PATH})
+include_directories(${TBB_INCLUDE_DIRS})
 
 
 
@@ -74,13 +87,13 @@ include(ARGoSCheckQTOpenGL)
 find_package(GSL REQUIRED)
 
 # Find Lua
-find_package(Lua52 REQUIRED)
+#find_package(Lua52 REQUIRED)
 
 # Set ARGoS include dir
-include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS} ${GSL_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS} ${GSL_INCLUDE_DIR})# ${LUA_INCLUDE_DIR})
 
 # Set ARGoS link dir
-link_directories(${ARGOS_LIBRARY_DIRS} ${PROJECT_SOURCE_DIR}/lib)
+link_directories(${ARGOS_LIBRARY_DIRS} ${THYMIO}/lib/argos3 ${PROJECT_SOURCE_DIR}/lib)
 
 # Descend into the controllers directory
 
@@ -139,8 +152,8 @@ if(Boost_FOUND)
       argos3plugin_simulator_thymio
       argos3plugin_simulator_genericrobot
       #argos3plugin_simulator_sensors
-      ${Boost_LIBRARIES}
-      ${TBB_LIBRARIES})
+      ${Boost_LIBRARIES})
+      #${TBB_LIBRARIES})
 
     target_link_libraries(obsavoid_evol_loopfunctions
       obsavoid_nn_controller
@@ -152,8 +165,8 @@ if(Boost_FOUND)
       argos3plugin_simulator_genericrobot
       argos3plugin_simulator_media
       #argos3plugin_simulator_sensors
-      ${Boost_LIBRARIES}
-      ${TBB_LIBRARIES})
+      ${Boost_LIBRARIES})
+      #${TBB_LIBRARIES})
 
     target_link_libraries(obsavoid_evol${BD_SIZE}D
       obsavoid_nn_controller
@@ -161,7 +174,7 @@ if(Boost_FOUND)
       descriptors
       fitness_functions
        statistics
-      argos3core_simulator ${Boost_LIBRARIES} ${TBB_LIBRARIES})
+      argos3core_simulator ${Boost_LIBRARIES}) # ${TBB_LIBRARIES})
   else(NOT Boost_FOUND)
     message(FATAL_ERROR "Unable to continue without BOOST")
 endif()
