@@ -132,7 +132,7 @@ add_library(obsavoid_evol_loopfunctions SHARED
 
 option(DEFINE_PRINT "print some variables" ON)
 option(3D_BD "3D behaviour description" OFF)
-option(6D_BD "6D behaviour description" ON)
+option(6D_BD "6D behaviour description" OFF)
 option(42D_BD "42D behaviour description" OFF)
 option(150D_BD "150D behaviour description" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
@@ -176,35 +176,34 @@ endif()
 set(EXECUTABLE obsavoid_evol${CVT_USE}${BD_SIZE}D)
 add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 
-    target_link_libraries(obsavoid_nn_controller
-      argos3core_simulator
-      #argos3plugin_simulator_actuators
-      argos3plugin_simulator_thymio
-      argos3plugin_simulator_genericrobot
-      #argos3plugin_simulator_sensors
-      ${Boost_LIBRARIES}
-      ${TBB_LIBRARIES})
+target_link_libraries(obsavoid_nn_controller
+  argos3core_simulator
+  #argos3plugin_simulator_actuators
+  argos3plugin_simulator_thymio
+  argos3plugin_simulator_genericrobot
+  #argos3plugin_simulator_sensors
+  ${Boost_LIBRARIES}
+  ${TBB_LIBRARIES})
 
-    target_link_libraries(obsavoid_evol_loopfunctions
-      obsavoid_nn_controller
-      argos3core_simulator
-      #argos3plugin_simulator_actuators
-      argos3plugin_simulator_dynamics2d
-      argos3plugin_simulator_entities
-      argos3plugin_simulator_thymio
-      argos3plugin_simulator_genericrobot
-      argos3plugin_simulator_media
-      #argos3plugin_simulator_sensors
-      ${Boost_LIBRARIES}
-      ${TBB_LIBRARIES})
+target_link_libraries(obsavoid_evol_loopfunctions
+  obsavoid_nn_controller
+  argos3core_simulator
+  #argos3plugin_simulator_actuators
+  argos3plugin_simulator_dynamics2d
+  argos3plugin_simulator_entities
+  argos3plugin_simulator_thymio
+  argos3plugin_simulator_genericrobot
+  argos3plugin_simulator_media
+  #argos3plugin_simulator_sensors
+  ${Boost_LIBRARIES}
+  ${TBB_LIBRARIES})
 
-    target_link_libraries(${EXECUTABLE}
-      obsavoid_nn_controller
-      obsavoid_evol_loopfunctions
-      descriptors
-      fitness_functions
-      statistics
-      argos3core_simulator 
-      ${Boost_LIBRARIES} 
-      ${TBB_LIBRARIES})
-
+target_link_libraries(${EXECUTABLE}
+  obsavoid_nn_controller
+  obsavoid_evol_loopfunctions
+  descriptors
+  fitness_functions
+  statistics
+  argos3core_simulator 
+  ${Boost_LIBRARIES} 
+  ${TBB_LIBRARIES})

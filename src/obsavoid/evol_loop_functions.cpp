@@ -386,3 +386,4 @@ std::vector<float> CObsAvoidEvolLoopFunctions::alltrials_descriptor()
 
 //using TemplateCObsAvoidEvolLoopFunctions = CObsAvoidEvolLoopFunctions<class NN>;
 REGISTER_LOOP_FUNCTIONS(CObsAvoidEvolLoopFunctions, "obsavoid_evol_loopfunctions")
+
