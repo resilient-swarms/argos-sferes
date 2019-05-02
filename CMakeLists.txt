@@ -72,7 +72,7 @@ add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d770544
 
 
 #include_directories(/usr/include)  ## careless -- exactly which includes?
-#include_directories("/usr/include/lua5.2")  # think we can do without lua
+include_directories("/usr/include/lua5.2")  # think we can do without lua
 SET(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
 IF(NOT EIGEN3_INCLUDE_DIR )
     MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
