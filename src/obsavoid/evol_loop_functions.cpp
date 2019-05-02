@@ -324,8 +324,66 @@ void CObsAvoidEvolLoopFunctions::PostStep()
 {
 }
 
+void CObsAvoidEvolLoopFunctions::before_trials()
+{
+    m_unCurrentTrial=0;
+    descriptor->before_trials(*this);
+    
+
+}
+void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
+{
+    nb_coll = 0;
+    stop_eval = false;
+    speed = 0.0f;
+    lin_speed = 0.0f;
+    // stand_still = 0;
+    // old_pos   = CVector3(0.0f, 0.0f, 0.0f);
+    // old_theta = CRadians(0.0f);
+    num_ds = 0.0;
+    descriptor->start_trial();
+
+    /* Tell the loop functions to get ready for the i-th trial */
+    SetTrial();
+
+    /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
+    cSimulator.Reset();
+
+    /* Configure the controller with the indiv gen */
+    //ConfigureFromGenome(ind.nn());
+    //_ctrlrob = ind.nn_cpy();
+    //_ctrlrob.init(); // a copied nn object needs to be init before use
+
+    for (size_t j = 0; j < m_unNumberRobots; ++j)
+        _vecctrlrob[j].init(); // a copied nn object needs to be init before use
+}
+void CObsAvoidEvolLoopFunctions::end_trial(Real time)
+{
+    fitfun->apply(*this, time);
+    descriptor->end_trial(*this);
+            
+}
+
+void CObsAvoidEvolLoopFunctions::print_progress()
+{
+    printf("\n\n lin_speed = %f", lin_speed);
+    printf("\n\n nb_coll = %f", nb_coll);
+    int trial = m_unCurrentTrial;
+    printf("\n\n fitness in trial %lu is %f", trial, fitfun->fitness_per_trial[trial]);
+}
+
+
+float CObsAvoidEvolLoopFunctions::alltrials_fitness()
+{
+    fitfun->after_trials();
+}
+std::vector<float> CObsAvoidEvolLoopFunctions::alltrials_descriptor()
+{
+    descriptor->after_trials(*this);
+}
 /****************************************/
 /****************************************/
 
 //using TemplateCObsAvoidEvolLoopFunctions = CObsAvoidEvolLoopFunctions<class NN>;
 REGISTER_LOOP_FUNCTIONS(CObsAvoidEvolLoopFunctions, "obsavoid_evol_loopfunctions")
+

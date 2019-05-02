@@ -7,13 +7,11 @@ IF( NOT THYMIO )
     MESSAGE( FATAL_ERROR "Please point the environment variable THYMIO to the location of the Thymio plugin installation")
 ENDIF()
 
-
-
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Deactivate RPATH for MacOSX
-set(CMAKE_MACOSX_RPATH 0)
+#set(CMAKE_MACOSX_RPATH 0)
 
 # Set the path where CMake will find additional scripts
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -28,15 +26,21 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-#set(Boost_NO_BOOST_CMAKE      ON)
+set(Boost_NO_BOOST_CMAKE      ON) # disable the search for boost-cmake
 set(Boost_USE_MULTITHREADED      ON)
 set(BOOST_INCLUDEDIR "/usr/include/boost/") # hint location to search for boost headers
 set(BOOST_LIBRARYDIR "/usr/lib/x86_64-linux-gnu/") # hint location to search for boost libs
 #find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph mpi python thread REQUIRED)
-find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph python thread REQUIRED)
+#find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph thread REQUIRED)
+find_package(Boost COMPONENTS serialization graph program_options filesystem  REQUIRED)
+# system unit_test_framework thread REQUIRED)
 if(Boost_FOUND)
   link_directories(${Boost_LIBRARY_DIRS})
   include_directories(${Boost_INCLUDE_DIRS})
+  message("Boost libs found in: " ${Boost_LIBRARY_DIRS}) 
+  message("Boost headers found in: " ${Boost_INCLUDE_DIRS}) 
+else(NOT Boost_FOUND)
+    message(FATAL_ERROR "Unable to continue without BOOST")
 endif()
 
 #Find TBB libs -- script from https://github.com/justusc/FindTBB
@@ -52,8 +56,10 @@ else(NOT TBB_FOUND)
 endif()
 
 
-link_directories(/usr/lib) ## careless -- which libs are we trying to link with?
+#link_directories(/usr/lib) ## careless -- which libs are we trying to link with?
 
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 #add_definitions(-std=c++0x)
 add_definitions( -DEIGEN3_ENABLED )
 if(NOT TBB_FOUND)
@@ -62,9 +68,11 @@ endif()
 add_definitions( -DNDEBUG ) # non-debug mode
 add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
-include_directories(/usr/include)  ## careless -- exactly which includes?
 
-#include_directories(/local/software/eigen/3.3.7/include)
+
+
+#include_directories(/usr/include)  ## careless -- exactly which includes?
+#include_directories("/usr/include/lua5.2")  # think we can do without lua
 SET(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
 IF(NOT EIGEN3_INCLUDE_DIR )
     MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
@@ -72,9 +80,9 @@ ENDIF()
 include_directories("${EIGEN3_INCLUDE_DIR}")
 
 include_directories(${SFERES})
-include_directories(${HOME}/geometric-median) #  won't work -- use $ENV{HOME}
+include_directories($ENV{HOME}/geometric-median) 
 include_directories(${THYMIO}/include)
-message("Thymio path is: " ${THYMIO_PATH})
+message("Thymio path is: " ${THYMIO}) 
 include_directories(${TBB_INCLUDE_DIRS})
 
 
@@ -87,10 +95,10 @@ include(ARGoSCheckQTOpenGL)
 find_package(GSL REQUIRED)
 
 # Find Lua
-#find_package(Lua52 REQUIRED)
+#find_package(Lua52 REQUIRED) #  think we can do without lua
 
 # Set ARGoS include dir
-include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS} ${GSL_INCLUDE_DIR})# ${LUA_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS} ${GSL_INCLUDE_DIR}) #${LUA_INCLUDE_DIR})
 
 # Set ARGoS link dir
 link_directories(${ARGOS_LIBRARY_DIRS} ${THYMIO}/lib/argos3 ${PROJECT_SOURCE_DIR}/lib)
@@ -125,6 +133,10 @@ add_library(obsavoid_evol_loopfunctions SHARED
 option(DEFINE_PRINT "print some variables" ON)
 option(3D_BD "3D behaviour description" OFF)
 option(6D_BD "6D behaviour description" ON)
+option(42D_BD "42D behaviour description" OFF)
+option(150D_BD "150D behaviour description" OFF)
+option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
+
 if(DEFINE_PRINT)
     message("print is defined")
     add_definitions(-DPRINTING)    
@@ -136,24 +148,42 @@ if(3D_BD)
   set(BD_SIZE 3)
   add_definitions(-DTHREE_D_BEHAV)
   add_executable(obsavoid_evol3D src/obsavoid/main.cpp)
-else(6D_BD)
+elseif(6D_BD)
   set(BD_SIZE 6)
   add_definitions(-DSIX_D_BEHAV)
-  add_executable(obsavoid_evol6D src/obsavoid/main.cpp)
+  message("Using 6D behavioural characterisation")
+elseif(42D_BD)
+  set(BD_SIZE 42)
+  add_definitions(-DFOURTYTWO_D_BEHAV)
+  message("Using 42D behavioural characterisation")
+elseif(150D_BD)
+  set(BD_SIZE 150)
+  add_definitions(-DHUNDREDFIFTY_D_BEHAV)
+  message("Using 150D behavioural characterisation")
+else()
+  set(BD_SIZE 3)
+  add_definitions(-DTHREE_D_BEHAV)
+  message("Using 3D behavioural characterisation")
 endif()
 
 
+if(CVT_USAGE)
+  set(CVT_USE cvt)
+  add_definitions(-DCVT)
+  message("Using Centroidal Voronoi Tesselation")
+endif()
 
+set(EXECUTABLE obsavoid_evol${CVT_USE}${BD_SIZE}D)
+add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 
-if(Boost_FOUND)
     target_link_libraries(obsavoid_nn_controller
       argos3core_simulator
       #argos3plugin_simulator_actuators
       argos3plugin_simulator_thymio
       argos3plugin_simulator_genericrobot
       #argos3plugin_simulator_sensors
-      ${Boost_LIBRARIES})
-      #${TBB_LIBRARIES})
+      ${Boost_LIBRARIES}
+      ${TBB_LIBRARIES})
 
     target_link_libraries(obsavoid_evol_loopfunctions
       obsavoid_nn_controller
@@ -165,16 +195,15 @@ if(Boost_FOUND)
       argos3plugin_simulator_genericrobot
       argos3plugin_simulator_media
       #argos3plugin_simulator_sensors
-      ${Boost_LIBRARIES})
-      #${TBB_LIBRARIES})
+      ${Boost_LIBRARIES}
+      ${TBB_LIBRARIES})
 
-    target_link_libraries(obsavoid_evol${BD_SIZE}D
+    target_link_libraries(${EXECUTABLE}
       obsavoid_nn_controller
       obsavoid_evol_loopfunctions
       descriptors
       fitness_functions
-       statistics
-      argos3core_simulator ${Boost_LIBRARIES}) # ${TBB_LIBRARIES})
-  else(NOT Boost_FOUND)
-    message(FATAL_ERROR "Unable to continue without BOOST")
-endif()
+      statistics
+      argos3core_simulator 
+      ${Boost_LIBRARIES} 
+      ${TBB_LIBRARIES})

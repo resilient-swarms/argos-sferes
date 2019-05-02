@@ -2,6 +2,9 @@
 // #ifndef STATISTICS
 // #define STATISTICS
 
+
+
+
 #include <vector>
 #include <argos3/core/utility/math/vector3.h>
 #include <algorithm>
@@ -53,11 +56,12 @@ class RunningStat
         return sqrt(var());
     }
 };
-
+static const float EULER=std::exp(1);
 class StatFuns
 {
   public:
-    static float log(float number, size_t base = NULL);
+    
+    static float log(float number, size_t base = EULER);
     /*  Combine info across trials  */
     static float mean(std::vector<float> results);
     static float quantile(std::vector<float> results, float cumul_dens, bool sorted = false);
@@ -89,9 +93,9 @@ class StatFuns
     static float get_avg_dist(std::vector<argos::CVector3> pos, argos::CVector3 cm);
 
     /* entropy based on log with custom base; however, does the correction imply always use natural log ? */
-    static std::pair<float, float> entropy(std::vector<float> p, float time, size_t base = NULL);
-    static float joint_entropy(std::vector<float> joint_p, float S_x, float S_y, float time, size_t base = NULL);
-    static float mutual_information(std::vector<float> joint_p, std::vector<float> p_x, std::vector<float> p_y, float time, size_t base = NULL);
+    static std::pair<float, float> entropy(std::vector<float> p, float time, size_t base = EULER);
+    static float joint_entropy(std::vector<float> joint_p, float S_x, float S_y, float time, size_t base = EULER);
+    static float mutual_information(std::vector<float> joint_p, std::vector<float> p_x, std::vector<float> p_y, float time, size_t base = EULER);
 
     /* similar to mutual information but not symmetric; it measures the difference between distributions 
        Note: only use if p(x_i)=0 implies p(y_i)=0
