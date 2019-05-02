@@ -21,12 +21,10 @@ class RunningStat;
 class Descriptor
 {
   public:
-    Descriptor()
-    {
-        bd.resize(behav_dim);
-    }
+    Descriptor();
     size_t num_updates, current_trial;
     static const size_t behav_dim; // for now all the same
+
     /* final value of bd*/
     std::vector<std::vector<float>> bd;
 
@@ -243,7 +241,7 @@ class SDBC : public Descriptor
 //     *  use RNN to process observed oa-history
 //     */
 // public:
-//     ModusHistoryDescriptor(){
+//     RNNHistoryDescriptor(){
 
 //     }
 //     void set_RNN_from_config()
@@ -289,20 +287,26 @@ class AutoDescriptor : public Descriptor
 */
 static size_t get_group_inputactivation(size_t num_bins, std::vector<size_t> group, CObsAvoidEvolLoopFunctions &cLoopFunctions);
 
-class MutualinfoDescriptor : public Descriptor
+class CVT_MutualInfo : public Descriptor
 {
   public:
     /* number of bins used for the probability distribution*/
     const size_t num_bins = 5;
-    /* indexes per group of sensors*/
-    std::vector<std::vector<size_t>> sensory_groups;
 
     /* track the frequencies of the different bins for all groups*/
-    std::vector<std::vector<float>> freqs;
-    MutualinfoDescriptor(size_t bins) : num_bins(bins)
+    std::vector<std::vector<float>> freqs;// for each sensor
+    /* track the joint frequencies of the different bins for all groups*/
+    std::vector<std::vector<std::vector<float>>> joint_freqs;//for each sensory combination a 2-D matrix
+    CVT_MutualInfo() 
     {
     }
+    /*  *
+    float marginal_prob(size_t sensor_index)
+    {
 
+    }
+    /* get bin for sensory probabilities  */
+    size_t get_sensory_bin(float activation) const;
     /* prepare for trials*/
     virtual void before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
     /*reset BD at the start of a trial*/
@@ -344,6 +348,68 @@ class CompressionDescriptor : public Descriptor
     /*end the trial*/
     virtual void end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions);
 
+    /*summarise BD at the end of trials*/
+    virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+};
+
+class NonMarkovianStochasticPolicyInduction : public Descriptor
+{
+    /* Obtain non-Markovian estimates of the stochastic policy.
+    *  Rather than utilising the 
+    */
+  public:
+    NonMarkovianStochasticPolicyInduction()
+    {
+        bd.resize(behav_dim);
+    }
+
+    /* prepare for trials*/
+    virtual void before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+    /*reset BD at the start of a trial*/
+    virtual void start_trial();
+    /*after getting inputs, can update the descriptor if needed*/
+    virtual void set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions){};
+
+    /*after getting outputs, can update the descriptor if needed*/
+    virtual void set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions){};
+
+    /*after the looping over robots*/
+    virtual void after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+    {
+    }
+
+    /*end the trial*/
+    virtual void end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+    {
+    }
+
+    /*summarise BD at the end of trials*/
+    virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+};
+
+class CVT_Trajectory : public Descriptor
+{
+    /* 
+    *  Divide the trajectory in N chunks, and record the (x,y) at each endpoint
+    *  Total dimensionality of the descriptor = N*2*trials
+    */
+  public:
+    size_t num_chunks;
+    size_t periodicity;
+    float maxX, maxY;
+    /* final behavioural descriptor  */
+    std::vector<float> final_bd;
+    CVT_Trajectory(CObsAvoidEvolLoopFunctions &cLoopFunctions, size_t num_steps);
+
+    inline bool end_chunk() const
+    {
+        return (num_updates + 1) % periodicity == 0;
+    }
+
+    virtual void before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+
+    /*after getting outputs, can update the descriptor if needed*/
+    virtual void set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions);
     /*summarise BD at the end of trials*/
     virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
 };
