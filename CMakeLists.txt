@@ -132,7 +132,7 @@ add_library(obsavoid_evol_loopfunctions SHARED
 
 option(DEFINE_PRINT "print some variables" ON)
 option(3D_BD "3D behaviour description" OFF)
-option(6D_BD "6D behaviour description" ON)
+option(6D_BD "6D behaviour description" OFF)
 option(42D_BD "42D behaviour description" OFF)
 option(150D_BD "150D behaviour description" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
