@@ -1,10 +1,7 @@
 
 
-
 // #ifndef EVOL_LOOP_FUNCTIONS
 // #define EVOL_LOOP_FUNCTIONS
-
-
 
 /****************************************/
 /****************************************/
@@ -37,14 +34,14 @@
 //#include <sferes/ea/nsga2.hpp>
 
 #ifdef CVT
-    #include <modules/cvt_map_elites/cvt_map_elites.hpp>
-    #include <modules/cvt_map_elites/fit_map.hpp>
-    #include <modules/cvt_map_elites/stat_map.hpp>
-    #include <modules/cvt_map_elites/stat_progress.hpp>
+#include <modules/cvt_map_elites/cvt_map_elites.hpp>
+#include <modules/cvt_map_elites/fit_map.hpp>
+#include <modules/cvt_map_elites/stat_map.hpp>
+#include <modules/cvt_map_elites/stat_progress.hpp>
 #else
-    #include <modules/map_elites/map_elites.hpp>
-    #include <modules/map_elites/fit_map.hpp>
-    #include <modules/map_elites/stat_map.hpp>
+#include <modules/map_elites/map_elites.hpp>
+#include <modules/map_elites/fit_map.hpp>
+#include <modules/map_elites/stat_map.hpp>
 #include <modules/map_elites/stat_progress.hpp>
 
 #endif
@@ -57,10 +54,7 @@
 #include <sferes/stat/best_fit.hpp>
 #include <sferes/modif/dummy.hpp>
 
-
-
 //#include <src/obsavoid/base_classes.h>
-
 
 /****************************************/
 /****************************************/
@@ -70,29 +64,26 @@ using namespace sferes::gen::evo_float;
 using namespace sferes::gen::dnn;
 using namespace nn;
 
-
-
-
 struct ParamsDnn
 {
     struct dnn
     {
-        static constexpr size_t nb_inputs       = 8; //! 7 ir sensors + bias input at +1
-        static constexpr size_t nb_outputs      = 2; // 2 motors: left and right wheel
+        static constexpr size_t nb_inputs = 8;  //! 7 ir sensors + bias input at +1
+        static constexpr size_t nb_outputs = 2; // 2 motors: left and right wheel
 
         static constexpr int io_param_evolving = true;
-        static constexpr float m_rate_add_conn  = 0.15f;
-        static constexpr float m_rate_del_conn  = 0.15f;
+        static constexpr float m_rate_add_conn = 0.15f;
+        static constexpr float m_rate_del_conn = 0.15f;
         static constexpr float m_rate_change_conn = 0.15f;
-        static constexpr float m_rate_add_neuron  = 0.10f;
-        static constexpr float m_rate_del_neuron  = 0.10f;
+        static constexpr float m_rate_add_neuron = 0.10f;
+        static constexpr float m_rate_del_neuron = 0.10f;
 
         static constexpr init_t init = random_topology; //random_topology or ff (feed-forward)
         //these only count w/ random init, instead of feed forward
-        static constexpr size_t min_nb_neurons  = 0; // does not include input and output neurons
-        static constexpr size_t max_nb_neurons  = 20; // does not include input and output neurons
-        static constexpr size_t min_nb_conns    = 0;
-        static constexpr size_t max_nb_conns    = 40;
+        static constexpr size_t min_nb_neurons = 0;  // does not include input and output neurons
+        static constexpr size_t max_nb_neurons = 20; // does not include input and output neurons
+        static constexpr size_t min_nb_conns = 0;
+        static constexpr size_t max_nb_conns = 40;
     };
 
     struct parameters
@@ -114,45 +105,45 @@ struct ParamsDnn
     };
 };
 
-
 struct Params
-{   
-    #ifdef CVT
-        struct ea {
-            SFERES_CONST size_t number_of_clusters = 1000;
-            #ifdef THREE_D_BEHAV
-                SFERES_CONST size_t number_of_dimensions = 3;
-            #endif
-            #ifdef SIX_D_BEHAV
-                SFERES_CONST size_t number_of_dimensions = 6;;
-            #endif
-            #ifdef FOURTYTWO_D_BEHAV
-                SFERES_CONST size_t number_of_dimensions = 150;
-            #endif
-            #ifdef HUNDREDFIFTY_D_BEHAV
-                SFERES_CONST size_t number_of_dimensions = 150;
-            #endif
-            typedef boost::array<double, number_of_dimensions> point_t;
-            static std::vector<point_t> centroids;
-        };
+{
+#ifdef CVT
+    struct ea
+    {
+        SFERES_CONST size_t number_of_clusters = 1000;
+#ifdef THREE_D_BEHAV
+        SFERES_CONST size_t number_of_dimensions = 3;
+#endif
+#ifdef SIX_D_BEHAV
+        SFERES_CONST size_t number_of_dimensions = 6;
+        ;
+#endif
+#ifdef FOURTYTWO_D_BEHAV
+        SFERES_CONST size_t number_of_dimensions = 150;
+#endif
+#ifdef HUNDREDFIFTY_D_BEHAV
+        SFERES_CONST size_t number_of_dimensions = 150;
+#endif
+        typedef boost::array<double, number_of_dimensions> point_t;
+        static std::vector<point_t> centroids;
+    };
 
-    #else
-        struct ea
-        {
-            
-            SFERES_CONST double epsilon = 0;//0.05;
-            #ifdef THREE_D_BEHAV
+#else
+    struct ea
+    {
 
-                SFERES_CONST size_t behav_dim = 3;
-                SFERES_ARRAY(size_t, behav_shape, 10, 10, 10);
-            #endif
-            #ifdef SIX_D_BEHAV
-                SFERES_CONST size_t behav_dim = 6;
-                SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10);
-            #endif
-            
-        };
-    #endif
+        SFERES_CONST double epsilon = 0; //0.05;
+#ifdef THREE_D_BEHAV
+
+        SFERES_CONST size_t behav_dim = 3;
+        SFERES_ARRAY(size_t, behav_shape, 10, 10, 10);
+#endif
+#ifdef SIX_D_BEHAV
+        SFERES_CONST size_t behav_dim = 6;
+        SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10);
+#endif
+    };
+#endif
 
     struct parameters
     {
@@ -175,7 +166,7 @@ struct Params
     struct pop
     {
         // number of initial random points
-        SFERES_CONST size_t init_size = 2000;//1000;
+        SFERES_CONST size_t init_size = 2000; //1000;
         // size of a batch
         SFERES_CONST size_t size = 200; //1000;
         SFERES_CONST size_t nb_gen = 1001;
@@ -190,19 +181,15 @@ typedef phen::Parameters<gen::EvoFloat<1, ParamsDnn>, fit::FitDummy<>, ParamsDnn
 
 typedef PfWSum<weight_t> pf_t;
 typedef AfTanh<bias_t> af_t;
-typedef Neuron<pf_t, af_t>  neuron_t;
-typedef Connection <weight_t> connection_t;
+typedef Neuron<pf_t, af_t> neuron_t;
+typedef Connection<weight_t> connection_t;
 typedef sferes::gen::Dnn<neuron_t, connection_t, ParamsDnn> gen_t;
 typedef typename gen_t::nn_t nn_t; // not sure if typename should be here?
 
-
-}
-
+} // namespace robots_nn
 
 /****************************************/
 /****************************************/
-
-
 
 class Descriptor;
 
@@ -211,44 +198,40 @@ class FitFun;
 class CObsAvoidEvolLoopFunctions : public CLoopFunctions
 {
 
-public:
+  public:
     CObsAvoidEvolLoopFunctions();
     virtual ~CObsAvoidEvolLoopFunctions();
 
-    virtual void Init(TConfigurationNode& t_node);
+    virtual void Init(TConfigurationNode &t_node);
 
     virtual void Reset();
 
     /* Called by the evolutionary algorithm to set the current trial */
-    inline void SetTrial(size_t un_trial)
+    inline void SetTrial()
     {
-        m_unCurrentTrial = un_trial;
+        ++m_unCurrentTrial;
     }
 
-//    /* Configures the robot controller from the genome */
-//    void ConfigureFromGenome(robots_nn::nn_t& ctrl)
-//    {
-//        _ctrlrob = ctrl;
-//    }
+    //    /* Configures the robot controller from the genome */
+    //    void ConfigureFromGenome(robots_nn::nn_t& ctrl)
+    //    {
+    //        _ctrlrob = ctrl;
+    //    }
 
-    virtual void  PreStep();
-    virtual void  PostStep();
+    virtual void PreStep();
+    virtual void PostStep();
 
-    CVector3 get_position(CThymioEntity* robot)
+    CVector3 get_position(CThymioEntity *robot)
     {
 
-      CVector3 position =  robot->GetEmbodiedEntity().GetOriginAnchor().Position;
-      // #ifdef PRINTING
-      //   std::cout<<"position "<<position<<std::endl;
-      // #endif
-      return position;
+        CVector3 position = robot->GetEmbodiedEntity().GetOriginAnchor().Position;
+        // #ifdef PRINTING
+        //   std::cout<<"position "<<position<<std::endl;
+        // #endif
+        return position;
     }
 
-
-
-
-private:
-
+  private:
     /* The initial setup of a trial */
     struct SInitSetup
     {
@@ -258,22 +241,19 @@ private:
 
     //CEPuckEntity* m_pcEPuck;
     //CEPuckNNController* m_pcController;
-    
-    std::vector<CThymioNNController*>  m_pcvecController;
 
+    std::vector<CThymioNNController *> m_pcvecController;
 
-public:
-    std::vector<CThymioEntity*>  m_pcvecRobot;
+  public:
+    std::vector<CThymioEntity *> m_pcvecRobot;
 
+    CRandom::CRNG *m_pcRNG;
 
-    CRandom::CRNG* m_pcRNG;
-
-public:
-    std::vector< std::vector<SInitSetup> > m_vecInitSetup;
+  public:
+    std::vector<std::vector<SInitSetup>> m_vecInitSetup;
     size_t m_unNumberTrials, m_unCurrentTrial, m_unNumberRobots;
 
-
-public:
+  public:
     std::string output_folder;
     //robots_nn::nn_t _ctrlrob;
     std::vector<robots_nn::nn_t> _vecctrlrob;
@@ -286,41 +266,34 @@ public:
     /*descriptors*/
     float num_ds;
     float curr_lin_speed;
-    Descriptor* descriptor;
-    FitFun* fitfun;
-
+    Descriptor *descriptor;
+    FitFun *fitfun;
 
     // only used for the checks which are not used (presumably the checks quite expensive) ?; also not suitable for multi-agent ?
-    CVector3 old_pos;  CRadians old_theta;
-    CVector3 curr_pos; CRadians curr_theta;
+    CVector3 old_pos;
+    CRadians old_theta;
+    CVector3 curr_pos;
+    CRadians curr_theta;
     CVector3 centre, max;
+
+    void before_trials();
+    void start_trial(CSimulator &cSimulator);
+    void end_trial(Real time);
+    float alltrials_fitness();
+    std::vector<float> alltrials_descriptor();
+    void print_progress();
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-namespace  sferes
+namespace sferes
 {
 // ********** Main Class ***********
 //SFERES_FITNESS(FitObstacle, sferes::fit::Fitness)
 
-FIT_MAP(FitObstacleMapElites)
-{
-    public:
+FIT_MAP(FitObstacleMapElites){
 
-    FitObstacleMapElites() {
-    }
+    public :
+
+        FitObstacleMapElites(){}
 
     // *************** _eval ************
     //
@@ -329,126 +302,88 @@ FIT_MAP(FitObstacleMapElites)
     //
     // **********************************
 
-    bool dead()
-    {
+    inline bool dead(){
         return false;
-    }
-    template<typename Indiv>
-    void print_progress(Indiv& ind,CObsAvoidEvolLoopFunctions& cLoopFunctions, Real time)
+} // namespace sferes
+template <typename Indiv>
+void print_progress(Indiv &ind, CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
+{
+
+    cLoopFunctions.print_progress();
+
+    if (cLoopFunctions.m_unCurrentTrial == 0)
     {
-
-                printf("\n\n lin_speed = %f", cLoopFunctions.lin_speed);
-                printf("\n\n nb_coll = %f", cLoopFunctions.nb_coll);
-                int trial=cLoopFunctions.m_unCurrentTrial;
-                printf("\n\n fitness in trial %lu is %f", trial,cLoopFunctions.fitfun->fitness_per_trial[trial]);
-
-                if(trial==0)
-                {
-                    std::ofstream ofs("nn.dot");
-                    ind.nn().write(ofs);
-                }
+        std::ofstream ofs("nn.dot");
+        ind.nn().write(ofs);
     }
-    
+}
 
-    
+template <typename Indiv>
+void eval(Indiv &ind)
+{
+    this->_objs.resize(1);
 
-    template<typename Indiv>
-    void eval(Indiv& ind)
-    {
-        this->_objs.resize(1);
+    ind.nn().simplify();
+    //ind.nn().init();
 
-        ind.nn().simplify();
-        //ind.nn().init();
-
-
-        /****************************************/
-        /****************************************/
-        /* The CSimulator class of ARGoS is a singleton. Therefore, to
+    /****************************************/
+    /****************************************/
+    /* The CSimulator class of ARGoS is a singleton. Therefore, to
       * manipulate an ARGoS experiment, it is enough to get its instance.
       * This variable is declared 'static' so it is created
       * once and then reused at each call of this function.
       * This line would work also without 'static', but written this way
       * it is faster. */
-        static argos::CSimulator& cSimulator = argos::CSimulator::GetInstance();
+    static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
 
-        /* Get a reference to the loop functions */
-        static CObsAvoidEvolLoopFunctions& cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions&>(cSimulator.GetLoopFunctions());
-        for(size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
-            cLoopFunctions._vecctrlrob[j] = ind.nn_cpy();
+    /* Get a reference to the loop functions */
+    static CObsAvoidEvolLoopFunctions &cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions &>(cSimulator.GetLoopFunctions());
+    for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
+        cLoopFunctions._vecctrlrob[j] = ind.nn_cpy();
 
-        cLoopFunctions.descriptor->before_trials(cLoopFunctions);
+    cLoopFunctions.before_trials();
 
-        /*
+    /*
          * Run x trials and take the worst performance as final value.
         */
-        
-        for(size_t i = 0; i < cLoopFunctions.m_unNumberTrials; ++i)
-        {
-            cLoopFunctions.nb_coll=0;
-            cLoopFunctions.stop_eval=false;
-            cLoopFunctions.speed=0.0f; cLoopFunctions.lin_speed=0.0f;
-            // cLoopFunctions.stand_still = 0;
-            // cLoopFunctions.old_pos   = CVector3(0.0f, 0.0f, 0.0f);
-            // cLoopFunctions.old_theta = CRadians(0.0f);
-            cLoopFunctions.num_ds = 0.0;
-            cLoopFunctions.descriptor->start_trial();
 
-            /* Tell the loop functions to get ready for the i-th trial */
-            cLoopFunctions.SetTrial(i);
+    for (size_t i = 0; i < cLoopFunctions.m_unNumberTrials; ++i)
+    {
+        cLoopFunctions.start_trial(cSimulator);
 
-            /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
-            cSimulator.Reset();
+        /* Run the experiment */
+        cSimulator.Execute();
+        Real time = (Real)cSimulator.GetMaxSimulationClock();
 
-            /* Configure the controller with the indiv gen */
-            //cLoopFunctions.ConfigureFromGenome(ind.nn());
-            //cLoopFunctions._ctrlrob = ind.nn_cpy();
-            //cLoopFunctions._ctrlrob.init(); // a copied nn object needs to be init before use
+        cLoopFunctions.end_trial(time);
 
+#ifdef PRINTING
 
-            for(size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
-                cLoopFunctions._vecctrlrob[j].init(); // a copied nn object needs to be init before use
+        print_progress(ind, cLoopFunctions, time);
+#endif
+    }
+    /****************************************/
+    /****************************************/
+    float fFitness = cLoopFunctions.alltrials_fitness();
+    this->_objs[0] = fFitness;
+    this->_value = fFitness;
 
+    Real time = (Real)cSimulator.GetMaxSimulationClock();
+    std::vector<float> behavioural_descriptor = cLoopFunctions.alltrials_descriptor();
 
-            /* Run the experiment */
-            cSimulator.Execute();
-            Real time = (Real)cSimulator.GetMaxSimulationClock();
+    this->set_desc(behavioural_descriptor);
 
+#ifdef PRINTING
+    printf("\n\n fFitness = %f", fFitness);
+#endif
 
-            
-            cLoopFunctions.fitfun->apply(cLoopFunctions,time);
-            #ifdef PRINTING
-                
-                print_progress(ind,cLoopFunctions,time);
-            #endif
-
-            cLoopFunctions.descriptor->end_trial(cLoopFunctions);
-
-
-
-        }
-        /****************************************/
-        /****************************************/
-        float fFitness=cLoopFunctions.fitfun->after_trials();
-        this->_objs[0] = fFitness;
-        this->_value   = fFitness;
-
-        Real time=(Real)cSimulator.GetMaxSimulationClock();
-        std::vector<float> behavioural_descriptor=cLoopFunctions.descriptor->after_trials(cLoopFunctions);
-        
-        this->set_desc(behavioural_descriptor);
-
-        #ifdef PRINTING
-            printf("\n\n fFitness = %f", fFitness);
-        #endif
-
-    } // *** end of eval ***
-};
+} // *** end of eval ***
+}
+;
 }
 
 /****************************************/
 /****************************************/
 
-
-
-
 // #endif
+
