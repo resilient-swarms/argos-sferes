@@ -11,7 +11,7 @@
 /* logarithm with custom base */
 float StatFuns::log(float number, size_t base)
 {
-    return base == NULL ? std::log(number) : std::log(number) / std::log(base);
+    return base == EULER ? std::log(number) : std::log(number) / std::log(base);
 }
 
 /*  Combine info across trials  */
