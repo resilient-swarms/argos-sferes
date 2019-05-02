@@ -7,14 +7,14 @@
 FloreanoMondada::FloreanoMondada() : FitFun()
 {
 }
-/*after getting inputs, can update the descriptor if needed*/
+/*after completing a trial,calc fitness*/
 void FloreanoMondada::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
 {
     float fit = cLoopFunctions.lin_speed / time * (Real)cLoopFunctions.nb_coll / time;
     fitness_per_trial.push_back(fit);
 };
 
-/*after getting outputs, can update the descriptor if needed*/
+/*after completing all trials, combine fitness*/
 float FloreanoMondada::after_trials()
 {
     float minfit = StatFuns::min(fitness_per_trial);
@@ -25,14 +25,14 @@ MeanSpeed::MeanSpeed() : FitFun()
 {
 }
 
-/*after getting inputs, can update the descriptor if needed*/
+/*after completing a trial,calc fitness*/
 void MeanSpeed::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
 {
     float fit = cLoopFunctions.lin_speed / time * (Real)cLoopFunctions.nb_coll / time;
     fitness_per_trial.push_back(fit);
 };
 
-/*after getting outputs, can update the descriptor if needed*/
+/*after completing all trials, combine fitness*/
 float MeanSpeed::after_trials()
 {
     float meanfit = StatFuns::mean(fitness_per_trial);
@@ -43,7 +43,7 @@ float MeanSpeed::after_trials()
 Aggregation::Aggregation() : FitFun()
 {
 }
-/*after getting inputs, can update the descriptor if needed*/
+/*after completing a trial,calc fitness*/
 void Aggregation::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
 {
     std::pair<std::vector<argos::CVector3>, argos::CVector3> data = centre_of_mass(cLoopFunctions);
@@ -51,7 +51,7 @@ void Aggregation::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
     fitness_per_trial.push_back(1.0f / dist);
 };
 
-/*after getting outputs, can update the descriptor if needed*/
+/*after completing all trials, combine fitness*/
 float Aggregation::after_trials()
 {
     float meanfit = StatFuns::mean(fitness_per_trial);

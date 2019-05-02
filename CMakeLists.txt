@@ -65,7 +65,7 @@ add_definitions( -DEIGEN3_ENABLED )
 if(NOT TBB_FOUND)
   add_definitions( -DNO_PARALLEL )
 endif()
-add_definitions( -DNDEBUG ) # non-debug mode
+add_definitions( -DDEBUG ) # non-debug mode
 add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
 

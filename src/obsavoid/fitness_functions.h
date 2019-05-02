@@ -16,10 +16,10 @@ public:
     FitFun(){};
 
 
-    /*after getting inputs, can update the descriptor if needed*/
+    /*after completing trial, calc fitness*/
     virtual void apply(CObsAvoidEvolLoopFunctions& cLoopFunctions,Real time)=0;
 
-    /*after getting outputs, can update the descriptor if needed*/
+    /*after completing all trials, combine fitness*/
     virtual float after_trials()=0;
 
 
@@ -31,10 +31,10 @@ class FloreanoMondada : public FitFun{
 public:
     FloreanoMondada();
 
-    /*after getting inputs, can update the descriptor if needed*/
+    /*after completing trial, calc fitness*/
     virtual void apply(CObsAvoidEvolLoopFunctions& cLoopFunctions,Real time);
 
-    /*after getting outputs, can update the descriptor if needed*/
+    /*after completing all trials, combine fitness*/
     virtual float after_trials();
 
 
@@ -45,10 +45,10 @@ class MeanSpeed : public FitFun{
 public:
     MeanSpeed();
 
-    /*after getting inputs, can update the descriptor if needed*/
+    /*after completing trial, calc fitness*/
     virtual void apply(CObsAvoidEvolLoopFunctions& cLoopFunctions,Real time);
 
-    /*after getting outputs, can update the descriptor if needed*/
+    /*after completing all trials, combine fitness*/
     virtual float after_trials();
 
 
@@ -60,9 +60,9 @@ class Aggregation : public FitFun{
 public:
     Aggregation();
 
-    /*after getting inputs, can update the descriptor if needed*/
+    /*after completing trial, calc fitness*/
     virtual void apply(CObsAvoidEvolLoopFunctions& cLoopFunctions,Real time);
-    /*after getting outputs, can update the descriptor if needed*/
+    /*after completing all trials, combine fitness*/
     virtual float after_trials();
     float get_mass(CThymioEntity* robot);
 

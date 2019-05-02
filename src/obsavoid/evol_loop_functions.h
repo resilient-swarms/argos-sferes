@@ -251,7 +251,8 @@ class CObsAvoidEvolLoopFunctions : public CLoopFunctions
 
   public:
     std::vector<std::vector<SInitSetup>> m_vecInitSetup;
-    size_t m_unNumberTrials, m_unCurrentTrial, m_unNumberRobots;
+    size_t m_unNumberTrials,m_unNumberRobots;
+    int  m_unCurrentTrial;// will start with -1 for convenience
 
   public:
     std::string output_folder;
@@ -282,6 +283,8 @@ class CObsAvoidEvolLoopFunctions : public CLoopFunctions
     float alltrials_fitness();
     std::vector<float> alltrials_descriptor();
     void print_progress();
+
+    bool check_BD_choice(const std::string choice);
 };
 
 namespace sferes
@@ -370,7 +373,6 @@ void eval(Indiv &ind)
 
     Real time = (Real)cSimulator.GetMaxSimulationClock();
     std::vector<float> behavioural_descriptor = cLoopFunctions.alltrials_descriptor();
-
     this->set_desc(behavioural_descriptor);
 
 #ifdef PRINTING

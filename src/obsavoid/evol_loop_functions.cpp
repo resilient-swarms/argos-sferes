@@ -30,7 +30,53 @@ CObsAvoidEvolLoopFunctions::~CObsAvoidEvolLoopFunctions()
 
 /****************************************/
 /****************************************/
+bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
+{
+#ifdef THREE_D_BEHAV
+    if (choice=="history")
+    {
+        return true;
+    }
+    else{
+        throw std::runtime_error(choice + "not 3-dimensional");
+    }
+#endif
+#ifdef SIX_D_BEHAV
+    if (choice=="sdbc_robots_and_walls")
+    {
+        return true;
+    }
+    else if(choice=="cvt_trajectory")
+    {
+        #ifdef PRINTING
+            std::cout<<choice<<" is not always suitable for 6D; check to be sure"<<std::endl;
+        #endif
+        return true;
+    }
+    else{
+        throw std::runtime_error(choice + "not 6-dimensional");
+    }
+#endif
 
+#ifdef FOURTYTWO_D_BEHAV
+    if (choice=="cvt_mutualinfo")
+    {
+        return true;
+    }
+    else{
+        throw std::runtime_error(choice + "not 42-dimensional");
+    }
+#endif
+#ifdef HUNDREDFIFTY_D_BEHAV
+    if (choice=="cvt_trajectory")
+    {
+        return true;
+    }
+    else{
+        throw std::runtime_error(choice + "not 150-dimensional");
+    }
+#endif
+}
 void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
 {
     /*
@@ -128,6 +174,8 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
         {
             throw std::runtime_error("descriptortype " + s + " not found");
         }
+
+        check_BD_choice(s);
     }
     catch (CARGoSException &ex)
     {
@@ -326,10 +374,8 @@ void CObsAvoidEvolLoopFunctions::PostStep()
 
 void CObsAvoidEvolLoopFunctions::before_trials()
 {
-    m_unCurrentTrial=0;
+    m_unCurrentTrial = -1;
     descriptor->before_trials(*this);
-    
-
 }
 void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
 {
@@ -342,10 +388,8 @@ void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
     // old_theta = CRadians(0.0f);
     num_ds = 0.0;
     descriptor->start_trial();
-
     /* Tell the loop functions to get ready for the i-th trial */
     SetTrial();
-
     /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
     cSimulator.Reset();
 
@@ -361,29 +405,28 @@ void CObsAvoidEvolLoopFunctions::end_trial(Real time)
 {
     fitfun->apply(*this, time);
     descriptor->end_trial(*this);
-            
+    
 }
 
 void CObsAvoidEvolLoopFunctions::print_progress()
 {
-    printf("\n\n lin_speed = %f", lin_speed);
-    printf("\n\n nb_coll = %f", nb_coll);
     int trial = m_unCurrentTrial;
     printf("\n\n fitness in trial %lu is %f", trial, fitfun->fitness_per_trial[trial]);
-}
+    printf("\n\n lin_speed = %f", lin_speed);
+    printf("\n\n nb_coll = %f", nb_coll);
 
+}
 
 float CObsAvoidEvolLoopFunctions::alltrials_fitness()
 {
-    fitfun->after_trials();
+    return fitfun->after_trials();
 }
 std::vector<float> CObsAvoidEvolLoopFunctions::alltrials_descriptor()
 {
-    descriptor->after_trials(*this);
+    return descriptor->after_trials(*this);
 }
 /****************************************/
 /****************************************/
 
 //using TemplateCObsAvoidEvolLoopFunctions = CObsAvoidEvolLoopFunctions<class NN>;
 REGISTER_LOOP_FUNCTIONS(CObsAvoidEvolLoopFunctions, "obsavoid_evol_loopfunctions")
-
