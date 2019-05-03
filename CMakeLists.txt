@@ -2,24 +2,28 @@ cmake_minimum_required(VERSION 2.8.12)
 project(argos_sferes)
 
 set(SFERES ${PROJECT_SOURCE_DIR}/sferes2) # location of sferes2 - where https://github.com/sferes2/sferes2 has been cloned
+include_directories(${SFERES})
+include_directories($ENV{HOME}/geometric-median) 
+
 set(THYMIO $ENV{THYMIO}) # location of Thymio plugin installation -- include and libs
 IF( NOT THYMIO )
     MESSAGE( FATAL_ERROR "Please point the environment variable THYMIO to the location of the Thymio plugin installation")
+ELSE()
+    include_directories(${THYMIO}/include)
+    link_directories(${THYMIO}/lib/argos3) 
 ENDIF()
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Deactivate RPATH for MacOSX
-#set(CMAKE_MACOSX_RPATH 0)
-
-# Set the path where CMake will find additional scripts
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-
 # Find the ARGoS package
 find_package(PkgConfig)
 pkg_check_modules(ARGOS REQUIRED argos3_simulator)
-list(APPEND CMAKE_MODULE_PATH ${ARGOS_PREFIX}/share/argos3/cmake)
+set(CMAKE_MODULE_PATH ${ARGOS_PREFIX}/share/argos3/cmake)
+
+# Set the path where CMake will find additional scripts
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+message("CMAKE_MODULE_PATH: " ${CMAKE_MODULE_PATH}) 
 
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -44,48 +48,36 @@ else(NOT Boost_FOUND)
 endif()
 
 #Find TBB libs -- script from https://github.com/justusc/FindTBB
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/FindTBB)
 find_package(TBB) #COMPONENTS tbbmalloc tbbmalloc_proxy 
 if(TBB_FOUND)
   include_directories(${TBB_INCLUDE_DIRS})
-  message(${TBB_INCLUDE_DIRS} " " ${TBB_LIBRARIES})
+  message("TBB headers found in: " ${TBB_INCLUDE_DIRS}) 
+  message("TBB libs: " ${TBB_LIBRARIES}) 
 else(NOT TBB_FOUND)
   message("Unable to find TBB. Will not be able to run sferes eval::Parallel")
+  add_definitions( -DNO_PARALLEL )
   set(TBB_INCLUDE_DIRS "")
   set(TBB_LIBRARIES "")
 endif()
 
+# Eigen3
+SET(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
+IF(NOT EIGEN3_INCLUDE_DIR )
+    MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
+ELSE()
+    include_directories("${EIGEN3_INCLUDE_DIR}")
+    add_definitions( -DEIGEN3_ENABLED )
+ENDIF()
+
 
 #link_directories(/usr/lib) ## careless -- which libs are we trying to link with?
 
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-#add_definitions(-std=c++0x)
-add_definitions( -DEIGEN3_ENABLED )
-if(NOT TBB_FOUND)
-  add_definitions( -DNO_PARALLEL )
-endif()
 add_definitions( -DDEBUG ) # non-debug mode
 add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
 
-
-
 #include_directories(/usr/include)  ## careless -- exactly which includes?
-include_directories("/usr/include/lua5.2")  # think we can do without lua
-SET(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
-IF(NOT EIGEN3_INCLUDE_DIR )
-    MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN3_INCLUDE_DIR to the include directory of your Eigen3 installation.")
-ENDIF()
-include_directories("${EIGEN3_INCLUDE_DIR}")
-
-include_directories(${SFERES})
-include_directories($ENV{HOME}/geometric-median) 
-include_directories(${THYMIO}/include)
-message("Thymio path is: " ${THYMIO}) 
-include_directories(${TBB_INCLUDE_DIRS})
-
-
 
 # Check whether all the necessary libs have been installed to compile the
 # code that depends on Qt and OpenGL
@@ -93,12 +85,25 @@ include(ARGoSCheckQTOpenGL)
 
 # Find the GSL package
 find_package(GSL REQUIRED)
+include_directories(${GSL_INCLUDE_DIR})
 
 # Find Lua
-#find_package(Lua52 REQUIRED) #  think we can do without lua
+find_package(Lua52)
+IF(NOT LUA52_FOUND)
+    MESSAGE( FATAL_ERROR "Please point the environment variable LUA_DIR to your Lua installation -- include and lib.")
+ELSE()
+   include_directories(${LUA_INCLUDE_DIR})
+ENDIF()
+#SET(LUA_DIR "$ENV{LUA_DIR}")
+#IF(NOT LUA_DIR )
+#    MESSAGE( FATAL_ERROR "Please point the environment variable LUA_DIR to your Lua installation -- include and lib.")
+#ELSE()
+#    include_directories("${LUA_DIR}/include")
+#    link_directories("${LUA_DIR}/lib")
+#ENDIF()
 
 # Set ARGoS include dir
-include_directories(${CMAKE_SOURCE_DIR} ${ARGOS_INCLUDE_DIRS} ${GSL_INCLUDE_DIR}) #${LUA_INCLUDE_DIR})
+include_directories(${ARGOS_INCLUDE_DIRS})
 
 # Set ARGoS link dir
 link_directories(${ARGOS_LIBRARY_DIRS} ${THYMIO}/lib/argos3 ${PROJECT_SOURCE_DIR}/lib)
@@ -182,6 +187,7 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       argos3plugin_simulator_thymio
       argos3plugin_simulator_genericrobot
       #argos3plugin_simulator_sensors
+      ${LUA_LIBRARIES}
       ${Boost_LIBRARIES}
       ${TBB_LIBRARIES})
 
@@ -195,6 +201,7 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       argos3plugin_simulator_genericrobot
       argos3plugin_simulator_media
       #argos3plugin_simulator_sensors
+      ${LUA_LIBRARIES}
       ${Boost_LIBRARIES}
       ${TBB_LIBRARIES})
 
@@ -205,5 +212,6 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       fitness_functions
       statistics
       argos3core_simulator 
+      ${LUA_LIBRARIES}
       ${Boost_LIBRARIES} 
       ${TBB_LIBRARIES})
