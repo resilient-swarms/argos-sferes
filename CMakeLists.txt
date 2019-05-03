@@ -3,7 +3,7 @@ project(argos_sferes)
 
 set(SFERES ${PROJECT_SOURCE_DIR}/sferes2) # location of sferes2 - where https://github.com/sferes2/sferes2 has been cloned
 include_directories(${SFERES})
-include_directories($ENV{HOME}/geometric-median) 
+#include_directories($ENV{HOME}/geometric-median) 
 
 set(THYMIO $ENV{THYMIO}) # location of Thymio plugin installation -- include and libs
 IF( NOT THYMIO )
@@ -73,7 +73,7 @@ ENDIF()
 #link_directories(/usr/lib) ## careless -- which libs are we trying to link with?
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-add_definitions( -DDEBUG ) # non-debug mode
+add_definitions( -DNDEBUG ) # non-debug mode
 add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
 
@@ -115,15 +115,6 @@ add_library(obsavoid_nn_controller SHARED
   src/obsavoid/nn_controller.cpp
 )
 
-add_library(descriptors SHARED
-  src/obsavoid/descriptors.h
-  src/obsavoid/descriptors.cpp
-)
-
-add_library(fitness_functions SHARED
-  src/obsavoid/fitness_functions.h
-  src/obsavoid/fitness_functions.cpp
-)
 
 add_library(statistics SHARED
   src/obsavoid/statistics.h
@@ -134,6 +125,22 @@ add_library(obsavoid_evol_loopfunctions SHARED
   src/obsavoid/evol_loop_functions.h
   src/obsavoid/evol_loop_functions.cpp
 )
+
+add_library(arena_utils SHARED
+  src/obsavoid/arena_utils.h
+  src/obsavoid/arena_utils.cpp
+)
+
+add_library(fitness_functions SHARED
+  src/obsavoid/fitness_functions.h
+  src/obsavoid/fitness_functions.cpp
+)
+
+add_library(descriptors SHARED
+  src/obsavoid/descriptors.h
+  src/obsavoid/descriptors.cpp
+)
+
 
 option(DEFINE_PRINT "print some variables" ON)
 option(3D_BD "3D behaviour description" OFF)
@@ -210,6 +217,7 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       obsavoid_evol_loopfunctions
       descriptors
       fitness_functions
+      arena_utils
       statistics
       argos3core_simulator 
       ${LUA_LIBRARIES}

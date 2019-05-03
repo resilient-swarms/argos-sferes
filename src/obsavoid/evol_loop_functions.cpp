@@ -33,46 +33,50 @@ CObsAvoidEvolLoopFunctions::~CObsAvoidEvolLoopFunctions()
 bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
 {
 #ifdef THREE_D_BEHAV
-    if (choice=="history")
+    if (choice == "history")
     {
         return true;
     }
-    else{
+    else
+    {
         throw std::runtime_error(choice + " not 3-dimensional");
     }
 #endif
 #ifdef SIX_D_BEHAV
-    if (choice=="sdbc_robots_and_walls")
+    if (choice == "sdbc_robots_and_walls")
     {
         return true;
     }
-    else if(choice=="cvt_trajectory")
+    else if (choice == "cvt_trajectory")
     {
-        #ifdef PRINTING
-            std::cout<<choice<<" is not always suitable for 6D; check to be sure"<<std::endl;
-        #endif
+#ifdef PRINTING
+        std::cout << choice << " is not always suitable for 6D; check to be sure" << std::endl;
+#endif
         return true;
     }
-    else{
+    else
+    {
         throw std::runtime_error(choice + " not 6-dimensional");
     }
 #endif
 
 #ifdef FOURTYTWO_D_BEHAV
-    if (choice=="cvt_mutualinfo")
+    if (choice == "cvt_mutualinfo")
     {
         return true;
     }
-    else{
+    else
+    {
         throw std::runtime_error(choice + " not 42-dimensional");
     }
 #endif
 #ifdef HUNDREDFIFTY_D_BEHAV
-    if (choice=="cvt_trajectory")
+    if (choice == "cvt_trajectory")
     {
         return true;
     }
-    else{
+    else
+    {
         throw std::runtime_error(choice + " not 150-dimensional");
     }
 #endif
@@ -138,6 +142,10 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
         {
             this->fitfun = new Aggregation();
             assert(m_unNumberRobots > 1 && "number of robots should be > 1 when choosing Aggregation fitnessfunction");
+        }
+        else if (s == "Coverage")
+        {
+            this->fitfun = new Coverage(this);
         }
         else
         {
@@ -215,13 +223,16 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
     }
 
     //m_vecInitSetup.clear();
+    CVector3 size= GetSpace().GetArenaSize();
+    Real minX=1.2; Real maxX=size.GetX()-1.2;
+    Real minY=1.2; Real maxY=size.GetY()-1.2;
     for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
     {
         m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
         for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
         {
             // TODO: Set bounds for positions from configuration file
-            CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), 0.0f);
+            CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX,maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
 #ifdef PRINTING
             std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
 #endif
@@ -236,7 +247,7 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
                                false                                         // this is not a check, leave the robot there
                                ))
             {
-                Position = CVector3(m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), m_pcRNG->Uniform(CRange<Real>(0.2, 4.8)), 0.0f);
+                CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX,maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
                 //std::cout << "Position2 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
                 Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
                                             CRadians::ZERO,
@@ -271,6 +282,7 @@ void CObsAvoidEvolLoopFunctions::Reset()
 /****************************************/
 /****************************************/
 
+
 void CObsAvoidEvolLoopFunctions::PreStep()
 {
     CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
@@ -284,12 +296,11 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         //assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
 
         inputs.resize(ParamsDnn::dnn::nb_inputs);
-
-        Real MaxIRSensor = -1.0;
+        maxIRSensor = -1.0;
         for (size_t i = 0; i < cController.m_pcProximity->GetReadings().size(); ++i)
         {
             inputs[i] = cController.m_pcProximity->GetReadings()[i].Value;
-            MaxIRSensor = Max(MaxIRSensor, (Real)inputs[i]);
+            maxIRSensor = Max(maxIRSensor, (Real)inputs[i]);
         }
         this->descriptor->set_input_descriptor(robotindex, *this);
         inputs[ParamsDnn::dnn::nb_inputs - 1] = +1.0; //Bias input
@@ -319,18 +330,11 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         cController.m_fLeftSpeed = outf[0];
         cController.m_fRightSpeed = outf[1];
 
-        // compute linear speed for fitness function
-        float s = (fabs(outf[0]) + fabs(outf[1])) / 20.0; // in [0,1]
-        float ds = fabs(outf[0] - outf[1]) / 20.0;        // in [0,1]
-        speed += s;
-        curr_lin_speed = s * (1.0 - sqrt(ds));
-        lin_speed += curr_lin_speed;
-        num_ds += (ds >= 0.1) ? 1.0 : 0.0;
         CVector3 axis;
         cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta, axis);
-#ifdef PRINTING
-        std::cout << "theta=" << curr_theta << std::endl;
-#endif
+        // #ifdef PRINTING
+        //         std::cout << "theta=" << curr_theta << std::endl;
+        // #endif
         // *** To save simulation time, we stop evaluation if the robot is stuck for more than 100 time steps ***
         /*curr_pos   = cThymio.GetEmbodiedEntity().GetOriginAnchor().Position;
         CRadians c_y, c_x;
@@ -358,18 +362,19 @@ void CObsAvoidEvolLoopFunctions::PreStep()
 
         old_pos     = curr_pos;
         old_theta   = curr_theta;*/
-
+        
         old_pos = curr_pos;
         old_theta = curr_theta;
-
-        nb_coll += (1.0f - MaxIRSensor);
-
         this->descriptor->set_output_descriptor(robotindex, *this);
+        this->fitfun->after_step(robotindex,*this);
 
-        if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., if robot is stuck)
+        stop_eval = maxIRSensor==1.0f;
+        if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
         {
             argos::CSimulator::GetInstance().Terminate();
-            //std::cout << "Terminate run " << std::endl;
+            #ifdef PRINTING
+                std::cout << "Terminate run permaturely" << std::endl;
+            #endif
         }
         ++robotindex;
     }
@@ -387,14 +392,11 @@ void CObsAvoidEvolLoopFunctions::before_trials()
 }
 void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
 {
-    nb_coll = 0;
+    
     stop_eval = false;
-    speed = 0.0f;
-    lin_speed = 0.0f;
     // stand_still = 0;
     // old_pos   = CVector3(0.0f, 0.0f, 0.0f);
     // old_theta = CRadians(0.0f);
-    num_ds = 0.0;
     descriptor->start_trial();
     /* Tell the loop functions to get ready for the i-th trial */
     SetTrial();
@@ -413,16 +415,12 @@ void CObsAvoidEvolLoopFunctions::end_trial(Real time)
 {
     fitfun->apply(*this, time);
     descriptor->end_trial(*this);
-    
 }
 
 void CObsAvoidEvolLoopFunctions::print_progress()
 {
     int trial = m_unCurrentTrial;
-    printf("\n\n fitness in trial %lu is %f", trial, fitfun->fitness_per_trial[trial]);
-    printf("\n\n lin_speed = %f", lin_speed);
-    printf("\n\n nb_coll = %f", nb_coll);
-
+    fitfun->print_progress(trial);
 }
 
 float CObsAvoidEvolLoopFunctions::alltrials_fitness()
@@ -433,6 +431,8 @@ std::vector<float> CObsAvoidEvolLoopFunctions::alltrials_descriptor()
 {
     return descriptor->after_trials(*this);
 }
+
+
 /****************************************/
 /****************************************/
 

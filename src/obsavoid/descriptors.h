@@ -11,12 +11,15 @@
 #include <argos3/core/utility/math/rng.h>
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
+#include <src/obsavoid/arena_utils.h>
 /****************************************/
 /****************************************/
 /****************************************/
 
 class CObsAvoidEvolLoopFunctions;
 class RunningStat;
+
+
 
 class Descriptor
 {
@@ -76,12 +79,9 @@ class IntuitiveHistoryDescriptor : public Descriptor
     */
   public:
     IntuitiveHistoryDescriptor(CLoopFunctions *cLoopFunctions);
-    std::map<std::tuple<int, int, int>, size_t> unique_visited_positions;
-    //RunningStat* velocity_stats;
+    CoverageCalc coverageCalc;
     argos::CVector3 center;
-    const float grid_step = 0.02;
     const float max_velocitysd = 0.50; // with min,max=0,1 -> at most 0.5 deviation on average
-    float total_size;
     float max_deviation, deviation;
 
     /*reset BD at the start of a trial*/
@@ -94,34 +94,8 @@ class IntuitiveHistoryDescriptor : public Descriptor
     /*end the trial*/
     virtual void end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions);
 
-    std::tuple<int, int, int> get_bin(argos::CVector3 vec)
-    {
-        int binx = (int)((float)vec.GetX() / grid_step);
-        int biny = (int)((float)vec.GetY() / grid_step);
-        int binz = (int)((float)vec.GetZ() / grid_step);
 
-        std::tuple<int, int, int> bin(binx, biny, binz);
-        // #ifdef PRINTING
-        //     std::cout<<"binned "<< vec  <<"into "<<binx<<","<<biny<<","<<binz<<std::endl;
-        // #endif
-        return bin;
-    }
-    std::vector<float> get_probs()
-    {
-        std::vector<float> a;
-        for (auto &pair : unique_visited_positions)
-        {
-            a.push_back(pair.second / (float)num_updates);
-#ifdef PRINTING
-            std::cout << "total visits" << num_updates << std::endl;
-            std::cout << "location " << std::get<0>(pair.first) << "," << std::get<1>(pair.first) << "," << std::get<2>(pair.first) << std::endl;
-            std::cout << "visits " << pair.second << std::endl;
-            std::cout << "probability " << a.back() << std::endl;
-#endif
-        }
 
-        return a;
-    }
 };
 
 struct Entity

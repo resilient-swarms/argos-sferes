@@ -86,12 +86,12 @@ IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(CLoopFunctions *cLoopFunc
 	argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
 	argos::CVector3 min = center - 0.5 * max;
 	max_deviation = StatFuns::get_minkowski_distance(max, center);
-
-	if (static_cast<CObsAvoidEvolLoopFunctions *>(cLoopFunctions)->m_unNumberRobots != 1)
+	CObsAvoidEvolLoopFunctions* lf = static_cast<CObsAvoidEvolLoopFunctions *>(cLoopFunctions);
+	if (lf->m_unNumberRobots != 1)
 	{
 		throw std::runtime_error("number of robots should be equal to 1 when choosing IntuitiveHistoryDescriptor");
 	}
-	total_size = max.GetX() * max.GetY() / grid_step;
+	coverageCalc = CoverageCalc(lf);
 }
 
 /*reset BD at the start of a trial*/
@@ -106,18 +106,7 @@ void IntuitiveHistoryDescriptor::set_input_descriptor(size_t robot_index, CObsAv
 	//add to the deviation (to get the mean after all trials have finished)
 	CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[robot_index]);
 	deviation += StatFuns::get_minkowski_distance(pos, center); // assume single robot
-
-	//count the bin
-	std::tuple<int, int, int> bin = get_bin(pos);
-	auto find_result = unique_visited_positions.find(bin);
-	if (find_result == unique_visited_positions.end())
-	{
-		unique_visited_positions.insert(std::pair<std::tuple<int, int, int>, size_t>(bin, 1));
-	}
-	else
-	{
-		unique_visited_positions[bin] += 1;
-	}
+	coverageCalc.update(pos);
 	++num_updates;
 }
 
@@ -131,20 +120,19 @@ void IntuitiveHistoryDescriptor::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunc
 	/*add behavioural metrics */
 
 	//uniformity of probabilities
-	std::vector<float> probabilities = get_probs();
+	std::vector<float> probabilities = coverageCalc.get_probs(num_updates);
 	float uniformity = StatFuns::uniformity(probabilities);
 	this->bd[0][current_trial] = uniformity;
 	//deviation from the center
 	float avg_deviation = deviation / (max_deviation * (float)num_updates);
 	this->bd[1][current_trial] = avg_deviation;
-	//coverage
-	float max_visited_positions = std::min(total_size, (float)num_updates);
-	float coverage = (float)unique_visited_positions.size() / (float)max_visited_positions;
+	float coverage = coverageCalc.get_coverage(num_updates);
 	this->bd[2][current_trial] = coverage;
 	// //variability in the speed]
 	// float velocity_sd=velocity_stats.std()/max_velocitysd;
 	// this->bd[3] +=velocity_sd;
 	//
+	
 
 #ifdef PRINTING
 	std::cout << "uniformity" << uniformity << std::endl;
@@ -154,7 +142,7 @@ void IntuitiveHistoryDescriptor::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunc
 	//std::cout<<"velocity_sd"<<velocity_sd<<std::endl;
 #endif
 
-	unique_visited_positions.clear();
+	coverageCalc.after_trial();
 }
 
 float Entity::distance(const Entity e1, const Entity e2)

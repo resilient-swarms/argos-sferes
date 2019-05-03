@@ -46,7 +46,7 @@
                   trials="5"
                   robots="1"
                   descriptortype="history"  
-                  fitfuntype="MeanSpeed"
+                  fitfuntype="Coverage"
                   bd_dims="3"
 		  output_folder="experiments"
                     />
@@ -54,7 +54,7 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="6, 6, 2" center="2.5,2.5,1">
+  <arena size="4, 4, 2" center="2.0,2.0,1">
 
     <!--
         Here we just put the static elements of the environment (the walls).
@@ -62,20 +62,20 @@
         loop functions at the beginning of each experimental run.
     -->
 
-    <box id="wall_north" size="5,0.1,0.5" movable="false">
-      <body position="2.5,5,0" orientation="0,0,0" />
+    <box id="wall_north" size="4,0.1,0.5" movable="false">
+      <body position="2.0,4,0" orientation="0,0,0" />
     </box>
 
-    <box id="wall_south" size="5,0.1,0.5" movable="false">
-      <body position="2.5,0,0" orientation="0,0,0" />
+    <box id="wall_south" size="4,0.1,0.5" movable="false">
+      <body position="2.0,0,0" orientation="0,0,0" />
     </box>
 
-    <box id="wall_east" size="0.1,5,0.5" movable="false">
-      <body position="0,2.5,0" orientation="0,0,0" />
+    <box id="wall_east" size="0.1,4,0.5" movable="false">
+      <body position="0,2.0,0" orientation="0,0,0" />
     </box>
 
-    <box id="wall_west" size="0.1,5,0.5" movable="false">
-      <body position="5,2.5,0" orientation="0,0,0" />
+    <box id="wall_west" size="0.1,4,0.5" movable="false">
+      <body position="4,2.0,0" orientation="0,0,0" />
     </box>
      <!--
         We distribute cylinders uniformly in position and with
@@ -83,10 +83,10 @@
         matter)
     -->
     <distribute>
-      <position method="uniform" min="0,0,0" max="5,5,0" />
+      <position method="uniform" min="0,0,0" max="4,4,0" />
       <orientation method="constant" values="0,0,0" />
-      <entity quantity="12" max_trials="200">
-        <cylinder id="c" height="0.5" radius="0.25" movable="false" />
+      <entity quantity="10" max_trials="200">
+        <cylinder id="c" height="0.5" radius="0.15" movable="false" />
       </entity>
     </distribute>
 
@@ -111,7 +111,7 @@
   <!-- ****************** -->
   <!-- We don't want nor need a visualization during evolution -->
   <visualization>
-<!--    <qt-opengl/> -->
+  <!-- <qt-opengl/> -->
   </visualization>
 
 </argos-configuration>

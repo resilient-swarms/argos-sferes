@@ -1,7 +1,7 @@
 
 
-// #ifndef EVOL_LOOP_FUNCTIONS
-// #define EVOL_LOOP_FUNCTIONS
+#ifndef EVOL_LOOP_FUNCTIONS
+#define EVOL_LOOP_FUNCTIONS
 
 /****************************************/
 /****************************************/
@@ -251,8 +251,8 @@ class CObsAvoidEvolLoopFunctions : public CLoopFunctions
 
   public:
     std::vector<std::vector<SInitSetup>> m_vecInitSetup;
-    size_t m_unNumberTrials,m_unNumberRobots;
-    int  m_unCurrentTrial;// will start with -1 for convenience
+    size_t m_unNumberTrials, m_unNumberRobots;
+    int m_unCurrentTrial; // will start with -1 for convenience
 
   public:
     std::string output_folder;
@@ -260,13 +260,9 @@ class CObsAvoidEvolLoopFunctions : public CLoopFunctions
     std::vector<robots_nn::nn_t> _vecctrlrob;
     std::vector<float> outf, inputs;
 
-    Real nb_coll, stand_still;
-    bool stop_eval;
-    float speed, lin_speed;
 
-    /*descriptors*/
-    float num_ds;
-    float curr_lin_speed;
+    bool stop_eval;
+    Real stand_still,maxIRSensor;
     Descriptor *descriptor;
     FitFun *fitfun;
 
@@ -285,6 +281,8 @@ class CObsAvoidEvolLoopFunctions : public CLoopFunctions
     void print_progress();
 
     bool check_BD_choice(const std::string choice);
+
+    Real get_Max_Sens(CThymioNNController& controller);
 };
 
 namespace sferes
@@ -298,16 +296,25 @@ FIT_MAP(FitObstacleMapElites){
 
         FitObstacleMapElites(){}
 
-    // *************** _eval ************
-    //
-    // This is the main function to evaluate the individual
-    // It runs argos sim
-    //
-    // **********************************
+    CObsAvoidEvolLoopFunctions &
+    getLoopFun(){
+        /* The CSimulator class of ARGoS is a singleton. Therefore, to
+      * manipulate an ARGoS experiment, it is enough to get its instance.
+      * This variable is declared 'static' so it is created
+      * once and then reused at each call of this function.
+      * This line would work also without 'static', but written this way
+      * it is faster. */
+        static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
 
-    inline bool dead(){
-        return false;
+/* Get a reference to the loop functions */
+static CObsAvoidEvolLoopFunctions &cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions &>(cSimulator.GetLoopFunctions());
+return cLoopFunctions;
 } // namespace sferes
+inline bool dead()
+{
+    return false;
+} // namespace sferes
+
 template <typename Indiv>
 void print_progress(Indiv &ind, CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
 {
@@ -320,7 +327,12 @@ void print_progress(Indiv &ind, CObsAvoidEvolLoopFunctions &cLoopFunctions, Real
         ind.nn().write(ofs);
     }
 }
-
+// *************** _eval ************
+//
+// This is the main function to evaluate the individual
+// It runs argos sim
+//
+// **********************************
 template <typename Indiv>
 void eval(Indiv &ind)
 {
@@ -328,15 +340,13 @@ void eval(Indiv &ind)
 
     ind.nn().simplify();
     //ind.nn().init();
-
-    /****************************************/
-    /****************************************/
     /* The CSimulator class of ARGoS is a singleton. Therefore, to
       * manipulate an ARGoS experiment, it is enough to get its instance.
       * This variable is declared 'static' so it is created
       * once and then reused at each call of this function.
       * This line would work also without 'static', but written this way
-      * it is faster. */
+      * it is faster. 
+    */
     static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
 
     /* Get a reference to the loop functions */
@@ -384,8 +394,28 @@ void eval(Indiv &ind)
 ;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /****************************************/
 /****************************************/
 
-// #endif
-
+#endif
