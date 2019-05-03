@@ -38,7 +38,7 @@ bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
         return true;
     }
     else{
-        throw std::runtime_error(choice + "not 3-dimensional");
+        throw std::runtime_error(choice + " not 3-dimensional");
     }
 #endif
 #ifdef SIX_D_BEHAV
@@ -54,7 +54,7 @@ bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
         return true;
     }
     else{
-        throw std::runtime_error(choice + "not 6-dimensional");
+        throw std::runtime_error(choice + " not 6-dimensional");
     }
 #endif
 
@@ -64,7 +64,7 @@ bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
         return true;
     }
     else{
-        throw std::runtime_error(choice + "not 42-dimensional");
+        throw std::runtime_error(choice + " not 42-dimensional");
     }
 #endif
 #ifdef HUNDREDFIFTY_D_BEHAV
@@ -73,7 +73,7 @@ bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
         return true;
     }
     else{
-        throw std::runtime_error(choice + "not 150-dimensional");
+        throw std::runtime_error(choice + " not 150-dimensional");
     }
 #endif
 }
@@ -141,7 +141,7 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
         }
         else
         {
-            throw std::runtime_error("fitfuntype " + s + "not found");
+            throw std::runtime_error("fitfuntype " + s + " not found");
         }
     }
     catch (CARGoSException &ex)

@@ -438,7 +438,7 @@ size_t CVT_MutualInfo::get_sensory_bin(float activation) const
 		++count;
 	}
 	throw std::runtime_error("not in [0,1] ?");
-	return NULL;
+	return 0;
 }
 /*after getting inputs, can update the descriptor if needed*/
 void CVT_MutualInfo::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
