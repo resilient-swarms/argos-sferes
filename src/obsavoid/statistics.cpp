@@ -242,7 +242,11 @@ float StatFuns::relative_entropy(std::vector<float> p_x, std::vector<float> p_y,
     //entropy += (S - 1.)/(2*time);  // do not use a correction here, don't know if that works the same way
     return entropy;
 }
-
+/* Calculate the maximal entropy, can also be used as maximal mutual info*/
+float StatFuns::max_entropy(size_t num_bins, size_t base)
+{
+    return StatFuns::log(num_bins,base);//e.g., equiprobable distribution with 5 bins and base b: -5sum(1/5 log_b(1/5))=log_b(5)
+}
 // float StatFuns::complexity()
 // {
 

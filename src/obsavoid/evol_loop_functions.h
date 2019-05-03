@@ -119,7 +119,7 @@ struct Params
         ;
 #endif
 #ifdef FOURTYTWO_D_BEHAV
-        SFERES_CONST size_t number_of_dimensions = 150;
+        SFERES_CONST size_t number_of_dimensions = 42;
 #endif
 #ifdef HUNDREDFIFTY_D_BEHAV
         SFERES_CONST size_t number_of_dimensions = 150;

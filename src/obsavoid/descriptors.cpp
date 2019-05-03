@@ -482,7 +482,14 @@ std::vector<float> CVT_MutualInfo::after_trials(CObsAvoidEvolLoopFunctions &cLoo
 		{
 			StatFuns::normalise(freqs[j], num_updates);
 			StatFuns::normalise(joint_freqs[i][j], num_updates);
-			final_bd.push_back(StatFuns::mutual_information(joint_freqs[i][j],freqs[i],freqs[j],num_updates));
+			float MI=StatFuns::mutual_information(joint_freqs[i][j],freqs[i],freqs[j],num_updates);
+			MI/=StatFuns::max_entropy(num_bins,EULER);
+			if(MI > 1.0f || MI < 0.0f)
+			{
+				throw std::runtime_error("normalised MI should be in [0,1]");
+			}
+
+			final_bd.push_back(MI);
 		}
 	}
 

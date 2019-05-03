@@ -104,6 +104,9 @@ class StatFuns
     */
     static float relative_entropy(std::vector<float> p_x, std::vector<float> p_y, float time, size_t base);
 
+    /* Calculate the maximal entropy, can also be used as maximal mutual info*/
+    static float max_entropy(size_t num_bins, size_t base);
+
     float algorithmic_prob(double complexity, size_t symbols);
     //float StatFuns::complexity();// use zlib's compress2
     // /* normalised compression distance, similar to mutual information in AIT */  // use ncd.h

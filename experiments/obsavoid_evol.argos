@@ -45,7 +45,7 @@
                   label="obsavoid_evol_loopfunctions"
                   trials="5"
                   robots="1"
-                  descriptortype="history"    
+                  descriptortype="history"  
                   fitfuntype="MeanSpeed"
                   bd_dims="3"
 		  output_folder="experiments"

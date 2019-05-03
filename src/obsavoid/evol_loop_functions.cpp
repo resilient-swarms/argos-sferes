@@ -170,6 +170,14 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
         {
             this->descriptor = new AverageDescriptor();
         }
+        else if (s == "cvt_trajectory")
+        {
+            this->descriptor = new CVT_Trajectory(*this, argos::CSimulator::GetInstance().GetMaxSimulationClock());
+        }
+        else if (s == "cvt_mutualinfo")
+        {
+            this->descriptor = new CVT_MutualInfo();
+        }
         else
         {
             throw std::runtime_error("descriptortype " + s + " not found");

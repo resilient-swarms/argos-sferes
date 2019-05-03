@@ -76,8 +76,9 @@ std::vector<point_t> load_centroids(const std::string& centroids_filename)
 
     return centroids;
 }
-std::vector<point_t> Params::ea::centroids = load_centroids("/home/david/argos-sferes/src/obsavoid/centroids_1000_150.dat");
-#endif 
+
+std::vector<point_t> Params::ea::centroids = load_centroids("centroids_1000_42.dat");
+#endif
 int main(int argc, char **argv)
 {
 
