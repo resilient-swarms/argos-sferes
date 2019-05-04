@@ -18,9 +18,10 @@ CoverageCalc::CoverageCalc(CObsAvoidEvolLoopFunctions *cLoopFunctions)
     
     float obstacle_cells = get_obstacle_area(cLoopFunctions);
     total_size = (max.GetX() * max.GetY()) / grid_step - obstacle_cells;
+    total_size = std::ceil(total_size);
 }
 
-float CoverageCalc::get_obstacle_area(CObsAvoidEvolLoopFunctions *cLoopFunctions)
+float CoverageCalc::get_obstacle_area(CObsAvoidEvolLoopFunctions *cLoopFunctions) const
 {
     CSpace::TMapPerType &argos_cylinders = cLoopFunctions->GetSpace().GetEntitiesByType("cylinder");
     float size=0.0f;
@@ -39,20 +40,18 @@ float CoverageCalc::get_obstacle_area(CObsAvoidEvolLoopFunctions *cLoopFunctions
     return size;
 }
 /* get the actual coverage of a single trial */
-float CoverageCalc::get_coverage(size_t num_updates)
+float CoverageCalc::get_coverage() const
 {
-    //coverage
-    float max_visited_positions = total_size;
-    return (float)unique_visited_positions.size() / (float)max_visited_positions;
+    return (float)unique_visited_positions.size() / (float)total_size;
 }
 /* get bin corresponding to a position in the space */
-std::tuple<int, int, int> CoverageCalc::get_bin(argos::CVector3 vec)
+CoverageCalc::location_t CoverageCalc::get_bin(argos::CVector3 vec) const
 {
     int binx = (int)((float)vec.GetX() / grid_step);
     int biny = (int)((float)vec.GetY() / grid_step);
     int binz = (int)((float)vec.GetZ() / grid_step);
 
-    std::tuple<int, int, int> bin(binx, biny, binz);
+    location_t bin(binx, biny, binz);
     // #ifdef PRINTING
     //     std::cout<<"binned "<< vec  <<"into "<<binx<<","<<biny<<","<<binz<<std::endl;
     // #endif
@@ -62,16 +61,28 @@ std::tuple<int, int, int> CoverageCalc::get_bin(argos::CVector3 vec)
 void CoverageCalc::update(argos::CVector3 pos)
 {
     //count the bin
-    std::tuple<int, int, int> bin = get_bin(pos);
+    location_t bin = get_bin(pos);
     auto find_result = unique_visited_positions.find(bin);
     if (find_result == unique_visited_positions.end())
     {
-        unique_visited_positions.insert(std::pair<std::tuple<int, int, int>, size_t>(bin, 1));
+        unique_visited_positions.insert(std::pair<location_t, size_t>(bin, 1));
     }
     else
     {
         unique_visited_positions[bin] += 1;
     }
+
+    // #ifdef PRINTING
+    // std::cout<<"the map is now"<<std::endl;
+    // for(std::map<location_t,size_t>::iterator iter = unique_visited_positions.begin(); iter != unique_visited_positions.end(); ++iter)
+    // {
+    //     location_t k =  iter->first;
+    //     print_xy(k);
+    //     //ignore value
+    //     //Value v = iter->second;
+    // } 
+    // std::cout<<"the map has size "<< unique_visited_positions.size() <<std::endl;  
+    // #endif
 }
 /* after trial is finished, reset stats */
 void CoverageCalc::after_trial()
@@ -79,19 +90,26 @@ void CoverageCalc::after_trial()
     unique_visited_positions.clear();
 }
 /* get the visitation probabilities for each bin  */
-std::vector<float> CoverageCalc::get_probs(size_t num_updates)
+std::vector<float> CoverageCalc::get_probs(size_t num_updates) const 
 {
     std::vector<float> a;
-    for (auto &pair : unique_visited_positions)
+    for (const auto &pair : unique_visited_positions)
     {
         a.push_back(pair.second / (float)num_updates);
 #ifdef PRINTING
         std::cout << "total visits" << num_updates << std::endl;
-        std::cout << "location " << std::get<0>(pair.first) << "," << std::get<1>(pair.first) << "," << std::get<2>(pair.first) << std::endl;
+        print_xy(pair.first);
         std::cout << "visits " << pair.second << std::endl;
         std::cout << "probability " << a.back() << std::endl;
 #endif
     }
 
     return a;
+}
+
+
+/* print xy-location of an element in the visited positions */
+void CoverageCalc::print_xy(location_t location) const
+{
+    std::cout<<"("<<std::get<0>(location)<<","<<std::get<1>(location)<<")"<<std::endl;
 }

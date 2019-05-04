@@ -81,8 +81,8 @@ class StatFuns
            https://www.argos-sim.info/api/a00293_source.php#l00205
            l. 684; problem is it always uses k=2
     */
-    static float get_minkowski_distance(argos::CVector3 x, argos::CVector3 y, size_t k = 3);
-    static float get_minkowski_distance(std::vector<float> x, std::vector<float> y, size_t k = 3);
+    static float get_minkowski_distance(argos::CVector3 x, argos::CVector3 y, size_t k = 2);
+    static float get_minkowski_distance(std::vector<float> x, std::vector<float> y, size_t k = 2);
     static float uniform_prob(size_t n);
     static float max_variation_distance(size_t n);
     static float min_variation_distance();

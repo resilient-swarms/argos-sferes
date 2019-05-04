@@ -39,7 +39,7 @@ float FloreanoMondada::after_trials()
 void FloreanoMondada::print_progress(size_t trial)
 {
 
-    printf("\n\n fitness in trial %lu is %f", trial, fitness_per_trial[trial]);
+    printf("\n\n fitness in trial %zu is %f", trial, fitness_per_trial[trial]);
     printf("\n\n lin_speed = %f", lin_speed);
     printf("\n\n nb_coll = %f", nb_coll);
 }
@@ -97,7 +97,7 @@ Coverage::Coverage(CObsAvoidEvolLoopFunctions *cLoopFunctions)
 void Coverage::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
 {
     //coverage
-    fitness_per_trial.push_back(coverageCalc.get_coverage(num_updates));
+    fitness_per_trial.push_back(coverageCalc.get_coverage());
     num_updates = 0;
     coverageCalc.after_trial();
 }

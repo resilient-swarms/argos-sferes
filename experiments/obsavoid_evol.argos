@@ -82,7 +82,7 @@
         constant rotation (rotating a cylinder around Z does not
         matter)
     -->
-    <distribute>
+   <distribute>
       <position method="uniform" min="0,0,0" max="4,4,0" />
       <orientation method="constant" values="0,0,0" />
       <entity quantity="10" max_trials="200">
@@ -111,7 +111,7 @@
   <!-- ****************** -->
   <!-- We don't want nor need a visualization during evolution -->
   <visualization>
-  <!-- <qt-opengl/> -->
+    <!-- <qt-opengl/> -->
   </visualization>
 
 </argos-configuration>

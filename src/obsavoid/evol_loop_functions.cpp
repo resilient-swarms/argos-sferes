@@ -224,8 +224,8 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
 
     //m_vecInitSetup.clear();
     CVector3 size= GetSpace().GetArenaSize();
-    Real minX=1.2; Real maxX=size.GetX()-1.2;
-    Real minY=1.2; Real maxY=size.GetY()-1.2;
+    Real minX=0.2; Real maxX=size.GetX()-0.2;
+    Real minY=0.2; Real maxY=size.GetY()-0.2;
     for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
     {
         m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
@@ -332,11 +332,13 @@ void CObsAvoidEvolLoopFunctions::PreStep()
 
         CVector3 axis;
         cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta, axis);
+
+        curr_pos   = cThymio.GetEmbodiedEntity().GetOriginAnchor().Position;
         // #ifdef PRINTING
         //         std::cout << "theta=" << curr_theta << std::endl;
         // #endif
         // *** To save simulation time, we stop evaluation if the robot is stuck for more than 100 time steps ***
-        /*curr_pos   = cThymio.GetEmbodiedEntity().GetOriginAnchor().Position;
+        /*
         CRadians c_y, c_x;
         cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToEulerAngles(curr_theta, c_y, c_x);
 

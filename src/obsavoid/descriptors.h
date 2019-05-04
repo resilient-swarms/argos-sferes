@@ -80,6 +80,7 @@ class IntuitiveHistoryDescriptor : public Descriptor
   public:
     IntuitiveHistoryDescriptor(CLoopFunctions *cLoopFunctions);
     CoverageCalc coverageCalc;
+
     argos::CVector3 center;
     const float max_velocitysd = 0.50; // with min,max=0,1 -> at most 0.5 deviation on average
     float max_deviation, deviation;

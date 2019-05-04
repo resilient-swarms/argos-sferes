@@ -7,6 +7,9 @@
 
 #define SENSOR_ACTIVATION_THRESHOLD 0.5
 
+#ifdef TWO_D_BEHAV
+const size_t Descriptor::behav_dim = 3;
+#endif
 #ifdef THREE_D_BEHAV
 const size_t Descriptor::behav_dim = 3;
 #endif
@@ -86,12 +89,13 @@ IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(CLoopFunctions *cLoopFunc
 	argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
 	argos::CVector3 min = center - 0.5 * max;
 	max_deviation = StatFuns::get_minkowski_distance(max, center);
-	CObsAvoidEvolLoopFunctions* lf = static_cast<CObsAvoidEvolLoopFunctions *>(cLoopFunctions);
+	CObsAvoidEvolLoopFunctions *lf = static_cast<CObsAvoidEvolLoopFunctions *>(cLoopFunctions);
 	if (lf->m_unNumberRobots != 1)
 	{
 		throw std::runtime_error("number of robots should be equal to 1 when choosing IntuitiveHistoryDescriptor");
 	}
-	coverageCalc = CoverageCalc(lf);
+    coverageCalc = CoverageCalc(lf);
+	
 }
 
 /*reset BD at the start of a trial*/
@@ -112,7 +116,7 @@ void IntuitiveHistoryDescriptor::set_input_descriptor(size_t robot_index, CObsAv
 
 void IntuitiveHistoryDescriptor::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
-	//velocity_stats->push(cLoopFunctions.curr_lin_speed);
+	//nothing here
 }
 
 void IntuitiveHistoryDescriptor::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
@@ -126,20 +130,19 @@ void IntuitiveHistoryDescriptor::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunc
 	//deviation from the center
 	float avg_deviation = deviation / (max_deviation * (float)num_updates);
 	this->bd[1][current_trial] = avg_deviation;
-	float coverage = coverageCalc.get_coverage(num_updates);
-	this->bd[2][current_trial] = coverage;
-	// //variability in the speed]
-	// float velocity_sd=velocity_stats.std()/max_velocitysd;
-	// this->bd[3] +=velocity_sd;
-	//
 	
+#ifdef THREE_D_BEHAV
+	float coverage = coverageCalc.get_coverage();
+	this->bd[2][current_trial] = coverage;
+#endif
 
 #ifdef PRINTING
 	std::cout << "uniformity" << uniformity << std::endl;
 	std::cout << "Max deviation" << max_deviation << std::endl;
 	std::cout << "deviation" << avg_deviation << std::endl;
+#ifdef THREE_D_BEHAV
 	std::cout << "coverage" << coverage << std::endl;
-	//std::cout<<"velocity_sd"<<velocity_sd<<std::endl;
+#endif
 #endif
 
 	coverageCalc.after_trial();
@@ -437,7 +440,7 @@ void CVT_MutualInfo::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopF
 	{
 		size_t bin = get_sensory_bin(cLoopFunctions.inputs[i]);
 		++freqs[i][bin];
-		for (size_t j = 0; j < cLoopFunctions.inputs.size() && j!=i; ++j)
+		for (size_t j = 0; j < cLoopFunctions.inputs.size() && j != i; ++j)
 		{
 			size_t bin2 = get_sensory_bin(cLoopFunctions.inputs[i]);
 			size_t joint_bin = bin * cLoopFunctions.inputs.size() + bin2;
@@ -461,18 +464,18 @@ void CVT_MutualInfo::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 std::vector<float> CVT_MutualInfo::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
 	/* final behavioural descriptor  */
-    std::vector<float> final_bd;
+	std::vector<float> final_bd;
 	for (size_t i = 0; i < cLoopFunctions.inputs.size(); ++i)
 	{
 		StatFuns::normalise(freqs[i], num_updates);
-		
-		for (size_t j = 0; j < cLoopFunctions.inputs.size() && j!=i; ++j)
+
+		for (size_t j = 0; j < cLoopFunctions.inputs.size() && j != i; ++j)
 		{
 			StatFuns::normalise(freqs[j], num_updates);
 			StatFuns::normalise(joint_freqs[i][j], num_updates);
-			float MI=StatFuns::mutual_information(joint_freqs[i][j],freqs[i],freqs[j],num_updates);
-			MI/=StatFuns::max_entropy(num_bins,EULER);
-			if(MI > 1.0f || MI < 0.0f)
+			float MI = StatFuns::mutual_information(joint_freqs[i][j], freqs[i], freqs[j], num_updates);
+			MI /= StatFuns::max_entropy(num_bins, EULER);
+			if (MI > 1.0f || MI < 0.0f)
 			{
 				throw std::runtime_error("normalised MI should be in [0,1]");
 			}

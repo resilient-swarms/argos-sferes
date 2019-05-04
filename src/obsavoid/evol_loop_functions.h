@@ -133,6 +133,11 @@ struct Params
     {
 
         SFERES_CONST double epsilon = 0; //0.05;
+#ifdef TWO_D_BEHAV
+
+        SFERES_CONST size_t behav_dim = 2;
+        SFERES_ARRAY(size_t, behav_shape, 10, 10);
+#endif
 #ifdef THREE_D_BEHAV
 
         SFERES_CONST size_t behav_dim = 3;
@@ -198,7 +203,7 @@ class FitFun;
 class CObsAvoidEvolLoopFunctions : public CLoopFunctions
 {
 
-  public:
+public:
     CObsAvoidEvolLoopFunctions();
     virtual ~CObsAvoidEvolLoopFunctions();
 
@@ -231,7 +236,7 @@ class CObsAvoidEvolLoopFunctions : public CLoopFunctions
         return position;
     }
 
-  private:
+private:
     /* The initial setup of a trial */
     struct SInitSetup
     {
@@ -244,25 +249,24 @@ class CObsAvoidEvolLoopFunctions : public CLoopFunctions
 
     std::vector<CThymioNNController *> m_pcvecController;
 
-  public:
+public:
     std::vector<CThymioEntity *> m_pcvecRobot;
 
     CRandom::CRNG *m_pcRNG;
 
-  public:
+public:
     std::vector<std::vector<SInitSetup>> m_vecInitSetup;
     size_t m_unNumberTrials, m_unNumberRobots;
     int m_unCurrentTrial; // will start with -1 for convenience
 
-  public:
+public:
     std::string output_folder;
     //robots_nn::nn_t _ctrlrob;
     std::vector<robots_nn::nn_t> _vecctrlrob;
     std::vector<float> outf, inputs;
 
-
     bool stop_eval;
-    Real stand_still,maxIRSensor;
+    Real stand_still, maxIRSensor;
     Descriptor *descriptor;
     FitFun *fitfun;
 
@@ -282,7 +286,7 @@ class CObsAvoidEvolLoopFunctions : public CLoopFunctions
 
     bool check_BD_choice(const std::string choice);
 
-    Real get_Max_Sens(CThymioNNController& controller);
+    Real get_Max_Sens(CThymioNNController &controller);
 };
 
 namespace sferes
@@ -393,27 +397,6 @@ void eval(Indiv &ind)
 }
 ;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /****************************************/
 /****************************************/
