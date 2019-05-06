@@ -77,7 +77,7 @@ std::vector<point_t> load_centroids(const std::string& centroids_filename)
     return centroids;
 }
 
-std::vector<point_t> Params::ea::centroids = load_centroids("centroids_1000_42.dat");
+std::vector<point_t> Params::ea::centroids = load_centroids("centroids_1000_"+std::to_string(Params::ea::number_of_dimensions)+".dat");
 #endif
 int main(int argc, char **argv)
 {
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
         stat_t;
     #endif
     #ifdef CVT
-                //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
+        //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
         typedef ea::CVTMapElites<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
         //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
     #else

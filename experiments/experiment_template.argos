@@ -85,8 +85,8 @@
    <distribute>
       <position method="uniform" min="0,0,0" max="4,4,0" />
       <orientation method="constant" values="0,0,0" />
-      <entity quantity="10" max_trials="200">
-        <cylinder id="c" height="0.5" radius="0.15" movable="false" />
+      <entity quantity="7" max_trials="200">
+        <cylinder id="c" height="0.5" radius="0.125" movable="false" />
       </entity>
     </distribute>
 

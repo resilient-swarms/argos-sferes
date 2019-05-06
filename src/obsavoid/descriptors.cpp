@@ -47,7 +47,7 @@ std::vector<float> Descriptor::after_trials(CObsAvoidEvolLoopFunctions &cLoopFun
 	for (size_t i = 0; i < behav_dim; ++i)
 	{
 		final_bd[i] = StatFuns::mean(this->bd[i]);
-		if (final_bd[i] < 0 || final_bd[i] > 1)
+		if (!StatFuns::in_range(final_bd[i],0.0f,1.0f))
 		{
 			throw std::runtime_error("bd not in [0,1]");
 		}
@@ -72,7 +72,7 @@ void AverageDescriptor::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 	for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
 	{
 		this->bd[i][current_trial] /= (float)num_updates;
-		if (this->bd[i][current_trial] < 0 || this->bd[i][current_trial] > 1)
+		if (!StatFuns::in_range(this->bd[i][current_trial],0.0f,1.0))
 		{
 			throw std::runtime_error("bd not in [0,1]");
 		};
@@ -399,7 +399,7 @@ void SDBC::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 	for (size_t i = 0; i < behav_dim; ++i)
 	{
 		this->bd[i][current_trial] /= (float)(num_updates + 1);
-		if (this->bd[i][current_trial] < 0 || this->bd[i][current_trial] > 1)
+		if (!StatFuns::in_range(this->bd[i][current_trial],0.0f,1.0f))
 		{
 			throw std::runtime_error("bd" + std::to_string(i) + " not in [0,1]: " + std::to_string(bd[i][current_trial]));
 		};
@@ -409,6 +409,21 @@ void SDBC::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 /* prepare for trials*/
 void CVT_MutualInfo::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
+	num_updates = 0;//start counting all the updates in all the trials
+	freqs.resize(num_sensors);
+	joint_freqs.resize(num_sensors);
+
+	for (size_t i=0; i < num_sensors; ++i)
+	{
+		freqs[i].resize(num_bins,0.0f);
+		joint_freqs[i].resize(num_sensors);
+		for (size_t j=0; j < num_sensors; ++j)
+		{
+			joint_freqs[i][j].reserve(num_bins*num_bins);
+			joint_freqs[i][j].resize(num_bins*num_bins,0.0f);
+		}
+	}
+
 }
 /*reset BD at the start of a trial*/
 void CVT_MutualInfo::start_trial()
@@ -420,7 +435,7 @@ size_t CVT_MutualInfo::get_sensory_bin(float activation) const
 {
 	float dx = 1.0 / (float)num_bins;
 	size_t count = 0;
-	for (int x = dx; x <= 1.0; x += dx)
+	for (float x = dx; x <= 1.0; x+=dx)
 	{
 		if (activation <= x)
 		{
@@ -436,14 +451,18 @@ void CVT_MutualInfo::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopF
 {
 	size_t joint_index = 0;
 	// frequency + joint_frequency
-	for (size_t i = 0; i < cLoopFunctions.inputs.size(); ++i)
+	for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
 	{
 		size_t bin = get_sensory_bin(cLoopFunctions.inputs[i]);
 		++freqs[i][bin];
-		for (size_t j = 0; j < cLoopFunctions.inputs.size() && j != i; ++j)
+		for (size_t j = 0; j < cLoopFunctions.inputs.size() - 1; ++j)
 		{
-			size_t bin2 = get_sensory_bin(cLoopFunctions.inputs[i]);
-			size_t joint_bin = bin * cLoopFunctions.inputs.size() + bin2;
+			if (j==i)
+			{
+				continue;
+			}
+			size_t bin2 = get_sensory_bin(cLoopFunctions.inputs[j]);
+			size_t joint_bin = bin * num_bins + bin2;
 			++joint_freqs[i][j][joint_bin];
 		}
 	}
@@ -463,27 +482,47 @@ void CVT_MutualInfo::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 /*summarise BD at the end of trials*/
 std::vector<float> CVT_MutualInfo::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
-	/* final behavioural descriptor  */
+	/* convert frequencies to probabilities */
 	std::vector<float> final_bd;
-	for (size_t i = 0; i < cLoopFunctions.inputs.size(); ++i)
+	for (size_t i = 0; i < num_sensors; ++i)
 	{
 		StatFuns::normalise(freqs[i], num_updates);
 
-		for (size_t j = 0; j < cLoopFunctions.inputs.size() && j != i; ++j)
+		for (size_t j = 0; j < num_sensors; ++j)
 		{
-			StatFuns::normalise(freqs[j], num_updates);
+			if (j==i)
+			{
+				continue;
+			}
 			StatFuns::normalise(joint_freqs[i][j], num_updates);
-			float MI = StatFuns::mutual_information(joint_freqs[i][j], freqs[i], freqs[j], num_updates);
-			MI /= StatFuns::max_entropy(num_bins, EULER);
-			if (MI > 1.0f || MI < 0.0f)
+		}
+	}
+	/* calculate MI */
+	for (size_t i = 0; i < num_sensors; ++i)
+	{
+		for (size_t j = 0; j < num_sensors; ++j)
+		{
+			if (j==i)
+			{
+				continue;
+			}
+			float mi = StatFuns::mutual_information(joint_freqs[i][j], freqs[i], freqs[j], num_updates);
+			float MI = mi / StatFuns::max_entropy(num_bins, EULER);
+			#ifdef PRINTING
+				printf("\n MI_{%zu,%zu} = %f", i, j, MI);
+			#endif
+			if (!StatFuns::in_range(MI,0.0f,1.0f))
 			{
 				throw std::runtime_error("normalised MI should be in [0,1]");
 			}
 
 			final_bd.push_back(MI);
+
 		}
 	}
-
+	/* reset frequencies */
+	freqs.clear();
+	joint_freqs.clear();
 	return final_bd;
 }
 //random comment

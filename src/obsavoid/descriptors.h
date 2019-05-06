@@ -53,6 +53,7 @@ class Descriptor
 
     /*summarise BD at the end of trials*/
     virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+
 };
 
 class AverageDescriptor : public Descriptor
@@ -267,7 +268,8 @@ class CVT_MutualInfo : public Descriptor
   public:
     /* number of bins used for the probability distribution*/
     const size_t num_bins = 5;
-
+    /* number of sensors */
+    const size_t num_sensors=ParamsDnn::dnn::nb_inputs - 1;
     /* track the frequencies of the different bins for all groups*/
     std::vector<std::vector<float>> freqs;// for each sensor
     /* track the joint frequencies of the different bins for all groups*/

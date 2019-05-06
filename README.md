@@ -31,11 +31,7 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
 
     git clone https://github.com/sferes2/nn2.git
     
-    git clone https://github.com/sferes2/cvt_map_elites.git
-
-After cloning cvt_map_elites, comment line 57-62 in stat_map.hpp (this allows use of Dnn).
-
-
+    git clone https://github.com/bossdm/cvt_map_elites.git
 
 5. Go back to the argos-sferes directory
 

@@ -229,6 +229,7 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
     for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
     {
         m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
+        size_t num_tries=0;
         for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
         {
             // TODO: Set bounds for positions from configuration file
@@ -252,6 +253,11 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
                 Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
                                             CRadians::ZERO,
                                             CRadians::ZERO);
+                if (num_tries > 200)
+                {
+                    throw std::runtime_error("failed to initialise robot positions; too many obstacles?");
+                }
+                ++num_tries;
             }
             m_vecInitSetup[m_unTrial][m_unRobot].Position = Position;
             m_vecInitSetup[m_unTrial][m_unRobot].Orientation = Orientation;

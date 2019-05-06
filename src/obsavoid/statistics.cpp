@@ -8,6 +8,24 @@
 #include "ncd.h"
 #include <assert.h>
 
+ #include <boost/math/special_functions/relative_difference.hpp> 
+
+/* check float in range */
+bool StatFuns::in_range(float num1,float a, float b)
+{
+    return StatFuns::float_smallerorequal(num1,b) && StatFuns::float_smallerorequal(a,num1);
+}
+
+/* check float equality */
+bool StatFuns::float_equal(float num1,float num2)
+{
+    return std::abs(num1 - num2) <= EPS;
+}
+/* check num1 is smaller than num2 */
+bool StatFuns::float_smallerorequal(float num1,float num2)
+{
+    return num2 - num1 >=  - EPS;
+}
 /* logarithm with custom base */
 float StatFuns::log(float number, size_t base)
 {
@@ -149,6 +167,13 @@ float StatFuns::normalise(std::vector<float> &probabilities,float C)
     {
         prob/=C;
     }
+    #ifdef PRINTING
+        float s = StatFuns::sum(probabilities);
+        if (!StatFuns::float_equal(s,1.0f))
+        {
+            throw std::runtime_error("probabilities do not sum to 1");
+        }
+    #endif
 }
 
 
@@ -183,7 +208,13 @@ std::pair<float, float> StatFuns::entropy(std::vector<float> p, float time, size
             S += 1.0;
         }
     }
+#ifdef PRINTING
+    std::cout << "entropy  " << entropy << std::endl;
+#endif
     entropy += (S - 1.) / (2. * time);
+#ifdef PRINTING
+    std::cout << "entropy after correction:  " << entropy << std::endl;
+#endif
     std::pair<float, float> pair(entropy, S);
     return pair;
 }
@@ -199,7 +230,13 @@ float StatFuns::joint_entropy(std::vector<float> joint_p, float S_x, float S_y, 
             S_xy += 1.0;
         }
     }
-    entropy += (S_x + S_y - S_xy - 1.) / (2 * time);
+#ifdef PRINTING
+    std::cout << "joint entropy  " << entropy << std::endl;
+#endif
+    entropy += (S_x + S_y - S_xy - 1.) / (2.0 * time);
+#ifdef PRINTING
+    std::cout << "joint entropy after correction:  " << entropy << std::endl;
+#endif
     return entropy;
 }
 float StatFuns::mutual_information(std::vector<float> joint_p, std::vector<float> p_x, std::vector<float> p_y, float time, size_t base)
@@ -212,7 +249,7 @@ float StatFuns::mutual_information(std::vector<float> joint_p, std::vector<float
     std::pair<float, float> pair = StatFuns::entropy(p_x, time, base);
     float H_x = pair.first;
     float S_x = pair.second;
-    std::pair<float, float> pair2 = StatFuns::entropy(p_x, time, base);
+    std::pair<float, float> pair2 = StatFuns::entropy(p_y, time, base);
     float H_y = pair2.first;
     float S_y = pair2.second;
     float H_xy = StatFuns::joint_entropy(joint_p, S_x, S_y, time, base);

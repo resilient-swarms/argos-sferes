@@ -4,10 +4,13 @@
 
 
 
-
 #include <vector>
 #include <argos3/core/utility/math/vector3.h>
 #include <algorithm>
+
+
+
+#define EPS std::numeric_limits<float>::epsilon()
 
 template <typename T>
 void element_wise_addition(std::vector<T> &result, const std::vector<T> &other)
@@ -60,7 +63,9 @@ static const float EULER=std::exp(1);
 class StatFuns
 {
   public:
-    
+    static bool in_range(float num1,float a, float b);
+    static bool float_equal(float num1,float num2);
+    static bool float_smallerorequal(float num1,float num2);
     static float log(float number, size_t base = EULER);
     /*  Combine info across trials  */
     static float mean(std::vector<float> results);
