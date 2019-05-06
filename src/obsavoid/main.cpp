@@ -24,6 +24,7 @@ std::vector<point_t> load_centroids(const std::string& centroids_filename)
     std::ifstream fin(centroids_filename.c_str());
 
     if (!fin) {
+        std::cout << centroids_filename <<std::endl;
         std::cerr << "Error: Could not load the centroids." << std::endl;
         exit(1);
     }
@@ -76,8 +77,8 @@ std::vector<point_t> load_centroids(const std::string& centroids_filename)
 
     return centroids;
 }
+std::vector<point_t> Params::ea::centroids;
 
-std::vector<point_t> Params::ea::centroids = load_centroids("centroids_1000_"+std::to_string(Params::ea::number_of_dimensions)+".dat");
 #endif
 int main(int argc, char **argv)
 {
@@ -98,6 +99,9 @@ int main(int argc, char **argv)
 
     static CObsAvoidEvolLoopFunctions &cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions &>(cSimulator.GetLoopFunctions());
 
+#ifdef CVT
+    Params::ea::centroids = load_centroids(cLoopFunctions.output_folder+"/centroids_1000_"+std::to_string(Params::ea::number_of_dimensions)+".dat");
+#endif
     //typedef FitObstacle<Params> fit_t;
     typedef FitObstacleMapElites<Params> fit_t;
     typedef phen::Dnn<robots_nn::gen_t, fit_t, ParamsDnn> phen_t;
