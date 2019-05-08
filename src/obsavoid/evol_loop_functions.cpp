@@ -226,10 +226,10 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
 
     //m_vecInitSetup.clear();
     CVector3 size = GetSpace().GetArenaSize();
-    Real minX = 0.2;
-    Real maxX = size.GetX() - 0.2;
-    Real minY = 0.2;
-    Real maxY = size.GetY() - 0.2;
+    Real minX = 0.0;
+    Real maxX = size.GetX() - 0.0;
+    Real minY = 0.0;
+    Real maxY = size.GetY() - 0.0;
     for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
     {
         m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
@@ -245,21 +245,21 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
             Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
                                         CRadians::ZERO,
                                         CRadians::ZERO);
-
+   
             while (!MoveEntity(m_pcvecRobot[m_unRobot]->GetEmbodiedEntity(), // move the body of the robot
                                Position,                                     // to this position
                                Orientation,                                  // with this orientation
                                false                                         // this is not a check, leave the robot there
                                ))
             {
-                CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
+                Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
                 //std::cout << "Position2 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
                 Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
                                             CRadians::ZERO,
                                             CRadians::ZERO);
                 if (num_tries > 200)
                 {
-                    throw std::runtime_error("failed to initialise robot positions; too many obstacles?");
+                    //throw std::runtime_error("failed to initialise robot positions; too many obstacles?");
                 }
                 ++num_tries;
             }
@@ -379,7 +379,7 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         this->descriptor->set_output_descriptor(robotindex, *this);
         this->fitfun->after_step(robotindex, *this);
 
-        stop_eval = maxIRSensor == 1.0f;
+        stop_eval = cThymio.GetEmbodiedEntity().IsCollidingWithSomething();
         if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
         {
             argos::CSimulator::GetInstance().Terminate();
