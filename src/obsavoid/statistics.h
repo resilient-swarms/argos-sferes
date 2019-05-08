@@ -63,6 +63,7 @@ static const float EULER=std::exp(1);
 class StatFuns
 {
   public:
+    static size_t get_bin(float activation, float min_act, float max_act, size_t num_bins);
     static bool in_range(float num1,float a, float b);
     static bool float_equal(float num1,float num2);
     static bool float_smallerorequal(float num1,float num2);
@@ -77,6 +78,7 @@ class StatFuns
     static float IQR(std::vector<float> results, bool sorted = false);
     static float sum(std::vector<float> results);
     static float normalise(std::vector<float> &results,float C);
+    static float laplace_smoothing(float count, float C, float alpha, size_t num_options);
 
     /* get the minkowski-distance between two 3D vectors ; k is the parameter that determines e.g. manhattan vs Euclid vs 3D movements 
            on a flat surface, the Thymio can only move in two directions, so in that case use k=2

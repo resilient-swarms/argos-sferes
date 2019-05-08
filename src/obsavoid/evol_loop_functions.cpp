@@ -1,8 +1,7 @@
 /****************************************/
 /****************************************/
-
-#include <src/obsavoid/evol_loop_functions.h>
 #include <src/obsavoid/statistics.h>
+#include <src/obsavoid/evol_loop_functions.h>
 #include <src/obsavoid/fitness_functions.h>
 #include <src/obsavoid/descriptors.h>
 
@@ -32,54 +31,49 @@ CObsAvoidEvolLoopFunctions::~CObsAvoidEvolLoopFunctions()
 /****************************************/
 bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
 {
-#ifdef THREE_D_BEHAV
-    if (choice == "history")
+    if(choice=="history")
     {
+        if (BEHAV_DIM != 3)
+        {
+             throw std::runtime_error(choice + " should be 3-dimensional");
+        }
         return true;
     }
-    else
+    else if (choice == "sdbc_robots_and_walls")
     {
-        throw std::runtime_error(choice + " not 3-dimensional");
-    }
-#endif
-#ifdef SIX_D_BEHAV
-    if (choice == "sdbc_robots_and_walls")
-    {
+        if (BEHAV_DIM != 6)
+        {
+             throw std::runtime_error(choice + " should be 6-dimensional");
+        }
         return true;
     }
-    else if (choice == "cvt_trajectory")
+    else if (choice == "cvt_mutualinfo")
     {
-#ifdef PRINTING
-        std::cout << choice << " is not always suitable for 6D; check to be sure" << std::endl;
-#endif
+        if (BEHAV_DIM != 42)
+        {
+            throw std::runtime_error(choice + " should be 42-dimensional");
+        }
         return true;
     }
-    else
+    else if (choice == "cvt_mutualinfoact")
     {
-        throw std::runtime_error(choice + " not 6-dimensional");
-    }
-#endif
-
-#ifdef FOURTYTWO_D_BEHAV
-    if (choice == "cvt_mutualinfo")
-    {
+        if (BEHAV_DIM != 14)
+        {
+             throw std::runtime_error(choice + " should be 14-dimensional");
+        }
         return true;
     }
-    else
+    else if (choice == "cvt_spirit")
     {
-        throw std::runtime_error(choice + " not 42-dimensional");
-    }
-#endif
-#ifdef HUNDREDFIFTY_D_BEHAV
-    if (choice == "cvt_trajectory")
-    {
+        if (BEHAV_DIM != 400)
+        {
+             throw std::runtime_error(choice + " should be 400-dimensional");
+        }
         return true;
     }
-    else
-    {
-        throw std::runtime_error(choice + " not 150-dimensional");
+    else{
+        return true;
     }
-#endif
 }
 void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
 {
@@ -186,6 +180,14 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
         {
             this->descriptor = new CVT_MutualInfo();
         }
+        else if (s == "cvt_mutualinfoact")
+        {
+            this->descriptor = new CVT_MutualInfoAct();
+        }
+        else if (s == "cvt_spirit")
+        {
+            this->descriptor = new CVT_Spirit();
+        }
         else
         {
             throw std::runtime_error("descriptortype " + s + " not found");
@@ -223,17 +225,19 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
     }
 
     //m_vecInitSetup.clear();
-    CVector3 size= GetSpace().GetArenaSize();
-    Real minX=0.2; Real maxX=size.GetX()-0.2;
-    Real minY=0.2; Real maxY=size.GetY()-0.2;
+    CVector3 size = GetSpace().GetArenaSize();
+    Real minX = 0.2;
+    Real maxX = size.GetX() - 0.2;
+    Real minY = 0.2;
+    Real maxY = size.GetY() - 0.2;
     for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
     {
         m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
-        size_t num_tries=0;
+        size_t num_tries = 0;
         for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
         {
             // TODO: Set bounds for positions from configuration file
-            CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX,maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
+            CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
 #ifdef PRINTING
             std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
 #endif
@@ -248,7 +252,7 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
                                false                                         // this is not a check, leave the robot there
                                ))
             {
-                CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX,maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
+                CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
                 //std::cout << "Position2 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
                 Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
                                             CRadians::ZERO,
@@ -287,7 +291,6 @@ void CObsAvoidEvolLoopFunctions::Reset()
 
 /****************************************/
 /****************************************/
-
 
 void CObsAvoidEvolLoopFunctions::PreStep()
 {
@@ -339,7 +342,7 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         CVector3 axis;
         cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta, axis);
 
-        curr_pos   = cThymio.GetEmbodiedEntity().GetOriginAnchor().Position;
+        curr_pos = cThymio.GetEmbodiedEntity().GetOriginAnchor().Position;
         // #ifdef PRINTING
         //         std::cout << "theta=" << curr_theta << std::endl;
         // #endif
@@ -370,19 +373,19 @@ void CObsAvoidEvolLoopFunctions::PreStep()
 
         old_pos     = curr_pos;
         old_theta   = curr_theta;*/
-        
+
         old_pos = curr_pos;
         old_theta = curr_theta;
         this->descriptor->set_output_descriptor(robotindex, *this);
-        this->fitfun->after_step(robotindex,*this);
+        this->fitfun->after_step(robotindex, *this);
 
-        stop_eval = maxIRSensor==1.0f;
+        stop_eval = maxIRSensor == 1.0f;
         if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
         {
             argos::CSimulator::GetInstance().Terminate();
-            #ifdef PRINTING
-                std::cout << "Terminate run permaturely" << std::endl;
-            #endif
+#ifdef PRINTING
+            std::cout << "Terminate run permaturely" << std::endl;
+#endif
         }
         ++robotindex;
     }
@@ -400,7 +403,7 @@ void CObsAvoidEvolLoopFunctions::before_trials()
 }
 void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
 {
-    
+
     stop_eval = false;
     // stand_still = 0;
     // old_pos   = CVector3(0.0f, 0.0f, 0.0f);
@@ -440,7 +443,62 @@ std::vector<float> CObsAvoidEvolLoopFunctions::alltrials_descriptor()
     return descriptor->after_trials(*this);
 }
 
+/* get bin for sensory probabilities  */
+size_t CObsAvoidEvolLoopFunctions::get_sensory_bin(size_t i, size_t num_bins) const
+{
+    return StatFuns::get_bin(inputs[i], 0.0f, 1.0f, num_bins);
+}
+/* get bin for sensory probabilities  */
+size_t CObsAvoidEvolLoopFunctions::get_actuator_bin(size_t i, size_t num_bins) const
+{
+    return StatFuns::get_bin(outf[i], -10.0f, 10.0f, num_bins);
+}
 
+/* get activation bin for the activations of each sensory quadrant */
+size_t CObsAvoidEvolLoopFunctions::get_quadrant_bin() const
+{
+    // quadrant bin e.g. [0,0,0,0] ---> 0  , [0,0,1,0] --> 3
+    // assuming quadrants are : left:[0,1],front:[2],right:[3,4],back:[5,6]
+    size_t bin = 0;
+    for (int i = 0; i <= 1; ++i)
+    {
+        if (inputs[i] > 0.50)
+        {
+            bin += 8;
+            break;
+        }
+    }
+    if (inputs[2] > 0.50)
+    {
+        bin += 4;
+    }
+    for (int i = 3; i <= 4; ++i)
+    {
+        if (inputs[3] > 0.50)
+        {
+            bin += 2;
+            break;
+        }
+    }
+    for (int i = 5; i <= 6; ++i)
+    {
+        if (inputs[i] > 0.50)
+        {
+            bin += 1;
+            break;
+        }
+    }
+    return bin;
+}
+/* get joint activation bin for the actuators */
+size_t CObsAvoidEvolLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
+{
+    // joint bin (e.g. with three bins each): (-10,-10) --> 0  ; (-10,0) --> 1; ... (10,10) --> 9
+    // assuming quadrants are : left:[0,1],front:[2],right:[3,4],back:[5,6]
+    size_t bin1=get_actuator_bin(0,num_bins);
+    size_t bin2=get_actuator_bin(1,num_bins);
+    return bin1*num_bins + bin2;
+}
 /****************************************/
 /****************************************/
 

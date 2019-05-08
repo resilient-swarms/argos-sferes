@@ -26,7 +26,7 @@ class Descriptor
   public:
     Descriptor();
     size_t num_updates, current_trial;
-    static const size_t behav_dim; // for now all the same
+    static const size_t behav_dim=BEHAV_DIM;
 
     /* final value of bd*/
     std::vector<std::vector<float>> bd;
@@ -270,6 +270,7 @@ class CVT_MutualInfo : public Descriptor
     const size_t num_bins = 5;
     /* number of sensors */
     const size_t num_sensors=ParamsDnn::dnn::nb_inputs - 1;
+
     /* track the frequencies of the different bins for all groups*/
     std::vector<std::vector<float>> freqs;// for each sensor
     /* track the joint frequencies of the different bins for all groups*/
@@ -282,12 +283,12 @@ class CVT_MutualInfo : public Descriptor
     {
 
     }
-    /* get bin for sensory probabilities  */
-    size_t get_sensory_bin(float activation) const;
+
     /* prepare for trials*/
     virtual void before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
     /*reset BD at the start of a trial*/
     virtual void start_trial();
+
     /*after getting inputs, can update the descriptor if needed*/
     virtual void set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions);
 
@@ -299,8 +300,86 @@ class CVT_MutualInfo : public Descriptor
 
     /*summarise BD at the end of trials*/
     virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+
+    /* normalise frequencies */
+    virtual void normalise();
+    
+    /* get the descriptor */
+    virtual std::vector<float> get_bd();
+
+    /* calculate MI and check */
+    float calc_and_check(size_t i, size_t j);
+};
+class CVT_MutualInfoAct : public CVT_MutualInfo
+{
+  public:
+    /* number of actuators */
+    const size_t num_act=ParamsDnn::dnn::nb_outputs;
+
+    CVT_MutualInfoAct() 
+    {
+    }
+    /* normalise frequencies */
+    virtual void normalise();
+    /*after getting inputs, can update the descriptor if needed*/
+    virtual void set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions){};//don't do anything yet
+
+    /*after getting outputs, can update the descriptor if needed*/
+    virtual void set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions);
+
+    /* get the descriptor */
+    virtual std::vector<float> get_bd();
 };
 
+class CVT_Spirit : public Descriptor
+{
+  public:
+
+    CVT_Spirit() 
+    {
+    }
+
+
+    /* smoothing factor */
+    const float alpha_smooth = 1.0;
+
+    /* number of joint sensory bins */
+    const size_t num_joint_sensory_bins=16;
+
+     /* number of actuator bins */
+    const size_t num_actuator_bins=5;
+
+    /* number of joint actuator bins */
+    const size_t num_joint_actuator_bins=std::pow(num_actuator_bins,2);// assuming two actuators
+
+    /* track the frequencies of the different bins for all groups*/
+    std::vector<std::vector<float>> freqs;// for each sensory state the action probabilities
+
+
+
+    /* prepare for trials*/
+    virtual void before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+    /*reset BD at the start of a trial*/
+    virtual void start_trial();
+
+    /*after getting outputs, can update the descriptor if needed*/
+    virtual void set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions);
+
+    /*after the looping over robots*/
+    virtual void after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+
+    /*end the trial*/
+    virtual void end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+
+    /*summarise BD at the end of trials*/
+    virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+
+    /* normalise frequencies */
+    void normalise();
+    
+    /* get the descriptor */
+    virtual std::vector<float> get_bd();
+};
 class CompressionDescriptor : public Descriptor
 {
   public:
@@ -335,15 +414,12 @@ class NonMarkovianStochasticPolicyInduction : public Descriptor
     *  Rather than utilising the 
     */
   public:
-    NonMarkovianStochasticPolicyInduction()
-    {
-        bd.resize(behav_dim);
-    }
+    NonMarkovianStochasticPolicyInduction();
 
     /* prepare for trials*/
-    virtual void before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+    virtual void before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions){};
     /*reset BD at the start of a trial*/
-    virtual void start_trial();
+    virtual void start_trial(){};
     /*after getting inputs, can update the descriptor if needed*/
     virtual void set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions){};
 
@@ -361,7 +437,7 @@ class NonMarkovianStochasticPolicyInduction : public Descriptor
     }
 
     /*summarise BD at the end of trials*/
-    virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+    virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions){};
 };
 
 class CVT_Trajectory : public Descriptor

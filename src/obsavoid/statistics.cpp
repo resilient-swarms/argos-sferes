@@ -10,6 +10,23 @@
 
  #include <boost/math/special_functions/relative_difference.hpp> 
 
+
+size_t StatFuns::get_bin(float activation, float min_act, float max_act, size_t num_bins)
+{
+    float dx = (max_act - min_act) / (float)num_bins;
+	size_t count = 0;
+	for (float x = min_act + dx; x <= max_act; x += dx)
+	{
+		if (activation <= x)
+		{
+			return count;
+		}
+		++count;
+	}
+	throw std::runtime_error("observation not in any bin !");
+	return 0;
+}
+
 /* check float in range */
 bool StatFuns::in_range(float num1,float a, float b)
 {
@@ -176,6 +193,18 @@ float StatFuns::normalise(std::vector<float> &probabilities,float C)
     #endif
 }
 
+
+float StatFuns::laplace_smoothing(float count, float C, float alpha, size_t num_options)
+{
+    float num = count + alpha;
+	float denom = C + alpha*(float) num_options;
+	float estimated_prob = num/denom;
+    if (!StatFuns::in_range(estimated_prob,0.0f,1.0f))
+    {
+        throw std::runtime_error("probability estimate not in [0,1]");
+    }
+    return estimated_prob;
+}
 
 float StatFuns::get_avg_dist(std::vector<argos::CVector3> positions, argos::CVector3 cm)
 {

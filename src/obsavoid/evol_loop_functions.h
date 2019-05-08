@@ -3,6 +3,10 @@
 #ifndef EVOL_LOOP_FUNCTIONS
 #define EVOL_LOOP_FUNCTIONS
 
+//#define BEHAV_DIM 6
+
+
+
 /****************************************/
 /****************************************/
 /* ARGoS related headers */
@@ -32,7 +36,6 @@
 
 #include <sferes/gen/evo_float.hpp>
 //#include <sferes/ea/nsga2.hpp>
-
 #ifdef CVT
 #include <modules/cvt_map_elites/cvt_map_elites.hpp>
 #include <modules/cvt_map_elites/fit_map.hpp>
@@ -111,19 +114,7 @@ struct Params
     struct ea
     {
         SFERES_CONST size_t number_of_clusters = 1000;
-#ifdef THREE_D_BEHAV
-        SFERES_CONST size_t number_of_dimensions = 3;
-#endif
-#ifdef SIX_D_BEHAV
-        SFERES_CONST size_t number_of_dimensions = 6;
-        ;
-#endif
-#ifdef FOURTYTWO_D_BEHAV
-        SFERES_CONST size_t number_of_dimensions = 42;
-#endif
-#ifdef HUNDREDFIFTY_D_BEHAV
-        SFERES_CONST size_t number_of_dimensions = 150;
-#endif
+        SFERES_CONST size_t number_of_dimensions = BEHAV_DIM;
         typedef boost::array<double, number_of_dimensions> point_t;
         static std::vector<point_t> centroids;
     };
@@ -133,19 +124,15 @@ struct Params
     {
 
         SFERES_CONST double epsilon = 0; //0.05;
-#ifdef TWO_D_BEHAV
-
-        SFERES_CONST size_t behav_dim = 2;
+        SFERES_CONST size_t behav_dim = BEHAV_DIM;
+#if BEHAV_DIM == 2
         SFERES_ARRAY(size_t, behav_shape, 10, 10);
-#endif
-#ifdef THREE_D_BEHAV
-
-        SFERES_CONST size_t behav_dim = 3;
+#elif BEHAV_DIM == 3
         SFERES_ARRAY(size_t, behav_shape, 10, 10, 10);
-#endif
-#ifdef SIX_D_BEHAV
-        SFERES_CONST size_t behav_dim = 6;
+#elif BEHAV_DIM == 6
         SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10);
+#else
+    #error "Unsupported BEHAV_DIM setting (choose 2,3, or 6)"
 #endif
     };
 #endif
@@ -265,6 +252,7 @@ public:
     std::vector<robots_nn::nn_t> _vecctrlrob;
     std::vector<float> outf, inputs;
 
+
     bool stop_eval;
     Real stand_still, maxIRSensor;
     Descriptor *descriptor;
@@ -287,6 +275,21 @@ public:
     bool check_BD_choice(const std::string choice);
 
     Real get_Max_Sens(CThymioNNController &controller);
+
+    /* get bin for sensory probabilities  */
+    size_t get_sensory_bin(size_t i,size_t num_bins) const;
+    /* get bin for sensory probabilities  */
+    size_t get_actuator_bin(size_t i,size_t num_bins) const;
+
+    /* get activation bin for the activations of each sensory quadrant */
+    size_t get_quadrant_bin() const;
+
+    /* get joint activation bin for the actuators */
+    size_t get_joint_actuator_bin(size_t num_bins) const;
+
+    /* get activation bin for the activations of each sensory quadrant */
+    std::string quadrant_from_bin() const;
+
 };
 
 namespace sferes

@@ -143,11 +143,7 @@ add_library(descriptors SHARED
 
 
 option(DEFINE_PRINT "print some variables" ON)
-option(2D_BD "2D behaviour description" OFF)
-option(3D_BD "3D behaviour description" OFF)
-option(6D_BD "6D behaviour description" OFF)
-option(42D_BD "42D behaviour description" OFF)
-option(150D_BD "150D behaviour description" OFF)
+option(BD "behaviour description size" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
 
 if(DEFINE_PRINT)
@@ -157,40 +153,28 @@ else(NOT DEFINE_PRINT)
     message("print is NOT defined")
 endif()
 
-if(2D_BD)
-  set(BD_SIZE 2)
-  add_definitions(-DTWO_D_BEHAV)
-  message("Using 2D behavioural characterisation")
-elseif(3D_BD)
-  set(BD_SIZE 3)
-  add_definitions(-DTHREE_D_BEHAV)
-  message("Using 3D behavioural characterisation")
-elseif(6D_BD)
-  set(BD_SIZE 6)
-  add_definitions(-DSIX_D_BEHAV)
-  message("Using 6D behavioural characterisation")
-elseif(42D_BD)
-  set(BD_SIZE 42)
-  add_definitions(-DFOURTYTWO_D_BEHAV)
-  message("Using 42D behavioural characterisation")
-elseif(150D_BD)
-  set(BD_SIZE 150)
-  add_definitions(-DHUNDREDFIFTY_D_BEHAV)
-  message("Using 150D behavioural characterisation")
-else()
-  set(BD_SIZE 3)
-  add_definitions(-DTHREE_D_BEHAV)
-  message("Using 3D behavioural characterisation")
+
+message("Using ${BD}D behavioural characterisation")
+
+if(NOT ${BD})
+    set(BD 2)
 endif()
+add_definitions(-DBEHAV_DIM=${BD})
+
+
 
 
 if(CVT_USAGE)
   set(CVT_USE cvt)
   add_definitions(-DCVT)
   message("Using Centroidal Voronoi Tesselation")
+else(NOT CVT_USAGE)
+    if(NOT ${BD} EQUAL 2 AND NOT ${BD} EQUAL 3 AND NOT ${BD} EQUAL 6)
+    message(FATAL_ERROR "When not using CVT, need to use 2,3 or 6 behavioural dimensions")
+    endif()
 endif()
 
-set(EXECUTABLE obsavoid_evol${CVT_USE}${BD_SIZE}D)
+set(EXECUTABLE obsavoid_evol${CVT_USE}${BD}D)
 add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 
     target_link_libraries(obsavoid_nn_controller
