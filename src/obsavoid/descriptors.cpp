@@ -406,21 +406,30 @@ void SDBC::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 	}
 }
 
+
+
+CVT_MutualInfo::CVT_MutualInfo()
+{
+	freqs.resize(num_sensors);
+	joint_freqs.resize(num_sensors);
+	for (size_t i = 0; i < num_sensors; ++i)
+	{
+		joint_freqs[i].resize(num_sensors);
+	}
+}
+
 /* prepare for trials*/
 void CVT_MutualInfo::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
 	num_updates = 0; //start counting all the updates in all the trials
-	freqs.resize(num_sensors);
-	joint_freqs.resize(num_sensors);
+	/* reset frequencies */
 
 	for (size_t i = 0; i < num_sensors; ++i)
 	{
-		freqs[i].resize(num_bins, 0.0f);
-		joint_freqs[i].resize(num_sensors);
+		freqs[i]=std::vector<float>(num_bins,0.0f);;
 		for (size_t j = 0; j < num_sensors; ++j)
 		{
-			joint_freqs[i][j].reserve(num_bins * num_bins);
-			joint_freqs[i][j].resize(num_bins * num_bins, 0.0f);
+			joint_freqs[i][j]=std::vector<float>(num_bins*num_bins,0.0f);
 		}
 	}
 }
@@ -441,7 +450,7 @@ void CVT_MutualInfo::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopF
 	// frequency + joint_frequency
 	for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
 	{
-		size_t bin = cLoopFunctions.get_sensory_bin(i,num_bins);
+		size_t bin = cLoopFunctions.get_sensory_bin(i, num_bins);
 
 		++freqs[i][bin];
 		for (size_t j = 0; j < cLoopFunctions.inputs.size() - 1; ++j)
@@ -450,7 +459,7 @@ void CVT_MutualInfo::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopF
 			{
 				continue;
 			}
-			size_t bin2 = cLoopFunctions.get_sensory_bin(j,num_bins);
+			size_t bin2 = cLoopFunctions.get_sensory_bin(j, num_bins);
 			size_t joint_bin = bin * num_bins + bin2;
 			++joint_freqs[i][j][joint_bin];
 		}
@@ -475,9 +484,6 @@ std::vector<float> CVT_MutualInfo::after_trials(CObsAvoidEvolLoopFunctions &cLoo
 
 	normalise();
 	std::vector<float> final_bd = get_bd();
-	/* reset frequencies */
-	freqs.clear();
-	joint_freqs.clear();
 	return final_bd;
 }
 /* normalise frequencies */
@@ -510,7 +516,7 @@ std::vector<float> CVT_MutualInfo::get_bd()
 			{
 				continue;
 			}
-			float MI = calc_and_check(i,j);
+			float MI = calc_and_check(i, j);
 			final_bd.push_back(MI);
 		}
 	}
@@ -531,6 +537,60 @@ float CVT_MutualInfo::calc_and_check(size_t i, size_t j)
 }
 
 
+
+
+
+
+
+CVT_MutualInfoAct::CVT_MutualInfoAct()
+{
+	freqs.resize(num_sensors);
+	act_freqs.resize(num_act);
+	joint_freqs.resize(num_sensors);
+	for (size_t i = 0; i < num_sensors; ++i)
+	{
+		joint_freqs[i].resize(num_act);
+	}
+}
+
+
+/* prepare for trials*/
+void CVT_MutualInfoAct::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+{
+	num_updates = 0; //start counting all the updates in all the trials
+	/* reset frequencies */
+
+	for (size_t j = 0; j < num_act; ++j)
+	{
+		act_freqs[j]=std::vector<float>(num_bins,0.0f);
+	}
+	for (size_t i = 0; i < num_sensors; ++i)
+	{
+		freqs[i]=std::vector<float>(num_bins, 0.0f);
+
+		for (size_t j = 0; j < num_act; ++j)
+		{
+			joint_freqs[i][j]=std::vector<float>(num_bins * num_bins, 0.0f);
+		}
+	}
+}
+
+
+/* calculate entropies */
+float CVT_MutualInfoAct::calc_and_check(size_t i, size_t j)
+{
+	float mi = StatFuns::mutual_information(joint_freqs[i][j], freqs[i], act_freqs[j], num_updates);
+	float MI = mi / StatFuns::max_entropy(num_bins, EULER);
+#ifdef PRINTING
+	printf("\n MI_{%zu,%zu} = %f", i, j, MI);
+#endif
+	if (!StatFuns::in_range(MI, 0.0f, 1.0f))
+	{
+		throw std::runtime_error("normalised MI should be in [0,1]");
+	}
+	return MI;
+}
+
 /* calculate entropies */
 std::vector<float> CVT_MutualInfoAct::get_bd()
 {
@@ -540,17 +600,20 @@ std::vector<float> CVT_MutualInfoAct::get_bd()
 	{
 		for (size_t j = 0; j < num_act; ++j)
 		{
-			float MI = calc_and_check(i,j);
+			float MI = calc_and_check(i, j);
 			final_bd.push_back(MI);
 		}
 	}
 	return final_bd;
 }
 
-
 /* normalise frequencies */
 void CVT_MutualInfoAct::normalise()
 {
+	for (size_t k = 0; k < num_act; ++k)
+	{
+		StatFuns::normalise(act_freqs[k], num_updates);
+	}
 	for (size_t i = 0; i < num_sensors; ++i)
 	{
 		StatFuns::normalise(freqs[i], num_updates);
@@ -564,15 +627,19 @@ void CVT_MutualInfoAct::normalise()
 /*after getting outputs, can update the descriptor if needed*/
 void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
-	size_t joint_index = 0;
+	for (size_t j = 0; j < cLoopFunctions.outf.size(); ++j)
+	{
+		size_t bin2 = cLoopFunctions.get_actuator_bin(j, num_bins);
+		++act_freqs[j][bin2];
+	}
 	// frequency + joint_frequency
 	for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
 	{
-		size_t bin = cLoopFunctions.get_sensory_bin(i,num_bins);
+		size_t bin = cLoopFunctions.get_sensory_bin(i, num_bins);
 		++freqs[i][bin];
 		for (size_t j = 0; j < cLoopFunctions.outf.size(); ++j)
 		{
-			size_t bin2 = cLoopFunctions.get_actuator_bin(j,num_bins);
+			size_t bin2 = cLoopFunctions.get_actuator_bin(j, num_bins);
 			size_t joint_bin = bin * num_bins + bin2;
 			++joint_freqs[i][j][joint_bin];
 		}
@@ -581,14 +648,23 @@ void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, CObsAvoidEvolL
 }
 
 
+
+CVT_Spirit::CVT_Spirit()
+{
+	freqs.resize(num_joint_sensory_bins);
+}
+
+
+
 /* prepare for trials*/
 void CVT_Spirit::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
 	freqs.resize(num_joint_sensory_bins);
 	for (size_t i = 0; i < num_joint_sensory_bins; ++i)
 	{
-		freqs[i].reserve(num_joint_actuator_bins);
-		freqs[i].resize(num_joint_actuator_bins, 0.0f);
+
+		freqs[i]=std::vector<float>(num_joint_actuator_bins,0.0f);
+		
 	}
 }
 /*reset BD at the start of a trial*/
@@ -607,8 +683,6 @@ void CVT_Spirit::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
 }
 
-
-
 /* normalise frequencies */
 std::vector<float> CVT_Spirit::get_bd()
 {
@@ -617,14 +691,13 @@ std::vector<float> CVT_Spirit::get_bd()
 	{
 		float total_observations = StatFuns::sum(freqs[i]);
 		// use laplace smoothing instead of treating total_observations > 0 radically different than total_observations=0
-		for(int j =0; j < num_joint_actuator_bins; ++j)
+		for (int j = 0; j < num_joint_actuator_bins; ++j)
 		{
-			final_bd.push_back(StatFuns::laplace_smoothing(freqs[i][j],total_observations,alpha_smooth,num_joint_actuator_bins));
+			final_bd.push_back(StatFuns::laplace_smoothing(freqs[i][j], total_observations, alpha_smooth, num_joint_actuator_bins));
 		}
 	}
 	return final_bd;
 }
-
 
 /*after getting outputs, can update the descriptor if needed*/
 void CVT_Spirit::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
@@ -635,18 +708,15 @@ void CVT_Spirit::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunc
 }
 
 /*summarise BD at the end of trials*/
-std::vector<float>  CVT_Spirit::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+std::vector<float> CVT_Spirit::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
 	std::vector<float> final_bd = get_bd();
-	/* reset frequencies */
-	freqs.clear();
 	return final_bd;
 }
 
-
 NonMarkovianStochasticPolicyInduction::NonMarkovianStochasticPolicyInduction()
 {
-    bd.resize(behav_dim);
+	bd.resize(behav_dim);
 }
 
 void CVT_Trajectory::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)

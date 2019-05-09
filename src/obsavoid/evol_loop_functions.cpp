@@ -257,9 +257,9 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
                 Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
                                             CRadians::ZERO,
                                             CRadians::ZERO);
-                if (num_tries > 200)
+                if (num_tries > 10000)
                 {
-                    //throw std::runtime_error("failed to initialise robot positions; too many obstacles?");
+                    throw std::runtime_error("failed to initialise robot positions; too many obstacles?");
                 }
                 ++num_tries;
             }

@@ -273,11 +273,12 @@ class CVT_MutualInfo : public Descriptor
 
     /* track the frequencies of the different bins for all groups*/
     std::vector<std::vector<float>> freqs;// for each sensor
+
     /* track the joint frequencies of the different bins for all groups*/
     std::vector<std::vector<std::vector<float>>> joint_freqs;//for each sensory combination a 2-D matrix
-    CVT_MutualInfo() 
-    {
-    }
+
+
+    CVT_MutualInfo() ;
     /*  *
     float marginal_prob(size_t sensor_index)
     {
@@ -316,11 +317,18 @@ class CVT_MutualInfoAct : public CVT_MutualInfo
     /* number of actuators */
     const size_t num_act=ParamsDnn::dnn::nb_outputs;
 
-    CVT_MutualInfoAct() 
-    {
-    }
+     /* track the frequencies of the different bins for all groups*/
+    std::vector<std::vector<float>> act_freqs;// for each actuator
+
+    CVT_MutualInfoAct() ;
+    /* calculate entropies */
+    virtual float calc_and_check(size_t i, size_t j);
     /* normalise frequencies */
     virtual void normalise();
+
+
+    /* prepare for trials*/
+    virtual void before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
     /*after getting inputs, can update the descriptor if needed*/
     virtual void set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions){};//don't do anything yet
 
@@ -335,9 +343,7 @@ class CVT_Spirit : public Descriptor
 {
   public:
 
-    CVT_Spirit() 
-    {
-    }
+    CVT_Spirit() ;
 
 
     /* smoothing factor */
