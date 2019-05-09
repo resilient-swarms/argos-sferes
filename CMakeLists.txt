@@ -108,39 +108,6 @@ include_directories(${ARGOS_INCLUDE_DIRS})
 # Set ARGoS link dir
 link_directories(${ARGOS_LIBRARY_DIRS} ${THYMIO}/lib/argos3 ${PROJECT_SOURCE_DIR}/lib)
 
-# Descend into the controllers directory
-
-add_library(obsavoid_nn_controller SHARED
-  src/obsavoid/nn_controller.h
-  src/obsavoid/nn_controller.cpp
-)
-
-
-add_library(statistics SHARED
-  src/obsavoid/statistics.h
-  src/obsavoid/statistics.cpp
-)
-
-add_library(obsavoid_evol_loopfunctions SHARED
-  src/obsavoid/evol_loop_functions.h
-  src/obsavoid/evol_loop_functions.cpp
-)
-
-add_library(arena_utils SHARED
-  src/obsavoid/arena_utils.h
-  src/obsavoid/arena_utils.cpp
-)
-
-add_library(fitness_functions SHARED
-  src/obsavoid/fitness_functions.h
-  src/obsavoid/fitness_functions.cpp
-)
-
-add_library(descriptors SHARED
-  src/obsavoid/descriptors.h
-  src/obsavoid/descriptors.cpp
-)
-
 
 option(DEFINE_PRINT "print some variables" ON)
 option(BD "behaviour description size" OFF)
@@ -161,9 +128,6 @@ if(NOT ${BD})
 endif()
 add_definitions(-DBEHAV_DIM=${BD})
 
-
-
-
 if(CVT_USAGE)
   set(CVT_USE cvt)
   add_definitions(-DCVT)
@@ -174,7 +138,52 @@ else(NOT CVT_USAGE)
     endif()
 endif()
 
-set(EXECUTABLE obsavoid_evol${CVT_USE}${BD}D)
+
+set(tag ${CVT_USE}${BD}D)
+
+
+# Descend into the controllers directory
+
+add_library(obsavoid_nn_controller SHARED
+  src/obsavoid/nn_controller.h
+  src/obsavoid/nn_controller.cpp
+)
+
+
+add_library(statistics SHARED
+  src/obsavoid/statistics.h
+  src/obsavoid/statistics.cpp
+)
+
+add_library(obsavoid_evol_loopfunctions${tag} SHARED
+  src/obsavoid/evol_loop_functions.h
+  src/obsavoid/evol_loop_functions.cpp
+)
+
+add_library(arena_utils${tag} SHARED
+  src/obsavoid/arena_utils.h
+  src/obsavoid/arena_utils.cpp
+)
+
+add_library(fitness_functions${tag} SHARED
+  src/obsavoid/fitness_functions.h
+  src/obsavoid/fitness_functions.cpp
+)
+
+add_library(descriptors${tag} SHARED
+  src/obsavoid/descriptors.h
+  src/obsavoid/descriptors.cpp
+)
+
+
+
+
+
+
+
+
+
+set(EXECUTABLE obsavoid_evol${tag})
 add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 
     target_link_libraries(obsavoid_nn_controller
@@ -187,7 +196,7 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       ${Boost_LIBRARIES}
       ${TBB_LIBRARIES})
 
-    target_link_libraries(obsavoid_evol_loopfunctions
+    target_link_libraries(obsavoid_evol_loopfunctions${tag}
       obsavoid_nn_controller
       argos3core_simulator
       #argos3plugin_simulator_actuators
@@ -203,10 +212,10 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 
     target_link_libraries(${EXECUTABLE}
       obsavoid_nn_controller
-      obsavoid_evol_loopfunctions
-      descriptors
-      fitness_functions
-      arena_utils
+      obsavoid_evol_loopfunctions${tag}
+      descriptors${tag}
+      fitness_functions${tag}
+      arena_utils${tag}
       statistics
       argos3core_simulator 
       ${LUA_LIBRARIES}
