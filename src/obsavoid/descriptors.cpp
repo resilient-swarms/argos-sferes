@@ -155,13 +155,20 @@ float Entity::distance(const Entity e1, const Entity e2)
 
 SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 {
-	if (init_type.find("sdbc_walls_and_robots") == 0)
+	if (init_type.find("sdbc_all") == 0)
 	{
-		init_walls_and_robots(cLoopFunctions);
+		init_walls(cLoopFunctions);
+		init_robots(cLoopFunctions);
+		init_obstacles(cLoopFunctions);
+	}
+	else if (init_type.find("sdbc_walls_and_robots") == 0)
+	{
+		init_walls(cLoopFunctions);
+		init_robots(cLoopFunctions);
 	}
 	else if (init_type.find("sdbc_robots") == 0)
 	{
-		init_walls_and_robots(cLoopFunctions);
+		init_robots(cLoopFunctions);
 	}
 	else
 	{
@@ -172,7 +179,6 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 	num_groups = entity_groups.size();
 	for (auto &kv : entity_groups)
 	{
-
 		if (kv.second.max_size > 1 && kv.first == "robots")
 		{
 			within_comparison_groups.push_back(kv.first); // within-group distance computations
@@ -190,9 +196,26 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 	maxY = max.GetY();
 	maxdist = StatFuns::get_minkowski_distance(max, CVector3::ZERO);
 }
-void SDBC::init_walls_and_robots(CLoopFunctions *cLoopFunctions)
+
+void SDBC::init_cylindric_obstacles(CLoopFunctions *cLoopFunctions)
 {
-	SDBC::init_robots(cLoopFunctions);
+	std::vector<Entity> obstacles;
+	CSpace::TMapPerType &argos_cylinders = cLoopFunctions->GetSpace().GetEntitiesByType("cylinder");
+	for (CSpace::TMapPerType::iterator it = argos_cylinders.begin(); it != argos_cylinders.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+	{
+		CCylinderEntity &cBody = *any_cast<CCylinderEntity*>(it->second);
+		CVector3 position = cBody.GetEmbodiedEntity().GetOriginAnchor().Position;
+		Entity e = Entity();
+		e.position = CVector3(position);
+		obstacles.push_back(e);
+	}
+	std::pair<std::string, Entity_Group> cylinderpair = {"cylinders", Entity_Group(0, obstacles.size(), obstacles.size(), obstacles)};
+	entity_groups.insert(cylinderpair);
+}
+
+
+void SDBC::init_walls(CLoopFunctions *cLoopFunctions)
+{
 	// 4 walls, each with 0 state features, but two constant positional features
 	std::vector<Entity> boxes;
 
@@ -200,7 +223,13 @@ void SDBC::init_walls_and_robots(CLoopFunctions *cLoopFunctions)
 	for (CSpace::TMapPerType::iterator it = argos_boxes.begin(); it != argos_boxes.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
 	{
 		CBoxEntity &cBody = *any_cast<CBoxEntity *>(it->second);
+		if (cBody.GetId().find("wall") != 0)
+		{
+			// id does not name it wall
+			continue;
+		}
 		CVector3 position = cBody.GetEmbodiedEntity().GetOriginAnchor().Position;
+
 		Entity e = Entity();
 		e.position = CVector3(position);
 		boxes.push_back(e);
@@ -219,7 +248,7 @@ void SDBC::init_robots(CLoopFunctions *cLoopFunctions)
 		robots.push_back(Entity());
 	}
 	std::pair<std::string, Entity_Group> robotpair = {"robots",
-													  Entity_Group(5, num_robots, num_robots, robots)}; // 5 features
+													  Entity_Group(5, num_robots, num_robots, robots)}; // 5 features: x,y,rot,w1,w2
 	entity_groups.insert(robotpair);
 }
 

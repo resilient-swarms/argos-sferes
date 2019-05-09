@@ -33,17 +33,9 @@ bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
 {
     if(choice=="history")
     {
-        if (BEHAV_DIM != 3)
+        if (BEHAV_DIM != 3 || BEHAV_DIM != 2)
         {
-             throw std::runtime_error(choice + " should be 3-dimensional");
-        }
-        return true;
-    }
-    else if (choice == "sdbc_robots_and_walls")
-    {
-        if (BEHAV_DIM != 6)
-        {
-             throw std::runtime_error(choice + " should be 6-dimensional");
+             throw std::runtime_error(choice + " should be 2 or 3-dimensional");
         }
         return true;
     }
@@ -499,6 +491,9 @@ size_t CObsAvoidEvolLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
     size_t bin2=get_actuator_bin(1,num_bins);
     return bin1*num_bins + bin2;
 }
+
+
+
 /****************************************/
 /****************************************/
 

@@ -290,6 +290,9 @@ public:
     /* get activation bin for the activations of each sensory quadrant */
     std::string quadrant_from_bin() const;
 
+    /* get positions of objects of a type indicated by a string */
+    std::vector<CVector3> get_object_positions(std::string type);
+
 };
 
 namespace sferes
