@@ -11,6 +11,7 @@
 #include <argos3/core/utility/math/rng.h>
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
+
 #include <src/obsavoid/arena_utils.h>
 /****************************************/
 /****************************************/

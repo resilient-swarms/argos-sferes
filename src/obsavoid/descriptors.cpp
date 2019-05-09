@@ -2,7 +2,7 @@
 #include <src/obsavoid/statistics.h>
 #include <src/obsavoid/evol_loop_functions.h>
 #include <src/obsavoid/descriptors.h>
-
+#include <argos3/plugins/simulator/entities/cylinder_entity.h>
 #include <iterator>
 
 #define SENSOR_ACTIVATION_THRESHOLD 0.5
@@ -159,7 +159,7 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 	{
 		init_walls(cLoopFunctions);
 		init_robots(cLoopFunctions);
-		init_obstacles(cLoopFunctions);
+		init_cylindric_obstacles(cLoopFunctions);
 	}
 	else if (init_type.find("sdbc_walls_and_robots") == 0)
 	{
@@ -743,10 +743,10 @@ std::vector<float> CVT_Spirit::after_trials(CObsAvoidEvolLoopFunctions &cLoopFun
 	return final_bd;
 }
 
-NonMarkovianStochasticPolicyInduction::NonMarkovianStochasticPolicyInduction()
-{
-	bd.resize(behav_dim);
-}
+// NonMarkovianStochasticPolicyInduction::NonMarkovianStochasticPolicyInduction()
+// {
+// 	bd.resize(behav_dim);
+// }
 
 void CVT_Trajectory::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
