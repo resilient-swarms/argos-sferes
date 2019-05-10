@@ -156,7 +156,7 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
         {
             this->descriptor = new IntuitiveHistoryDescriptor(this);
         }
-        else if (s.find("sdbc") == 0)
+        else if (s.find("sdbc")!=std::string::npos)
         {
             this->descriptor = new SDBC(this, s);
         }

@@ -111,7 +111,7 @@ struct Entity
 
 struct Entity_Group
 {
-
+  bool is_static; // are entities static or can they move/be moved
   size_t max_size, min_size;
   size_t kappa;                 // feature_size
   std::vector<Entity> entities; // the attributes of the entities, can be obtained by a key (e.g. location or agent id), makes identifying entities in a group easier
@@ -120,7 +120,8 @@ struct Entity_Group
   {
   }
 
-  Entity_Group(size_t k, size_t M, size_t m, std::vector<Entity> entity_vec) : kappa(k), max_size(M), min_size(m), entities(entity_vec)
+  Entity_Group(size_t k, size_t M, size_t m, std::vector<Entity> entity_vec, bool stat) :
+   kappa(k), max_size(M), min_size(m), entities(entity_vec), is_static(stat)
   {
   }
   size_t get_absolute_size()
@@ -169,7 +170,7 @@ class SDBC : public Descriptor
     */
 public:
   bool include_std;
-  size_t bd_index, num_groups;
+  size_t bd_index, num_groups, num_features;
   float maxdist, maxX, maxY;
   std::map<std::string, Entity_Group> entity_groups;
   std::vector<std::string> within_comparison_groups, between_comparison_groups; //
@@ -192,7 +193,7 @@ public:
   void add_between_group_dispersion();
 
   /* prepare for trials*/
-  virtual void before_trials(argos::CSimulator &cSimulator);
+  virtual void before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
   virtual void start_trial();
 
@@ -203,8 +204,8 @@ public:
   virtual void set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions);
   /*after the looping over robots*/
   virtual void after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions);
-  /*end the trial*/
-  virtual void end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+ /*summarise BD at the end of trials*/
+  virtual std::vector<float> after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
 };
 
 // class RNNHistoryDescriptor: public HistoryDescriptor{

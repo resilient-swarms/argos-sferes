@@ -155,18 +155,18 @@ float Entity::distance(const Entity e1, const Entity e2)
 
 SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 {
-	if (init_type.find("sdbc_all") == 0)
+	if (init_type.find("sdbc_all") !=std::string::npos)
 	{
 		init_walls(cLoopFunctions);
 		init_robots(cLoopFunctions);
 		init_cylindric_obstacles(cLoopFunctions);
 	}
-	else if (init_type.find("sdbc_walls_and_robots") == 0)
+	else if (init_type.find("sdbc_walls_and_robots") !=std::string::npos)
 	{
 		init_walls(cLoopFunctions);
 		init_robots(cLoopFunctions);
 	}
-	else if (init_type.find("sdbc_robots") == 0)
+	else if (init_type.find("sdbc_robots") !=std::string::npos)
 	{
 		init_robots(cLoopFunctions);
 	}
@@ -174,8 +174,12 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 	{
 		throw std::runtime_error("init type " + init_type + "not found");
 	}
-	include_std = init_type.find("std") == 0 ? true : false; // will calculate standard deviations as well
-
+	include_std = init_type.find("std") != std::string::npos ? true : false; // will calculate standard deviations as well
+	if (include_std)
+	{
+		num_features = behav_dim/2;
+		bd.resize(num_features);
+	}
 	num_groups = entity_groups.size();
 	for (auto &kv : entity_groups)
 	{
@@ -209,7 +213,9 @@ void SDBC::init_cylindric_obstacles(CLoopFunctions *cLoopFunctions)
 		e.position = CVector3(position);
 		obstacles.push_back(e);
 	}
-	std::pair<std::string, Entity_Group> cylinderpair = {"cylinders", Entity_Group(0, obstacles.size(), obstacles.size(), obstacles)};
+	bool is_static = false;
+	std::pair<std::string, Entity_Group> cylinderpair = {"cylinders", 
+			Entity_Group(0, obstacles.size(), obstacles.size(), obstacles,is_static)};
 	entity_groups.insert(cylinderpair);
 }
 
@@ -234,7 +240,8 @@ void SDBC::init_walls(CLoopFunctions *cLoopFunctions)
 		e.position = CVector3(position);
 		boxes.push_back(e);
 	}
-	std::pair<std::string, Entity_Group> wallpair = {"boxes", Entity_Group(0, boxes.size(), boxes.size(), boxes)};
+	bool is_static=true;
+	std::pair<std::string, Entity_Group> wallpair = {"boxes", Entity_Group(0, boxes.size(), boxes.size(), boxes, is_static)};
 	entity_groups.insert(wallpair);
 }
 void SDBC::init_robots(CLoopFunctions *cLoopFunctions)
@@ -247,8 +254,9 @@ void SDBC::init_robots(CLoopFunctions *cLoopFunctions)
 	{
 		robots.push_back(Entity());
 	}
+	bool is_static = false;
 	std::pair<std::string, Entity_Group> robotpair = {"robots",
-													  Entity_Group(5, num_robots, num_robots, robots)}; // 5 features: x,y,rot,w1,w2
+													  Entity_Group(5, num_robots, num_robots, robots,is_static)}; // 5 features: x,y,rot,w1,w2
 	entity_groups.insert(robotpair);
 }
 
@@ -265,7 +273,7 @@ void SDBC::add_group_sizes()
 		std::cout << "group: " << key << std::endl;
 		std::cout << "size : " << size << std::endl;
 #endif
-		bd[bd_index][current_trial] += size; // add to average out later
+		bd[bd_index].push_back(size); // add to average out later
 		bd_index++;
 	}
 }
@@ -284,13 +292,7 @@ void SDBC::add_group_meanstates()
 
 			float mean_state = group.mean_state_vec(i);
 
-			bd[bd_index][current_trial] += mean_state;
-			if (include_std)
-			{
-				bd_index++;
-				float sd_state = group.sd_state_vec(i, mean_state);
-				bd[bd_index][current_trial] += sd_state;
-			}
+			bd[bd_index].push_back(mean_state);
 			bd_index++;
 #ifdef PRINTING
 			std::cout << "attribute " << i << ": " << mean_state << std::endl;
@@ -332,7 +334,8 @@ void SDBC::add_within_group_dispersion()
 			}
 		}
 
-		this->bd[bd_index][current_trial] += sum / ((float)(group.get_absolute_size() - 1) * (group.get_absolute_size() - 1) * maxdist);
+		sum = sum / ((float)(group.get_absolute_size() - 1) * (group.get_absolute_size() - 1) * maxdist);
+		this->bd[bd_index].push_back(sum);
 		++bd_index;
 	}
 }
@@ -345,7 +348,7 @@ void SDBC::add_between_group_dispersion()
 	{
 		std::string key = between_comparison_groups[i];
 		Entity_Group &group = entity_groups[key];
-		for (size_t j = 1; j < between_comparison_groups.size() && j != i; ++j)
+		for (size_t j = i+1; j < between_comparison_groups.size() ; ++j)
 		{
 			std::string key2 = between_comparison_groups[j];
 			Entity_Group &group2 = entity_groups[key2];
@@ -353,14 +356,9 @@ void SDBC::add_between_group_dispersion()
 			std::cout << "group1: " << key << std::endl;
 			std::cout << "group2: " << key2 << std::endl;
 #endif
-			if (group.max_size <= 1)
+			if (group.is_static && group2.is_static)
 			{
-				continue; //ignore
-			}
-			else if (group.get_absolute_size() <= 1)
-			{
-				++bd_index;
-				continue;
+				continue; //ignore always as the distance will remain constant
 			}
 			else
 			{
@@ -373,15 +371,19 @@ void SDBC::add_between_group_dispersion()
 					}
 				}
 			}
-			bd[bd_index][current_trial] += sum / ((float)(group.get_absolute_size() * group2.get_absolute_size()) * maxdist); // divide by product of group sizes; add for now, we will average the number of times
+			sum = sum / ((float)(group.get_absolute_size() * group2.get_absolute_size()) * maxdist); // divide by product of group sizes; add for now, we will average the number of times
+			bd[bd_index].push_back(sum);
 			++bd_index;
 		}
 	}
 }
 
 /* prepare for trials*/
-void SDBC::before_trials(argos::CSimulator &cSimulator)
+void SDBC::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
+	for (size_t t = 0; t < num_features; ++t)
+		bd[t].clear();
+	//current_trial = -1; // will add +1 at start of each new trial
 }
 /*reset BD at the start of a trial*/
 void SDBC::start_trial()
@@ -422,18 +424,55 @@ void SDBC::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 	++num_updates;
 }
 /*end the trial*/
-void SDBC::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
-{
+// void SDBC::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+// {
 
+// 	for (size_t i = 0; i < behav_dim; ++i)
+// 	{
+// 		this->bd[i][current_trial] /= (float)(num_updates + 1);
+// 		if (!StatFuns::in_range(this->bd[i][current_trial], 0.0f, 1.0f))
+// 		{
+// 			throw std::runtime_error("bd" + std::to_string(i) + " not in [0,1]: " + std::to_string(bd[i][current_trial]));
+// 		};
+// 	}
+// }
+
+
+
+ /*summarise BD at the end of trials*/
+  std::vector<float> SDBC::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+  {
+	std::vector<float> final_bd;
+	//After a simulation has ended, the samples obtained for each
+	//behaviour feature at each time step are aggregated to assem-ble a fixed-length characterisation vector.
 	for (size_t i = 0; i < behav_dim; ++i)
 	{
-		this->bd[i][current_trial] /= (float)(num_updates + 1);
-		if (!StatFuns::in_range(this->bd[i][current_trial], 0.0f, 1.0f))
+		if (include_std)
 		{
-			throw std::runtime_error("bd" + std::to_string(i) + " not in [0,1]: " + std::to_string(bd[i][current_trial]));
+			if(i%2==0)
+			{
+				final_bd.push_back(StatFuns::mean(this->bd[i/2]));
+			}
+			else
+			{
+				final_bd.push_back(StatFuns::standard_dev(this->bd[i/2]));
+			}
+		}
+		else
+		{
+			final_bd.push_back(StatFuns::mean(this->bd[i]));
+		}
+		
+		
+		if (!StatFuns::in_range(final_bd[i], 0.0f, 1.0f))
+		{
+			throw std::runtime_error("bd" + std::to_string(i) + " not in [0,1]: " + std::to_string(final_bd[i]));
 		};
 	}
-}
+	return final_bd;
+
+  }
+
 
 
 
