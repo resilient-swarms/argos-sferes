@@ -31,7 +31,7 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
 
     git clone https://github.com/sferes2/nn2.git
     
-    git clone https://github.com/bossdm/cvt_map_elites.git
+    git clone https://github.com/resilient-swarms/cvt_map_elites.git 
 
 5. Go back to the argos-sferes directory
 
@@ -55,9 +55,9 @@ Edit the ARGoS experiment configuration file for your own experiment setup
 To run the EA
 
     cd argos-sferes
-     ./bin/obsavoid_evol3D experiments/obsavoid_evol.argos
+     ./bin/obsavoid_evol2D experiments/obsavoid_evol.argos
 
 
 To try out an evolved solution
 
-     ./bin/obsavoid_evol3D experiments/obsavoid_evol.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
+     ./bin/obsavoid_evol2D experiments/obsavoid_evol.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
