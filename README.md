@@ -55,9 +55,9 @@ Edit the ARGoS experiment configuration file for your own experiment setup
 To run the EA
 
     cd argos-sferes
-     ./bin/obsavoid_evol2D experiments/obsavoid_evol.argos
+     ./bin/obsavoid_evol2D experiments/history.argos
 
 
 To try out an evolved solution
 
-     ./bin/obsavoid_evol2D experiments/obsavoid_evol.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
+     ./bin/obsavoid_evol2D experiments/history.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
