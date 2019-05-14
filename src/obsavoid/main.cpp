@@ -82,7 +82,7 @@ std::vector<point_t> Params::ea::centroids;
 #endif
 int main(int argc, char **argv)
 {
-
+    //std::cout<<"tag="+std::string(TAG)<<std::endl;
     /*
      * Initialize ARGoS
      */
@@ -147,3 +147,5 @@ int main(int argc, char **argv)
 
 /****************************************/
 /****************************************/
+
+

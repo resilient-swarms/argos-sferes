@@ -498,4 +498,4 @@ size_t CObsAvoidEvolLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
 /****************************************/
 
 //using TemplateCObsAvoidEvolLoopFunctions = CObsAvoidEvolLoopFunctions<class NN>;
-REGISTER_LOOP_FUNCTIONS(CObsAvoidEvolLoopFunctions, "obsavoid_evol_loopfunctions")
+REGISTER_LOOP_FUNCTIONS(CObsAvoidEvolLoopFunctions, "obsavoid_evol_loopfunctions"+std::string(TAG))

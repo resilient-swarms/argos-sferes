@@ -140,7 +140,7 @@ endif()
 
 
 set(tag ${CVT_USE}${BD}D)
-
+add_definitions(-DTAG="${tag}")
 
 # Descend into the controllers directory
 

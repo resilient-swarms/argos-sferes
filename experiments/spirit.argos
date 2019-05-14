@@ -41,11 +41,11 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libobsavoid_evol_loopfunctions.so"
-                  label="obsavoid_evol_loopfunctions"
+  <loop_functions library="lib/libobsavoid_evol_loopfunctionscvt400D.so"
+                  label="obsavoid_evol_loopfunctionscvt400D"
                   trials="5"
                   robots="1"
-                  descriptortype="history"  
+                  descriptortype="cvt_spirit"  
                   fitfuntype="Coverage"
                   bd_dims="3"
 		  output_folder="experiments"
