@@ -270,7 +270,7 @@ float StatFuns::joint_entropy(std::vector<float> joint_p, float S_x, float S_y, 
 }
 float StatFuns::mutual_information(std::vector<float> joint_p, std::vector<float> p_x, std::vector<float> p_y, float time, size_t base)
 {
-    if (p_y.size()*p_y.size() != joint_p.size())
+    if (p_x.size()*p_y.size() != joint_p.size())
     {
         throw std::runtime_error("supply equally sized arrays");
     }

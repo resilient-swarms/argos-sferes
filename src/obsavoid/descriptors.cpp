@@ -630,7 +630,7 @@ void CVT_MutualInfoAct::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions
 
 	for (size_t j = 0; j < num_act; ++j)
 	{
-		act_freqs[j]=std::vector<float>(num_bins,0.0f);
+		act_freqs[j]=std::vector<float>(num_act_bins,0.0f);
 	}
 	for (size_t i = 0; i < num_sensors; ++i)
 	{
@@ -638,7 +638,7 @@ void CVT_MutualInfoAct::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions
 
 		for (size_t j = 0; j < num_act; ++j)
 		{
-			joint_freqs[i][j]=std::vector<float>(num_bins * num_bins, 0.0f);
+			joint_freqs[i][j]=std::vector<float>(num_bins * num_act_bins, 0.0f);
 		}
 	}
 }
@@ -697,7 +697,7 @@ void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, CObsAvoidEvolL
 {
 	for (size_t j = 0; j < cLoopFunctions.outf.size(); ++j)
 	{
-		size_t bin2 = cLoopFunctions.get_actuator_bin(j, num_bins);
+		size_t bin2 = cLoopFunctions.get_actuator_bin(j, num_act_bins);
 		++act_freqs[j][bin2];
 	}
 	// frequency + joint_frequency
@@ -707,7 +707,7 @@ void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, CObsAvoidEvolL
 		++freqs[i][bin];
 		for (size_t j = 0; j < cLoopFunctions.outf.size(); ++j)
 		{
-			size_t bin2 = cLoopFunctions.get_actuator_bin(j, num_bins);
+			size_t bin2 = cLoopFunctions.get_actuator_bin(j, num_act_bins);
 			size_t joint_bin = bin * num_bins + bin2;
 			++joint_freqs[i][j][joint_bin];
 		}
@@ -761,7 +761,18 @@ std::vector<float> CVT_Spirit::get_bd()
 		// use laplace smoothing instead of treating total_observations > 0 radically different than total_observations=0
 		for (int j = 0; j < num_joint_actuator_bins; ++j)
 		{
-			final_bd.push_back(StatFuns::laplace_smoothing(freqs[i][j], total_observations, alpha_smooth, num_joint_actuator_bins));
+			//final_bd.push_back(StatFuns::laplace_smoothing(freqs[i][j], total_observations, alpha_smooth, num_joint_actuator_bins));
+			if(total_observations==0)
+			{
+				final_bd.push_back(1.0/(float)num_joint_actuator_bins);
+			}
+			else{
+				final_bd.push_back(freqs[i][j]/total_observations);
+			}
+			#ifdef PRINTING
+
+				std::cout<<"prob_{"<<i<<","<<j<<"}="<<final_bd.back()<<std::endl;
+			#endif
 		}
 	}
 	return final_bd;

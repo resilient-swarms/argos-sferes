@@ -264,7 +264,7 @@ class CVT_MutualInfo : public Descriptor
 {
 public:
   /* number of bins used for the probability distribution*/
-  const size_t num_bins = 5;
+  const size_t num_bins = 2;
   /* number of sensors */
   const size_t num_sensors = ParamsDnn::dnn::nb_inputs - 1;
 
@@ -312,6 +312,10 @@ class CVT_MutualInfoAct : public CVT_MutualInfo
 public:
   /* number of actuators */
   const size_t num_act = ParamsDnn::dnn::nb_outputs;
+
+  /* number of bins used for the probability distribution*/
+  const size_t num_act_bins = 2;// for now keep it the same as the sensory bins
+
 
   /* track the frequencies of the different bins for all groups*/
   std::vector<std::vector<float>> act_freqs; // for each actuator
