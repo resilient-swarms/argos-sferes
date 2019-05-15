@@ -31,7 +31,7 @@
         <differential_steering implementation="default" />
       </actuators>
       <sensors>
-        <Thymio_proximity implementation="default"    show_rays="true"  range="0.11" noise_level="0.05"/>
+        <Thymio_proximity implementation="default"    show_rays="true"  range="0.50" noise_level="0.05"/>
       </sensors>
       <params/>
     </obsavoid_nn_controller>
