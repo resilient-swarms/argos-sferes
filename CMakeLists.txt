@@ -109,7 +109,7 @@ include_directories(${ARGOS_INCLUDE_DIRS})
 link_directories(${ARGOS_LIBRARY_DIRS} ${THYMIO}/lib/argos3 ${PROJECT_SOURCE_DIR}/lib)
 
 
-option(DEFINE_PRINT "print some variables" ON)
+option(DEFINE_PRINT "print some variables" OFF)
 option(BD "behaviour description size" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
 

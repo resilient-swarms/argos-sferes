@@ -40,7 +40,6 @@
 #include <modules/cvt_map_elites/cvt_map_elites.hpp>
 #include <modules/cvt_map_elites/fit_map.hpp>
 #include <modules/cvt_map_elites/stat_map.hpp>
-#include <modules/cvt_map_elites/stat_map_binary.hpp>
 #include <modules/cvt_map_elites/stat_progress.hpp>
 
 #else
@@ -170,16 +169,15 @@ struct Params
 
 namespace robots_nn
 {
-typedef phen::Parameters<gen::EvoFloat<1, ParamsDnn>, fit::FitDummy<>, ParamsDnn> weight_t;
-typedef phen::Parameters<gen::EvoFloat<1, ParamsDnn>, fit::FitDummy<>, ParamsDnn> bias_t;
+    typedef phen::Parameters<gen::EvoFloat<1, ParamsDnn>, fit::FitDummy<>, ParamsDnn> weight_t;
+    typedef phen::Parameters<gen::EvoFloat<1, ParamsDnn>, fit::FitDummy<>, ParamsDnn> bias_t;
 
-typedef PfWSum<weight_t> pf_t;
-typedef AfTanh<bias_t> af_t;
-typedef Neuron<pf_t, af_t> neuron_t;
-typedef Connection<weight_t> connection_t;
-typedef sferes::gen::Dnn<neuron_t, connection_t, ParamsDnn> gen_t;
-typedef typename gen_t::nn_t nn_t; // not sure if typename should be here?
-
+    typedef PfWSum<weight_t> pf_t;
+    typedef AfTanh<bias_t> af_t;
+    typedef Neuron<pf_t, af_t> neuron_t;
+    typedef Connection<weight_t> connection_t;
+    typedef sferes::gen::Dnn<neuron_t, connection_t, ParamsDnn> gen_t;
+    typedef typename gen_t::nn_t nn_t; // not sure if typename should be here?
 } // namespace robots_nn
 
 /****************************************/
