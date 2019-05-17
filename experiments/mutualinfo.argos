@@ -16,7 +16,7 @@
     <!-- Each experimental run is 120 seconds long -->
     <experiment length="120"
                 ticks_per_second="10"
-                 random_seed="56" />  <!-- if we want a different random seed each time the reset button is pressed -->
+                 random_seed="4" />  <!-- if we want a different random seed each time the reset button is pressed -->
   </framework>
 
   <!-- *************** -->
@@ -111,7 +111,7 @@
   <!-- ****************** -->
   <!-- We don't want nor need a visualization during evolution -->
   <visualization>
-  <!--<qt-opengl/>-->
+  <!-- <qt-opengl/>-->
   </visualization>
 
 </argos-configuration>

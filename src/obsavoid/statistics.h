@@ -67,7 +67,7 @@ class StatFuns
     static bool in_range(float num1,float a, float b);
     static bool float_equal(float num1,float num2);
     static bool float_smallerorequal(float num1,float num2);
-    static float log(float number, size_t base = EULER);
+    static float log(float number, float base = EULER);
     /*  Combine info across trials  */
     static float mean(std::vector<float> results);
     static float quantile(std::vector<float> results, float cumul_dens, bool sorted = false);
@@ -101,18 +101,18 @@ class StatFuns
     static float get_avg_dist(std::vector<argos::CVector3> pos, argos::CVector3 cm);
 
     /* entropy based on log with custom base; however, does the correction imply always use natural log ? */
-    static std::pair<float, float> entropy(std::vector<float> p, float time, size_t base = EULER);
-    static float joint_entropy(std::vector<float> joint_p, float S_x, float S_y, float time, size_t base = EULER);
-    static float mutual_information(std::vector<float> joint_p, std::vector<float> p_x, std::vector<float> p_y, float time, size_t base = EULER);
+    static std::pair<float, float> entropy(std::vector<float> p, float time, float base = EULER);
+    static float joint_entropy(std::vector<float> joint_p, float S_x, float S_y, float time, float base = EULER);
+    static float mutual_information(std::vector<float> joint_p, std::vector<float> p_x, std::vector<float> p_y, float time, float base = EULER);
 
     /* similar to mutual information but not symmetric; it measures the difference between distributions 
        Note: only use if p(x_i)=0 implies p(y_i)=0
        can be seen as the average number of bits required to obtain p from q
     */
-    static float relative_entropy(std::vector<float> p_x, std::vector<float> p_y, float time, size_t base);
+    static float relative_entropy(std::vector<float> p_x, std::vector<float> p_y, float time, float base);
 
     /* Calculate the maximal entropy, can also be used as maximal mutual info*/
-    static float max_entropy(size_t num_bins, size_t base);
+    static float max_entropy(size_t num_bins,float base);
 
     float algorithmic_prob(double complexity, size_t symbols);
     //float StatFuns::complexity();// use zlib's compress2

@@ -648,7 +648,7 @@ void CVT_MutualInfoAct::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions
 float CVT_MutualInfoAct::calc_and_check(size_t i, size_t j)
 {
 	float mi = StatFuns::mutual_information(joint_freqs[i][j], freqs[i], act_freqs[j], num_updates);
-	float MI = mi / StatFuns::max_entropy(num_bins, EULER);
+	float MI = mi / StatFuns::max_entropy(std::max(num_bins,num_act_bins), EULER);
 #ifdef PRINTING
 	printf("\n MI_{%zu,%zu} = %f", i, j, MI);
 #endif

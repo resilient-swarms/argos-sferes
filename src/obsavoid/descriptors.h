@@ -314,7 +314,7 @@ public:
   const size_t num_act = ParamsDnn::dnn::nb_outputs;
 
   /* number of bins used for the probability distribution*/
-  const size_t num_act_bins = 2;// for now keep it the same as the sensory bins
+  const size_t num_act_bins = 5;// for now keep it the same as the sensory bins
 
 
   /* track the frequencies of the different bins for all groups*/

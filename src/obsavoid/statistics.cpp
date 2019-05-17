@@ -44,7 +44,7 @@ bool StatFuns::float_smallerorequal(float num1,float num2)
     return num2 - num1 >=  - EPS;
 }
 /* logarithm with custom base */
-float StatFuns::log(float number, size_t base)
+float StatFuns::log(float number, float base)
 {
     return base == EULER ? std::log(number) : std::log(number) / std::log(base);
 }
@@ -180,11 +180,18 @@ float StatFuns::uniformity(std::vector<float> probabilities)
 
 float StatFuns::normalise(std::vector<float> &probabilities,float C)
 {
+    #ifdef PRINTING
+            std::cout<<"prob=";
+    #endif
     for(float &prob: probabilities)
     {
         prob/=C;
+        #ifdef PRINTING
+            std::cout<<prob<<" ";
+        #endif
     }
     #ifdef PRINTING
+        std::cout<<std::endl;
         float s = StatFuns::sum(probabilities);
         if (!StatFuns::float_equal(s,1.0f))
         {
@@ -225,7 +232,7 @@ float StatFuns::get_avg_dist(std::vector<argos::CVector3> positions, argos::CVec
 #endif
     return avg_dist;
 }
-std::pair<float, float> StatFuns::entropy(std::vector<float> p, float time, size_t base)
+std::pair<float, float> StatFuns::entropy(std::vector<float> p, float time, float base)
 {
     float entropy = 0.0f;
     float S = 0.0;
@@ -247,7 +254,7 @@ std::pair<float, float> StatFuns::entropy(std::vector<float> p, float time, size
     std::pair<float, float> pair(entropy, S);
     return pair;
 }
-float StatFuns::joint_entropy(std::vector<float> joint_p, float S_x, float S_y, float time, size_t base)
+float StatFuns::joint_entropy(std::vector<float> joint_p, float S_x, float S_y, float time,float base)
 {
     float entropy = 0.0f;
     float S_xy = 0.0f;
@@ -268,7 +275,7 @@ float StatFuns::joint_entropy(std::vector<float> joint_p, float S_x, float S_y, 
 #endif
     return entropy;
 }
-float StatFuns::mutual_information(std::vector<float> joint_p, std::vector<float> p_x, std::vector<float> p_y, float time, size_t base)
+float StatFuns::mutual_information(std::vector<float> joint_p, std::vector<float> p_x, std::vector<float> p_y, float time, float base)
 {
     if (p_x.size()*p_y.size() != joint_p.size())
     {
@@ -289,7 +296,7 @@ float StatFuns::mutual_information(std::vector<float> joint_p, std::vector<float
        Note: only use if p(x_i)=0 implies p(y_i)=0
        can be seen as the average number of bits required to obtain p from q
 */
-float StatFuns::relative_entropy(std::vector<float> p_x, std::vector<float> p_y, float time, size_t base)
+float StatFuns::relative_entropy(std::vector<float> p_x, std::vector<float> p_y, float time, float base)
 {
     float entropy = 0.0f;
     float S = 0.0;
@@ -309,7 +316,7 @@ float StatFuns::relative_entropy(std::vector<float> p_x, std::vector<float> p_y,
     return entropy;
 }
 /* Calculate the maximal entropy, can also be used as maximal mutual info*/
-float StatFuns::max_entropy(size_t num_bins, size_t base)
+float StatFuns::max_entropy(size_t num_bins, float base)
 {
     return StatFuns::log(num_bins,base);//e.g., equiprobable distribution with 5 bins and base b: -5sum(1/5 log_b(1/5))=log_b(5)
 }
