@@ -281,7 +281,7 @@ public:
 
     }
 
-    /* prepare for trials*/
+  /* prepare for trials*/
   virtual void before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
   virtual void start_trial();

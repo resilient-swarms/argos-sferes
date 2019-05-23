@@ -41,8 +41,8 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libobsavoid_evol_loopfunctionscvt42D.so"
-                  label="obsavoid_evol_loopfunctionscvt42D"
+  <loop_functions library="lib/libobsavoid_evol_loopfunctionscvt21D.so"
+                  label="obsavoid_evol_loopfunctionscvt21D"
                   trials="5"
                   robots="1"
                   descriptortype="cvt_mutualinfo"  

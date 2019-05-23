@@ -20,6 +20,11 @@ void element_wise_addition(std::vector<T> &result, const std::vector<T> &other)
     std::transform(result.begin(), result.end(), other.begin(),
                    result.begin(), std::plus<T>());
 }
+template <int N>
+struct Factorial 
+{
+    enum { value = N * Factorial<N - 1>::value };
+};
 
 class RunningStat
 {

@@ -41,9 +41,9 @@ bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
     }
     else if (choice == "cvt_mutualinfo")
     {
-        if (BEHAV_DIM != 42)
+        if (BEHAV_DIM != 21)
         {
-            throw std::runtime_error(choice + " should be 42-dimensional");
+            throw std::runtime_error(choice + " should be 21-dimensional");
         }
         return true;
     }

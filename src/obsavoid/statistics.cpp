@@ -5,7 +5,7 @@
 #include <tuple>
 #include <cmath>
 #include <numeric>
-#include "ncd.h"
+//#include "ncd.h"
 #include <assert.h>
 
  #include <boost/math/special_functions/relative_difference.hpp> 

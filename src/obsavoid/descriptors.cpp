@@ -480,9 +480,9 @@ CVT_MutualInfo::CVT_MutualInfo()
 {
 	freqs.resize(num_sensors);
 	joint_freqs.resize(num_sensors);
-	for (size_t i = 0; i < num_sensors; ++i)
+	for (size_t i = 0; i < num_sensors - 1; ++i)
 	{
-		joint_freqs[i].resize(num_sensors);
+		joint_freqs[i].resize(num_sensors - i - 1);
 	}
 }
 
@@ -495,9 +495,9 @@ void CVT_MutualInfo::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 	for (size_t i = 0; i < num_sensors; ++i)
 	{
 		freqs[i]=std::vector<float>(num_bins,0.0f);;
-		for (size_t j = 0; j < num_sensors; ++j)
+		for (size_t j = i+1; j < num_sensors; ++j)
 		{
-			joint_freqs[i][j]=std::vector<float>(num_bins*num_bins,0.0f);
+			joint_freqs[i][j-i-1]=std::vector<float>(num_bins*num_bins,0.0f);
 		}
 	}
 }
@@ -521,15 +521,11 @@ void CVT_MutualInfo::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopF
 		size_t bin = cLoopFunctions.get_sensory_bin(i, num_bins);
 
 		++freqs[i][bin];
-		for (size_t j = 0; j < cLoopFunctions.inputs.size() - 1; ++j)
+		for (size_t j = i+1; j < cLoopFunctions.inputs.size() - 1; ++j)
 		{
-			if (j == i)
-			{
-				continue;
-			}
 			size_t bin2 = cLoopFunctions.get_sensory_bin(j, num_bins);
 			size_t joint_bin = bin * num_bins + bin2;
-			++joint_freqs[i][j][joint_bin];
+			++joint_freqs[i][j-i-1][joint_bin];
 		}
 	}
 	num_updates++;
@@ -561,13 +557,9 @@ void CVT_MutualInfo::normalise()
 	{
 		StatFuns::normalise(freqs[i], num_updates);
 
-		for (size_t j = 0; j < num_sensors; ++j)
+		for (size_t j = i+1; j < num_sensors; ++j)
 		{
-			if (j == i)
-			{
-				continue;
-			}
-			StatFuns::normalise(joint_freqs[i][j], num_updates);
+			StatFuns::normalise(joint_freqs[i][j-i-1], num_updates);
 		}
 	}
 }
@@ -578,12 +570,8 @@ std::vector<float> CVT_MutualInfo::get_bd()
 	/* calculate MI */
 	for (size_t i = 0; i < num_sensors; ++i)
 	{
-		for (size_t j = 0; j < num_sensors; ++j)
+		for (size_t j = i+1; j < num_sensors; ++j)
 		{
-			if (j == i)
-			{
-				continue;
-			}
 			float MI = calc_and_check(i, j);
 			final_bd.push_back(MI);
 		}
@@ -592,7 +580,7 @@ std::vector<float> CVT_MutualInfo::get_bd()
 }
 float CVT_MutualInfo::calc_and_check(size_t i, size_t j)
 {
-	float mi = StatFuns::mutual_information(joint_freqs[i][j], freqs[i], freqs[j], num_updates);
+	float mi = StatFuns::mutual_information(joint_freqs[i][j-i-1], freqs[i], freqs[j], num_updates);
 	float MI = mi / StatFuns::max_entropy(num_bins, EULER);
 #ifdef PRINTING
 	printf("\n MI_{%zu,%zu} = %f", i, j, MI);
