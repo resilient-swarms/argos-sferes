@@ -69,49 +69,15 @@ bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
 }
 void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
 {
-    /*
-    * Create the random number generator
-    */
-    m_pcRNG = CRandom::CreateRNG("argos");
-
-    // /* Process bd_dims */
-    // try
-    // {
-
-    //     GetNodeAttribute(t_node, "bd_dims",this->bd_dims);
-
-    // }
-    // catch(CARGoSException& ex)
-    // {
-    //     THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
-    // }
-
-    /*
-    * Process number of robots in swarm
-    */
-    try
-    {
-        GetNodeAttribute(t_node, "robots", m_unNumberRobots);
-        m_pcvecRobot.resize(m_unNumberRobots);
-        m_pcvecController.resize(m_unNumberRobots);
-        _vecctrlrob.resize(m_unNumberRobots);
-    }
-    catch (CARGoSException &ex)
-    {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing number of robots", ex);
-    }
-
-    for (size_t i = 0; i < m_unNumberRobots; ++i)
-    {
-        m_pcvecRobot[i] = new CThymioEntity(
-            std::string("th") + std::to_string(i), // entity id
-            "tnn"                                  // controller id as set in the XML
-        );
-        AddEntity(*m_pcvecRobot[i]);
-        m_pcvecController[i] = &dynamic_cast<CThymioNNController &>(m_pcvecRobot[i]->GetControllableEntity().GetController());
-    }
-
-    /* Process fitness function type  */
+    
+    init_simulation(t_node);
+    init_descriptors(t_node);
+    init_fitfuns(t_node);
+}
+/* Process fitness function type  */
+void CObsAvoidEvolLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
+{
+     /* Process fitness function type  */
     try
     {
         std::string s;
@@ -143,7 +109,16 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
     }
 
-    /* Process behavioural descriptor type  */
+
+
+
+
+
+}
+ /* Process behavioural descriptor type  */
+void CObsAvoidEvolLoopFunctions::init_descriptors(TConfigurationNode &t_node)
+{
+       
     try
     {
         std::string s;
@@ -192,6 +167,16 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
     }
 
+}
+/* Process initialisation of robots, number of trials, and outputfolder  */
+void CObsAvoidEvolLoopFunctions::init_simulation(TConfigurationNode &t_node)
+{
+
+    /*
+    * Create the random number generator
+    */
+    m_pcRNG = CRandom::CreateRNG("argos");
+
     /*
     * Process trial information
     */
@@ -206,6 +191,39 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing number of trials", ex);
     }
 
+
+
+    /*
+    * Process number of robots in swarm
+    */
+    try
+    {
+        GetNodeAttribute(t_node, "robots", m_unNumberRobots);
+        m_pcvecRobot.resize(m_unNumberRobots);
+        m_pcvecController.resize(m_unNumberRobots);
+        _vecctrlrob.resize(m_unNumberRobots);
+    }
+    catch (CARGoSException &ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing number of robots", ex);
+    }
+
+    for (size_t i = 0; i < m_unNumberRobots; ++i)
+    {
+        m_pcvecRobot[i] = new CThymioEntity(
+            std::string("th") + std::to_string(i), // entity id
+            "tnn"                                  // controller id as set in the XML
+        );
+        AddEntity(*m_pcvecRobot[i]);
+        m_pcvecController[i] = &dynamic_cast<CThymioNNController &>(m_pcvecRobot[i]->GetControllableEntity().GetController());
+    }
+
+    place_robots();
+
+
+
+
+    /* process outputfolder */
     try
     {
         GetNodeAttribute(t_node, "output_folder", output_folder);
@@ -216,6 +234,11 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing output_folder", ex);
     }
 
+    
+}
+
+void CObsAvoidEvolLoopFunctions::place_robots()
+{
     //m_vecInitSetup.clear();
     CVector3 size = GetSpace().GetArenaSize();
     Real minX = 0.0;
@@ -263,6 +286,74 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
     Reset();
 }
 
+
+// /* Process perturbations */
+// void CObsAvoidEvolLoopFunctions::init_perturbations(TConfigurationNode &t_node)
+// {
+//     try
+//     {
+//         std::string s;
+//         GetNodeAttribute(t_node, "perturbationtype", s);
+//         if (s == "proximity_random")
+//         {
+//             this->descriptor = new AutoDescriptor();
+//         }
+//         else if (s == "history")
+//         {
+//             this->descriptor = new IntuitiveHistoryDescriptor(this);
+//         }
+//         else if (s.find("sdbc")!=std::string::npos)
+//         {
+//             this->descriptor = new SDBC(this, s);
+//         }
+//         else if (s == "average")
+//         {
+//             this->descriptor = new AverageDescriptor();
+//         }
+//         else if (s == "cvt_trajectory")
+//         {
+//             this->descriptor = new CVT_Trajectory(*this, argos::CSimulator::GetInstance().GetMaxSimulationClock());
+//         }
+//         else if (s == "cvt_mutualinfo")
+//         {
+//             this->descriptor = new CVT_MutualInfo();
+//         }
+//         else if (s == "cvt_mutualinfoact")
+//         {
+//             this->descriptor = new CVT_MutualInfoAct();
+//         }
+//         else if (s == "cvt_spirit")
+//         {
+//             this->descriptor = new CVT_Spirit();
+//         }
+//         else
+//         {
+//             throw std::runtime_error("descriptortype " + s + " not found");
+//         }
+
+//         check_BD_choice(s);
+//     }
+//     catch (CARGoSException &ex)
+//     {
+//         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
+//     }
+
+
+//                 /* Implementing the faults themselves. The resulting behaviors will now depend on the normal behavior implementation. */
+//             FAULT_PROXIMITYSENSORS_SETMIN,
+//             FAULT_PROXIMITYSENSORS_SETMAX,
+//             FAULT_PROXIMITYSENSORS_SETRANDOM,
+//             FAULT_PROXIMITYSENSORS_SETOFFSET,
+
+//             FAULT_RABSENSOR_SETOFFSET,
+//             FAULT_RABSENSOR_MISSINGRECEIVERS,
+
+//             FAULT_ACTUATOR_LWHEEL_SETZERO,
+//             FAULT_ACTUATOR_RWHEEL_SETZERO,
+//             FAULT_ACTUATOR_BWHEELS_SETZERO,
+
+// }
+
 /****************************************/
 /****************************************/
 
@@ -284,6 +375,7 @@ void CObsAvoidEvolLoopFunctions::Reset()
 /****************************************/
 /****************************************/
 
+
 void CObsAvoidEvolLoopFunctions::PreStep()
 {
     CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
@@ -295,16 +387,12 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         CThymioNNController &cController = dynamic_cast<CThymioNNController &>(cThymio.GetControllableEntity().GetController());
 
         //assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
-
-        inputs.resize(ParamsDnn::dnn::nb_inputs);
-        maxIRSensor = -1.0;
-        for (size_t i = 0; i < cController.m_pcProximity->GetReadings().size(); ++i)
-        {
-            inputs[i] = cController.m_pcProximity->GetReadings()[i].Value;
-            maxIRSensor = Max(maxIRSensor, (Real)inputs[i]);
-        }
+        inputs.clear();
+        inputs = cController.InputStep();
+        if (cController.id_FaultyRobotInSwarm == robotindex)
+            cController.damage_sensors(inputs);
         this->descriptor->set_input_descriptor(robotindex, *this);
-        inputs[ParamsDnn::dnn::nb_inputs - 1] = +1.0; //Bias input
+        inputs.push_back(+1.0); //Bias input
 
         //      _ctrlrob.step(inputs);
         _vecctrlrob[robotindex].step(inputs);
@@ -330,6 +418,10 @@ void CObsAvoidEvolLoopFunctions::PreStep()
 
         cController.m_fLeftSpeed = outf[0];
         cController.m_fRightSpeed = outf[1];
+        if (cController.id_FaultyRobotInSwarm == robotindex)
+            cController.damage_actuators();
+
+
 
         CVector3 axis;
         cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta, axis);

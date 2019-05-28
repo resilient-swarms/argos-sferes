@@ -265,11 +265,28 @@ public:
     CRadians curr_theta;
     CVector3 centre, max;
 
+    /* config initialisation functions */
+    /* Process behavioural descriptor type  */
+    void init_descriptors(TConfigurationNode &t_node);
+    /* Process fitness function type  */
+    void init_fitfuns(TConfigurationNode &t_node);
+    /* Process initialisation of robots, number of trials, and outputfolder  */
+    void init_simulation(TConfigurationNode &t_node);
+    /* Placement of robots */
+    void place_robots();
+    /* Process perturbations */
+    void init_perturbations();
+
+
+
+    /* next are functions that are done during loop */
     void before_trials();
     void start_trial(CSimulator &cSimulator);
     void end_trial(Real time);
     float alltrials_fitness();
     std::vector<float> alltrials_descriptor();
+
+    /* next are a bunch of helper functions */
     void print_progress();
 
     bool check_BD_choice(const std::string choice);

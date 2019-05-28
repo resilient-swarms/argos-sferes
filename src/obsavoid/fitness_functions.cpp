@@ -19,7 +19,12 @@ void FloreanoMondada::after_step(size_t robot, CObsAvoidEvolLoopFunctions &cLoop
     float curr_lin_speed = s * (1.0 - sqrt(ds));
     lin_speed += curr_lin_speed;
     num_ds += (ds >= 0.1) ? 1.0 : 0.0;
-    nb_coll += (1.0f - cLoopFunctions.maxIRSensor);
+    float  maxIRSensor = -1.0;
+    for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
+    {
+        maxIRSensor = Max(maxIRSensor, cLoopFunctions.inputs[i]);
+    }
+    nb_coll += (1.0f - maxIRSensor);
 }
 /*after completing a trial,calc fitness*/
 void FloreanoMondada::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
@@ -57,7 +62,12 @@ void MeanSpeed::after_step(size_t robot, CObsAvoidEvolLoopFunctions &cLoopFuncti
     float curr_lin_speed = s * (1.0 - sqrt(ds));
     lin_speed += curr_lin_speed;
     num_ds += (ds >= 0.1) ? 1.0 : 0.0;
-    nb_coll += (1.0f - cLoopFunctions.maxIRSensor);
+    float  maxIRSensor = -1.0;
+    for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
+    {
+        maxIRSensor = Max(maxIRSensor, cLoopFunctions.inputs[i]);
+    }
+    nb_coll += (1.0f - maxIRSensor);
 }
 /*after completing a trial,calc fitness*/
 void MeanSpeed::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)

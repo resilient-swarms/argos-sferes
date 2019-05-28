@@ -24,8 +24,8 @@
   <!-- *************** -->
   <controllers>
 
-    <obsavoid_nn_controller id="tnn"
-                           library="lib/libobsavoid_nn_controller.so"                      
+    <nn_controller id="tnn"
+                           library="lib/libnn_controller.so"                      
                     >
       <actuators>
         <differential_steering implementation="default" />
@@ -34,7 +34,7 @@
         <Thymio_proximity implementation="default" show_rays="true" range="SENSOR_RANGE" noise_level="NOISE_LEVEL"/>
       </sensors>
       <params/>
-    </obsavoid_nn_controller>
+    </nn_controller>
 
   </controllers>
 

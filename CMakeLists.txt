@@ -112,6 +112,7 @@ link_directories(${ARGOS_LIBRARY_DIRS} ${THYMIO}/lib/argos3 ${PROJECT_SOURCE_DIR
 option(DEFINE_PRINT "print some variables" OFF)
 option(BD "behaviour description size" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
+option(PERTURB "Perturbations" OFF)
 
 if(DEFINE_PRINT)
     message("print is defined")
@@ -139,12 +140,13 @@ else(NOT CVT_USAGE)
 endif()
 
 
+set(CONTROL "nn_controller")
+
 set(tag ${CVT_USE}${BD}D)
 add_definitions(-DTAG="${tag}")
 
 # Descend into the controllers directory
-
-add_library(obsavoid_nn_controller SHARED
+add_library(nn_controller SHARED
   src/obsavoid/nn_controller.h
   src/obsavoid/nn_controller.cpp
 )
@@ -186,7 +188,7 @@ add_library(descriptors${tag} SHARED
 set(EXECUTABLE obsavoid_evol${tag})
 add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 
-    target_link_libraries(obsavoid_nn_controller
+    target_link_libraries(${CONTROL}
       argos3core_simulator
       #argos3plugin_simulator_actuators
       argos3plugin_simulator_thymio
@@ -197,7 +199,7 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       ${TBB_LIBRARIES})
 
     target_link_libraries(obsavoid_evol_loopfunctions${tag}
-      obsavoid_nn_controller
+      ${CONTROL}
       argos3core_simulator
       #argos3plugin_simulator_actuators
       argos3plugin_simulator_dynamics2d
@@ -211,7 +213,7 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       ${TBB_LIBRARIES})
 
     target_link_libraries(${EXECUTABLE}
-      obsavoid_nn_controller
+      ${CONTROL}
       obsavoid_evol_loopfunctions${tag}
       descriptors${tag}
       fitness_functions${tag}
