@@ -33,7 +33,12 @@
       <sensors>
         <Thymio_proximity implementation="default"    show_rays="true"  range="0.50" noise_level="0.05"/>
       </sensors>
-      <params/>
+       <params>
+      <faults
+      fault_behavior="FAULT_PROXIMITYSENSORS_SETMIN" 
+      id_faulty_robot="0"
+      />
+      </params>
     </nn_controller>
 
   </controllers>
@@ -49,6 +54,7 @@
                   fitfuntype="Coverage"
                   bd_dims="3"
 		  output_folder="experiments"
+centroids_folder="experiments"
                     />
 
   <!-- *********************** -->

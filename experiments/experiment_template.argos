@@ -33,7 +33,8 @@
       <sensors>
         <Thymio_proximity implementation="default" show_rays="true" range="SENSOR_RANGE" noise_level="NOISE_LEVEL"/>
       </sensors>
-      <params/>
+       <params>
+      </params>
     </nn_controller>
 
   </controllers>
@@ -49,6 +50,7 @@
                   fitfuntype="FITFUN_TYPE"
                   bd_dims="BD_DIMS"
                   output_folder="OUTPUTFOLDER"
+                centroids_folder="CENTROIDSFOLDER"
                     />
 
   <!-- *********************** -->

@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     static CObsAvoidEvolLoopFunctions &cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions &>(cSimulator.GetLoopFunctions());
 
 #ifdef CVT
-    Params::ea::centroids = load_centroids(cLoopFunctions.output_folder+"/centroids_1000_"+std::to_string(Params::ea::number_of_dimensions)+".dat");
+    Params::ea::centroids = load_centroids(cLoopFunctions.centroids_folder+"/centroids_1000_"+std::to_string(Params::ea::number_of_dimensions)+".dat");
 #endif
     //typedef FitObstacle<Params> fit_t;
     typedef FitObstacleMapElites<Params> fit_t;

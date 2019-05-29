@@ -16,7 +16,7 @@
     <!-- Each experimental run is 120 seconds long -->
     <experiment length="120"
                 ticks_per_second="10"
-                 random_seed="56" />  <!-- if we want a different random seed each time the reset button is pressed -->
+                 random_seed="SEED" />  <!-- if we want a different random seed each time the reset button is pressed -->
   </framework>
 
   <!-- *************** -->
@@ -31,12 +31,12 @@
         <differential_steering implementation="default" />
       </actuators>
       <sensors>
-        <Thymio_proximity implementation="default"    show_rays="true"  range="0.11" noise_level="0.05"/>
+        <Thymio_proximity implementation="default" show_rays="true" range="SENSOR_RANGE" noise_level="NOISE_LEVEL"/>
       </sensors>
-      <params>
+       <params>
       <faults
-      fault_behavior="FAULT_PROXIMITYSENSORS_SETMIN" 
-      id_faulty_robot="0"
+      fault_behavior="FAULT_TYPE" 
+      id_faulty_robot="FAULT_ID"
       />
       </params>
     </nn_controller>
@@ -46,15 +46,15 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libobsavoid_evol_loopfunctionscvt400D.so"
-                  label="obsavoid_evol_loopfunctionscvt400D"
-                  trials="5"
-                  robots="1"
-                  descriptortype="cvt_spirit"  
-                  fitfuntype="Coverage"
-                  bd_dims="3"
-		  output_folder="experiments"
-            centroids_folder="experiments"
+  <loop_functions library="lib/libobsavoid_evol_loopfunctionsBEHAVIOUR_TAG.so"
+                  label="obsavoid_evol_loopfunctionsBEHAVIOUR_TAG"
+                  trials="TRIALS"
+                  robots="ROBOTS"
+                  descriptortype="DESCRIPTOR_TYPE"    
+                  fitfuntype="FITFUN_TYPE"
+                  bd_dims="BD_DIMS"
+                  output_folder="OUTPUTFOLDER"
+                  centroids_folder="CENTROIDSFOLDER"
                     />
 
   <!-- *********************** -->
@@ -91,7 +91,7 @@
    <distribute>
       <position method="uniform" min="0,0,0" max="4,4,0" />
       <orientation method="constant" values="0,0,0" />
-      <entity quantity="10" max_trials="200">
+      <entity quantity="8" max_trials="200">
         <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
       </entity>
     </distribute>
@@ -117,7 +117,7 @@
   <!-- ****************** -->
   <!-- We don't want nor need a visualization during evolution -->
   <visualization>
-  <!--  <qt-opengl/> -->
+    <!-- <qt-opengl/> -->
   </visualization>
 
 </argos-configuration>

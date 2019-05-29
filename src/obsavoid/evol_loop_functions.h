@@ -237,17 +237,21 @@ private:
     std::vector<CThymioNNController *> m_pcvecController;
 
 public:
+#ifdef RECORD_FIT
+    std::ofstream fitness_writer;
+#endif
     std::vector<CThymioEntity *> m_pcvecRobot;
 
     CRandom::CRNG *m_pcRNG;
 
-public:
     std::vector<std::vector<SInitSetup>> m_vecInitSetup;
     size_t m_unNumberTrials, m_unNumberRobots;
     int m_unCurrentTrial; // will start with -1 for convenience
 
-public:
     std::string output_folder;
+#ifdef CVT
+    std::string centroids_folder;
+#endif
     //robots_nn::nn_t _ctrlrob;
     std::vector<robots_nn::nn_t> _vecctrlrob;
     std::vector<float> outf, inputs;
@@ -405,9 +409,12 @@ void eval(Indiv &ind)
     /****************************************/
     /****************************************/
     float fFitness = cLoopFunctions.alltrials_fitness();
+
     this->_objs[0] = fFitness;
     this->_value = fFitness;
-
+#ifdef RECORD_FIT
+    cLoopFunctions.fitness_writer << fFitness << std::endl;
+#endif
     Real time = (Real)cSimulator.GetMaxSimulationClock();
     std::vector<float> behavioural_descriptor = cLoopFunctions.alltrials_descriptor();
     this->set_desc(behavioural_descriptor);

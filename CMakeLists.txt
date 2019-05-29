@@ -108,11 +108,19 @@ include_directories(${ARGOS_INCLUDE_DIRS})
 # Set ARGoS link dir
 link_directories(${ARGOS_LIBRARY_DIRS} ${THYMIO}/lib/argos3 ${PROJECT_SOURCE_DIR}/lib)
 
-
+option(RECORD_FITNESS "print some variables" OFF)
 option(DEFINE_PRINT "print some variables" OFF)
 option(BD "behaviour description size" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
 option(PERTURB "Perturbations" OFF)
+
+if(RECORD_FITNESS)
+    message("will record fitness after each evaluation (useful for tests)")
+    add_definitions(-DRECORD_FIT)    
+else(NOT RECORD_FITNESS)
+    message("will NOT record fitness after each evaluation (useful for simulation)")
+endif()
+
 
 if(DEFINE_PRINT)
     message("print is defined")

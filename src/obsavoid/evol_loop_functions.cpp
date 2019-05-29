@@ -31,11 +31,11 @@ CObsAvoidEvolLoopFunctions::~CObsAvoidEvolLoopFunctions()
 /****************************************/
 bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
 {
-    if(choice=="history")
+    if (choice == "history")
     {
         if (BEHAV_DIM != 3 && BEHAV_DIM != 2)
         {
-             throw std::runtime_error(choice + " should be 2 or 3-dimensional");
+            throw std::runtime_error(choice + " should be 2 or 3-dimensional");
         }
         return true;
     }
@@ -51,7 +51,7 @@ bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
     {
         if (BEHAV_DIM != 14)
         {
-             throw std::runtime_error(choice + " should be 14-dimensional");
+            throw std::runtime_error(choice + " should be 14-dimensional");
         }
         return true;
     }
@@ -59,17 +59,18 @@ bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
     {
         if (BEHAV_DIM != 400)
         {
-             throw std::runtime_error(choice + " should be 400-dimensional");
+            throw std::runtime_error(choice + " should be 400-dimensional");
         }
         return true;
     }
-    else{
+    else
+    {
         return true;
     }
 }
 void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
 {
-    
+
     init_simulation(t_node);
     init_descriptors(t_node);
     init_fitfuns(t_node);
@@ -77,7 +78,7 @@ void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
 /* Process fitness function type  */
 void CObsAvoidEvolLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
 {
-     /* Process fitness function type  */
+    /* Process fitness function type  */
     try
     {
         std::string s;
@@ -108,17 +109,12 @@ void CObsAvoidEvolLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
     }
-
-
-
-
-
-
 }
- /* Process behavioural descriptor type  */
+
+/* Process behavioural descriptor type  */
 void CObsAvoidEvolLoopFunctions::init_descriptors(TConfigurationNode &t_node)
 {
-       
+
     try
     {
         std::string s;
@@ -131,7 +127,7 @@ void CObsAvoidEvolLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new IntuitiveHistoryDescriptor(this);
         }
-        else if (s.find("sdbc")!=std::string::npos)
+        else if (s.find("sdbc") != std::string::npos)
         {
             this->descriptor = new SDBC(this, s);
         }
@@ -166,7 +162,6 @@ void CObsAvoidEvolLoopFunctions::init_descriptors(TConfigurationNode &t_node)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
     }
-
 }
 /* Process initialisation of robots, number of trials, and outputfolder  */
 void CObsAvoidEvolLoopFunctions::init_simulation(TConfigurationNode &t_node)
@@ -190,8 +185,6 @@ void CObsAvoidEvolLoopFunctions::init_simulation(TConfigurationNode &t_node)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing number of trials", ex);
     }
-
-
 
     /*
     * Process number of robots in swarm
@@ -220,8 +213,18 @@ void CObsAvoidEvolLoopFunctions::init_simulation(TConfigurationNode &t_node)
 
     place_robots();
 
-
-
+#ifdef CVT
+    /* process outputfolder */
+    try
+    {
+        GetNodeAttribute(t_node, "centroids_folder", centroids_folder);
+        // TODO: create some statistics files in this folder
+    }
+    catch (CARGoSException &ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing centroids_folder", ex);
+    }
+#endif
 
     /* process outputfolder */
     try
@@ -234,7 +237,12 @@ void CObsAvoidEvolLoopFunctions::init_simulation(TConfigurationNode &t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing output_folder", ex);
     }
 
-    
+#ifdef RECORD_FIT
+    // std::ios::app is the open mode "append" meaning
+    // new data will be written to the end of the file.
+    fitness_writer.open(output_folder + "/fitness", std::ios::app);
+
+#endif
 }
 
 void CObsAvoidEvolLoopFunctions::place_robots()
@@ -260,7 +268,7 @@ void CObsAvoidEvolLoopFunctions::place_robots()
             Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
                                         CRadians::ZERO,
                                         CRadians::ZERO);
-   
+
             while (!MoveEntity(m_pcvecRobot[m_unRobot]->GetEmbodiedEntity(), // move the body of the robot
                                Position,                                     // to this position
                                Orientation,                                  // with this orientation
@@ -285,7 +293,6 @@ void CObsAvoidEvolLoopFunctions::place_robots()
 
     Reset();
 }
-
 
 // /* Process perturbations */
 // void CObsAvoidEvolLoopFunctions::init_perturbations(TConfigurationNode &t_node)
@@ -338,7 +345,6 @@ void CObsAvoidEvolLoopFunctions::place_robots()
 //         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
 //     }
 
-
 //                 /* Implementing the faults themselves. The resulting behaviors will now depend on the normal behavior implementation. */
 //             FAULT_PROXIMITYSENSORS_SETMIN,
 //             FAULT_PROXIMITYSENSORS_SETMAX,
@@ -374,7 +380,6 @@ void CObsAvoidEvolLoopFunctions::Reset()
 
 /****************************************/
 /****************************************/
-
 
 void CObsAvoidEvolLoopFunctions::PreStep()
 {
@@ -420,8 +425,6 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         cController.m_fRightSpeed = outf[1];
         if (cController.id_FaultyRobotInSwarm == robotindex)
             cController.damage_actuators();
-
-
 
         CVector3 axis;
         cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta, axis);
@@ -579,15 +582,13 @@ size_t CObsAvoidEvolLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
 {
     // joint bin (e.g. with three bins each): (-10,-10) --> 0  ; (-10,0) --> 1; ... (10,10) --> 9
     // assuming quadrants are : left:[0,1],front:[2],right:[3,4],back:[5,6]
-    size_t bin1=get_actuator_bin(0,num_bins);
-    size_t bin2=get_actuator_bin(1,num_bins);
-    return bin1*num_bins + bin2;
+    size_t bin1 = get_actuator_bin(0, num_bins);
+    size_t bin2 = get_actuator_bin(1, num_bins);
+    return bin1 * num_bins + bin2;
 }
-
-
 
 /****************************************/
 /****************************************/
 
 //using TemplateCObsAvoidEvolLoopFunctions = CObsAvoidEvolLoopFunctions<class NN>;
-REGISTER_LOOP_FUNCTIONS(CObsAvoidEvolLoopFunctions, "obsavoid_evol_loopfunctions"+std::string(TAG))
+REGISTER_LOOP_FUNCTIONS(CObsAvoidEvolLoopFunctions, "obsavoid_evol_loopfunctions" + std::string(TAG))
