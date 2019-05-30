@@ -51,9 +51,9 @@ class CThymioNNController : public CCI_Controller
         // FAULT_RABSENSOR_SETOFFSET,
         // FAULT_RABSENSOR_MISSINGRECEIVERS,
 
-        FAULT_ACTUATOR_LWHEEL_SETZERO,
-        FAULT_ACTUATOR_RWHEEL_SETZERO,
-        FAULT_ACTUATOR_BWHEELS_SETZERO,
+        FAULT_ACTUATOR_LWHEEL_SETHALF,
+        FAULT_ACTUATOR_RWHEEL_SETHALF,
+        FAULT_ACTUATOR_BWHEELS_SETHALF,
 
         // FAULT_SOFTWARE,
 
@@ -81,7 +81,7 @@ class CThymioNNController : public CCI_Controller
     Real m_fLeftSpeed, m_fRightSpeed;
 
     void process_faultbehaviour(std::string errorbehav);
-    void damage_sensors(std::vector<float> inputs);
+    void damage_sensors(std::vector<float>& inputs);
     void damage_actuators();
 
 

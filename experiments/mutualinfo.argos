@@ -35,7 +35,7 @@
       </sensors>
        <params>
       <faults
-      fault_behavior="FAULT_PROXIMITYSENSORS_SETMIN" 
+      fault_behavior="FAULT_PROXIMITYSENSORS_SETRANDOM" 
       id_faulty_robot="0"
       />
       </params>

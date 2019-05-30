@@ -20,6 +20,10 @@ CThymioNNController::~CThymioNNController()
 void CThymioNNController::Init(TConfigurationNode &t_node)
 {
     /*
+    * Create the random number generator
+    */
+    m_pcRNG = CRandom::CreateRNG("argos");
+    /*
     * Get sensor/actuator handles
     */
     try
@@ -112,12 +116,12 @@ void CThymioNNController::process_faultbehaviour(std::string errorbehav)
     //     FBehavior = FAULT_RABSENSOR_SETOFFSET;
     // else if  (errorbehav.compare("FAULT_RABSENSOR_MISSINGRECEIVERS") == 0)
     //     FBehavior = FAULT_RABSENSOR_MISSINGRECEIVERS;
-    else if  (errorbehav.compare("FAULT_ACTUATOR_LWHEEL_SETZERO") == 0)
-        FBehavior = FAULT_ACTUATOR_LWHEEL_SETZERO;
-    else if  (errorbehav.compare("FAULT_ACTUATOR_RWHEEL_SETZERO") == 0)
-        FBehavior = FAULT_ACTUATOR_RWHEEL_SETZERO;
-    else if  (errorbehav.compare("FAULT_ACTUATOR_BWHEELS_SETZERO") == 0)
-        FBehavior = FAULT_ACTUATOR_BWHEELS_SETZERO;
+    else if  (errorbehav.compare("FAULT_ACTUATOR_LWHEEL_SETHALF") == 0)
+        FBehavior = FAULT_ACTUATOR_LWHEEL_SETHALF;
+    else if  (errorbehav.compare("FAULT_ACTUATOR_RWHEEL_SETHALF") == 0)
+        FBehavior = FAULT_ACTUATOR_RWHEEL_SETHALF;
+    else if  (errorbehav.compare("FAULT_ACTUATOR_BWHEELS_SETHALF") == 0)
+        FBehavior = FAULT_ACTUATOR_BWHEELS_SETHALF;
 
     // else if  (errorbehav.compare("FAULT_SOFTWARE") == 0)
     //     FBehavior = FAULT_SOFTWARE;
@@ -132,7 +136,7 @@ void CThymioNNController::process_faultbehaviour(std::string errorbehav)
     }
 }
 
-void CThymioNNController::damage_sensors(std::vector<float> inputs)
+void CThymioNNController::damage_sensors(std::vector<float>& inputs)
 {
 
         if (FBehavior == FaultBehavior::FAULT_PROXIMITYSENSORS_SETMIN)
@@ -208,19 +212,17 @@ void CThymioNNController::damage_sensors(std::vector<float> inputs)
 
 void CThymioNNController::damage_actuators()
 {
-        if (FBehavior == FaultBehavior::FAULT_ACTUATOR_LWHEEL_SETZERO)
-            m_fLeftSpeed = 0.0f;
+        if (FBehavior == FaultBehavior::FAULT_ACTUATOR_LWHEEL_SETHALF)
+            m_fLeftSpeed *= 0.5;
 
-        if (FBehavior == FaultBehavior::FAULT_ACTUATOR_RWHEEL_SETZERO)
-            m_fRightSpeed = 0.0f;
+        if (FBehavior == FaultBehavior::FAULT_ACTUATOR_RWHEEL_SETHALF)
+            m_fRightSpeed  *= 0.5;
 
-        if (FBehavior == FaultBehavior::FAULT_ACTUATOR_BWHEELS_SETZERO)
+        if (FBehavior == FaultBehavior::FAULT_ACTUATOR_BWHEELS_SETHALF)
         {
-            m_fLeftSpeed = 0.0f;
-            m_fRightSpeed = 0.0f;
+            m_fLeftSpeed  *= 0.5;
+            m_fRightSpeed  *= 0.5;
         }
-
-        m_pcWheels->SetLinearVelocity(m_fLeftSpeed, m_fRightSpeed); // in cm/s
 }
 /****************************************/
 /****************************************/
