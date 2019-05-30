@@ -5,7 +5,7 @@
 source activate py3.7 # just for the cvt initialisation 
 
 
-data=~/Data/datanew
+data=experiments/datanew
 export FINALGEN=1000
 # Create a data diretory
 mkdir -p $data
@@ -13,20 +13,18 @@ declare -A descriptors
 declare -A voronoi
 
 
-#descriptors["history"]=2
+descriptors["history"]=2
 descriptors["cvt_mutualinfoact"]=14
-#descriptors["cvt_mutualinfo"]=21
-#descriptors["cvt_spirit"]=400
-#descriptors["cvt_sdbc_all_std"]=14
-#voronoi["cvt_mutualinfo"]="cvt"
-#voronoi["history"]=""
+descriptors["cvt_mutualinfo"]=21
+descriptors["cvt_spirit"]=400
+descriptors["cvt_sdbc_all_std"]=14
+voronoi["cvt_mutualinfo"]="cvt"
+voronoi["history"]=""
 voronoi["cvt_mutualinfoact"]="cvt"
-#voronoi["cvt_mutualinfo"]="cvt"
-#voronoi["cvt_spirit"]="cvt"
-#voronoi["cvt_sdbc_all_std"]="cvt"
-for FaultType in "FAULT_NONE" "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" \
-				"FAULT_ACTUATOR_LWHEEL_SETZERO" "FAULT_ACTUATOR_RWHEEL_SETZERO" "FAULT_ACTUATOR_BWHEELS_SETZERO" ; do
-
+voronoi["cvt_mutualinfo"]="cvt"
+voronoi["cvt_spirit"]="cvt"
+voronoi["cvt_sdbc_all_std"]="cvt"
+for FaultType in "FAULT_NONE" "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" ; do 
 for FaultID in "0"; do
 for FitfunType in Coverage; do
     echo 'Fitfun'${FitFunType}
@@ -46,20 +44,22 @@ for FitfunType in Coverage; do
                        
             # Take template.argos and make an .argos file for this experiment
             SUFFIX=${Replicates}
-            ConfigFolder=${data}/${FitfunType}range${SensorRange}/${DescriptorType}
-            Outfolder=${ConfigFolder}/results${SUFFIX}
-            OutputFolder=${Outfolder}${FaultType}${FaultID}
+	    ArchiveFolder=${data}/${FitfunType}range${SensorRange}/${DescriptorType}/results${SUFFIX}
+            ConfigFolder=${data}/${FitfunType}range${SensorRange}/${DescriptorType}/${FaultType}${FaultID}
+            Centroidsfolder=${data}/${FitfunType}range${SensorRange}/${DescriptorType}/results${SUFFIX}
+            OutputFolder=${ConfigFolder}/${Replicates}
             rm -rf ${OutputFolder} # remove if it already exists
             mkdir -p ${OutputFolder}
 	    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
-	    mkdir -p $Outfolder
-            sed -e "s|TRIALS|15|" \
+           
+	    touch ${ConfigFile} 
+	   sed -e "s|TRIALS|15|" \
                 -e "s|ROBOTS|1|"                    \
                 -e "s|SEED|${Replicates}|"                    \
                 -e "s|FITFUN_TYPE|${FitfunType}|"                   \
                 -e "s|DESCRIPTOR_TYPE|${DescriptorType}|"                  \
                 -e "s|OUTPUTFOLDER|${OutputFolder}|" \
-                -e "s|CENTROIDSFOLDER|${Outfolder}|" \
+                -e "s|CENTROIDSFOLDER|${Centroidsfolder}|" \
 		        -e "s|SENSOR_RANGE|${SensorRange}|" \
 		        -e "s|NOISE_LEVEL|0.05|"    \
                 -e "s|BEHAVIOUR_TAG|${tag}|" \
@@ -77,9 +77,10 @@ for FitfunType in Coverage; do
 	   # Call ARGoS
 	   export BD=${BD_DIMS}
 	   export CONFIG=${ConfigFile}
-	   export OUTPUTDIR=${Outfolder}
+	   export OUTPUTDIR=${OutputFolder}
+	   export ARCHIVEDIR=${ArchiveFolder}
 	   export VORONOI=${CVT}
-         bash submit_test.sh 
+         sbatch submit_test.sh 
         done
 	done
     done

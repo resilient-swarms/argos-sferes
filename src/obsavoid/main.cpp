@@ -135,7 +135,10 @@ int main(int argc, char **argv)
     ea_t ea;
 
     run_ea(argc, argv, ea);
-
+    
+#ifdef RECORD_FIT
+    cLoopFunctions.fitness_writer.close();
+#endif
     /*
     * Dispose of ARGoS stuff
     */
