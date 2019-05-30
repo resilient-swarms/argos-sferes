@@ -64,6 +64,7 @@ To run the EA, on the setting mentioned in point 5., you can run
      ./bin/obsavoid_evol2D experiments/history.argos
 
 To run the EA on other settings mentioned in point 6., you can run either of the following commands:
+
      ./bin/obsavoid_evolcvt14D experiments/mutualinfoact.argos
      ./bin/obsavoid_evolcvt21D experiments/mutualinfo.argos
      ./bin/obsavoid_evolcvt400D experiments/spirit.argos
