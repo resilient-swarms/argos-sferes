@@ -15,5 +15,10 @@ else
     exit 1;
 fi
 jobtocome="${FILE} ${CONFIG} -d ${OUTPUTDIR}"
+if [ ! -z  "${GENERATION_FILE}" ]; then
+   echo "Generation file already exists; plan to resume"
+   jobtocome="${jobtocome} --resume ${GENERATION_FILE}"
+fi
+
 echo "Starting the following command: "${jobtocome}
 ${jobtocome}

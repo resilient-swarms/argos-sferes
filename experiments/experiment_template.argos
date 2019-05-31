@@ -33,8 +33,14 @@
       <sensors>
         <Thymio_proximity implementation="default" show_rays="true" range="SENSOR_RANGE" noise_level="NOISE_LEVEL"/>
       </sensors>
-       <params>
+      
+      <params>
+      <faults
+      fault_behavior="FAULT_NONE" 
+      id_faulty_robot="0"
+      />
       </params>
+
     </nn_controller>
 
   </controllers>
