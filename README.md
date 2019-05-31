@@ -27,7 +27,7 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
 
     cd sferes2/modules
 
-    git clone https://github.com/resilient-swarms/map_elites.git --branch generic_print --branch generic_print
+    git clone https://github.com/resilient-swarms/map_elites.git  --branch generic_print
 
     git clone https://github.com/sferes2/nn2.git
     
