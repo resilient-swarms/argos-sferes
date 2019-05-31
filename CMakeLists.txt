@@ -231,3 +231,15 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       ${LUA_LIBRARIES}
       ${Boost_LIBRARIES} 
       ${TBB_LIBRARIES})
+
+    add_library(baseline-behavs SHARED
+        src/baseline-behavs/baseline-behavs.h
+        src/baseline-behavs/baseline-behavs.cpp)
+
+    target_link_libraries(baseline-behavs
+        argos3core_simulator
+        argos3plugin_simulator_thymio
+        argos3plugin_simulator_genericrobot)
+
+
+  
