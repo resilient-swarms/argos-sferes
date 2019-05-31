@@ -24,7 +24,8 @@ voronoi["cvt_mutualinfoact"]="cvt"
 voronoi["cvt_mutualinfo"]="cvt"
 voronoi["cvt_spirit"]="cvt"
 voronoi["cvt_sdbc_all_std"]="cvt"
-for FaultType in "FAULT_NONE" "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" ; do 
+for FaultType in "FAULT_NONE" "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" \
+"FAULT_ACTUATOR_LWHEEL_SETHALF" "FAULT_ACTUATOR_RWHEEL_SETHALF" "FAULT_ACTUATOR_BWHEELS_SETHALF"; do
 for FaultID in "0"; do
 for FitfunType in Coverage; do
     echo 'Fitfun'${FitFunType}
