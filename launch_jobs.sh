@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-
+RESUME_GENERATION=1200
 
 source activate py3.7 # just for the cvt initialisation 
 
@@ -14,16 +14,15 @@ declare -A voronoi
 
 
 #descriptors["history"]=2
-#descriptors["cvt_mutualinfoact"]=14
-#descriptors["cvt_mutualinfo"]=21
-#descriptors["cvt_spirit"]=400
+descriptors["cvt_mutualinfoact"]=14
+descriptors["cvt_mutualinfo"]=21
+descriptors["cvt_spirit"]=400
 descriptors["cvt_sdbc_all_std"]=14
-#voronoi["cvt_mutualinfo"]="cvt"
 #voronoi["history"]=""
-#voronoi["cvt_mutualinfoact"]="cvt"
-#voronoi["cvt_mutualinfo"]="cvt"
-#voronoi["cvt_spirit"]="cvt"
-voronoi["cvt_sdbc_all_std"]="cvt"
+voronoi["cvt_mutualinfoact"]="cvt"
+voronoi["cvt_mutualinfo"]="cvt"
+voronoi["cvt_spirit"]="cvt"
+#voronoi["cvt_sdbc_all_std"]="cvt"
 for FitfunType in Coverage; do
     echo 'Fitfun'${FitFunType}
     for SensorRange in 50; do
@@ -38,13 +37,14 @@ for FitfunType in Coverage; do
 	echo "tag is ${tag}"
 	mkdir -p $data/${FitfunType}/${DescriptorType}
 
-	for Replicates in $(seq 1 1); do
+	for Replicates in $(seq 1 5); do
                        
             # Take template.argos and make an .argos file for this experiment
             SUFFIX=${Replicates}
             ConfigFolder=${data}/${FitfunType}range${SensorRange}/${DescriptorType}
             Outfolder=${ConfigFolder}/results${SUFFIX}
 	    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
+	
 	    mkdir -p $Outfolder
             sed -e "s|TRIALS|15|" \
                 -e "s|ROBOTS|1|"                    \
@@ -53,6 +53,7 @@ for FitfunType in Coverage; do
                 -e "s|DESCRIPTOR_TYPE|${DescriptorType}|"                  \
                 -e "s|OUTPUTFOLDER|${Outfolder}|" \
 		-e "s|SENSOR_RANGE|${SensorRange}|" \
+		-e "s|CENTROIDSFOLDER|${Outfolder}|" \
 		-e "s|NOISE_LEVEL|0.05|"    \
                 -e "s|BEHAVIOUR_TAG|${tag}|" \
 		experiments/experiment_template.argos \
@@ -69,9 +70,12 @@ for FitfunType in Coverage; do
 	   export CONFIG=${ConfigFile}
 	   export OUTPUTDIR=${Outfolder}
 	   export VORONOI=${CVT}
-           sbatch submit_job.sh 
+	    if [ ! -z "${RESUME_GENERATION}"  ]; then
+	   	export GENERATION_FILE="${Outfolder}/gen_${RESUME_GENERATION}"
+	   fi
+           
+	   sbatch submit_job.sh 
         done
 	done
     done
 done
-
