@@ -232,9 +232,27 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       ${Boost_LIBRARIES} 
       ${TBB_LIBRARIES})
 
+
+    
     add_library(baseline-behavs SHARED
         src/baseline-behavs/baseline-behavs.h
-        src/baseline-behavs/baseline-behavs.cpp)
+        src/baseline-behavs/baseline-behavs.cpp
+	src/baseline-behavs/behavior.h
+	src/baseline-behavs/behavior.cpp
+	src/baseline-behavs/dispersebehavior.h
+	src/baseline-behavs/dispersebehavior.cpp
+	src/baseline-behavs/randomwalkbehavior.h
+	src/baseline-behavs/randomwalkbehavior.cpp
+	src/baseline-behavs/homingtofoodbeaconbehavior.h
+	src/baseline-behavs/homingtofoodbeaconbehavior.cpp
+	src/baseline-behavs/aggregatebehavior.h
+	src/baseline-behavs/aggregatebehavior.cpp
+	src/baseline-behavs/flockingbehavior.h
+	src/baseline-behavs/flockingbehavior.cpp
+	src/baseline-behavs/circlebehavior.h
+	src/baseline-behavs/circlebehavior.cpp
+	src/baseline-behavs/sensingandcommunication.h
+	src/baseline-behavs/sensingandcommunication.cpp)
 
     target_link_libraries(baseline-behavs
         argos3core_simulator
