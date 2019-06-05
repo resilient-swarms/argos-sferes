@@ -31,7 +31,7 @@ bool CAggregateBehavior::TakeControl()
         }
     }
 
-    if(robotsinrange > 0u) // use > 3 instead of > 0 to avoid small aggregates of just 2 robots or just 3 robots.
+    if(robotsinrange > 2u) // use > 3 instead of > 0 to avoid small aggregates of just 2 robots or just 3 robots.
         controltaken = true;
 
     /*if(robotsinrange > 0u)
@@ -52,8 +52,8 @@ bool CAggregateBehavior::TakeControl()
 // Move in the opposite direction of CoM
 void CAggregateBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
 {
-     CVector2 m_cHeadingVector =  m_sRobotData.MaxSpeed  * (1.0f * m_cAggregationVector.Normalize() +
-                                                            1.0f * CVector2(1.0f, m_sSensoryData.m_pcRNG->Uniform(CRange<CRadians>(-CRadians::PI, CRadians::PI))));
+     CVector2 m_cHeadingVector =  m_sRobotData.MaxSpeed  * (.5f * m_cAggregationVector.Normalize() +
+                                                            .5f * CVector2(1.0f, m_sSensoryData.m_pcRNG->Uniform(CRange<CRadians>(-CRadians::PI, CRadians::PI))));
 
      // i add a strong random component to break stable aggregates of pair of robots.
      /*CVector2 m_cHeadingVector =  m_sRobotData.MaxSpeed  * (0.3f * m_cAggregationVector.Normalize() +

@@ -51,20 +51,20 @@ void CBehavior::WheelSpeedsFromHeadingVector(CVector2 &m_cHeadingVector, Real &f
     {
         /* No Turn, heading angle very small */
         TurningMechanism = NO_TURN;
-        std::cout << " cHeadingAngle " << cHeadingAngle << " fBaseAngularWheelSpeed " << fBaseAngularWheelSpeed << " NO_TURN " << std::endl;
+        //std::cout << " cHeadingAngle " << cHeadingAngle << " fBaseAngularWheelSpeed " << fBaseAngularWheelSpeed << " NO_TURN " << std::endl;
     }
     else if(cHeadingAngle.GetAbsoluteValue() > m_sRobotData.m_cNoTurnOnAngleThreshold.GetValue() &&
             cHeadingAngle.GetAbsoluteValue() <= m_sRobotData.m_cSoftTurnOnAngleThreshold.GetValue())
     {
         /* Soft Turn, heading angle in between the two cases */
         TurningMechanism = SOFT_TURN;
-        std::cout << " cHeadingAngle " << cHeadingAngle << " fBaseAngularWheelSpeed " << fBaseAngularWheelSpeed << " SOFT_TURN " << std::endl;
+        //std::cout << " cHeadingAngle " << cHeadingAngle << " fBaseAngularWheelSpeed " << fBaseAngularWheelSpeed << " SOFT_TURN " << std::endl;
     }
     else if(cHeadingAngle.GetAbsoluteValue() > m_sRobotData.m_cSoftTurnOnAngleThreshold.GetValue()) // m_sWheelTurningParams.SoftTurnOnAngleThreshold
     {
         /* Hard Turn, heading angle very large */
         TurningMechanism = HARD_TURN;
-        std::cout << " cHeadingAngle " << cHeadingAngle << " fBaseAngularWheelSpeed " << fBaseAngularWheelSpeed << " HARD_TURN " << std::endl;
+        //std::cout << " cHeadingAngle " << cHeadingAngle << " fBaseAngularWheelSpeed " << fBaseAngularWheelSpeed << " HARD_TURN " << std::endl;
     }
 
 
