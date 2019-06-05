@@ -17,12 +17,13 @@ CoverageCalc::CoverageCalc(CObsAvoidEvolLoopFunctions *cLoopFunctions)
     grid_step = max_dim_size;
 
     total_size = (max.GetX() * max.GetY()) / (grid_step*grid_step);
+    get_obstacle_area(*cLoopFunctions);
 }
 
-void CoverageCalc::get_obstacle_area(CSimulator &sim)
+void CoverageCalc::get_obstacle_area(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
-    CSpace::TMapPerType &argos_cylinders = sim.GetSpace().GetEntitiesByType("cylinder");
-    float size=0.0f;
+    CSpace::TMapPerType &argos_cylinders = cLoopFunctions.GetSpace().GetEntitiesByType("cylinder");
+    float obstacle_cells=0.0f;
     for (CSpace::TMapPerType::iterator it = argos_cylinders.begin(); it != argos_cylinders.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
 	{
         CCylinderEntity &cylinder = *any_cast<CCylinderEntity *>(it->second);
@@ -55,19 +56,18 @@ void CoverageCalc::get_obstacle_area(CSimulator &sim)
 
         if (start_bin_x >= end_bin_x || start_bin_y >= end_bin_y)
             continue;
-        size+=(end_bin_x - start_bin_x)*(end_bin_y - start_bin_y);
+        obstacle_cells+=(end_bin_x - start_bin_x)*(end_bin_y - start_bin_y);
        
         // float area =2*r*r;
         // size_t additional_taken = std::floor(area / (grid_step*grid_step));
         // size+=additional_taken;
 	}
-    obstacle_cells=size;
+    
+    num_cells = std::ceil(total_size - obstacle_cells);
 }
 /* get the actual coverage of a single trial */
 float CoverageCalc::get_coverage() const
 {
-    
-    float num_cells = std::ceil(total_size - obstacle_cells);
     return (float)unique_visited_positions.size() / num_cells;
 }
 /* get bin corresponding to a position in the space */

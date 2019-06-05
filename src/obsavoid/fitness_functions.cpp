@@ -108,11 +108,7 @@ void Coverage::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
     num_updates = 0;
     coverageCalc.after_trial();
 }
-/*before trial calc obstacle cells*/
-void Coverage::before_trial(CSimulator &sim)
-{
-    coverageCalc.get_obstacle_area(sim);
-}
+
 
 /*after a single step of single agent */
 void Coverage::after_step(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
@@ -134,6 +130,16 @@ void Coverage::print_progress(size_t trial)
 {
 
     printf("\n\n fitness (coverage) in trial %zu is %f", trial, fitness_per_trial[trial]);
+}
+
+TrialCoverage::TrialCoverage(CObsAvoidEvolLoopFunctions *cLoopFunctions) : Coverage(cLoopFunctions)
+{
+}
+
+/*before trial calc obstacle cells*/
+void TrialCoverage::before_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+{
+    coverageCalc.get_obstacle_area(cLoopFunctions);
 }
 
 Aggregation::Aggregation() : FitFun()

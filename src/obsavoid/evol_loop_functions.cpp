@@ -100,6 +100,10 @@ void CObsAvoidEvolLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
         {
             this->fitfun = new Coverage(this);
         }
+        else if (s == "TrialCoverage")
+        {
+            this->fitfun = new TrialCoverage(this);
+        }
         else
         {
             throw std::runtime_error("fitfuntype " + s + " not found");
@@ -503,7 +507,7 @@ void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
     /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
     cSimulator.Reset();
     /* take into account the new settings in the fitness functions */
-    fitfun->before_trial(cSimulator);
+    fitfun->before_trial(*this);
     /* Configure the controller with the indiv gen */
     //ConfigureFromGenome(ind.nn());
     //_ctrlrob = ind.nn_cpy();
