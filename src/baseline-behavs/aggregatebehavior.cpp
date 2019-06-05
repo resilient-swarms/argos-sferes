@@ -31,7 +31,7 @@ bool CAggregateBehavior::TakeControl()
         }
     }
 
-    if(robotsinrange > 3u) // use > 3 instead of > 0 to avoid small aggregates of just 2 robots or just 3 robots.
+    if(robotsinrange > 0u) // use > 3 instead of > 0 to avoid small aggregates of just 2 robots or just 3 robots.
         controltaken = true;
 
     /*if(robotsinrange > 0u)

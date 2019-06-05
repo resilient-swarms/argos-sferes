@@ -14,10 +14,20 @@ CDisperseBehavior::CDisperseBehavior(Real m_fProximitySensorThreshold, CRadians 
 /******************************************************************************/
 /******************************************************************************/
 
+CDisperseBehavior::CDisperseBehavior(Real m_fProximitySensorThreshold) :
+    m_fProximitySensorThreshold(m_fProximitySensorThreshold)
+{
+}
+
+/******************************************************************************/
+/******************************************************************************/
+
 bool CDisperseBehavior::TakeControl() 
 {
-    /* Get readings from proximity sensor */
-    /* Sum them together */
+
+
+    //    /* Get readings from proximity sensor */
+    //    /* Sum them together */
     //    m_cDiffusionVector.Set(0.0f, 0.0f);
     //    for(size_t i = 0; i <  m_sSensoryData.m_ProximitySensorData.size(); ++i)
     //    {
@@ -25,36 +35,31 @@ bool CDisperseBehavior::TakeControl()
     //    }
     //    m_cDiffusionVector /= m_sSensoryData.m_ProximitySensorData.size();
 
+    ////    std::cout << " m_cDiffusionVector length " << m_cDiffusionVector.Length() << " and threshold " << m_fProximitySensorThreshold << std::endl;
+    ////    std::cout << " m_cDiffusionVector angle " <<  m_cDiffusionVector.Angle().GetAbsoluteValue() << " and threshold " << m_cGoStraightAngleThreshold.GetValue() << std::endl;
 
 
-    //    /* If the angle of the vector is small enough and the closest obstacle
-    //      is far enough, ignore the vector and go straight, otherwise return
-    //      it */
-    //    if(m_cDiffusionVector.Angle().GetAbsoluteValue() < m_cGoStraightAngleThreshold.GetValue() && m_cDiffusionVector.Length() < m_fProximitySensorThreshold)
-    //        return false;
-    //    else
-    //    {
-    //        if(m_cDiffusionVector.Length() < 0.05) /* because of noise, we can have very small non-zero sensor readings. but we don't want to responmd to them*/
-    //            return false;
-
-    //        //std::cout << " m_cDiffusionVector length " << m_cDiffusionVector.Length() << " and threshold " << m_fProximitySensorThreshold << std::endl;
-    //        //std::cout << " m_cDiffusionVector angle " <<  m_cDiffusionVector.Angle().GetAbsoluteValue() << " and threshold " << m_cGoStraightAngleThreshold.GetValue() << std::endl;
-    //        return true;
-    //    }
-
-    for(size_t i = 0; i < m_sSensoryData.m_ProximitySensorData.size(); ++i)
+    for(size_t i = 0; i < 5; ++i) // considering the front 5 proximity sensors
         if(m_sSensoryData.m_ProximitySensorData[i].Value >= m_fProximitySensorThreshold)
             return true;
 
     return false;
 
-    /*std::vector<Real>::iterator max_sensor_reading_it = std::max_element(m_sSensoryData.m_ProximitySensorData.begin(), m_sSensoryData.m_ProximitySensorData.end());
-    Real max_sensor_reading = *max_sensor_reading_it;
 
-    if(max_sensor_reading < m_fProximitySensorThreshold)
-        return false;
-    else
-        return true;*/
+    //    /* If the angle of the vector is small enough and the closest obstacle
+    //          is far enough, ignore the vector and go straight, otherwise return
+    //          it */
+    //    if(m_cDiffusionVector.Angle().GetAbsoluteValue() >= m_cGoStraightAngleThreshold.GetValue() && m_cDiffusionVector.Length() < m_fProximitySensorThreshold)
+    //        return false;
+    //    else
+    //    {
+    //        //            if(m_cDiffusionVector.Length() < 0.05) /* because of noise, we can have very small non-zero sensor readings. but we don't want to responmd to them*/
+    //        //                return false;
+
+    //        std::cout << " m_cDiffusionVector length " << m_cDiffusionVector.Length() << " and threshold " << m_fProximitySensorThreshold << std::endl;
+    //        std::cout << " m_cDiffusionVector angle " <<  m_cDiffusionVector.Angle().GetAbsoluteValue() << " and threshold " << m_cGoStraightAngleThreshold.GetValue() << std::endl;
+    //        return true;
+    //    }
 }
 
 /******************************************************************************/
@@ -63,9 +68,6 @@ bool CDisperseBehavior::TakeControl()
 // Move in the opposite direction of CoM
 void CDisperseBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
 {
-    //    CVector2 m_cHeadingVector = -m_cDiffusionVector.Normalize() * m_sRobotData.MaxSpeed;
-    //    WheelSpeedsFromHeadingVector(m_cHeadingVector, fLeftWheelSpeed, fRightWheelSpeed);
-
     /* Get the highest reading in front of the robot, which corresponds to the closest object */
     Real fMaxReadVal = m_sSensoryData.m_ProximitySensorData[0].Value;
     UInt32 unMaxReadIdx = 0;

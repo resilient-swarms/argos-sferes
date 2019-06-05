@@ -18,6 +18,7 @@ class CProximitySensorEquippedEntity;
 class CDisperseBehavior : public CBehavior 
 {
 public:
+    CDisperseBehavior(Real m_fProximitySensorThreshold);
     CDisperseBehavior(Real m_fProximitySensorThreshold, CRadians m_cGoStraightAngleThreshold);
 
     virtual bool TakeControl();

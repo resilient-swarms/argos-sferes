@@ -64,7 +64,7 @@
     <distribute>
       <position method="uniform" min="-1.5,-1.5,0" max="1.5,1.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="20" max_trials="5">
+      <entity quantity="1" max_trials="5">
         <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- using a high bandwidth of 1000 bytes for now -->
           <controller config="bb" />
         </Thymio>
@@ -79,7 +79,7 @@
     <distribute>
      <position method="uniform" min="-1.5,-1.5,0" max="1.5,1.5,0" />
      <orientation method="constant" values="0,0,0" />
-     <entity quantity="8" max_trials="5">
+     <entity quantity="0" max_trials="5">
        <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
      </entity>
     </distribute>

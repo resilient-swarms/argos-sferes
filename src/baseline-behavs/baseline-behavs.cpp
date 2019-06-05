@@ -459,7 +459,7 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
     if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION)
     {
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)));    // 0.1f reflects a distance of about 4.5cm
+        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);    // 0.1f reflects a distance of about 4.5cm
         m_vecBehaviors.push_back(pcDisperseBehavior);
 
         CAggregateBehavior* pcAggregateBehavior = new CAggregateBehavior(100.0f); //range threshold in cm //60.0
@@ -473,7 +473,7 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION)
     {
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)));
+        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
         m_vecBehaviors.push_back(pcDisperseBehavior);
 
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
@@ -484,7 +484,7 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING)
     {
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)));
+        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
         m_vecBehaviors.push_back(pcDisperseBehavior);
 
         m_vecBehaviors.push_back(m_pFlockingBehavior);
@@ -507,7 +507,7 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
         }
         else
         {
-            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f, ToRadians(CDegrees(5.0f)));    // 0.1f reflects a distance of about 4.5cm
+            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);    // 0.1f reflects a distance of about 4.5cm
             m_vecBehaviors.push_back(pcDisperseBehavior);
 
             Real MAX_BEACON_SIGNAL_RANGE = 1.0f; //1m
