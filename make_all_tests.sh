@@ -7,9 +7,9 @@ for dim in 2 14 21 400; do
     cd build_${dim}D
     if [ $dim -gt 3 ]
     then
-    cmake -DCVT_USAGE=ON -DBD=${dim} -DRECORD_FITNESS=ON -DDEFINE_PRINT=OFF ..
+    cmake -DCMAKE_BUILD_TYPE=Debug -DCVT_USAGE=ON -DBD=${dim} -DRECORD_FITNESS=ON -DDEFINE_PRINT=OFF ..
     else
-    cmake -DBD=${dim} -DRECORD_FITNESS=ON -DDEFINE_PRINT=OFF ..
+    cmake -DCMAKE_BUILD_TYPE=Debug -DBD=${dim} -DRECORD_FITNESS=ON -DDEFINE_PRINT=OFF ..
     fi
    make 
 

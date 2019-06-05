@@ -15,34 +15,60 @@ CoverageCalc::CoverageCalc(CObsAvoidEvolLoopFunctions *cLoopFunctions)
     float ydim = bounding_box.MaxCorner.GetY() - bounding_box.MinCorner.GetY();
     float max_dim_size = Max(xdim,ydim);
     grid_step = max_dim_size;
-    
-    float obstacle_cells = get_obstacle_area(cLoopFunctions);
-    total_size = (max.GetX() * max.GetY()) / grid_step - obstacle_cells;
-    total_size = std::ceil(total_size);
+
+    total_size = (max.GetX() * max.GetY()) / (grid_step*grid_step);
 }
 
-float CoverageCalc::get_obstacle_area(CObsAvoidEvolLoopFunctions *cLoopFunctions) const
+void CoverageCalc::get_obstacle_area(CSimulator &sim)
 {
-    CSpace::TMapPerType &argos_cylinders = cLoopFunctions->GetSpace().GetEntitiesByType("cylinder");
+    CSpace::TMapPerType &argos_cylinders = sim.GetSpace().GetEntitiesByType("cylinder");
     float size=0.0f;
     for (CSpace::TMapPerType::iterator it = argos_cylinders.begin(); it != argos_cylinders.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
 	{
         CCylinderEntity &cylinder = *any_cast<CCylinderEntity *>(it->second);
-        //first calculate the area
+
+        CVector3 pos = cylinder.GetEmbodiedEntity().GetOriginAnchor().Position;
+
+        //identify the enclosed rectangle
 		float r =  cylinder.GetRadius();
+
+        float a = sqrt(2)*r*r;
+        float half_a_pos = a/2;
+        float x_min = pos.GetX() - half_a_pos;
+        float x_max = pos.GetX() + half_a_pos;
+        float y_min = pos.GetY() - half_a_pos;
+        float y_max = pos.GetY() + half_a_pos;
+
+
+        
         // exploit relation between circle and square; 
         // cf https://math.stackexchange.com/questions/854535/how-can-i-find-the-smallest-enclosing-circle-for-a-rectangle
-        // R = sqrt(2* a^2 )/2 --> 2 a^2 = 4 R^2  ---> area = a^2=2 R ^2
-        float area =2*r*r;
-        size_t additional_taken = std::floor(area / grid_step);
-        size+=additional_taken;
+        // R = sqrt(2* a^2 )/2 --> 2 a^2 = 4 R^2 --> a^2 = 2R^2 -> a = sqrt(2)R  ---> area = a^2=2 R ^2
+       
+        // now get the number of squares FULLY enclosed by the enclosing rectangle
+        // assuming grid [0,grid_step,2*grid_step,...]
+        size_t start_bin_x = std::ceil(x_min/grid_step);
+        size_t end_bin_x = std::floor(x_max/grid_step);
+
+        size_t start_bin_y = std::ceil(y_min/grid_step);
+        size_t end_bin_y = std::floor(y_max/grid_step);
+
+        if (start_bin_x >= end_bin_x || start_bin_y >= end_bin_y)
+            continue;
+        size+=(end_bin_x - start_bin_x)*(end_bin_y - start_bin_y);
+       
+        // float area =2*r*r;
+        // size_t additional_taken = std::floor(area / (grid_step*grid_step));
+        // size+=additional_taken;
 	}
-    return size;
+    obstacle_cells=size;
 }
 /* get the actual coverage of a single trial */
 float CoverageCalc::get_coverage() const
 {
-    return (float)unique_visited_positions.size() / (float)total_size;
+    
+    float num_cells = std::ceil(total_size - obstacle_cells);
+    return (float)unique_visited_positions.size() / num_cells;
 }
 /* get bin corresponding to a position in the space */
 CoverageCalc::location_t CoverageCalc::get_bin(argos::CVector3 vec) const

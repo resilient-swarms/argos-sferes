@@ -487,6 +487,7 @@ void CObsAvoidEvolLoopFunctions::before_trials()
 {
     m_unCurrentTrial = -1;
     descriptor->before_trials(*this);
+   
 }
 void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
 {
@@ -496,11 +497,13 @@ void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
     // old_pos   = CVector3(0.0f, 0.0f, 0.0f);
     // old_theta = CRadians(0.0f);
     descriptor->start_trial();
+   
     /* Tell the loop functions to get ready for the i-th trial */
     SetTrial();
     /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
     cSimulator.Reset();
-
+    /* take into account the new settings in the fitness functions */
+    fitfun->before_trial(cSimulator);
     /* Configure the controller with the indiv gen */
     //ConfigureFromGenome(ind.nn());
     //_ctrlrob = ind.nn_cpy();

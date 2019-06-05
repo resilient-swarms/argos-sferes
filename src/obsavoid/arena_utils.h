@@ -16,11 +16,12 @@ public:
     argos::CVector3 center;
     float grid_step;
     float total_size;
+    float obstacle_cells;
     CoverageCalc(){};
     CoverageCalc(CObsAvoidEvolLoopFunctions* cLoopFunctions);
 
     /* get the number of squares completely occupied by cylindrical obstacles*/
-    float get_obstacle_area(CObsAvoidEvolLoopFunctions *cLoopFunctions) const;
+    void get_obstacle_area(CSimulator &sim);
     
     /* get the actual coverage of a single trial */
     float get_coverage() const;

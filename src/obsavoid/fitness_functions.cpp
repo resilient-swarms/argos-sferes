@@ -4,8 +4,6 @@
 #include <src/obsavoid/fitness_functions.h>
 #include <src/obsavoid/statistics.h>
 
-
-
 FloreanoMondada::FloreanoMondada() : FitFun()
 {
 }
@@ -19,7 +17,7 @@ void FloreanoMondada::after_step(size_t robot, CObsAvoidEvolLoopFunctions &cLoop
     float curr_lin_speed = s * (1.0 - sqrt(ds));
     lin_speed += curr_lin_speed;
     num_ds += (ds >= 0.1) ? 1.0 : 0.0;
-    float  maxIRSensor = -1.0;
+    float maxIRSensor = -1.0;
     for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
     {
         maxIRSensor = Max(maxIRSensor, cLoopFunctions.inputs[i]);
@@ -52,7 +50,6 @@ MeanSpeed::MeanSpeed() : FitFun()
 {
 }
 
-
 void MeanSpeed::after_step(size_t robot, CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
     // compute linear speed for fitness function
@@ -62,7 +59,7 @@ void MeanSpeed::after_step(size_t robot, CObsAvoidEvolLoopFunctions &cLoopFuncti
     float curr_lin_speed = s * (1.0 - sqrt(ds));
     lin_speed += curr_lin_speed;
     num_ds += (ds >= 0.1) ? 1.0 : 0.0;
-    float  maxIRSensor = -1.0;
+    float maxIRSensor = -1.0;
     for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
     {
         maxIRSensor = Max(maxIRSensor, cLoopFunctions.inputs[i]);
@@ -111,6 +108,12 @@ void Coverage::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
     num_updates = 0;
     coverageCalc.after_trial();
 }
+/*before trial calc obstacle cells*/
+void Coverage::before_trial(CSimulator &sim)
+{
+    coverageCalc.get_obstacle_area(sim);
+}
+
 /*after a single step of single agent */
 void Coverage::after_step(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
@@ -122,7 +125,7 @@ float Coverage::after_trials()
 {
     float meanfit = StatFuns::mean(fitness_per_trial);
     fitness_per_trial.clear();
-    
+
     return meanfit;
 }
 
@@ -132,7 +135,6 @@ void Coverage::print_progress(size_t trial)
 
     printf("\n\n fitness (coverage) in trial %zu is %f", trial, fitness_per_trial[trial]);
 }
-
 
 Aggregation::Aggregation() : FitFun()
 {

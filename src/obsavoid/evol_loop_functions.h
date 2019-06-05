@@ -127,11 +127,11 @@ struct Params
         SFERES_CONST double epsilon = 0; //0.05;
         SFERES_CONST size_t behav_dim = BEHAV_DIM;
 #if BEHAV_DIM == 2
-        SFERES_ARRAY(size_t, behav_shape, 10, 10);
+        SFERES_ARRAY(size_t, behav_shape, 32, 32);
 #elif BEHAV_DIM == 3
         SFERES_ARRAY(size_t, behav_shape, 10, 10, 10);
 #elif BEHAV_DIM == 6
-        SFERES_ARRAY(size_t, behav_shape, 10, 10, 10, 10, 10, 10);
+        SFERES_ARRAY(size_t, behav_shape, 4, 4, 4, 4, 4, 4);
 #else
     #error "Unsupported BEHAV_DIM setting (choose 2,3, or 6)"
 #endif
@@ -159,10 +159,10 @@ struct Params
     struct pop
     {
         // number of initial random points
-        SFERES_CONST size_t init_size = 2000; //1000;
+        SFERES_CONST size_t init_size = 100; //1000;
         // size of a batch
         SFERES_CONST size_t size = 200; //1000;
-        SFERES_CONST size_t nb_gen = 10000;
+        SFERES_CONST size_t nb_gen = 5000;
         SFERES_CONST size_t dump_period = 50;
     };
 };

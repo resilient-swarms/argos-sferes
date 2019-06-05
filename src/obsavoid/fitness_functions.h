@@ -12,6 +12,11 @@ class FitFun
   public:
     std::vector<float> fitness_per_trial;
     FitFun(){};
+    /* before trial */
+    virtual void before_trial(CSimulator &cSim)
+    {
+      // empty by default
+    }
     /*after a single step of a single agent */
     virtual void after_step(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions){};
     /*after completing trial, calc fitness*/
@@ -75,8 +80,10 @@ class Coverage : public FitFun
     // same as FloreanoMondada but take mean instead of minimum
   public:
     size_t num_updates=0;
+    float obstacle_cells;
     CoverageCalc coverageCalc;
     Coverage(CObsAvoidEvolLoopFunctions* cLoopFunctions);
+    virtual void before_trial(CSimulator &csim);
 
     /*after a single step of single agent */
     virtual void after_step(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions);

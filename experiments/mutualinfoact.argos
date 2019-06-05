@@ -117,7 +117,7 @@ centroids_folder="experiments"
   <!-- ****************** -->
   <!-- We don't want nor need a visualization during evolution -->
   <visualization>
-  <!--  <qt-opengl/> -->
+   <qt-opengl/>
   </visualization>
 
 </argos-configuration>
