@@ -40,7 +40,7 @@ void WriteToCommunicationChannel(CCI_RangeAndBearingActuator *m_pcRABA, unsigned
     m_pcRABA->SetData(databyte_index++, SelfId);
 
 
-    if(databyte_index >= m_pcRABA->GetSize()-1)
+    if(databyte_index > m_pcRABA->GetSize()-1)
     {
         std::cerr << " buffer_full in WriteToCommunicationChannel";
         exit(-1);

@@ -32,6 +32,7 @@ protected:
     CVector2       m_cHomingVector;
     UInt8          m_iBeaconData;
     Real           m_fBeaconSignalRange;
+    Real           m_fClosestBeaconRange;
 };
 
 
