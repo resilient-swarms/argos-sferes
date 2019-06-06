@@ -159,7 +159,7 @@ struct Params
     struct pop
     {
         // number of initial random points
-        SFERES_CONST size_t init_size = 100; //1000;
+        SFERES_CONST size_t init_size = 200; //1000;
         // size of a batch
         SFERES_CONST size_t size = 200; //1000;
         SFERES_CONST size_t nb_gen = 5000;
