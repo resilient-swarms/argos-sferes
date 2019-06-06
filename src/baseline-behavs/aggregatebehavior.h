@@ -31,6 +31,7 @@ public:
 protected:
     Real           m_fRangeAndBearing_RangeThreshold;
     CVector2       m_cAggregationVector;
+    unsigned       m_unRobotsInRange;
 
 };
 
