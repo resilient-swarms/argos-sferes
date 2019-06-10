@@ -132,7 +132,8 @@ CBaselineBehavs::CBaselineBehavs() :
     m_pcRABA(NULL),
     m_pcRABS(NULL),
     m_pcRNG(CRandom::CreateRNG("argos")),
-    b_damagedrobot(false)
+    b_damagedrobot(false),
+    m_unBorderCoverageStartTime(999999u)
 {
     m_fInternalRobotTimer = 0.0f;
 
@@ -344,7 +345,7 @@ void CBaselineBehavs::ControlStep()
 
     SenseCommunicate(RobotIdStrToInt(), m_pcRABA, m_uRABDataIndex);
 
-
+    m_fInternalRobotTimer++;
 
 
 

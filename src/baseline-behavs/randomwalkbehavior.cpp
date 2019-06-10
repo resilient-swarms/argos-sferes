@@ -22,7 +22,7 @@ CRandomWalkBehavior::CRandomWalkBehavior(double f_change_direction_probability, 
 
 /******************************************************************************/
 /******************************************************************************/
-    
+
 bool CRandomWalkBehavior::TakeControl() 
 {
     return true;
@@ -64,13 +64,13 @@ void CRandomWalkBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
     }
     else
     {
-        //std::cout << " move straight " << std::endl;
-        if(m_ptBorderCoverageStartTime && (m_sSensoryData.m_rTime - *m_ptBorderCoverageStartTime) < 100u)
+        if(m_ptBorderCoverageStartTime && abs(m_sSensoryData.m_rTime - *m_ptBorderCoverageStartTime) < 100u)
         {
-                fLeftWheelSpeed  = m_sRobotData.MaxSpeed * 3.0/4.0;
-                fRightWheelSpeed = m_sRobotData.MaxSpeed;
+            std::cout << "m_ptBorderCoverageStartTime " << *m_ptBorderCoverageStartTime << " m_sSensoryData.m_rTime " << m_sSensoryData.m_rTime << std::endl;
+            fLeftWheelSpeed  = m_sRobotData.MaxSpeed * 3.0/4.0;
+            fRightWheelSpeed = m_sRobotData.MaxSpeed;
         }
-        else
+        else         //std::cout << " move straight " << std::endl;
         {
             fLeftWheelSpeed  = m_sRobotData.MaxSpeed;
             fRightWheelSpeed = m_sRobotData.MaxSpeed;
