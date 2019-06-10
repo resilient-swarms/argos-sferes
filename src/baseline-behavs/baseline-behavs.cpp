@@ -520,7 +520,7 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.01f, &m_unBorderCoverageStartTime);
         m_vecBehaviors.push_back(pcRandomWalkBehavior);
 
-        //m_pcLEDs->SetAllColors(CColor::RED);
+        //std::cout << "m_unBorderCoverageStartTime = " << m_unBorderCoverageStartTime << std::endl;
     }
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING)

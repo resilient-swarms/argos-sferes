@@ -66,7 +66,7 @@ void CRandomWalkBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
     {
         if(m_ptBorderCoverageStartTime && abs(m_sSensoryData.m_rTime - *m_ptBorderCoverageStartTime) < 100u)
         {
-            std::cout << "m_ptBorderCoverageStartTime " << *m_ptBorderCoverageStartTime << " m_sSensoryData.m_rTime " << m_sSensoryData.m_rTime << std::endl;
+            //std::cout << "m_ptBorderCoverageStartTime " << *m_ptBorderCoverageStartTime << " m_sSensoryData.m_rTime " << m_sSensoryData.m_rTime << std::endl;
             fLeftWheelSpeed  = m_sRobotData.MaxSpeed * 3.0/4.0;
             fRightWheelSpeed = m_sRobotData.MaxSpeed;
         }
