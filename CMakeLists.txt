@@ -247,6 +247,10 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 	src/baseline-behavs/homingtofoodbeaconbehavior.cpp
 	src/baseline-behavs/aggregatebehavior.h
 	src/baseline-behavs/aggregatebehavior.cpp
+        src/baseline-behavs/coveragebehavior.h
+        src/baseline-behavs/coveragebehavior.cpp
+        src/baseline-behavs/bordercoveragebehavior.h
+        src/baseline-behavs/bordercoveragebehavior.cpp
 	src/baseline-behavs/flockingbehavior.h
 	src/baseline-behavs/flockingbehavior.cpp
 	src/baseline-behavs/circlebehavior.h

@@ -39,6 +39,8 @@
 #include "behavior.h"
 #include "aggregatebehavior.h"
 #include "dispersebehavior.h"
+#include "coveragebehavior.h"
+#include "bordercoveragebehavior.h"
 #include "randomwalkbehavior.h"
 #include "homingtofoodbeaconbehavior.h"
 #include "circlebehavior.h"
@@ -70,6 +72,8 @@ public:
             SWARM_AGGREGATION = 0,
             SWARM_DISPERSION,
             SWARM_HOMING,
+            SWARM_COVERAGE,
+            SWARM_BORDERCOVERAGE,
             SWARM_FLOCKING,
             SWARM_STOP,
             SWARM_NONE
@@ -434,6 +438,8 @@ private:
     SWheelTurningParams m_sWheelTurningParams;
 
     unsigned m_uRobotId;
+
+    UInt64 m_unBorderCoverageStartTime;
 
 };
 

@@ -13,6 +13,7 @@ class CRandomWalkBehavior : public CBehavior
 {
 public:
     CRandomWalkBehavior(double f_change_direction_probability);
+    CRandomWalkBehavior(double f_change_direction_probability, UInt64* BorderCoverageStartTime);
     
     virtual bool TakeControl();
     virtual void Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed);
@@ -27,6 +28,7 @@ public:
 
 protected:
     double m_fChangeDirectionProbability;
+    UInt64 *m_ptBorderCoverageStartTime;
 };
 
 /******************************************************************************/

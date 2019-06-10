@@ -41,6 +41,10 @@ void CBaselineBehavs::ExperimentToRun::Init(TConfigurationNode& t_node)
         SBehavior = SWARM_AGGREGATION;
     else if (swarmbehav.compare("SWARM_DISPERSION") == 0)
         SBehavior = SWARM_DISPERSION;
+    else if (swarmbehav.compare("SWARM_COVERAGE") == 0)
+        SBehavior = SWARM_COVERAGE;
+    else if (swarmbehav.compare("SWARM_BORDERCOVERAGE") == 0)
+        SBehavior = SWARM_BORDERCOVERAGE;
     else if (swarmbehav.compare("SWARM_FLOCKING") == 0)
         SBehavior = SWARM_FLOCKING;
     else if (swarmbehav.compare("SWARM_HOMING") == 0)
@@ -239,10 +243,12 @@ void CBaselineBehavs::ControlStep()
         RunGeneralFaults();
     }
 
-    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION  ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING    ||
-            m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING      ||
+    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION    ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION     ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING       ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING         ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_COVERAGE       ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_BORDERCOVERAGE ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP)
         RunHomogeneousSwarmExperiment();
 
@@ -477,6 +483,40 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
         m_vecBehaviors.push_back(pcDisperseBehavior);
 
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
+        m_vecBehaviors.push_back(pcRandomWalkBehavior);
+
+        //m_pcLEDs->SetAllColors(CColor::RED);
+    }
+
+    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_COVERAGE)
+    {
+        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
+        m_vecBehaviors.push_back(pcDisperseBehavior);
+
+        CCoverageBehavior* pcCoverageBehavior = new CCoverageBehavior(100.0f);
+        m_vecBehaviors.push_back(pcCoverageBehavior);
+
+        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.01f); //0.05f
+        m_vecBehaviors.push_back(pcRandomWalkBehavior);
+
+        //m_pcLEDs->SetAllColors(CColor::RED);
+    }
+
+    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_BORDERCOVERAGE)
+    {
+
+        // hug walls, then slide along them
+
+        //CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
+        //m_vecBehaviors.push_back(pcDisperseBehavior);
+
+        CCoverageBehavior* pcCoverageBehavior = new CCoverageBehavior(1.0f); // use rab sensors to keep from colliding robots.
+        m_vecBehaviors.push_back(pcCoverageBehavior);
+
+        CBorderCoverageBehavior* pcBorderCoverageBehavior = new CBorderCoverageBehavior(0.1f, &m_unBorderCoverageStartTime);
+        m_vecBehaviors.push_back(pcBorderCoverageBehavior);
+
+        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.01f, &m_unBorderCoverageStartTime);
         m_vecBehaviors.push_back(pcRandomWalkBehavior);
 
         //m_pcLEDs->SetAllColors(CColor::RED);

@@ -8,7 +8,7 @@
     <system threads="0" />
     <experiment length="1200"
                 ticks_per_second="10"
-                random_seed="111" />
+                random_seed="0" />
   </framework>
 
   <!-- *************** -->
@@ -29,7 +29,7 @@
         <differential_steering implementation="default" vel_noise_range="-0.1:0.1" dist_noise_range="-1.0:1.0" />
       </sensors>
       <params>
-        <experiment_run swarm_behavior="SWARM_AGGREGATION"
+      <experiment_run swarm_behavior="SWARM_BORDERCOVERAGE"
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" />
         <wheel_turning max_speed="13" />
@@ -79,7 +79,7 @@
     <distribute>
      <position method="uniform" min="-3,-3,0" max="3,3,0" />
      <orientation method="constant" values="0,0,0" />
-     <entity quantity="15" max_trials="5">
+     <entity quantity="0" max_trials="5">
        <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
      </entity>
     </distribute>

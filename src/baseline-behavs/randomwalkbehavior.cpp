@@ -6,8 +6,18 @@
 /******************************************************************************/
 
 CRandomWalkBehavior::CRandomWalkBehavior(double f_change_direction_probability) :
-    m_fChangeDirectionProbability(f_change_direction_probability) 
+    m_fChangeDirectionProbability(f_change_direction_probability),
+    m_ptBorderCoverageStartTime(NULL)
 {    
+}
+
+/******************************************************************************/
+/******************************************************************************/
+
+CRandomWalkBehavior::CRandomWalkBehavior(double f_change_direction_probability, UInt64* BorderCoverageStartTime) :
+    m_fChangeDirectionProbability(f_change_direction_probability),
+    m_ptBorderCoverageStartTime(BorderCoverageStartTime)
+{
 }
 
 /******************************************************************************/
@@ -55,8 +65,16 @@ void CRandomWalkBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
     else
     {
         //std::cout << " move straight " << std::endl;
-        fLeftWheelSpeed  = m_sRobotData.MaxSpeed;
-        fRightWheelSpeed = m_sRobotData.MaxSpeed;
+        if(m_ptBorderCoverageStartTime && (m_sSensoryData.m_rTime - *m_ptBorderCoverageStartTime) < 100u)
+        {
+                fLeftWheelSpeed  = m_sRobotData.MaxSpeed * 3.0/4.0;
+                fRightWheelSpeed = m_sRobotData.MaxSpeed;
+        }
+        else
+        {
+            fLeftWheelSpeed  = m_sRobotData.MaxSpeed;
+            fRightWheelSpeed = m_sRobotData.MaxSpeed;
+        }
     }
 
     //std::cout << "RavdLS:  " << fLeftWheelSpeed << " RS:  " << fRightWheelSpeed << std::endl;
