@@ -39,6 +39,15 @@
   </controllers>
 
 
+  <!-- ****************** -->
+  <!-- * Loop functions * -->
+  <!-- ****************** -->
+  <loop_functions library="lib/libbaseline-behavs-loopfunc.so"
+                  label="baseline-behavs-loop-functions">
+    <params />
+  </loop_functions>
+
+
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->

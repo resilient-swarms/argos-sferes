@@ -263,5 +263,15 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
         argos3plugin_simulator_thymio
         argos3plugin_simulator_genericrobot)
 
+    add_library(baseline-behavs-loopfunc SHARED
+        src/baseline-behavs/baseline-behavs-loopfunc.h
+        src/baseline-behavs/baseline-behavs-loopfunc.cpp)
+
+    target_link_libraries(baseline-behavs-loopfunc
+        baseline-behavs
+        argos3core_simulator
+        argos3plugin_simulator_thymio
+        argos3plugin_simulator_genericrobot)
+
 
   
