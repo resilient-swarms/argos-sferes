@@ -8,7 +8,7 @@
 //#include "ncd.h"
 #include <assert.h>
 
- #include <boost/math/special_functions/relative_difference.hpp> 
+#include <boost/math/special_functions/relative_difference.hpp> 
 
 
 size_t StatFuns::get_bin(float activation, float min_act, float max_act, size_t num_bins)

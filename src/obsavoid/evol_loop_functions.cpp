@@ -98,12 +98,24 @@ void CObsAvoidEvolLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
         }
         else if (s == "Coverage")
         {
-            this->fitfun = new Coverage(this);
+            this->fitfun = new Coverage(s, this);
         }
         else if (s == "TrialCoverage")
         {
-            this->fitfun = new TrialCoverage(this);
+            this->fitfun = new TrialCoverage(s, this);
         }
+        else if (s == "BorderCoverage")
+        {
+            this->fitfun = new Coverage(s, this);
+        }
+        else if (s == "Dispersion")
+        {
+            this->fitfun = new Dispersion(this);
+        }
+        // else if (s == "Flocking")
+        // {
+        //     this->fitfun = new Flocking(this);
+        // }
         else
         {
             throw std::runtime_error("fitfuntype " + s + " not found");
@@ -257,6 +269,10 @@ void CObsAvoidEvolLoopFunctions::place_robots()
     Real maxX = size.GetX() - 0.0;
     Real minY = 0.0;
     Real maxY = size.GetY() - 0.0;
+    curr_pos.resize(m_unNumberRobots);
+    curr_theta.resize(m_unNumberRobots);
+    old_pos.resize(m_unNumberRobots);
+    old_theta.resize(m_unNumberRobots);
     for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
     {
         m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
@@ -429,11 +445,12 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         cController.m_fRightSpeed = outf[1];
         if (cController.id_FaultyRobotInSwarm == robotindex)
             cController.damage_actuators();
-
+            outf[0] = cController.m_fLeftSpeed;// use actual velocity for FloreanoMondada fitness
+            outf[1] = cController.m_fRightSpeed;
         CVector3 axis;
-        cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta, axis);
+        cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta[robotindex], axis);
 
-        curr_pos = cThymio.GetEmbodiedEntity().GetOriginAnchor().Position;
+        curr_pos[robotindex] = cThymio.GetEmbodiedEntity().GetOriginAnchor().Position;
         // #ifdef PRINTING
         //         std::cout << "theta=" << curr_theta << std::endl;
         // #endif
@@ -465,8 +482,8 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         old_pos     = curr_pos;
         old_theta   = curr_theta;*/
 
-        old_pos = curr_pos;
-        old_theta = curr_theta;
+        old_pos[robotindex] = curr_pos[robotindex];
+        old_theta[robotindex] = curr_theta[robotindex];
         this->descriptor->set_output_descriptor(robotindex, *this);
         this->fitfun->after_step(robotindex, *this);
 
@@ -481,6 +498,7 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         ++robotindex;
     }
     this->descriptor->after_robotloop(*this);
+    this->fitfun->after_robotloop(*this);
 }
 
 void CObsAvoidEvolLoopFunctions::PostStep()
