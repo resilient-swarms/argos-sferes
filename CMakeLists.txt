@@ -263,9 +263,15 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
         argos3plugin_simulator_thymio
         argos3plugin_simulator_genericrobot)
 
+    set(baseline-behavs-loopfunc-SOURCES src/baseline-behavs/baseline-behavs-loopfunc.cpp)
+    if(ARGOS_COMPILE_QTOPENGL)
+      set(baseline-behavs-loopfunc-SOURCES
+          ${baseline-behavs-loopfunc-SOURCES}
+          src/baseline-behavs/baseline-behavs-robids.cpp)
+    endif(ARGOS_COMPILE_QTOPENGL)
+
     add_library(baseline-behavs-loopfunc SHARED
-        src/baseline-behavs/baseline-behavs-loopfunc.h
-        src/baseline-behavs/baseline-behavs-loopfunc.cpp)
+        ${baseline-behavs-loopfunc-SOURCES})
 
     target_link_libraries(baseline-behavs-loopfunc
         baseline-behavs
@@ -273,5 +279,8 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
         argos3plugin_simulator_thymio
         argos3plugin_simulator_genericrobot)
 
+    if(ARGOS_COMPILE_QTOPENGL)
+        target_link_libraries(baseline-behavs-loopfunc argos3plugin_simulator_qtopengl)
+    endif(ARGOS_COMPILE_QTOPENGL)
 
   

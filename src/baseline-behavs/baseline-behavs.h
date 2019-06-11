@@ -377,6 +377,8 @@ public:
         }
     }
 
+    std::vector<Real> GetNormalizedSensorReadings();
+
     Real m_fInternalRobotTimer;
     std::vector <int> beaconrobots_ids;
      unsigned m_uRABDataIndex;
