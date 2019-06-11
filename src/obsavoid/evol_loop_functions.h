@@ -263,10 +263,8 @@ public:
     FitFun *fitfun;
 
     // only used for the checks which are not used (presumably the checks quite expensive) ?; also not suitable for multi-agent ?
-    CVector3 old_pos;
-    CRadians old_theta;
-    CVector3 curr_pos;
-    CRadians curr_theta;
+    std::vector<CVector3> old_pos, curr_pos;
+    std::vector<CRadians> old_theta, curr_theta;
     CVector3 centre, max;
 
     /* config initialisation functions */

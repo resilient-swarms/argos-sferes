@@ -399,11 +399,11 @@ void SDBC::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &
 void SDBC::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
 	// here just set the attributes of robot at index; let end
-	CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[robot_index]);
+	CVector3 pos = cLoopFunctions.curr_pos[robot_index];
 
 	float x = pos.GetX() / maxX;
 	float y = pos.GetY() / maxY;
-	float theta = cLoopFunctions.curr_theta.UnsignedNormalize() / CRadians::TWO_PI; // normalise radians to [0,1]
+	float theta = cLoopFunctions.curr_theta[robot_index].UnsignedNormalize() / CRadians::TWO_PI; // normalise radians to [0,1]
 	float wheel1 = (10.0f + cLoopFunctions.outf[0]) / 20.0f;
 	float wheel2 = (10.0f + cLoopFunctions.outf[1]) / 20.0f;
 

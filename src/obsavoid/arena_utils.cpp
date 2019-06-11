@@ -5,6 +5,12 @@
 
 CoverageCalc::CoverageCalc(CObsAvoidEvolLoopFunctions *cLoopFunctions)
 {
+    define_grid(cLoopFunctions);
+    get_num_cells(*cLoopFunctions);
+}
+
+void CoverageCalc::define_grid(CObsAvoidEvolLoopFunctions* cLoopFunctions)
+{
     // initialise grid (for calculating coverage and uniformity)
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
     
@@ -16,11 +22,10 @@ CoverageCalc::CoverageCalc(CObsAvoidEvolLoopFunctions *cLoopFunctions)
     float max_dim_size = Max(xdim,ydim);
     grid_step = max_dim_size;
 
-    total_size = (max.GetX() * max.GetY()) / (grid_step*grid_step);
-    get_obstacle_area(*cLoopFunctions);
+    
 }
 
-void CoverageCalc::get_obstacle_area(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CoverageCalc::get_num_cells(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 {
     CSpace::TMapPerType &argos_cylinders = cLoopFunctions.GetSpace().GetEntitiesByType("cylinder");
     float obstacle_cells=0.0f;
@@ -62,7 +67,8 @@ void CoverageCalc::get_obstacle_area(CObsAvoidEvolLoopFunctions &cLoopFunctions)
         // size_t additional_taken = std::floor(area / (grid_step*grid_step));
         // size+=additional_taken;
 	}
-    
+    argos::CVector3 max = cLoopFunctions.GetSpace().GetArenaSize();
+    float total_size = (max.GetX() * max.GetY()) / (grid_step*grid_step);
     num_cells = std::ceil(total_size - obstacle_cells);
 }
 /* get the actual coverage of a single trial */
@@ -138,4 +144,60 @@ std::vector<float> CoverageCalc::get_probs(size_t num_updates) const
 void CoverageCalc::print_xy(location_t location) const
 {
     std::cout<<"("<<std::get<0>(location)<<","<<std::get<1>(location)<<")"<<std::endl;
+}
+
+BorderCoverageCalc::BorderCoverageCalc(CObsAvoidEvolLoopFunctions *cLoopFunctions) : CoverageCalc(cLoopFunctions)
+{
+
+}
+void BorderCoverageCalc::get_num_cells(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+{
+    // note: simplifying assumption that obstacles are not placed on the border
+    argos::CVector3 max = cLoopFunctions.GetSpace().GetArenaSize();
+    size_t num_x_bins = (int) std::ceil(max.GetX()/grid_step);
+    size_t num_y_bins = (int) std::ceil(max.GetX()/grid_step);
+    max_bin_x = num_x_bins - 1;
+    max_bin_y = num_y_bins - 1;
+
+    num_cells = max_bin_x*2 + max_bin_y*2 - 4;// -4 to remove double counts at the edges
+}
+
+/* check whether bin is on the border*/
+bool BorderCoverageCalc::is_on_border(location_t bin) const
+{
+   float x = std::get<0>(bin);
+   float y = std::get<1>(bin);
+   return x == 0  || y ==0 || x == max_bin_x || y == max_bin_y;
+}
+/* get bin corresponding to a position in the space */
+BorderCoverageCalc::location_t  BorderCoverageCalc::get_bin(argos::CVector3 vec) const
+{
+    location_t bin = CoverageCalc::get_bin(vec);
+    if (is_on_border(bin) )
+    {
+        return bin;
+    }
+    else{
+        
+        return null_location;
+    }
+}
+ /* updated the visited positions */
+void BorderCoverageCalc::update(argos::CVector3 pos)
+{
+    //count the bin
+    location_t bin = get_bin(pos);
+    if (bin == null_location)  // binned position not on the border
+    {
+        return;
+    }
+    auto find_result = unique_visited_positions.find(bin);
+    if (find_result == unique_visited_positions.end())
+    {
+        unique_visited_positions.insert(std::pair<location_t, size_t>(bin, 1));
+    }
+    else
+    {
+        unique_visited_positions[bin] += 1;
+    }
 }

@@ -1,9 +1,10 @@
 #!/bin/bash -e
 
-RESUME_GENERATION=1200
-
+#RESUME_GENERATION=400
+set_latest () {
+  eval "latest=\${$#}"
+}
 source activate py3.7 # just for the cvt initialisation 
-
 
 data=experiments/datanew
 
@@ -13,16 +14,16 @@ declare -A descriptors
 declare -A voronoi
 
 
-#descriptors["history"]=2
+descriptors["history"]=2
 descriptors["cvt_mutualinfoact"]=14
 descriptors["cvt_mutualinfo"]=21
 descriptors["cvt_spirit"]=400
 descriptors["cvt_sdbc_all_std"]=14
-#voronoi["history"]=""
+voronoi["history"]=""
 voronoi["cvt_mutualinfoact"]="cvt"
 voronoi["cvt_mutualinfo"]="cvt"
 voronoi["cvt_spirit"]="cvt"
-#voronoi["cvt_sdbc_all_std"]="cvt"
+voronoi["cvt_sdbc_all_std"]="cvt"
 for FitfunType in Coverage; do
     echo 'Fitfun'${FitFunType}
     for SensorRange in 50; do
@@ -63,6 +64,7 @@ for FitfunType in Coverage; do
 		#python sferes2/modules/cvt_map_elites/cvt.py -k 1000 -d ${BD_DIMS} -p 100000 -f ${Outfolder}
 		#vsuffix='-v '${CVT}
 		#cho ${cvsuffix}
+		cp ${ConfigFolder}/results1/centroids_1000_${BD_DIMS}.dat ${Outfolder}
 	     fi
 	  
 	   # Call ARGoS
@@ -70,8 +72,14 @@ for FitfunType in Coverage; do
 	   export CONFIG=${ConfigFile}
 	   export OUTPUTDIR=${Outfolder}
 	   export VORONOI=${CVT}
-	    if [ ! -z "${RESUME_GENERATION}"  ]; then
-	   	export GENERATION_FILE="${Outfolder}/gen_${RESUME_GENERATION}"
+	   bash zero_padding_data.sh ${Outfolder}
+	   set_latest ${Outfolder}/gen_*
+
+
+	   RESUME_GENERATION=${latest} 
+	   if [ ! -z "${RESUME_GENERATION}"  ]; then
+		echo "found last generation file: "${RESUME_GENERATION}
+	   	export GENERATION_FILE=${RESUME_GENERATION}
 	   fi
            
 	   sbatch submit_job.sh 
