@@ -349,75 +349,84 @@ void CBaselineBehavs::ControlStep()
 
 
 
+    CCI_RangeAndBearingSensor::TReadings sensor_readings = m_pcRABS->GetReadings();
+    for(size_t i = 0; i < sensor_readings.size(); ++i)
+    {
+        std::cout << "RAB range " << sensor_readings[i].Range << " Bearing "  << sensor_readings[i].HorizontalBearing << " Message size " << sensor_readings[i].Data.Size() << std::endl;
+        for(size_t j = 0; j < sensor_readings[i].Data.Size(); ++j)
+            std::cout << "Data-Packet at index " << j << " is " << sensor_readings[i].Data[j] << std::endl;
+    }
 
 
 
 
 
 
+    //    m_pcRABA->SetData(0, 100); // send test-value of 100 on RAB medium
 
-//    m_pcRABA->SetData(0, 100); // send test-value of 100 on RAB medium
+    //    /* Get readings from proximity sensor */
+    //    const CCI_ThymioProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
+    //    /* Get readings from ground sensor */
+    //    const CCI_ThymioGroundSensor::TReadings& tGroundReads = m_pcGround->GetReadings();
 
-//    /* Get readings from proximity sensor */
-//    const CCI_ThymioProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
-//    /* Get readings from ground sensor */
-//    const CCI_ThymioGroundSensor::TReadings& tGroundReads = m_pcGround->GetReadings();
+    //    m_pcLeds->SetProxHIntensity(tProxReads);
 
-//    m_pcLeds->SetProxHIntensity(tProxReads);
+    //    //   LOG << tProxReads;
+    //    //   LOG << tProxReads[2].Value<< tProxReads[2].Angle.GetValue();
+    //    //   std::cout << tProxReads;
 
-//    //   LOG << tProxReads;
-//    //   LOG << tProxReads[2].Value<< tProxReads[2].Angle.GetValue();
-//    //   std::cout << tProxReads;
-
-//    m_pcWheels->SetLinearVelocity(m_fWheelVelocity, m_fWheelVelocity);
+    //    m_pcWheels->SetLinearVelocity(m_fWheelVelocity, m_fWheelVelocity);
 
 
-//    /* Sum them together */
-//    CVector2 cAccumulator;
-//    for(size_t i = 0; i < tProxReads.size(); ++i)
-//    {
-//        cAccumulator += CVector2(tProxReads[i].Value, tProxReads[i].Angle);
-//    }
-//    cAccumulator /= tProxReads.size();
+    //    /* Sum them together */
+    //    CVector2 cAccumulator;
+    //    for(size_t i = 0; i < tProxReads.size(); ++i)
+    //    {
+    //        cAccumulator += CVector2(tProxReads[i].Value, tProxReads[i].Angle);
+    //    }
+    //    cAccumulator /= tProxReads.size();
 
-//    short cground = 0;
-//    for(size_t i = 0; i < tGroundReads.size(); ++i)
-//    {
-//        cground += tGroundReads[i].Value;
-//    }
+    //    short cground = 0;
+    //    for(size_t i = 0; i < tGroundReads.size(); ++i)
+    //    {
+    //        cground += tGroundReads[i].Value;
+    //    }
 
-//    /* If the angle of the vector is small enough and the closest obstacle
-//    * is far enough, continue going straight, otherwise curve a little
-//    */
-//    CRadians cAngle = cAccumulator.Angle();
-//    LOG << cAngle.GetValue();
-//    if(m_cGoStraightAngleRange.WithinMinBoundIncludedMaxBoundIncluded(cAngle) &&
-//            cAccumulator.Length() < m_fDelta )
-//    {
-//        /* Go straight */
-//        m_pcWheels->SetLinearVelocity(m_fWheelVelocity, m_fWheelVelocity);
-//    }
-//    else
-//    {
-//        /* Turn, depending on the sign of the angle */
-//        if(cAngle.GetValue() < 0)
-//        {
-//            m_pcWheels->SetLinearVelocity(m_fWheelVelocity, 0);
-//        }
-//        else
-//        {
-//            m_pcWheels->SetLinearVelocity(0, m_fWheelVelocity);
-//        }
-//    }
+    //    /* If the angle of the vector is small enough and the closest obstacle
+    //    * is far enough, continue going straight, otherwise curve a little
+    //    */
+    //    CRadians cAngle = cAccumulator.Angle();
+    //    LOG << cAngle.GetValue();
+    //    if(m_cGoStraightAngleRange.WithinMinBoundIncludedMaxBoundIncluded(cAngle) &&
+    //            cAccumulator.Length() < m_fDelta )
+    //    {
+    //        /* Go straight */
+    //        m_pcWheels->SetLinearVelocity(m_fWheelVelocity, m_fWheelVelocity);
+    //    }
+    //    else
+    //    {
+    //        /* Turn, depending on the sign of the angle */
+    //        if(cAngle.GetValue() < 0)
+    //        {
+    //            m_pcWheels->SetLinearVelocity(m_fWheelVelocity, 0);
+    //        }
+    //        else
+    //        {
+    //            m_pcWheels->SetLinearVelocity(0, m_fWheelVelocity);
+    //        }
+    //    }
 
-//    CCI_RangeAndBearingSensor::TReadings sensor_readings = m_pcRABS->GetReadings();
-//    std::cout << "Robots in RAB range of " << GetId() << " is " << sensor_readings.size() << std::endl;
-//    for(size_t i = 0; i < sensor_readings.size(); ++i)
-//    {
-//        std::cout << "RAB range " << sensor_readings[i].Range << " Bearing "  << sensor_readings[i].HorizontalBearing << " Message size " << sensor_readings[i].Data.Size() << std::endl;
-//        for(size_t j = 0; j < sensor_readings[i].Data.Size(); ++j)
-//            std::cout << "Data-Packet at index " << j << " is " << sensor_readings[i].Data[j] << std::endl;
-//    }
+    if(this->GetId().compare("thymio0") == 0)
+    {
+            CCI_RangeAndBearingSensor::TReadings sensor_readings = m_pcRABS->GetReadings();
+            std::cout << "Robots in RAB range of " << GetId() << " is " << sensor_readings.size() << std::endl;
+            for(size_t i = 0; i < sensor_readings.size(); ++i)
+            {
+                std::cout << "RAB range " << sensor_readings[i].Range << " Bearing "  << sensor_readings[i].HorizontalBearing << " Message size " << sensor_readings[i].Data.Size() << std::endl;
+                for(size_t j = 0; j < sensor_readings[i].Data.Size(); ++j)
+                    std::cout << "Data-Packet at index " << j << " is " << sensor_readings[i].Data[j] << std::endl;
+            }
+    }
 }
 
 CBaselineBehavs::~CBaselineBehavs()
@@ -562,6 +571,69 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP)
     {
     }
+}
+
+/****************************************/
+/****************************************/
+
+std::vector<Real> CBaselineBehavs::GetNormalizedSensorReadings()
+{
+    std::vector<Real> norm_readings;
+    std::vector<CCI_ThymioProximitySensor::SReading> proximity_sensors = GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior);
+    for(UInt8 i = 0; i < proximity_sensors.size(); ++i)
+    {
+        norm_readings.push_back((1.0f - proximity_sensors[i].Value) * 2.0f - 1.0f);
+    }
+
+    CCI_RangeAndBearingSensor::TReadings rab_sensors = GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior);
+    std::vector<CRadians> rab_cones;
+    rab_cones.push_back(CRadians.FromValueInDegrees(0.0)); // going counter-clock wise
+    rab_cones.push_back(CRadians.FromValueInDegrees(45.0));
+    rab_cones.push_back(CRadians.FromValueInDegrees(90.0));
+    rab_cones.push_back(CRadians.FromValueInDegrees(135.0));
+    rab_cones.push_back(CRadians.FromValueInDegrees(180.0));
+    rab_cones.push_back(CRadians.FromValueInDegrees(-135.0));
+    rab_cones.push_back(CRadians.FromValueInDegrees(-90.0));
+    rab_cones.push_back(CRadians.FromValueInDegrees(-45.0));
+
+    for(UInt8 i = proximity_sensors.size() + 1; i < proximity_sensors.size() + 8; ++i) // 8 cones
+    {
+        norm_readings.push_back(100.0); // initialize rab sensor readings to max range of 100cm
+    }
+
+
+    std::vector<Real> rab_ranges_in_cone;
+    for(UInt8 i = 0; i < rab_sensors.size(); ++i)
+    {
+        Real min_diff = 1000.0;
+        for(UInt8 rab_cone_index = 0; rab_cone_index < rab_cones.size(); ++rab_cone_index)
+        {
+            if(NormalizedDifference(rab_sensors[i].HorizontalBearing, rab_cones[rab_cone_index]).GetAbsoluteValue() < min_diff)
+            {
+                min_diff = NormalizedDifference(rab_sensors[i].HorizontalBearing, rab_cones[rab_cone_index]).GetAbsoluteValue();
+                min_cone_index = rab_cone_index;
+            }
+        }
+        if(min_diff != 1000.0)
+        {
+            if(norm_readings[proximity_sensors.size() + min_cone_index] > rab_sensors[i].Range)
+            {
+                norm_readings[proximity_sensors.size() + min_cone_index] = rab_sensors[i].Range;
+            }
+        }
+    }
+
+
+    for(UInt8 i = 0; i < rab_sensors.size(); ++i)
+    {
+        rab_sensors[i].HorizontalBearing;
+        NormalizedDifference()
+                GetAbsoluteValue()
+
+    }
+
+
+    return norm_readings;
 }
 
 /****************************************/

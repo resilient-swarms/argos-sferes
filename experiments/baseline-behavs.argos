@@ -73,8 +73,8 @@
     <distribute>
       <position method="uniform" min="-3,-3,0" max="3,3,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="20" max_trials="5">
-        <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- using a high bandwidth of 1000 bytes for now -->
+      <entity quantity="2" max_trials="5">
+        <Thymio id="thymio" rab_data_size="4" rab_range="10">    <!-- using a high bandwidth of 1000 bytes for now -->
           <controller config="bb" />
         </Thymio>
       </entity>
@@ -115,6 +115,7 @@
   <!-- ****************** -->
   <visualization>
     <qt-opengl>
+        <user_functions label="baseline-behavs-robids" />
     </qt-opengl>
   </visualization>
 
