@@ -198,7 +198,7 @@ std::pair<std::vector<argos::CVector3>, argos::CVector3> Aggregation::centre_of_
     //     cm += mass * pos;
     //     positions.push_back(pos);
     // }
-    for (size_t i=0; i < cLoopFunctions.m_pcvecRobot.size(); ++i)
+    for (size_t i=0; i < cLoopFunctions.curr_pos.size(); ++i)
     {
 
         float mass = 1.0; //get_mass(robot);
