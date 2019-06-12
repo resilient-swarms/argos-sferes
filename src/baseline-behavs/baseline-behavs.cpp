@@ -347,16 +347,22 @@ void CBaselineBehavs::ControlStep()
 
     m_fInternalRobotTimer++;
 
-
-
-    CCI_RangeAndBearingSensor::TReadings sensor_readings = m_pcRABS->GetReadings();
-    for(size_t i = 0; i < sensor_readings.size(); ++i)
+    if(this->GetId().compare("thymio0") == 0)
     {
-        std::cout << "RAB range " << sensor_readings[i].Range << " Bearing "  << sensor_readings[i].HorizontalBearing << " Message size " << sensor_readings[i].Data.Size() << std::endl;
-        for(size_t j = 0; j < sensor_readings[i].Data.Size(); ++j)
-            std::cout << "Data-Packet at index " << j << " is " << sensor_readings[i].Data[j] << std::endl;
+            CCI_RangeAndBearingSensor::TReadings sensor_readings = m_pcRABS->GetReadings();
+            std::cout << "Robots in RAB range of " << GetId() << " is " << sensor_readings.size() << std::endl;
+            for(size_t i = 0; i < sensor_readings.size(); ++i)
+            {
+                std::cout << "RAB range " << sensor_readings[i].Range << " Bearing "  << sensor_readings[i].HorizontalBearing << std::endl;
+//                for(size_t j = 0; j < sensor_readings[i].Data.Size(); ++j)
+//                    std::cout << "Data-Packet at index " << j << " is " << sensor_readings[i].Data[j] << std::endl;
+            }
+            for (UInt8 i = 0; i < GetNormalizedSensorReadings().size(); ++i)
+            {
+                std::cout << GetNormalizedSensorReadings()[i] << " ";
+            }
+            std::cout << std::endl;
     }
-
 
 
 
@@ -416,17 +422,7 @@ void CBaselineBehavs::ControlStep()
     //        }
     //    }
 
-    if(this->GetId().compare("thymio0") == 0)
-    {
-            CCI_RangeAndBearingSensor::TReadings sensor_readings = m_pcRABS->GetReadings();
-            std::cout << "Robots in RAB range of " << GetId() << " is " << sensor_readings.size() << std::endl;
-            for(size_t i = 0; i < sensor_readings.size(); ++i)
-            {
-                std::cout << "RAB range " << sensor_readings[i].Range << " Bearing "  << sensor_readings[i].HorizontalBearing << " Message size " << sensor_readings[i].Data.Size() << std::endl;
-                for(size_t j = 0; j < sensor_readings[i].Data.Size(); ++j)
-                    std::cout << "Data-Packet at index " << j << " is " << sensor_readings[i].Data[j] << std::endl;
-            }
-    }
+
 }
 
 CBaselineBehavs::~CBaselineBehavs()
@@ -483,8 +479,6 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
         m_vecBehaviors.push_back(pcRandomWalkBehavior);
-
-        //m_pcLEDs->SetAllColors(CColor::GREEN);
     }
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION)
@@ -494,8 +488,6 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
         m_vecBehaviors.push_back(pcRandomWalkBehavior);
-
-        //m_pcLEDs->SetAllColors(CColor::RED);
     }
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_COVERAGE)
@@ -508,8 +500,6 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.01f); //0.05f
         m_vecBehaviors.push_back(pcRandomWalkBehavior);
-
-        //m_pcLEDs->SetAllColors(CColor::RED);
     }
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_BORDERCOVERAGE)
@@ -581,31 +571,29 @@ std::vector<Real> CBaselineBehavs::GetNormalizedSensorReadings()
     std::vector<Real> norm_readings;
     std::vector<CCI_ThymioProximitySensor::SReading> proximity_sensors = GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior);
     for(UInt8 i = 0; i < proximity_sensors.size(); ++i)
-    {
         norm_readings.push_back((1.0f - proximity_sensors[i].Value) * 2.0f - 1.0f);
-    }
 
     CCI_RangeAndBearingSensor::TReadings rab_sensors = GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior);
     std::vector<CRadians> rab_cones;
-    rab_cones.push_back(CRadians.FromValueInDegrees(0.0)); // going counter-clock wise
-    rab_cones.push_back(CRadians.FromValueInDegrees(45.0));
-    rab_cones.push_back(CRadians.FromValueInDegrees(90.0));
-    rab_cones.push_back(CRadians.FromValueInDegrees(135.0));
-    rab_cones.push_back(CRadians.FromValueInDegrees(180.0));
-    rab_cones.push_back(CRadians.FromValueInDegrees(-135.0));
-    rab_cones.push_back(CRadians.FromValueInDegrees(-90.0));
-    rab_cones.push_back(CRadians.FromValueInDegrees(-45.0));
+    rab_cones.push_back(ToRadians(CDegrees(0.0))); // going counter-clock wise
+    rab_cones.push_back(ToRadians(CDegrees(45.0)));
+    rab_cones.push_back(ToRadians(CDegrees(90.0)));
+    rab_cones.push_back(ToRadians(CDegrees(135.0)));
+    rab_cones.push_back(ToRadians(CDegrees(180.0)));
+    rab_cones.push_back(ToRadians(CDegrees(-135.0)));
+    rab_cones.push_back(ToRadians(CDegrees(-90.0)));
+    rab_cones.push_back(ToRadians(CDegrees(-45.0)));
+
+    Real max_rab_range = 100.0; // in cm
 
     for(UInt8 i = proximity_sensors.size() + 1; i < proximity_sensors.size() + 8; ++i) // 8 cones
     {
-        norm_readings.push_back(100.0); // initialize rab sensor readings to max range of 100cm
+        norm_readings.push_back(max_rab_range); // initialize rab sensor readings to max range of 100cm
     }
 
-
-    std::vector<Real> rab_ranges_in_cone;
     for(UInt8 i = 0; i < rab_sensors.size(); ++i)
     {
-        Real min_diff = 1000.0;
+        Real min_diff = 1000.0; UInt8 min_cone_index;
         for(UInt8 rab_cone_index = 0; rab_cone_index < rab_cones.size(); ++rab_cone_index)
         {
             if(NormalizedDifference(rab_sensors[i].HorizontalBearing, rab_cones[rab_cone_index]).GetAbsoluteValue() < min_diff)
@@ -615,22 +603,13 @@ std::vector<Real> CBaselineBehavs::GetNormalizedSensorReadings()
             }
         }
         if(min_diff != 1000.0)
-        {
             if(norm_readings[proximity_sensors.size() + min_cone_index] > rab_sensors[i].Range)
-            {
                 norm_readings[proximity_sensors.size() + min_cone_index] = rab_sensors[i].Range;
-            }
-        }
-    }
-
-
-    for(UInt8 i = 0; i < rab_sensors.size(); ++i)
-    {
-        rab_sensors[i].HorizontalBearing;
-        NormalizedDifference()
-                GetAbsoluteValue()
 
     }
+
+    for(UInt8 rab_cone_index = 0; rab_cone_index < rab_cones.size(); ++rab_cone_index)
+        norm_readings[proximity_sensors.size() + rab_cone_index] = (norm_readings[proximity_sensors.size() + rab_cone_index] / max_rab_range) * 2.0 - 1.0;
 
 
     return norm_readings;

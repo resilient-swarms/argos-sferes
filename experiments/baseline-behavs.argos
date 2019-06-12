@@ -29,7 +29,7 @@
         <differential_steering implementation="default" vel_noise_range="-0.1:0.1" dist_noise_range="-1.0:1.0" />
       </sensors>
       <params>
-      <experiment_run swarm_behavior="SWARM_BORDERCOVERAGE"
+      <experiment_run swarm_behavior="SWARM_AGGREGATION"
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" />
         <wheel_turning max_speed="13" />
@@ -73,8 +73,8 @@
     <distribute>
       <position method="uniform" min="-3,-3,0" max="3,3,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="2" max_trials="5">
-        <Thymio id="thymio" rab_data_size="4" rab_range="10">    <!-- using a high bandwidth of 1000 bytes for now -->
+      <entity quantity="20" max_trials="5">
+        <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
           <controller config="bb" />
         </Thymio>
       </entity>
