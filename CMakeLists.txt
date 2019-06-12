@@ -155,34 +155,39 @@ add_definitions(-DTAG="${tag}")
 
 # Descend into the controllers directory
 add_library(nn_controller SHARED
-  src/obsavoid/nn_controller.h
-  src/obsavoid/nn_controller.cpp
+  src/evolution/nn_controller.h
+  src/evolution/nn_controller.cpp
 )
 
 
 add_library(statistics SHARED
-  src/obsavoid/statistics.h
-  src/obsavoid/statistics.cpp
+  src/core/statistics.h
+  src/core/statistics.cpp
 )
 
-add_library(obsavoid_evol_loopfunctions${tag} SHARED
-  src/obsavoid/evol_loop_functions.h
-  src/obsavoid/evol_loop_functions.cpp
+add_library(base_loopfunctions SHARED
+  src/core/base_loop_functions.h
+  src/core/base_loop_functions.cpp
+)
+
+add_library(evolution_loopfunctions${tag} SHARED
+  src/evolution/evol_loop_functions.h
+  src/evolution/evol_loop_functions.cpp
 )
 
 add_library(arena_utils${tag} SHARED
-  src/obsavoid/arena_utils.h
-  src/obsavoid/arena_utils.cpp
+  src/core/arena_utils.h
+  src/core/arena_utils.cpp
 )
 
 add_library(fitness_functions${tag} SHARED
-  src/obsavoid/fitness_functions.h
-  src/obsavoid/fitness_functions.cpp
+  src/core/fitness_functions.h
+  src/core/fitness_functions.cpp
 )
 
 add_library(descriptors${tag} SHARED
-  src/obsavoid/descriptors.h
-  src/obsavoid/descriptors.cpp
+  src/evolution/descriptors.h
+  src/evolution/descriptors.cpp
 )
 
 
@@ -193,10 +198,10 @@ add_library(descriptors${tag} SHARED
 
 
 
-set(EXECUTABLE obsavoid_evol${tag})
-add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
-
-    target_link_libraries(${CONTROL}
+set(EXECUTABLE behaviour_evol${tag})
+add_executable(${EXECUTABLE} src/main.cpp)
+      
+      target_link_libraries(${CONTROL}
       argos3core_simulator
       #argos3plugin_simulator_actuators
       argos3plugin_simulator_thymio
@@ -206,7 +211,7 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       ${Boost_LIBRARIES}
       ${TBB_LIBRARIES})
 
-    target_link_libraries(obsavoid_evol_loopfunctions${tag}
+    target_link_libraries(evolution_loopfunctions${tag}
       ${CONTROL}
       argos3core_simulator
       #argos3plugin_simulator_actuators
@@ -222,7 +227,8 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 
     target_link_libraries(${EXECUTABLE}
       ${CONTROL}
-      obsavoid_evol_loopfunctions${tag}
+      evolution_loopfunctions${tag}
+      base_loopfunctions
       descriptors${tag}
       fitness_functions${tag}
       arena_utils${tag}
@@ -230,7 +236,7 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       argos3core_simulator 
       ${LUA_LIBRARIES}
       ${Boost_LIBRARIES} 
-      ${TBB_LIBRARIES})
+${TBB_LIBRARIES})
 
 
     
@@ -259,6 +265,7 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 	src/baseline-behavs/sensingandcommunication.cpp)
 
     target_link_libraries(baseline-behavs
+        base_loopfunctions
         argos3core_simulator
         argos3plugin_simulator_thymio
         argos3plugin_simulator_genericrobot)

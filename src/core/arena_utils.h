@@ -1,10 +1,12 @@
 #ifndef ARENA_UTILS
 #define ARENA_UTILS
-#include <src/obsavoid/evol_loop_functions.h>
+
 //#include <boost/math/constants/constants.hpp>
 /****************************************/
 
 // static const float PI = boost::math::constants::pi<float>();
+
+class BaseLoopFunctions;
 
 class CoverageCalc
 {
@@ -17,12 +19,12 @@ public:
     float grid_step;
     float num_cells;
     CoverageCalc(){};
-    CoverageCalc(CObsAvoidEvolLoopFunctions* cLoopFunctions);
+    CoverageCalc(BaseLoopFunctions* cLoopFunctions);
 
-    virtual void define_grid(CObsAvoidEvolLoopFunctions* cLoopFunctions);
+    virtual void define_grid(BaseLoopFunctions* cLoopFunctions);
 
     /* get the number of cells*/
-    virtual void get_num_cells(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+    virtual void get_num_cells(BaseLoopFunctions &cLoopFunctions);
     
     /* get the actual coverage of a single trial */
     float get_coverage() const;
@@ -49,14 +51,14 @@ public:
     using CoverageCalc::location_t;
     const location_t null_location{-1,-1,-1}; 
     int max_bin_x, max_bin_y;
-    BorderCoverageCalc(CObsAvoidEvolLoopFunctions* cLoopFunctions);
+    BorderCoverageCalc(BaseLoopFunctions* cLoopFunctions);
 
 
     /* check whether bin is on the border*/
     bool is_on_border(location_t bin) const;
 
     /* get the number of cells*/
-    virtual void get_num_cells(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+    virtual void get_num_cells(BaseLoopFunctions &cLoopFunctions);
 
     /* get bin corresponding to a position in the space */
     virtual location_t get_bin(argos::CVector3 vec) const;

@@ -5,10 +5,10 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/loop_functions.h>
 
-#include <src/obsavoid/evol_loop_functions.h>
-#include <src/obsavoid/statistics.h>
-#include <src/obsavoid/fitness_functions.h>
-#include <src/obsavoid/descriptors.h>
+#include <src/evolution/evol_loop_functions.h>
+#include <src/core/statistics.h>
+#include <src/core/fitness_functions.h>
+#include <src/evolution/descriptors.h>
 
 
 /****************************************/
@@ -16,6 +16,41 @@
 #ifdef CVT
 
 typedef Params::ea::point_t point_t;
+
+void run_baseline()
+{
+    static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
+
+    /* Get a reference to the loop functions */
+    static CObsAvoidEvolLoopFunctions &cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions &>(cSimulator.GetLoopFunctions());
+
+    cLoopFunctions.before_trials();
+
+    /*
+         * Run x trials and take the worst performance as final value.
+        */
+
+    for (size_t i = 0; i < cLoopFunctions.m_unNumberTrials; ++i)
+    {
+        cLoopFunctions.start_trial(cSimulator);
+
+        /* Run the experiment */
+        cSimulator.Execute();
+        Real time = (Real)cSimulator.GetMaxSimulationClock();
+
+        cLoopFunctions.end_trial(time);
+
+#ifdef PRINTING
+
+        print_progress(ind, cLoopFunctions, time);
+#endif
+    }
+    /****************************************/
+    /****************************************/
+    float fFitness = cLoopFunctions.alltrials_fitness();
+}
+
+
 
 std::vector<point_t> load_centroids(const std::string& centroids_filename)
 {
@@ -97,7 +132,7 @@ int main(int argc, char **argv)
     /* Load it to configure ARGoS */
     cSimulator.LoadExperiment();
 
-    static CObsAvoidEvolLoopFunctions &cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions &>(cSimulator.GetLoopFunctions());
+    static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
 
 #ifdef CVT
     Params::ea::centroids = load_centroids(cLoopFunctions.centroids_folder+"/centroids_1000_"+std::to_string(Params::ea::number_of_dimensions)+".dat");

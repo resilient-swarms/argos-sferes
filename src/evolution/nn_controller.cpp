@@ -1,4 +1,4 @@
-#include <src/obsavoid/nn_controller.h>
+#include <src/evolution/nn_controller.h>
 
 /****************************************/
 /****************************************/

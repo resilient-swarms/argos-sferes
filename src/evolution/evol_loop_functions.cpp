@@ -1,9 +1,9 @@
 /****************************************/
 /****************************************/
-#include <src/obsavoid/statistics.h>
-#include <src/obsavoid/evol_loop_functions.h>
-#include <src/obsavoid/fitness_functions.h>
-#include <src/obsavoid/descriptors.h>
+#include <src/core/statistics.h>
+#include <src/evolution/evol_loop_functions.h>
+#include <src/core/fitness_functions.h>
+#include <src/evolution/descriptors.h>
 
 /****************************************/
 /****************************************/
@@ -11,25 +11,22 @@
 /****************************************/
 /****************************************/
 
-CObsAvoidEvolLoopFunctions::CObsAvoidEvolLoopFunctions() : m_unCurrentTrial(0),
-                                                           m_vecInitSetup(0), //arg is number of trials
-                                                           //m_pcEPuck(NULL),
-                                                           //m_pcController(NULL),
-                                                           m_pcRNG(NULL)
+EvolutionLoopFunctions::EvolutionLoopFunctions() : BaseLoopFunctions()
 
 {
+
 }
 
 /****************************************/
 /****************************************/
 
-CObsAvoidEvolLoopFunctions::~CObsAvoidEvolLoopFunctions()
+EvolutionLoopFunctions::~EvolutionLoopFunctions()
 {
 }
 
 /****************************************/
 /****************************************/
-bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
+bool EvolutionLoopFunctions::check_BD_choice(const std::string choice)
 {
     if (choice == "history")
     {
@@ -68,67 +65,16 @@ bool CObsAvoidEvolLoopFunctions::check_BD_choice(const std::string choice)
         return true;
     }
 }
-void CObsAvoidEvolLoopFunctions::Init(TConfigurationNode &t_node)
+void EvolutionLoopFunctions::Init(TConfigurationNode &t_node)
 {
-
+    BaseLoopFunctions::Init(t_node);
     init_simulation(t_node);
     init_descriptors(t_node);
-    init_fitfuns(t_node);
-}
-/* Process fitness function type  */
-void CObsAvoidEvolLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
-{
-    /* Process fitness function type  */
-    try
-    {
-        std::string s;
-        GetNodeAttribute(t_node, "fitfuntype", s);
-        if (s == "FloreanoMondada")
-        {
-            this->fitfun = new FloreanoMondada();
-        }
-        else if (s == "MeanSpeed")
-        {
-            this->fitfun = new MeanSpeed();
-        }
-        else if (s == "Aggregation")
-        {
-            this->fitfun = new Aggregation();
-            assert(m_unNumberRobots > 1 && "number of robots should be > 1 when choosing Aggregation fitnessfunction");
-        }
-        else if (s == "Coverage")
-        {
-            this->fitfun = new Coverage(s, this);
-        }
-        else if (s == "TrialCoverage")
-        {
-            this->fitfun = new TrialCoverage(s, this);
-        }
-        else if (s == "BorderCoverage")
-        {
-            this->fitfun = new Coverage(s, this);
-        }
-        else if (s == "Dispersion")
-        {
-            this->fitfun = new Dispersion(this);
-        }
-        // else if (s == "Flocking")
-        // {
-        //     this->fitfun = new Flocking(this);
-        // }
-        else
-        {
-            throw std::runtime_error("fitfuntype " + s + " not found");
-        }
-    }
-    catch (CARGoSException &ex)
-    {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
-    }
 }
 
+
 /* Process behavioural descriptor type  */
-void CObsAvoidEvolLoopFunctions::init_descriptors(TConfigurationNode &t_node)
+void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
 {
 
     try
@@ -179,56 +125,12 @@ void CObsAvoidEvolLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
     }
 }
+
 /* Process initialisation of robots, number of trials, and outputfolder  */
-void CObsAvoidEvolLoopFunctions::init_simulation(TConfigurationNode &t_node)
+void EvolutionLoopFunctions::init_simulation(TConfigurationNode &t_node)
 {
 
-    /*
-    * Create the random number generator
-    */
-    m_pcRNG = CRandom::CreateRNG("argos");
-
-    /*
-    * Process trial information
-    */
-    try
-    {
-        GetNodeAttribute(t_node, "trials", m_unNumberTrials);
-        //m_vecInitSetup.resize(m_unNumberTrials);
-        //this->fitfun->fitness_per_trial.resize(m_unNumberTrials);
-    }
-    catch (CARGoSException &ex)
-    {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing number of trials", ex);
-    }
-
-    /*
-    * Process number of robots in swarm
-    */
-    try
-    {
-        GetNodeAttribute(t_node, "robots", m_unNumberRobots);
-        m_pcvecRobot.resize(m_unNumberRobots);
-        m_pcvecController.resize(m_unNumberRobots);
-        _vecctrlrob.resize(m_unNumberRobots);
-    }
-    catch (CARGoSException &ex)
-    {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing number of robots", ex);
-    }
-
-    for (size_t i = 0; i < m_unNumberRobots; ++i)
-    {
-        m_pcvecRobot[i] = new CThymioEntity(
-            std::string("th") + std::to_string(i), // entity id
-            "tnn"                                  // controller id as set in the XML
-        );
-        AddEntity(*m_pcvecRobot[i]);
-        m_pcvecController[i] = &dynamic_cast<CThymioNNController &>(m_pcvecRobot[i]->GetControllableEntity().GetController());
-    }
-
-    place_robots();
-
+    _vecctrlrob.resize(m_unNumberRobots);
 #ifdef CVT
     /* process outputfolder */
     try
@@ -242,80 +144,12 @@ void CObsAvoidEvolLoopFunctions::init_simulation(TConfigurationNode &t_node)
     }
 #endif
 
-    /* process outputfolder */
-    try
-    {
-        GetNodeAttribute(t_node, "output_folder", output_folder);
-        // TODO: create some statistics files in this folder
-    }
-    catch (CARGoSException &ex)
-    {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing output_folder", ex);
-    }
 
-#ifdef RECORD_FIT
-    // std::ios::app is the open mode "append" meaning
-    // new data will be written to the end of the file.
-    fitness_writer.open(output_folder + "/fitness", std::ios::app);
-
-#endif
 }
 
-void CObsAvoidEvolLoopFunctions::place_robots()
-{
-    //m_vecInitSetup.clear();
-    CVector3 size = GetSpace().GetArenaSize();
-    Real minX = 0.0;
-    Real maxX = size.GetX() - 0.0;
-    Real minY = 0.0;
-    Real maxY = size.GetY() - 0.0;
-    curr_pos.resize(m_unNumberRobots);
-    curr_theta.resize(m_unNumberRobots);
-    old_pos.resize(m_unNumberRobots);
-    old_theta.resize(m_unNumberRobots);
-    for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
-    {
-        m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
-        size_t num_tries = 0;
-        for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
-        {
-            // TODO: Set bounds for positions from configuration file
-            CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
-#ifdef PRINTING
-            std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
-#endif
-            CQuaternion Orientation;
-            Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
-                                        CRadians::ZERO,
-                                        CRadians::ZERO);
-
-            while (!MoveEntity(m_pcvecRobot[m_unRobot]->GetEmbodiedEntity(), // move the body of the robot
-                               Position,                                     // to this position
-                               Orientation,                                  // with this orientation
-                               false                                         // this is not a check, leave the robot there
-                               ))
-            {
-                Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
-                //std::cout << "Position2 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
-                Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
-                                            CRadians::ZERO,
-                                            CRadians::ZERO);
-                if (num_tries > 10000)
-                {
-                    throw std::runtime_error("failed to initialise robot positions; too many obstacles?");
-                }
-                ++num_tries;
-            }
-            m_vecInitSetup[m_unTrial][m_unRobot].Position = Position;
-            m_vecInitSetup[m_unTrial][m_unRobot].Orientation = Orientation;
-        }
-    }
-
-    Reset();
-}
 
 // /* Process perturbations */
-// void CObsAvoidEvolLoopFunctions::init_perturbations(TConfigurationNode &t_node)
+// void EvolutionLoopFunctions::init_perturbations(TConfigurationNode &t_node)
 // {
 //     try
 //     {
@@ -383,25 +217,12 @@ void CObsAvoidEvolLoopFunctions::place_robots()
 /****************************************/
 /****************************************/
 
-void CObsAvoidEvolLoopFunctions::Reset()
-{
-    for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
-    {
-        MoveEntity(m_pcvecRobot[m_unRobot]->GetEmbodiedEntity(),            // move the body of the robot
-                   m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
-                   m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
-                   false                                                    // this is not a check, leave the robot there
-        );
-#ifdef PRINTING
-        std::cout << "position after reset " << get_position(m_pcvecRobot[m_unRobot]);
-#endif
-    }
-}
+
 
 /****************************************/
 /****************************************/
 
-void CObsAvoidEvolLoopFunctions::PreStep()
+void EvolutionLoopFunctions::PreStep()
 {
     CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
 
@@ -445,8 +266,8 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         cController.m_fRightSpeed = outf[1];
         if (cController.id_FaultyRobotInSwarm == robotindex)
             cController.damage_actuators();
-            outf[0] = cController.m_fLeftSpeed;// use actual velocity for FloreanoMondada fitness
-            outf[1] = cController.m_fRightSpeed;
+        outf[0] = cController.m_fLeftSpeed; // use actual velocity for FloreanoMondada fitness
+        outf[1] = cController.m_fRightSpeed;
         CVector3 axis;
         cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta[robotindex], axis);
 
@@ -482,10 +303,10 @@ void CObsAvoidEvolLoopFunctions::PreStep()
         old_pos     = curr_pos;
         old_theta   = curr_theta;*/
 
-        old_pos[robotindex] = curr_pos[robotindex];
-        old_theta[robotindex] = curr_theta[robotindex];
+        //old_pos[robotindex] = curr_pos[robotindex];
+        //old_theta[robotindex] = curr_theta[robotindex];
         this->descriptor->set_output_descriptor(robotindex, *this);
-        this->fitfun->after_step(robotindex, *this);
+        //this->fitfun->after_step(robotindex, *this);
 
         stop_eval = cThymio.GetEmbodiedEntity().IsCollidingWithSomething();
         if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
@@ -501,17 +322,16 @@ void CObsAvoidEvolLoopFunctions::PreStep()
     this->fitfun->after_robotloop(*this);
 }
 
-void CObsAvoidEvolLoopFunctions::PostStep()
+void EvolutionLoopFunctions::PostStep()
 {
 }
 
-void CObsAvoidEvolLoopFunctions::before_trials()
+void EvolutionLoopFunctions::before_trials()
 {
-    m_unCurrentTrial = -1;
+    
     descriptor->before_trials(*this);
-   
 }
-void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
+void EvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 {
 
     stop_eval = false;
@@ -519,13 +339,8 @@ void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
     // old_pos   = CVector3(0.0f, 0.0f, 0.0f);
     // old_theta = CRadians(0.0f);
     descriptor->start_trial();
-   
-    /* Tell the loop functions to get ready for the i-th trial */
-    SetTrial();
-    /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
-    cSimulator.Reset();
-    /* take into account the new settings in the fitness functions */
-    fitfun->before_trial(*this);
+
+    BaseLoopFunctions::start_trial(cSimulator);
     /* Configure the controller with the indiv gen */
     //ConfigureFromGenome(ind.nn());
     //_ctrlrob = ind.nn_cpy();
@@ -534,40 +349,31 @@ void CObsAvoidEvolLoopFunctions::start_trial(CSimulator &cSimulator)
     for (size_t j = 0; j < m_unNumberRobots; ++j)
         _vecctrlrob[j].init(); // a copied nn object needs to be init before use
 }
-void CObsAvoidEvolLoopFunctions::end_trial(Real time)
+void EvolutionLoopFunctions::end_trial(Real time)
 {
-    fitfun->apply(*this, time);
+    
     descriptor->end_trial(*this);
 }
 
-void CObsAvoidEvolLoopFunctions::print_progress()
-{
-    int trial = m_unCurrentTrial;
-    fitfun->print_progress(trial);
-}
 
-float CObsAvoidEvolLoopFunctions::alltrials_fitness()
-{
-    return fitfun->after_trials();
-}
-std::vector<float> CObsAvoidEvolLoopFunctions::alltrials_descriptor()
+std::vector<float> EvolutionLoopFunctions::alltrials_descriptor()
 {
     return descriptor->after_trials(*this);
 }
 
 /* get bin for sensory probabilities  */
-size_t CObsAvoidEvolLoopFunctions::get_sensory_bin(size_t i, size_t num_bins) const
+size_t EvolutionLoopFunctions::get_sensory_bin(size_t i, size_t num_bins) const
 {
     return StatFuns::get_bin(inputs[i], 0.0f, 1.0f, num_bins);
 }
 /* get bin for sensory probabilities  */
-size_t CObsAvoidEvolLoopFunctions::get_actuator_bin(size_t i, size_t num_bins) const
+size_t EvolutionLoopFunctions::get_actuator_bin(size_t i, size_t num_bins) const
 {
     return StatFuns::get_bin(outf[i], -10.0f, 10.0f, num_bins);
 }
 
 /* get activation bin for the activations of each sensory quadrant */
-size_t CObsAvoidEvolLoopFunctions::get_quadrant_bin() const
+size_t EvolutionLoopFunctions::get_quadrant_bin() const
 {
     // quadrant bin e.g. [0,0,0,0] ---> 0  , [0,0,1,0] --> 3
     // assuming quadrants are : left:[0,1],front:[2],right:[3,4],back:[5,6]
@@ -603,7 +409,7 @@ size_t CObsAvoidEvolLoopFunctions::get_quadrant_bin() const
     return bin;
 }
 /* get joint activation bin for the actuators */
-size_t CObsAvoidEvolLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
+size_t EvolutionLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
 {
     // joint bin (e.g. with three bins each): (-10,-10) --> 0  ; (-10,0) --> 1; ... (10,10) --> 9
     // assuming quadrants are : left:[0,1],front:[2],right:[3,4],back:[5,6]
@@ -615,5 +421,5 @@ size_t CObsAvoidEvolLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
 /****************************************/
 /****************************************/
 
-//using TemplateCObsAvoidEvolLoopFunctions = CObsAvoidEvolLoopFunctions<class NN>;
-REGISTER_LOOP_FUNCTIONS(CObsAvoidEvolLoopFunctions, "obsavoid_evol_loopfunctions" + std::string(TAG))
+//using TemplateEvolutionLoopFunctions = EvolutionLoopFunctions<class NN>;
+REGISTER_LOOP_FUNCTIONS(EvolutionLoopFunctions, "evolution_loopfunctions" + std::string(TAG))

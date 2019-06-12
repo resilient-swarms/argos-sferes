@@ -6,19 +6,6 @@
 //#define BEHAV_DIM 6
 
 
-
-/****************************************/
-/****************************************/
-/* ARGoS related headers */
-/* The NN controller */
-#include <tuple>
-#include <cmath>
-#include <src/obsavoid/nn_controller.h>
-
-#include <argos3/core/simulator/loop_functions.h>
-#include <argos3/core/utility/math/rng.h>
-#include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
-
 /****************************************/
 /****************************************/
 /* Sferes related headers */
@@ -58,7 +45,10 @@
 #include <sferes/stat/best_fit.hpp>
 #include <sferes/modif/dummy.hpp>
 
-//#include <src/obsavoid/base_classes.h>
+//#include <src/evolution/base_classes.h>
+
+
+#include <src/core/base_loop_functions.h>
 
 /****************************************/
 /****************************************/
@@ -187,22 +177,19 @@ class Descriptor;
 
 class FitFun;
 
-class CObsAvoidEvolLoopFunctions : public CLoopFunctions
+
+class EvolutionLoopFunctions : public BaseLoopFunctions
 {
 
 public:
-    CObsAvoidEvolLoopFunctions();
-    virtual ~CObsAvoidEvolLoopFunctions();
 
-    virtual void Init(TConfigurationNode &t_node);
-
-    virtual void Reset();
-
-    /* Called by the evolutionary algorithm to set the current trial */
-    inline void SetTrial()
+    EvolutionLoopFunctions();
+    virtual ~EvolutionLoopFunctions();
+    virtual std::string get_controller_id()
     {
-        ++m_unCurrentTrial;
+        return "tnn";
     }
+    virtual void  Init(TConfigurationNode &t_node);
 
     //    /* Configures the robot controller from the genome */
     //    void ConfigureFromGenome(robots_nn::nn_t& ctrl)
@@ -224,58 +211,35 @@ public:
     }
 
 private:
-    /* The initial setup of a trial */
-    struct SInitSetup
-    {
-        CVector3 Position;
-        CQuaternion Orientation;
-    };
+
 
     //CEPuckEntity* m_pcEPuck;
     //CEPuckNNController* m_pcController;
 
-    std::vector<CThymioNNController *> m_pcvecController;
+    
 
 public:
-#ifdef RECORD_FIT
-    std::ofstream fitness_writer;
-#endif
-    std::vector<CThymioEntity *> m_pcvecRobot;
 
-    CRandom::CRNG *m_pcRNG;
-
-    std::vector<std::vector<SInitSetup>> m_vecInitSetup;
-    size_t m_unNumberTrials, m_unNumberRobots;
-    int m_unCurrentTrial; // will start with -1 for convenience
-
-    std::string output_folder;
 #ifdef CVT
     std::string centroids_folder;
 #endif
     //robots_nn::nn_t _ctrlrob;
+   
     std::vector<robots_nn::nn_t> _vecctrlrob;
-    std::vector<float> outf, inputs;
-
 
     bool stop_eval;
     Real stand_still, maxIRSensor;
     Descriptor *descriptor;
-    FitFun *fitfun;
 
     // only used for the checks which are not used (presumably the checks quite expensive) ?; also not suitable for multi-agent ?
-    std::vector<CVector3> old_pos, curr_pos;
-    std::vector<CRadians> old_theta, curr_theta;
     CVector3 centre, max;
 
     /* config initialisation functions */
     /* Process behavioural descriptor type  */
     void init_descriptors(TConfigurationNode &t_node);
-    /* Process fitness function type  */
-    void init_fitfuns(TConfigurationNode &t_node);
     /* Process initialisation of robots, number of trials, and outputfolder  */
     void init_simulation(TConfigurationNode &t_node);
-    /* Placement of robots */
-    void place_robots();
+
     /* Process perturbations */
     void init_perturbations();
 
@@ -285,11 +249,9 @@ public:
     void before_trials();
     void start_trial(CSimulator &cSimulator);
     void end_trial(Real time);
-    float alltrials_fitness();
+
     std::vector<float> alltrials_descriptor();
 
-    /* next are a bunch of helper functions */
-    void print_progress();
 
     bool check_BD_choice(const std::string choice);
 
@@ -325,7 +287,7 @@ FIT_MAP(FitObstacleMapElites){
 
         FitObstacleMapElites(){}
 
-    CObsAvoidEvolLoopFunctions &
+    EvolutionLoopFunctions &
     getLoopFun(){
         /* The CSimulator class of ARGoS is a singleton. Therefore, to
       * manipulate an ARGoS experiment, it is enough to get its instance.
@@ -336,7 +298,7 @@ FIT_MAP(FitObstacleMapElites){
         static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
 
 /* Get a reference to the loop functions */
-static CObsAvoidEvolLoopFunctions &cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions &>(cSimulator.GetLoopFunctions());
+static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
 return cLoopFunctions;
 } // namespace sferes
 inline bool dead()
@@ -344,18 +306,6 @@ inline bool dead()
     return false;
 } // namespace sferes
 
-template <typename Indiv>
-void print_progress(Indiv &ind, CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
-{
-
-    cLoopFunctions.print_progress();
-
-    if (cLoopFunctions.m_unCurrentTrial == 0)
-    {
-        std::ofstream ofs("nn.dot");
-        ind.nn().write(ofs);
-    }
-}
 // *************** _eval ************
 //
 // This is the main function to evaluate the individual
@@ -378,35 +328,16 @@ void eval(Indiv &ind)
     */
     static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
 
+
     /* Get a reference to the loop functions */
-    static CObsAvoidEvolLoopFunctions &cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions &>(cSimulator.GetLoopFunctions());
+    static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
     for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
         cLoopFunctions._vecctrlrob[j] = ind.nn_cpy();
-
-    cLoopFunctions.before_trials();
-
-    /*
-         * Run x trials and take the worst performance as final value.
-        */
-
-    for (size_t i = 0; i < cLoopFunctions.m_unNumberTrials; ++i)
-    {
-        cLoopFunctions.start_trial(cSimulator);
-
-        /* Run the experiment */
-        cSimulator.Execute();
-        Real time = (Real)cSimulator.GetMaxSimulationClock();
-
-        cLoopFunctions.end_trial(time);
-
 #ifdef PRINTING
-
-        print_progress(ind, cLoopFunctions, time);
-#endif
-    }
-    /****************************************/
-    /****************************************/
-    float fFitness = cLoopFunctions.alltrials_fitness();
+    std::ofstream ofs("nn.dot");
+    ind.nn().write(ofs);
+#endif 
+    float fFitness=cLoopFunctions.run_all_trials(cSimulator);
 
     this->_objs[0] = fFitness;
     this->_value = fFitness;

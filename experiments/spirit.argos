@@ -46,8 +46,8 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libobsavoid_evol_loopfunctionscvt400D.so"
-                  label="obsavoid_evol_loopfunctionscvt400D"
+  <loop_functions library="lib/libevolution_loopfunctionscvt400D.so"
+                  label="evolution_loopfunctionscvt400D"
                   trials="5"
                   robots="1"
                   descriptortype="cvt_spirit"  

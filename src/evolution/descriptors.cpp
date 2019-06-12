@@ -1,7 +1,7 @@
 
-#include <src/obsavoid/statistics.h>
-#include <src/obsavoid/evol_loop_functions.h>
-#include <src/obsavoid/descriptors.h>
+#include <src/core/statistics.h>
+#include <src/evolution/evol_loop_functions.h>
+#include <src/evolution/descriptors.h>
 #include <argos3/plugins/simulator/entities/cylinder_entity.h>
 #include <iterator>
 
@@ -28,7 +28,7 @@ Descriptor::Descriptor()
 {
 	bd.resize(behav_dim);
 }
-void Descriptor::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void Descriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 	for (size_t t = 0; t < behav_dim; ++t)
 		bd[t].resize(cLoopFunctions.m_unNumberTrials, 0.0f);
@@ -40,7 +40,7 @@ void Descriptor::start_trial()
 	num_updates = 0;
 	++current_trial;
 }
-std::vector<float> Descriptor::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+std::vector<float> Descriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 
 	std::vector<float> final_bd;
@@ -56,7 +56,7 @@ std::vector<float> Descriptor::after_trials(CObsAvoidEvolLoopFunctions &cLoopFun
 	return final_bd;
 }
 
-void AverageDescriptor::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void AverageDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
 
 	for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
@@ -67,7 +67,7 @@ void AverageDescriptor::set_input_descriptor(size_t robot_index, CObsAvoidEvolLo
 }
 
 /*end the trial*/
-void AverageDescriptor::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void AverageDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 {
 
 	for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
@@ -90,7 +90,7 @@ IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(CLoopFunctions *cLoopFunc
 	argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
 	argos::CVector3 min = center - 0.5 * max;
 	max_deviation = StatFuns::get_minkowski_distance(max, center);
-	CObsAvoidEvolLoopFunctions *lf = static_cast<CObsAvoidEvolLoopFunctions *>(cLoopFunctions);
+	EvolutionLoopFunctions *lf = static_cast<EvolutionLoopFunctions *>(cLoopFunctions);
 	if (lf->m_unNumberRobots != 1)
 	{
 		throw std::runtime_error("number of robots should be equal to 1 when choosing IntuitiveHistoryDescriptor");
@@ -105,7 +105,7 @@ void IntuitiveHistoryDescriptor::start_trial()
 	deviation = 0.0f;
 	//velocity_stats=RunningStat();  // dropped the velocity stats
 }
-void IntuitiveHistoryDescriptor::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void IntuitiveHistoryDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
 	//add to the deviation (to get the mean after all trials have finished)
 	CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[robot_index]);
@@ -114,12 +114,12 @@ void IntuitiveHistoryDescriptor::set_input_descriptor(size_t robot_index, CObsAv
 	++num_updates;
 }
 
-void IntuitiveHistoryDescriptor::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void IntuitiveHistoryDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
 	//nothing here
 }
 
-void IntuitiveHistoryDescriptor::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void IntuitiveHistoryDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 {
 	/*add behavioural metrics */
 
@@ -249,7 +249,7 @@ void SDBC::init_robots(CLoopFunctions *cLoopFunctions)
 	// robot here has 5 features: x,y,orientation,wheelvelocity1,wheelvelocity2
 	// here it is assumed fixed number of robots
 	std::vector<Entity> robots;
-	size_t num_robots = static_cast<CObsAvoidEvolLoopFunctions *>(cLoopFunctions)->m_unNumberRobots;
+	size_t num_robots = static_cast<EvolutionLoopFunctions *>(cLoopFunctions)->m_unNumberRobots;
 	for (size_t i = 0; i < num_robots; ++i)
 	{
 		robots.push_back(Entity());
@@ -379,7 +379,7 @@ void SDBC::add_between_group_dispersion()
 }
 
 /* prepare for trials*/
-void SDBC::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void SDBC::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 	for (size_t t = 0; t < num_features; ++t)
 		bd[t].clear();
@@ -392,11 +392,11 @@ void SDBC::start_trial()
 	bd_index = 0;
 }
 /*after getting inputs, can update the descriptor if needed*/
-void SDBC::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void SDBC::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
 }
 /*after getting outputs, can update the descriptor if needed*/
-void SDBC::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void SDBC::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
 	// here just set the attributes of robot at index; let end
 	CVector3 pos = cLoopFunctions.curr_pos[robot_index];
@@ -414,7 +414,7 @@ void SDBC::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions 
 #endif
 }
 /*after the looping over robots*/
-void SDBC::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void SDBC::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 {
 	add_group_sizes();
 	add_group_meanstates();
@@ -424,7 +424,7 @@ void SDBC::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 	++num_updates;
 }
 /*end the trial*/
-// void SDBC::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+// void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 // {
 
 // 	for (size_t i = 0; i < behav_dim; ++i)
@@ -440,7 +440,7 @@ void SDBC::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 
 
  /*summarise BD at the end of trials*/
-  std::vector<float> SDBC::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+  std::vector<float> SDBC::after_trials(EvolutionLoopFunctions &cLoopFunctions)
   {
 	std::vector<float> final_bd;
 	//After a simulation has ended, the samples obtained for each
@@ -487,7 +487,7 @@ CVT_MutualInfo::CVT_MutualInfo()
 }
 
 /* prepare for trials*/
-void CVT_MutualInfo::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_MutualInfo::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 	num_updates = 0; //start counting all the updates in all the trials
 	/* reset frequencies */
@@ -512,7 +512,7 @@ void CVT_MutualInfo::start_trial()
 // 	return StatFuns::get_bin(activation,0.0f,1.0f,num_bins);
 // }
 /*after getting inputs, can update the descriptor if needed*/
-void CVT_MutualInfo::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_MutualInfo::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
 	size_t joint_index = 0;
 	// frequency + joint_frequency
@@ -532,17 +532,17 @@ void CVT_MutualInfo::set_input_descriptor(size_t robot_index, CObsAvoidEvolLoopF
 }
 
 /*after the looping over robots*/
-void CVT_MutualInfo::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_MutualInfo::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 {
 }
 
 /*end the trial*/
-void CVT_MutualInfo::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_MutualInfo::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 {
 }
 
 /*summarise BD at the end of trials*/
-std::vector<float> CVT_MutualInfo::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+std::vector<float> CVT_MutualInfo::after_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 	/* convert frequencies to probabilities */
 
@@ -611,7 +611,7 @@ CVT_MutualInfoAct::CVT_MutualInfoAct()
 
 
 /* prepare for trials*/
-void CVT_MutualInfoAct::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_MutualInfoAct::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 	num_updates = 0; //start counting all the updates in all the trials
 	/* reset frequencies */
@@ -681,7 +681,7 @@ void CVT_MutualInfoAct::normalise()
 	}
 }
 /*after getting outputs, can update the descriptor if needed*/
-void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
 	for (size_t j = 0; j < cLoopFunctions.outf.size(); ++j)
 	{
@@ -713,7 +713,7 @@ CVT_Spirit::CVT_Spirit()
 
 
 /* prepare for trials*/
-void CVT_Spirit::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_Spirit::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 	freqs.resize(num_joint_sensory_bins);
 	for (size_t i = 0; i < num_joint_sensory_bins; ++i)
@@ -730,12 +730,12 @@ void CVT_Spirit::start_trial()
 }
 
 /*after the looping over robots*/
-void CVT_Spirit::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_Spirit::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 {
 }
 
 /*end the trial*/
-void CVT_Spirit::end_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_Spirit::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 {
 }
 
@@ -767,7 +767,7 @@ std::vector<float> CVT_Spirit::get_bd()
 }
 
 /*after getting outputs, can update the descriptor if needed*/
-void CVT_Spirit::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_Spirit::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
 	size_t sens_bin = cLoopFunctions.get_quadrant_bin();
 	size_t act_bin = cLoopFunctions.get_joint_actuator_bin(num_actuator_bins);
@@ -775,7 +775,7 @@ void CVT_Spirit::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunc
 }
 
 /*summarise BD at the end of trials*/
-std::vector<float> CVT_Spirit::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+std::vector<float> CVT_Spirit::after_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 	std::vector<float> final_bd = get_bd();
 	return final_bd;
@@ -786,11 +786,11 @@ std::vector<float> CVT_Spirit::after_trials(CObsAvoidEvolLoopFunctions &cLoopFun
 // 	bd.resize(behav_dim);
 // }
 
-void CVT_Trajectory::before_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_Trajectory::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 	final_bd.clear();
 }
-CVT_Trajectory::CVT_Trajectory(CObsAvoidEvolLoopFunctions &cLoopFunctions, size_t num_steps)
+CVT_Trajectory::CVT_Trajectory(EvolutionLoopFunctions &cLoopFunctions, size_t num_steps)
 {
 	num_chunks = behav_dim / (2 * cLoopFunctions.m_unNumberTrials);
 
@@ -800,7 +800,7 @@ CVT_Trajectory::CVT_Trajectory(CObsAvoidEvolLoopFunctions &cLoopFunctions, size_
 	maxY = max.GetY();
 }
 /*after getting outputs, can update the descriptor if needed*/
-void CVT_Trajectory::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CVT_Trajectory::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
 	num_updates++;
 	if (end_chunk())
@@ -814,7 +814,7 @@ void CVT_Trajectory::set_output_descriptor(size_t robot_index, CObsAvoidEvolLoop
 	}
 }
 /*summarise BD at the end of trials*/
-std::vector<float> CVT_Trajectory::after_trials(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+std::vector<float> CVT_Trajectory::after_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 	return final_bd;
 }
