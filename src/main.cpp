@@ -5,10 +5,16 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/loop_functions.h>
 
-#include <src/evolution/evol_loop_functions.h>
+#ifdef BASELINEBEHAVS
+    #include <src/baseline-behavs/baseline-behavs-loopfunc.h>
+#else
+    #include <src/evolution/evol_loop_functions.h>
+#endif
 #include <src/core/statistics.h>
 #include <src/core/fitness_functions.h>
-#include <src/evolution/descriptors.h>
+#ifndef BASELINEBEHAVS
+    #include <src/evolution/descriptors.h>
+#endif
 
 
 /****************************************/
@@ -16,41 +22,6 @@
 #ifdef CVT
 
 typedef Params::ea::point_t point_t;
-
-void run_baseline()
-{
-    static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
-
-    /* Get a reference to the loop functions */
-    static CObsAvoidEvolLoopFunctions &cLoopFunctions = dynamic_cast<CObsAvoidEvolLoopFunctions &>(cSimulator.GetLoopFunctions());
-
-    cLoopFunctions.before_trials();
-
-    /*
-         * Run x trials and take the worst performance as final value.
-        */
-
-    for (size_t i = 0; i < cLoopFunctions.m_unNumberTrials; ++i)
-    {
-        cLoopFunctions.start_trial(cSimulator);
-
-        /* Run the experiment */
-        cSimulator.Execute();
-        Real time = (Real)cSimulator.GetMaxSimulationClock();
-
-        cLoopFunctions.end_trial(time);
-
-#ifdef PRINTING
-
-        print_progress(ind, cLoopFunctions, time);
-#endif
-    }
-    /****************************************/
-    /****************************************/
-    float fFitness = cLoopFunctions.alltrials_fitness();
-}
-
-
 
 std::vector<point_t> load_centroids(const std::string& centroids_filename)
 {
@@ -132,45 +103,49 @@ int main(int argc, char **argv)
     /* Load it to configure ARGoS */
     cSimulator.LoadExperiment();
 
-    static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
-
-#ifdef CVT
-    Params::ea::centroids = load_centroids(cLoopFunctions.centroids_folder+"/centroids_1000_"+std::to_string(Params::ea::number_of_dimensions)+".dat");
-#endif
-    //typedef FitObstacle<Params> fit_t;
-    typedef FitObstacleMapElites<Params> fit_t;
-    typedef phen::Dnn<robots_nn::gen_t, fit_t, ParamsDnn> phen_t;
-    typedef eval::Eval<Params> eval_t; //eval::Parallel gives cryptic seg fault for nn. Unrelated but make sure visualization is disabled when parallelizing
-    //typedef boost::fusion::vector<sferes::stat::ParetoFront<phen_t, Params> >  stat_t;
-
-    
-
-    //MODIFIER
-    typedef modif::Dummy<> modifier_t;
-
+   
+#ifdef BASELINEBEHAVS
+    static CBaselineBehavsLoopFunctions &cLoopFunctions = dynamic_cast<CBaselineBehavsLoopFunctions &>(cSimulator.GetLoopFunctions());
+    cLoopFunctions.run_all_trials(cSimulator);
+#else
+         static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
     #ifdef CVT
+        Params::ea::centroids = load_centroids(cLoopFunctions.centroids_folder+"/centroids_1000_"+std::to_string(Params::ea::number_of_dimensions)+".dat");
+    #endif
+        //typedef FitObstacle<Params> fit_t;
+        typedef FitObstacleMapElites<Params> fit_t;
+        typedef phen::Dnn<robots_nn::gen_t, fit_t, ParamsDnn> phen_t;
+        typedef eval::Eval<Params> eval_t; //eval::Parallel gives cryptic seg fault for nn. Unrelated but make sure visualization is disabled when parallelizing
+        //typedef boost::fusion::vector<sferes::stat::ParetoFront<phen_t, Params> >  stat_t;
+
         
-        typedef boost::fusion::vector<stat::Map<phen_t, Params>, stat::MapProgress<phen_t, Params>> stat_t;
-    #else
-        typedef boost::fusion::vector<
-        sferes::stat::Map<phen_t, Params>,
-        sferes::stat::MapProgress<phen_t, Params>>
-        stat_t;
-    #endif
-    #ifdef CVT
-        //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
-        typedef ea::CVTMapElites<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
-        //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
-    #else
-        //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
-        typedef ea::MapElites<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
-        //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
-    #endif
-    
-    ea_t ea;
 
-    run_ea(argc, argv, ea);
-    
+        //MODIFIER
+        typedef modif::Dummy<> modifier_t;
+
+        #ifdef CVT
+            
+            typedef boost::fusion::vector<stat::Map<phen_t, Params>, stat::MapProgress<phen_t, Params>> stat_t;
+        #else
+            typedef boost::fusion::vector<
+            sferes::stat::Map<phen_t, Params>,
+            sferes::stat::MapProgress<phen_t, Params>>
+            stat_t;
+        #endif
+        #ifdef CVT
+            //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
+            typedef ea::CVTMapElites<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
+            //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
+        #else
+            //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
+            typedef ea::MapElites<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
+            //typedef ea::Nsga2<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
+        #endif
+        
+        ea_t ea;
+
+        run_ea(argc, argv, ea);
+#endif
 #ifdef RECORD_FIT
     cLoopFunctions.fitness_writer.close();
 #endif

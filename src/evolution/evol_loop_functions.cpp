@@ -146,7 +146,15 @@ void EvolutionLoopFunctions::init_simulation(TConfigurationNode &t_node)
 
 
 }
-
+void EvolutionLoopFunctions::init_robots()
+{
+    BaseLoopFunctions::init_robots();
+    m_pcvecController.resize(m_unNumberRobots);
+    for (size_t i = 0; i < m_unNumberRobots; ++i)
+    {
+        m_pcvecController[i] = &dynamic_cast<CThymioNNController &>(m_pcvecRobot[i]->GetControllableEntity().GetController());
+    }
+}
 
 // /* Process perturbations */
 // void EvolutionLoopFunctions::init_perturbations(TConfigurationNode &t_node)

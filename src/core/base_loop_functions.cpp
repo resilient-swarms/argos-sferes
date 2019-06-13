@@ -10,7 +10,7 @@ BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0),m_vecInitSetup(0)
 void BaseLoopFunctions::init_robots()
 {
     m_pcvecRobot.resize(m_unNumberRobots);
-    m_pcvecController.resize(m_unNumberRobots);
+    
     
 
     for (size_t i = 0; i < m_unNumberRobots; ++i)
@@ -20,7 +20,6 @@ void BaseLoopFunctions::init_robots()
             get_controller_id()   // controller id as set in the XML
         );
         AddEntity(*m_pcvecRobot[i]);
-        m_pcvecController[i] = &dynamic_cast<CThymioNNController &>(m_pcvecRobot[i]->GetControllableEntity().GetController());
     }
 }
 

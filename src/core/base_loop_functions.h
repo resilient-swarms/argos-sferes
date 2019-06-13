@@ -7,6 +7,8 @@
 #include <cmath>
 #include <src/evolution/nn_controller.h>
 
+#include <argos3/core/utility/math/angles.h>
+#include <argos3/core/control_interface/ci_controller.h>
 #include <argos3/core/simulator/loop_functions.h>
 #include <argos3/core/utility/math/rng.h>
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
@@ -20,7 +22,7 @@ class BaseLoopFunctions : public CLoopFunctions
 {
 
 public:
-    const std::string controller_id;
+
     /* The initial setup of a trial */
     struct SInitSetup
     {
@@ -90,6 +92,5 @@ public:
 #endif
 
     /* robot vectors */
-    std::vector<CThymioNNController *> m_pcvecController;
     std::vector<CThymioEntity *> m_pcvecRobot;
 };

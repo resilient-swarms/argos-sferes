@@ -226,10 +226,11 @@ public:
     //robots_nn::nn_t _ctrlrob;
    
     std::vector<robots_nn::nn_t> _vecctrlrob;
-
+    std::vector<CThymioNNController *> m_pcvecController;
     bool stop_eval;
     Real stand_still, maxIRSensor;
     Descriptor *descriptor;
+        
 
     // only used for the checks which are not used (presumably the checks quite expensive) ?; also not suitable for multi-agent ?
     CVector3 centre, max;
@@ -243,6 +244,8 @@ public:
     /* Process perturbations */
     void init_perturbations();
 
+    /* Process robots */
+    virtual void init_robots();
 
 
     /* next are functions that are done during loop */

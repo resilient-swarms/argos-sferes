@@ -23,6 +23,8 @@ CBaselineBehavsLoopFunctions::CBaselineBehavsLoopFunctions() : BaseLoopFunctions
 void CBaselineBehavsLoopFunctions::Init(TConfigurationNode &t_node)
 {
 
+    BaseLoopFunctions::Init(t_node);
+
     try
     {
         /* Get a pointer to the floor entity */

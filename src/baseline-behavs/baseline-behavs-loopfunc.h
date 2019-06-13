@@ -20,7 +20,7 @@ class CBaselineBehavsLoopFunctions : public BaseLoopFunctions
 {
 
 public:
-   const std::string controller_id=std::string("bb");
+   
 
    CBaselineBehavsLoopFunctions();
    virtual ~CBaselineBehavsLoopFunctions() {}
