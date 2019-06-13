@@ -193,6 +193,12 @@ void CBaselineBehavs::Init(TConfigurationNode& t_node)
 
     CopyRobotDetails(m_sRobotDetails);
 
+    if(GetExperimentType().SBehavior==m_sExpRun.SWARM_FLOCKING && m_sWheelTurningParams.MaxSpeed > 5.0f) // max speed and speed limit cm/s
+    {
+        printf("In Flocking, robots running at high speeds result in inaccurate observed heading vectors because the physics engine provides a too high \"momentum\" to the robots with the current step-size\n");
+        exit(-1);
+    }
+
     m_pFlockingBehavior = new CFlockingBehavior(m_sRobotDetails.iterations_per_second * 1.0f); // 5.0f
 
     if(this->GetId().compare("thymio"+m_sExpRun.id_FaultyRobotInSwarm) == 0)
@@ -347,22 +353,22 @@ void CBaselineBehavs::ControlStep()
 
     m_fInternalRobotTimer++;
 
-    if(this->GetId().compare("thymio0") == 0)
-    {
-            CCI_RangeAndBearingSensor::TReadings sensor_readings = m_pcRABS->GetReadings();
-            std::cout << "Robots in RAB range of " << GetId() << " is " << sensor_readings.size() << std::endl;
-            for(size_t i = 0; i < sensor_readings.size(); ++i)
-            {
-                std::cout << "RAB range " << sensor_readings[i].Range << " Bearing "  << sensor_readings[i].HorizontalBearing << std::endl;
-//                for(size_t j = 0; j < sensor_readings[i].Data.Size(); ++j)
-//                    std::cout << "Data-Packet at index " << j << " is " << sensor_readings[i].Data[j] << std::endl;
-            }
-            for (UInt8 i = 0; i < GetNormalizedSensorReadings().size(); ++i)
-            {
-                std::cout << GetNormalizedSensorReadings()[i] << " ";
-            }
-            std::cout << std::endl;
-    }
+//    if(this->GetId().compare("thymio0") == 0)
+//    {
+//            CCI_RangeAndBearingSensor::TReadings sensor_readings = m_pcRABS->GetReadings();
+//            std::cout << "Robots in RAB range of " << GetId() << " is " << sensor_readings.size() << std::endl;
+//            for(size_t i = 0; i < sensor_readings.size(); ++i)
+//            {
+//                std::cout << "RAB range " << sensor_readings[i].Range << " Bearing "  << sensor_readings[i].HorizontalBearing << std::endl;
+////                for(size_t j = 0; j < sensor_readings[i].Data.Size(); ++j)
+////                    std::cout << "Data-Packet at index " << j << " is " << sensor_readings[i].Data[j] << std::endl;
+//            }
+//            for (UInt8 i = 0; i < GetNormalizedSensorReadings().size(); ++i)
+//            {
+//                std::cout << GetNormalizedSensorReadings()[i] << " ";
+//            }
+//            std::cout << std::endl;
+//    }
 
 
 
@@ -529,7 +535,7 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
         m_vecBehaviors.push_back(m_pFlockingBehavior);
 
-        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
+        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.01f);
         m_vecBehaviors.push_back(pcRandomWalkBehavior);
     }
 

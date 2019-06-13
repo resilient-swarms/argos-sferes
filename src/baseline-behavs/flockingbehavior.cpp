@@ -60,7 +60,7 @@ bool CFlockingBehavior::TakeControl()
         robotsinrange_aggr++;
     }
 
-    if(robotsinrange_aggr > 3)
+    if(robotsinrange_aggr > 0) // 3
     {
         m_cAggregationVector /= robotsinrange_aggr;
         m_fAvgProximityNbrs = m_fAvgProximityNbrs / robotsinrange_aggr;
@@ -88,7 +88,7 @@ void CFlockingBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
 {
     //if neighbours very far away, put more weight on aggregation; else put more weight on flocking
 
-    m_fAvgProximityNbrs /= 100.0f; // normalise - max range is 100cm.
+    m_fAvgProximityNbrs /= 100.0f; // normalise - max range of rab sensors is 100cm.
 
     // m_fAvgProximityNbrs = m_fAvgProximityNbrs*m_fAvgProximityNbrs; // enable to have flocks moving faster, but with more distance between robots of aggregate
 

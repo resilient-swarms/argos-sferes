@@ -29,10 +29,10 @@
         <differential_steering implementation="default" vel_noise_range="-0.1:0.1" dist_noise_range="-1.0:1.0" />
       </sensors>
       <params>
-      <experiment_run swarm_behavior="SWARM_AGGREGATION"
+      <experiment_run swarm_behavior="SWARM_FLOCKING"
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" />
-        <wheel_turning max_speed="13" />
+        <wheel_turning max_speed="5.0" />
       </params>      
     </baseline-behavs>
 
@@ -115,7 +115,7 @@
   <!-- ****************** -->
   <visualization>
     <qt-opengl>
-        <user_functions label="baseline-behavs-robids" />
+        <!-- <user_functions label="baseline-behavs-robids" /> -->
     </qt-opengl>
   </visualization>
 
