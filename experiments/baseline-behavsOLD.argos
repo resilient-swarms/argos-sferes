@@ -1,11 +1,4 @@
 <?xml version="1.0" ?>
-
-<!-- *************************************************** -->
-<!-- * A fully commented XML is diffusion_1.xml. Refer * -->
-<!-- * to it to have full information about what       * -->
-<!-- * these options mean.                             * -->
-<!-- *************************************************** -->
-
 <argos-configuration>
 
   <!-- ************************* -->
@@ -13,10 +6,9 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <!-- Each experimental run is 120 seconds long -->
-    <experiment length="120"
+    <experiment length="1200"
                 ticks_per_second="10"
-                 random_seed="56" />  <!-- if we want a different random seed each time the reset button is pressed -->
+                random_seed="0" />
   </framework>
 
   <!-- *************** -->
@@ -37,71 +29,71 @@
         <differential_steering implementation="default" vel_noise_range="-0.1:0.1" dist_noise_range="-1.0:1.0" />
       </sensors>
       <params>
-      <experiment_run swarm_behavior="SWARM_FLOCKING"
+      <experiment_run swarm_behavior="SWARM_AGGREGATION"
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" />
-        <wheel_turning max_speed="5.0" />
+        <wheel_turning max_speed="13" />
       </params>      
     </baseline-behavs>
 
   </controllers>
 
+
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
   <loop_functions library="lib/libbaseline-behavs-loopfunc.so"
-                  label="baseline-behavs-loop-functions"
-                  
-                  trials="5"
-                  robots="1"
-                  fitfuntype="Aggregation"
-		  output_folder="experiments">
-
+                  label="baseline-behavs-loop-functions">
     <params />
   </loop_functions>
-=
+
+
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="4, 4, 2" center="2.0,2.0,1">
+  <arena size="7.0, 7.0, 2" center="0,0,1">
 
-    <!--
-        Here we just put the static elements of the environment (the walls).
-        The dynamic ones, in this case the foot-bot, are placed by the
-        loop functions at the beginning of each experimental run.
-    -->
-        <floor id="floor"
+    <floor id="floor"
            source="loop_functions"
            pixels_per_meter="50" />
-    <box id="wall_north" size="4,0.1,0.5" movable="false">
-      <body position="2.0,4,0" orientation="0,0,0" />
+
+    <box id="wall_north" size="6.5,0.1,0.5" movable="false">
+      <body position="0,3.25,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_south" size="6.5,0.1,0.5" movable="false">
+      <body position="0,-3.25,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_east" size="0.1,6.5,0.5" movable="false">
+      <body position="3.25,0,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_west" size="0.1,6.5,0.5" movable="false">
+      <body position="-3.25,0,0" orientation="0,0,0" />
     </box>
 
-    <box id="wall_south" size="4,0.1,0.5" movable="false">
-      <body position="2.0,0,0" orientation="0,0,0" />
-    </box>
-
-    <box id="wall_east" size="0.1,4,0.5" movable="false">
-      <body position="0,2.0,0" orientation="0,0,0" />
-    </box>
-
-    <box id="wall_west" size="0.1,4,0.5" movable="false">
-      <body position="4,2.0,0" orientation="0,0,0" />
-    </box>
-     <!--
-        We distribute cylinders uniformly in position and with
-        constant rotation (rotating a cylinder around Z does not
-        matter)
-    -->
-   <distribute>
-      <position method="uniform" min="0,0,0" max="4,4,0" />
-      <orientation method="constant" values="0,0,0" />
-      <entity quantity="10" max_trials="200">
-        <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
+    <distribute>
+      <position method="uniform" min="-3,-3,0" max="3,3,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="20" max_trials="5">
+        <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
+          <controller config="bb" />
+        </Thymio>
       </entity>
     </distribute>
 
+    <!--
+       We distribute cylinders uniformly in position and with
+       constant rotation (rotating a cylinder around Z does not
+       matter)
+    -->
+    <distribute>
+     <position method="uniform" min="-3,-3,0" max="3,3,0" />
+     <orientation method="constant" values="0,0,0" />
+     <entity quantity="0" max_trials="5">
+       <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
+     </entity>
+    </distribute>
   </arena>
+
 
   <!-- ******************* -->
   <!-- * Physics engines * -->
@@ -113,7 +105,6 @@
   <!-- ********* -->
   <!-- * Media * -->
   <!-- ********* -->
-
   <media>
     <range_and_bearing id="rab" />
     <led id="leds" />
@@ -122,10 +113,10 @@
   <!-- ****************** -->
   <!-- * Visualization * -->
   <!-- ****************** -->
-  <!-- We don't want nor need a visualization during evolution -->
   <visualization>
     <qt-opengl>
         <user_functions label="baseline-behavs-robids" />
     </qt-opengl>
   </visualization>
+
 </argos-configuration>

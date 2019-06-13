@@ -4,10 +4,10 @@
 #SBATCH --nodes=1                # Number of nodes requested
 #SBATCH --time=60:00:00          # walltime
 #SBATCH --mem=20G
-#SBATCH --job-name=obsavoid_evol${VORONOI}${BD}D
+#SBATCH --job-name=behaviour_evol
 
 
-FILE=./bin/obsavoid_evol${VORONOI}${BD}D
+FILE=./bin/behaviour_evol${VORONOI}${BD}D
 if [ -f "$FILE" ]; then
     echo "$FILE exist"
 else 

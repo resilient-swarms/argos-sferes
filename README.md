@@ -61,14 +61,14 @@ Edit the ARGoS experiment configuration file for your own experiment setup
 To run the EA, on the setting mentioned in point 5., you can run
 
     cd argos-sferes
-     ./bin/obsavoid_evol2D experiments/history.argos
+     ./bin/behaviour_evol2D experiments/history.argos
 
 To run the EA on other settings mentioned in point 6., you can run either of the following commands:
 
-     ./bin/obsavoid_evolcvt14D experiments/mutualinfoact.argos
-     ./bin/obsavoid_evolcvt21D experiments/mutualinfo.argos
-     ./bin/obsavoid_evolcvt400D experiments/spirit.argos
+     ./bin/behaviour_evolcvt14D experiments/mutualinfoact.argos
+     ./bin/behaviour_evolcvt21D experiments/mutualinfo.argos
+     ./bin/behaviour_evolcvt400D experiments/spirit.argos
 
 To try out an evolved solution
 
-     ./bin/obsavoid_evol2D experiments/history.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
+     ./bin/obehaviour_evol2D experiments/history.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>

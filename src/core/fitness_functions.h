@@ -4,8 +4,8 @@
 // #define FITNESS_FUNCTIONS
 
 #include <vector>
-#include <src/obsavoid/arena_utils.h>
-class CObsAvoidEvolLoopFunctions;
+#include <src/core/arena_utils.h>
+
 
 class FitFun
 {
@@ -13,16 +13,16 @@ public:
   std::vector<float> fitness_per_trial;
   FitFun(){};
   /* before trial */
-  virtual void before_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+  virtual void before_trial(BaseLoopFunctions &cLoopFunctions)
   {
     //empty by default
   }
   /*after a single step of a single agent */
-  virtual void after_step(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions){};
+  virtual void after_step(size_t robot_index, BaseLoopFunctions &cLoopFunctions){};
   /*after a single step of all agents */
-  virtual void after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions){};
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions){};
   /*after completing trial, calc fitness*/
-  virtual void apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time) = 0;
+  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time) = 0;
 
   /*after completing all trials, combine fitness*/
   virtual float after_trials() = 0;
@@ -40,10 +40,10 @@ public:
   float lin_speed = 0.0f;
   float num_ds = 0.0f;
   FloreanoMondada();
-  /*after a single step of single agent */
-  virtual void after_step(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions);
+  /*after a single step of all agents */
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
   /*after completing trial, calc fitness*/
-  virtual void apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
 
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
@@ -61,10 +61,10 @@ public:
   float lin_speed = 0.0f;
   float num_ds = 0.0f;
   MeanSpeed();
-  /*after a single step of single agent */
-  virtual void after_step(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions);
+  /*after a single step of all agents */
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
   /*after completing trial, calc fitness*/
-  virtual void apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
 
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
@@ -79,12 +79,12 @@ class Coverage : public FitFun
 public:
   size_t num_updates = 0;
   CoverageCalc* coverageCalc;
-  Coverage(std::string init_type, CObsAvoidEvolLoopFunctions *cLoopFunctions);
+  Coverage(std::string init_type, BaseLoopFunctions *cLoopFunctions);
 
-  /*after a single step of single agent */
-  virtual void after_step(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions);
+  /*after a single step of all agents */
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
   /*after completing trial, calc fitness*/
-  virtual void apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
 
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
@@ -97,8 +97,8 @@ class TrialCoverage : public Coverage
 {
   // Coverage but account for different trials
 public:
-  TrialCoverage(std::string init_type, CObsAvoidEvolLoopFunctions *cLoopFunctions);
-  virtual void before_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+  TrialCoverage(std::string init_type, BaseLoopFunctions *cLoopFunctions);
+  virtual void before_trial(BaseLoopFunctions &cLoopFunctions);
 };
 
 class Aggregation : public FitFun
@@ -112,14 +112,14 @@ public:
   Aggregation();
 
   /*after completing trial, calc fitness*/
-  virtual void apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
   /*after a single step of all agents */
-  virtual void after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
   float get_mass(CThymioEntity *robot);
 
-  std::pair<std::vector<argos::CVector3>, argos::CVector3> centre_of_mass(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+  std::pair<std::vector<argos::CVector3>, argos::CVector3> centre_of_mass(BaseLoopFunctions &cLoopFunctions);
 };
 
 class Dispersion : public FitFun
@@ -131,16 +131,16 @@ public:
   size_t num_updates = 0;
   float maxdist;
   float trial_dist = 0.0f;
-  Dispersion(CObsAvoidEvolLoopFunctions *cLoopFunctions);
+  Dispersion(BaseLoopFunctions *cLoopFunctions);
 
   /*after completing trial, calc fitness*/
-  virtual void apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
   /*after a single step of all agents */
-  virtual void after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
 
-  float avg_min_dist(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+  float avg_min_dist(BaseLoopFunctions &cLoopFunctions);
 };
 
 // class Flocking : public FitFun
@@ -150,14 +150,14 @@ public:
 //   similar to the other robots within a radius of 25 cm (half the robot sensing range), 
 //   and for moving as fast as possible.*/
 // public:
-//   Flocking(CObsAvoidEvolLoopFunctions *cLoopFunctions);
+//   Flocking(BaseLoopFunctions *cLoopFunctions);
 
 //   /*after completing trial, calc fitness*/
-//   virtual void apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time);
+//   virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
 //   /*after completing all trials, combine fitness*/
 //   virtual float after_trials();
 //   /*after a single step of all agents */
-//   virtual void after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions);
+//   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
 // };
 
 // #endif

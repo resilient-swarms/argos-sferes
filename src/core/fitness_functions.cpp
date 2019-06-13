@@ -1,14 +1,14 @@
 
 
-#include <src/obsavoid/evol_loop_functions.h>
-#include <src/obsavoid/fitness_functions.h>
-#include <src/obsavoid/statistics.h>
+#include <src/core/base_loop_functions.h>
+#include <src/core/fitness_functions.h>
+#include <src/core/statistics.h>
 
 FloreanoMondada::FloreanoMondada() : FitFun()
 {
 }
 
-void FloreanoMondada::after_step(size_t robot, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void FloreanoMondada::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     // compute linear speed for fitness function
     float s = (fabs(cLoopFunctions.outf[0]) + fabs(cLoopFunctions.outf[1])) / 20.0; // in [0,1]
@@ -25,7 +25,7 @@ void FloreanoMondada::after_step(size_t robot, CObsAvoidEvolLoopFunctions &cLoop
     nb_coll += (1.0f - maxIRSensor);
 }
 /*after completing a trial,calc fitness*/
-void FloreanoMondada::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
+void FloreanoMondada::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 {
     float fit = lin_speed / time * (Real)nb_coll / time;
     fitness_per_trial.push_back(fit);
@@ -50,7 +50,7 @@ MeanSpeed::MeanSpeed() : FitFun()
 {
 }
 
-void MeanSpeed::after_step(size_t robot, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void MeanSpeed::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     // compute linear speed for fitness function
     float s = (fabs(cLoopFunctions.outf[0]) + fabs(cLoopFunctions.outf[1])) / 20.0; // in [0,1]
@@ -67,7 +67,7 @@ void MeanSpeed::after_step(size_t robot, CObsAvoidEvolLoopFunctions &cLoopFuncti
     nb_coll += (1.0f - maxIRSensor);
 }
 /*after completing a trial,calc fitness*/
-void MeanSpeed::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
+void MeanSpeed::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 {
     float fit = lin_speed / time * (Real)nb_coll / time;
     fitness_per_trial.push_back(fit);
@@ -95,7 +95,7 @@ void MeanSpeed::print_progress(size_t trial)
     printf("\n\n lin_speed = %f", lin_speed);
     printf("\n\n nb_coll = %f", nb_coll);
 }
-Coverage::Coverage(std::string init_string, CObsAvoidEvolLoopFunctions *cLoopFunctions)
+Coverage::Coverage(std::string init_string, BaseLoopFunctions *cLoopFunctions)
 {
     if (init_string=="Coverage")
     {
@@ -111,7 +111,7 @@ Coverage::Coverage(std::string init_string, CObsAvoidEvolLoopFunctions *cLoopFun
 }
 
 /*after completing trial, calc fitness*/
-void Coverage::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
+void Coverage::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 {
     //coverage
     fitness_per_trial.push_back(coverageCalc->get_coverage());
@@ -120,10 +120,14 @@ void Coverage::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
 }
 
 /*after a single step of single agent */
-void Coverage::after_step(size_t robot_index, CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void Coverage::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
-    coverageCalc->update(cLoopFunctions.curr_pos[robot_index]);
-    ++num_updates;
+    for (size_t robot_index=0; robot_index < cLoopFunctions.curr_pos.size(); ++robot_index)
+    {
+        coverageCalc->update(cLoopFunctions.curr_pos[robot_index]);
+        ++num_updates;
+    }
+    
 }
 /*after completing all trials, combine fitness*/
 float Coverage::after_trials()
@@ -141,12 +145,12 @@ void Coverage::print_progress(size_t trial)
     printf("\n\n fitness (coverage) in trial %zu is %f", trial, fitness_per_trial[trial]);
 }
 
-TrialCoverage::TrialCoverage(std::string init_type, CObsAvoidEvolLoopFunctions *cLoopFunctions) : Coverage(init_type, cLoopFunctions)
+TrialCoverage::TrialCoverage(std::string init_type, BaseLoopFunctions *cLoopFunctions) : Coverage(init_type, cLoopFunctions)
 {
 }
 
 /*before trial calc obstacle cells*/
-void TrialCoverage::before_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void TrialCoverage::before_trial(BaseLoopFunctions &cLoopFunctions)
 {
     coverageCalc->get_num_cells(cLoopFunctions);
 }
@@ -154,14 +158,14 @@ void TrialCoverage::before_trial(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 Aggregation::Aggregation() : FitFun()
 {
 }
-void Aggregation::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void Aggregation::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     std::pair<std::vector<argos::CVector3>, argos::CVector3> data = centre_of_mass(cLoopFunctions);
     trial_dist +=  StatFuns::get_avg_dist(data.first, data.second);
     ++num_updates;
 }
 /*after completing a trial,calc fitness*/
-void Aggregation::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
+void Aggregation::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 {
     //The fitness function is inversely
     //proportional to the average distance to the centre of mass over the entire simulation
@@ -183,7 +187,7 @@ float Aggregation::get_mass(CThymioEntity *robot)
     return 1.0f;
 }
 
-std::pair<std::vector<argos::CVector3>, argos::CVector3> Aggregation::centre_of_mass(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+std::pair<std::vector<argos::CVector3>, argos::CVector3> Aggregation::centre_of_mass(BaseLoopFunctions &cLoopFunctions)
 {
     float M = 0.0;
     argos::CVector3 cm = argos::CVector3(0., 0., 0.);
@@ -215,13 +219,13 @@ std::pair<std::vector<argos::CVector3>, argos::CVector3> Aggregation::centre_of_
 }
 
 
-Dispersion::Dispersion(CObsAvoidEvolLoopFunctions* cLoopFunctions)
+Dispersion::Dispersion(BaseLoopFunctions* cLoopFunctions)
 {
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
     maxdist = StatFuns::get_minkowski_distance(max,argos::CVector3::ZERO);
 }
 /*after completing trial, calc fitness*/
-void Dispersion::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
+void Dispersion::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 {
     /*The fitness is proportional to the average distance to the nearest neighbour, 
     averaged over the entire simulation.*/
@@ -240,13 +244,13 @@ float Dispersion::after_trials()
     fitness_per_trial.clear();
     return meanfit;
 }
-void Dispersion::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void Dispersion::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     trial_dist += avg_min_dist(cLoopFunctions);
     ++num_updates;
 }
 
-float Dispersion::avg_min_dist(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+float Dispersion::avg_min_dist(BaseLoopFunctions &cLoopFunctions)
 {
 
     float avg_min_dist=0.0f;
@@ -274,17 +278,17 @@ float Dispersion::avg_min_dist(CObsAvoidEvolLoopFunctions &cLoopFunctions)
 }
 
 
-// Flocking::Flocking(CObsAvoidEvolLoopFunctions *cLoopFunctions)
+// Flocking::Flocking(BaseLoopFunctions *cLoopFunctions)
 // {
 
 // }
-// void Flocking::after_robotloop(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+// void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 // {
 //     trial_dist += avg_min_dist(cLoopFunctions);
 //     ++num_updates;
 // }
 // /*after completing trial, calc fitness*/
-// void Flocking::apply(CObsAvoidEvolLoopFunctions &cLoopFunctions, Real time)
+// void Flocking::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 // {
 //   /*The fitness function rewards robots for having an orientation 
 //    similar to the other robots within a radius of 25 cm (half the robot sensing range), 

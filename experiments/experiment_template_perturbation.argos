@@ -46,8 +46,8 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libobsavoid_evol_loopfunctionsBEHAVIOUR_TAG.so"
-                  label="obsavoid_evol_loopfunctionsBEHAVIOUR_TAG"
+  <loop_functions library="lib/libevolution_loopfunctionsBEHAVIOUR_TAG.so"
+                  label="evolution_loopfunctionsBEHAVIOUR_TAG"
                   trials="TRIALS"
                   robots="ROBOTS"
                   descriptortype="DESCRIPTOR_TYPE"    

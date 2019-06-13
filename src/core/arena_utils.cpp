@@ -1,21 +1,23 @@
-#include "arena_utils.h"
+#include <src/core/base_loop_functions.h>
+#include <src/core/arena_utils.h>
+
 #include <argos3/plugins/simulator/entities/cylinder_entity.h>
 
 
 
-CoverageCalc::CoverageCalc(CObsAvoidEvolLoopFunctions *cLoopFunctions)
+CoverageCalc::CoverageCalc(BaseLoopFunctions *cLoopFunctions)
 {
     define_grid(cLoopFunctions);
     get_num_cells(*cLoopFunctions);
 }
 
-void CoverageCalc::define_grid(CObsAvoidEvolLoopFunctions* cLoopFunctions)
+void CoverageCalc::define_grid(BaseLoopFunctions* cLoopFunctions)
 {
     // initialise grid (for calculating coverage and uniformity)
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
     
 
-    SBoundingBox bounding_box = cLoopFunctions->m_pcvecRobot[0]->GetEmbodiedEntity().GetBoundingBox();
+    SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0).GetBoundingBox();
 
     float xdim = bounding_box.MaxCorner.GetX() - bounding_box.MinCorner.GetX();
     float ydim = bounding_box.MaxCorner.GetY() - bounding_box.MinCorner.GetY();
@@ -25,7 +27,7 @@ void CoverageCalc::define_grid(CObsAvoidEvolLoopFunctions* cLoopFunctions)
     
 }
 
-void CoverageCalc::get_num_cells(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void CoverageCalc::get_num_cells(BaseLoopFunctions &cLoopFunctions)
 {
     CSpace::TMapPerType &argos_cylinders = cLoopFunctions.GetSpace().GetEntitiesByType("cylinder");
     float obstacle_cells=0.0f;
@@ -146,11 +148,11 @@ void CoverageCalc::print_xy(location_t location) const
     std::cout<<"("<<std::get<0>(location)<<","<<std::get<1>(location)<<")"<<std::endl;
 }
 
-BorderCoverageCalc::BorderCoverageCalc(CObsAvoidEvolLoopFunctions *cLoopFunctions) : CoverageCalc(cLoopFunctions)
+BorderCoverageCalc::BorderCoverageCalc(BaseLoopFunctions *cLoopFunctions) : CoverageCalc(cLoopFunctions)
 {
 
 }
-void BorderCoverageCalc::get_num_cells(CObsAvoidEvolLoopFunctions &cLoopFunctions)
+void BorderCoverageCalc::get_num_cells(BaseLoopFunctions &cLoopFunctions)
 {
     // note: simplifying assumption that obstacles are not placed on the border
     argos::CVector3 max = cLoopFunctions.GetSpace().GetArenaSize();

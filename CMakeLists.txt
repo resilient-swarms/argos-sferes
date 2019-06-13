@@ -108,11 +108,86 @@ include_directories(${ARGOS_INCLUDE_DIRS})
 # Set ARGoS link dir
 link_directories(${ARGOS_LIBRARY_DIRS} ${THYMIO}/lib/argos3 ${PROJECT_SOURCE_DIR}/lib)
 
+
+option(BASELINE "baseline behaviours vs evolution" OFF)
 option(RECORD_FITNESS "print some variables" OFF)
 option(DEFINE_PRINT "print some variables" OFF)
 option(BD "behaviour description size" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
 option(PERTURB "Perturbations" OFF)
+
+
+if(BASELINE)
+    message("will use baseline behaviours rather than evolution")
+    add_definitions(-DBASELINEBEHAVS)  
+    set(EXECUTABLE baseline_behaviour)  
+    set(CONTROL "baseline-behavs")
+    add_library(baseline-behavs SHARED
+        src/baseline-behavs/baseline-behavs.h
+        src/baseline-behavs/baseline-behavs.cpp
+        src/baseline-behavs/behavior.h
+        src/baseline-behavs/behavior.cpp
+        src/baseline-behavs/dispersebehavior.h
+        src/baseline-behavs/dispersebehavior.cpp
+        src/baseline-behavs/randomwalkbehavior.h
+        src/baseline-behavs/randomwalkbehavior.cpp
+        src/baseline-behavs/homingtofoodbeaconbehavior.h
+        src/baseline-behavs/homingtofoodbeaconbehavior.cpp
+        src/baseline-behavs/aggregatebehavior.h
+        src/baseline-behavs/aggregatebehavior.cpp
+        src/baseline-behavs/coveragebehavior.h
+        src/baseline-behavs/coveragebehavior.cpp
+        src/baseline-behavs/bordercoveragebehavior.h
+        src/baseline-behavs/bordercoveragebehavior.cpp
+        src/baseline-behavs/flockingbehavior.h
+        src/baseline-behavs/flockingbehavior.cpp
+        src/baseline-behavs/circlebehavior.h
+        src/baseline-behavs/circlebehavior.cpp
+        src/baseline-behavs/sensingandcommunication.h
+        src/baseline-behavs/sensingandcommunication.cpp)
+    
+else(NOT BASELINE)
+    message("will use evolution")
+    message("Using ${BD}D behavioural characterisation")
+
+    if(NOT ${BD})
+        set(BD 2)
+    endif()
+    add_definitions(-DBEHAV_DIM=${BD})
+
+    if(CVT_USAGE)
+      set(CVT_USE cvt)
+      add_definitions(-DCVT)
+      message("Using Centroidal Voronoi Tesselation")
+    else(NOT CVT_USAGE)
+        if(NOT ${BD} EQUAL 2 AND NOT ${BD} EQUAL 3 AND NOT ${BD} EQUAL 6)
+        message(FATAL_ERROR "When not using CVT, need to use 2,3 or 6 behavioural dimensions")
+        endif()
+    endif()
+
+
+    set(CONTROL "nn_controller")
+
+    set(tag ${CVT_USE}${BD}D)
+    add_definitions(-DTAG="${tag}")
+
+    add_library(evolution_loopfunctions${tag} SHARED
+      src/evolution/evol_loop_functions.h
+      src/evolution/evol_loop_functions.cpp
+    )
+
+    add_library(descriptors${tag} SHARED
+      src/evolution/descriptors.h
+      src/evolution/descriptors.cpp
+    )
+
+    # Descend into the controllers directory
+    add_library(nn_controller SHARED
+    src/evolution/nn_controller.h
+    src/evolution/nn_controller.cpp
+    )
+    set(EXECUTABLE behaviour_evol${tag})
+endif()
 
 if(RECORD_FITNESS)
     message("will record fitness after each evaluation (useful for tests)")
@@ -130,59 +205,31 @@ else(NOT DEFINE_PRINT)
 endif()
 
 
-message("Using ${BD}D behavioural characterisation")
-
-if(NOT ${BD})
-    set(BD 2)
-endif()
-add_definitions(-DBEHAV_DIM=${BD})
-
-if(CVT_USAGE)
-  set(CVT_USE cvt)
-  add_definitions(-DCVT)
-  message("Using Centroidal Voronoi Tesselation")
-else(NOT CVT_USAGE)
-    if(NOT ${BD} EQUAL 2 AND NOT ${BD} EQUAL 3 AND NOT ${BD} EQUAL 6)
-    message(FATAL_ERROR "When not using CVT, need to use 2,3 or 6 behavioural dimensions")
-    endif()
-endif()
 
 
-set(CONTROL "nn_controller")
 
-set(tag ${CVT_USE}${BD}D)
-add_definitions(-DTAG="${tag}")
-
-# Descend into the controllers directory
-add_library(nn_controller SHARED
-  src/obsavoid/nn_controller.h
-  src/obsavoid/nn_controller.cpp
-)
 
 
 add_library(statistics SHARED
-  src/obsavoid/statistics.h
-  src/obsavoid/statistics.cpp
+  src/core/statistics.h
+  src/core/statistics.cpp
 )
 
-add_library(obsavoid_evol_loopfunctions${tag} SHARED
-  src/obsavoid/evol_loop_functions.h
-  src/obsavoid/evol_loop_functions.cpp
+add_library(base_loopfunctions SHARED
+  src/core/base_loop_functions.h
+  src/core/base_loop_functions.cpp
 )
+
+
 
 add_library(arena_utils${tag} SHARED
-  src/obsavoid/arena_utils.h
-  src/obsavoid/arena_utils.cpp
+  src/core/arena_utils.h
+  src/core/arena_utils.cpp
 )
 
 add_library(fitness_functions${tag} SHARED
-  src/obsavoid/fitness_functions.h
-  src/obsavoid/fitness_functions.cpp
-)
-
-add_library(descriptors${tag} SHARED
-  src/obsavoid/descriptors.h
-  src/obsavoid/descriptors.cpp
+  src/core/fitness_functions.h
+  src/core/fitness_functions.cpp
 )
 
 
@@ -193,10 +240,36 @@ add_library(descriptors${tag} SHARED
 
 
 
-set(EXECUTABLE obsavoid_evol${tag})
-add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
 
-    target_link_libraries(${CONTROL}
+
+
+add_executable(${EXECUTABLE} src/main.cpp)
+
+if(BASELINE)
+      target_link_libraries(baseline-behavs
+        argos3core_simulator
+        argos3plugin_simulator_thymio
+        argos3plugin_simulator_genericrobot)
+    set(LOOPFUN baseline-behavs-loopfunc)
+    set(baseline-behavs-loopfunc-SOURCES src/baseline-behavs/baseline-behavs-loopfunc.cpp)
+    if(ARGOS_COMPILE_QTOPENGL)
+      set(baseline-behavs-loopfunc-SOURCES
+          ${baseline-behavs-loopfunc-SOURCES}
+          src/baseline-behavs/baseline-behavs-robids.cpp)
+    endif(ARGOS_COMPILE_QTOPENGL)
+
+    add_library(baseline-behavs-loopfunc SHARED
+        ${baseline-behavs-loopfunc-SOURCES})
+
+
+
+    if(ARGOS_COMPILE_QTOPENGL)
+        target_link_libraries(baseline-behavs-loopfunc argos3plugin_simulator_qtopengl)
+    endif(ARGOS_COMPILE_QTOPENGL)
+else(NOT BASELINE)
+  set(LOOPFUN evolution_loopfunctions${tag})
+endif()
+      target_link_libraries(${CONTROL}
       argos3core_simulator
       #argos3plugin_simulator_actuators
       argos3plugin_simulator_thymio
@@ -206,7 +279,9 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       ${Boost_LIBRARIES}
       ${TBB_LIBRARIES})
 
-    target_link_libraries(obsavoid_evol_loopfunctions${tag}
+
+
+    target_link_libraries(${LOOPFUN}
       ${CONTROL}
       argos3core_simulator
       #argos3plugin_simulator_actuators
@@ -218,11 +293,27 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       #argos3plugin_simulator_sensors
       ${LUA_LIBRARIES}
       ${Boost_LIBRARIES}
-      ${TBB_LIBRARIES})
+${TBB_LIBRARIES})
 
-    target_link_libraries(${EXECUTABLE}
+
+if(BASELINE)      
+      target_link_libraries(${EXECUTABLE}
       ${CONTROL}
-      obsavoid_evol_loopfunctions${tag}
+      ${LOOPFUN}
+      base_loopfunctions
+      fitness_functions${tag}
+      arena_utils${tag}
+      statistics
+      argos3core_simulator 
+      ${LUA_LIBRARIES}
+      ${Boost_LIBRARIES} 
+${TBB_LIBRARIES})
+   
+else(NOT BASELINE)
+   target_link_libraries(${EXECUTABLE}
+      ${CONTROL}
+      ${LOOPFUN}
+      base_loopfunctions
       descriptors${tag}
       fitness_functions${tag}
       arena_utils${tag}
@@ -230,57 +321,13 @@ add_executable(${EXECUTABLE} src/obsavoid/main.cpp)
       argos3core_simulator 
       ${LUA_LIBRARIES}
       ${Boost_LIBRARIES} 
-      ${TBB_LIBRARIES})
+${TBB_LIBRARIES})
+
+endif()
 
 
-    
-    add_library(baseline-behavs SHARED
-        src/baseline-behavs/baseline-behavs.h
-        src/baseline-behavs/baseline-behavs.cpp
-	src/baseline-behavs/behavior.h
-	src/baseline-behavs/behavior.cpp
-	src/baseline-behavs/dispersebehavior.h
-	src/baseline-behavs/dispersebehavior.cpp
-	src/baseline-behavs/randomwalkbehavior.h
-	src/baseline-behavs/randomwalkbehavior.cpp
-	src/baseline-behavs/homingtofoodbeaconbehavior.h
-	src/baseline-behavs/homingtofoodbeaconbehavior.cpp
-	src/baseline-behavs/aggregatebehavior.h
-	src/baseline-behavs/aggregatebehavior.cpp
-        src/baseline-behavs/coveragebehavior.h
-        src/baseline-behavs/coveragebehavior.cpp
-        src/baseline-behavs/bordercoveragebehavior.h
-        src/baseline-behavs/bordercoveragebehavior.cpp
-	src/baseline-behavs/flockingbehavior.h
-	src/baseline-behavs/flockingbehavior.cpp
-	src/baseline-behavs/circlebehavior.h
-	src/baseline-behavs/circlebehavior.cpp
-	src/baseline-behavs/sensingandcommunication.h
-	src/baseline-behavs/sensingandcommunication.cpp)
 
-    target_link_libraries(baseline-behavs
-        argos3core_simulator
-        argos3plugin_simulator_thymio
-        argos3plugin_simulator_genericrobot)
 
-    set(baseline-behavs-loopfunc-SOURCES src/baseline-behavs/baseline-behavs-loopfunc.cpp)
-    if(ARGOS_COMPILE_QTOPENGL)
-      set(baseline-behavs-loopfunc-SOURCES
-          ${baseline-behavs-loopfunc-SOURCES}
-          src/baseline-behavs/baseline-behavs-robids.cpp)
-    endif(ARGOS_COMPILE_QTOPENGL)
 
-    add_library(baseline-behavs-loopfunc SHARED
-        ${baseline-behavs-loopfunc-SOURCES})
-
-    target_link_libraries(baseline-behavs-loopfunc
-        baseline-behavs
-        argos3core_simulator
-        argos3plugin_simulator_thymio
-        argos3plugin_simulator_genericrobot)
-
-    if(ARGOS_COMPILE_QTOPENGL)
-        target_link_libraries(baseline-behavs-loopfunc argos3plugin_simulator_qtopengl)
-    endif(ARGOS_COMPILE_QTOPENGL)
 
   
