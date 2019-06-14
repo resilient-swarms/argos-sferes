@@ -17,7 +17,6 @@ void BaseLoopFunctions::init_robots()
     {
         m_pcvecRobot.push_back(any_cast<CThymioEntity *>(it->second));
     }
-    std::cout << "m_unNumberRobots = " << m_unNumberRobots;
     assert(m_unNumberRobots == m_pcvecRobot.size());// we need to make sure the number of robots distributed in the arena match what is specified by the user in the loop function.
 }
 
