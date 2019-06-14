@@ -213,12 +213,16 @@ endif()
 
 add_library(statistics SHARED
   src/core/statistics.h
-  src/core/statistics.cpp
+   src/core/statistics.cpp
 )
 
 add_library(base_loopfunctions SHARED
   src/core/base_loop_functions.h
   src/core/base_loop_functions.cpp
+  src/core/fitness_functions.h # added as error argos3: symbol lookup error: [path removed]/libbase_loopfunctions.so: undefined symbol: _ZN11AggregationC1Ev
+  src/core/fitness_functions.cpp
+  src/core/statistics.h # added as error argos3: symbol lookup error: [path removed] libbase_loopfunctions.so: undefined symbol: _ZN8StatFuns12get_avg_distESt6vectorIN5argos8CVector3ESaIS2_EES2_
+  src/core/statistics.cpp
 )
 
 add_library(base_controller SHARED

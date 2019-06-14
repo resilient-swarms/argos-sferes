@@ -8,10 +8,12 @@
 
 class BaseLoopFunctions;
 
+typedef std::tuple<int, int, int> location_t;
+
 class CoverageCalc
 {
 public:
-    typedef std::tuple<int, int, int> location_t;
+    
 
     std::map<location_t, size_t> unique_visited_positions;
     //RunningStat* velocity_stats;
@@ -48,7 +50,6 @@ public:
 class BorderCoverageCalc : public CoverageCalc
 {
 public:
-    using CoverageCalc::location_t;
     const location_t null_location{-1,-1,-1}; 
     int max_bin_x, max_bin_y;
     BorderCoverageCalc(BaseLoopFunctions* cLoopFunctions);
@@ -65,6 +66,37 @@ public:
 
     /* updated the visited positions */
     virtual void update(argos::CVector3 pos);
+};
+
+
+class DecayCoverageCalc
+{
+public:
+    // create a grid of grid_size*grid_size
+    // fill it up with zeros initially
+    // upon visitation set to 1, then decay with decay rate
+    const float decay_rate=0.005;
+    const size_t grid_size_x=10;
+    const size_t grid_size_y=10;
+    float grid_step_x, grid_step_y;
+    float accumulator;
+    std::map<location_t,float> grid;
+    DecayCoverageCalc(std::string init_type,BaseLoopFunctions* cLoopFunctions);
+
+    /* get bin corresponding to a position in the space */
+    location_t get_bin(argos::CVector3 vec) const;
+
+    /* end the trial */
+    void end_trial();
+
+    /* updated the visited positions */
+    void update(argos::CVector3 pos);
+
+    /* decay */
+    void decay();
+
+    /* add the summed value across the grid to the acummulator */
+    void get_grid_sum();
 };
 
 #endif

@@ -79,7 +79,7 @@ float CoverageCalc::get_coverage() const
     return (float)unique_visited_positions.size() / num_cells;
 }
 /* get bin corresponding to a position in the space */
-CoverageCalc::location_t CoverageCalc::get_bin(argos::CVector3 vec) const
+location_t CoverageCalc::get_bin(argos::CVector3 vec) const
 {
     int binx = (int)((float)vec.GetX() / grid_step);
     int biny = (int)((float)vec.GetY() / grid_step);
@@ -172,7 +172,7 @@ bool BorderCoverageCalc::is_on_border(location_t bin) const
    return x == 0  || y ==0 || x == max_bin_x || y == max_bin_y;
 }
 /* get bin corresponding to a position in the space */
-BorderCoverageCalc::location_t  BorderCoverageCalc::get_bin(argos::CVector3 vec) const
+location_t  BorderCoverageCalc::get_bin(argos::CVector3 vec) const
 {
     location_t bin = CoverageCalc::get_bin(vec);
     if (is_on_border(bin) )
@@ -203,3 +203,111 @@ void BorderCoverageCalc::update(argos::CVector3 pos)
         unique_visited_positions[bin] += 1;
     }
 }
+
+
+DecayCoverageCalc::DecayCoverageCalc(std::string init_type, BaseLoopFunctions *cLoopFunctions)
+{
+    // note: simplifying assumption that obstacles are not placed on the border
+    argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
+    grid_step_x = max.GetX()/grid_size_x;
+    grid_step_y = max.GetY()/grid_size_y;
+
+    // define the grid
+    if (init_type == "DecayCoverage")
+    {
+        // 10*10 grid
+        for (int x=0; x < grid_size_x; ++x)
+        {
+            for (int y=0; y < grid_size_y; ++y)
+            {
+                location_t l(x, y, 0);
+                grid.insert(std::pair<location_t,float>(l, 0.0f));
+            }
+        }
+    }
+    else if (init_type == "DecayBorderCoverage")
+    {
+        // 10*10 grid but only the borders are counted
+        for (int y=0; y < grid_size_y; ++y)
+        {
+            location_t l(0, y, 0);
+            grid.insert(std::pair<location_t,float>(l, 0.0f));
+
+            location_t l2(grid_size_x - 1, y, 0);
+            grid.insert(std::pair<location_t,float>(l, 0.0f));
+        }
+
+        for (int x=0;x  < grid_size_x; ++x)
+        {
+            location_t l(x, 0, 0);
+            grid.insert(std::pair<location_t,float>(l, 0.0f));
+
+            location_t l2(x, grid_size_y - 1, 0);
+            grid.insert(std::pair<location_t,float>(l, 0.0f));
+        }
+    }
+    else{
+        throw std::runtime_error("init_type "+init_type + " is not suitable for DecayCoverageCalc");
+    }
+    // set accumulator to zero
+    accumulator = 0.0f;
+}
+/* start the trial */
+void DecayCoverageCalc::end_trial()
+{
+    // reset the grid to zeros
+    for(auto it = grid.begin(); it != grid.end(); it++ )
+    {
+        it->second = 0.0f;
+    }
+    // reset accumulator to zero
+    accumulator = 0.0f;
+}
+/* get bin corresponding to a position in the space */
+location_t DecayCoverageCalc::get_bin(argos::CVector3 vec) const
+{
+    int binx = (int)((float)vec.GetX() / grid_step_x);
+    int biny = (int)((float)vec.GetY() / grid_step_y);
+    //int binz = (int)((float)vec.GetZ() / grid_step);
+
+    location_t bin(binx, biny, 0.0f);
+    // #ifdef PRINTING
+    //     std::cout<<"binned "<< vec  <<"into "<<binx<<","<<biny<<","<<binz<<std::endl;
+    // #endif
+    return bin;
+}
+
+/* update the visited positions */
+void DecayCoverageCalc::update(argos::CVector3 pos)
+{
+    //count the bin
+    location_t bin = get_bin(pos);
+    auto find_result = grid.find(bin);
+    if (find_result == grid.end())
+    {
+        grid[bin]=1.0;
+    }
+}
+
+/* at the end of the after robotloop, decay positions */
+void DecayCoverageCalc::decay()
+{
+    for(auto it = grid.begin(); it != grid.end(); it++ )
+    {
+        it->second = std::max(0.0f,it->second -decay_rate);
+    }
+}
+
+/* add the summed value across the grid to the acummulator */
+void DecayCoverageCalc::get_grid_sum()
+{
+    for(auto it = grid.begin(); it != grid.end(); it++ )
+    {
+        accumulator += it->second;
+    }
+}
+// /* print xy-location of an element in the visited positions */
+// void DecayCoverageCalc::print_xy(location_t location) const
+// {
+//     std::cout<<"("<<std::get<0>(location)<<","<<std::get<1>(location)<<")"<<std::endl;
+// }

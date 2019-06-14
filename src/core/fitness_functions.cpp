@@ -155,8 +155,54 @@ void TrialCoverage::before_trial(BaseLoopFunctions &cLoopFunctions)
     coverageCalc->get_num_cells(cLoopFunctions);
 }
 
-Aggregation::Aggregation() : FitFun()
+
+DecayCoverage::DecayCoverage(std::string init_string, BaseLoopFunctions *cLoopFunctions)
 {
+    coverageCalc = new DecayCoverageCalc(init_string,cLoopFunctions);
+}
+
+/*after completing trial, calc fitness*/
+void DecayCoverage::apply(BaseLoopFunctions &cLoopFunctions, Real time)
+{
+    //coverage
+    float sum = coverageCalc->accumulator;
+    float coverage = sum / (coverageCalc->grid.size() * num_updates);
+    fitness_per_trial.push_back(coverage);
+    num_updates = 0;
+    coverageCalc->end_trial();
+}
+
+/*after a single step of single agent */
+void DecayCoverage::after_robotloop(BaseLoopFunctions &cLoopFunctions)
+{
+    for (size_t robot_index=0; robot_index < cLoopFunctions.curr_pos.size(); ++robot_index)
+    {
+        coverageCalc->update(cLoopFunctions.curr_pos[robot_index]);
+    }
+    coverageCalc->get_grid_sum();
+    ++num_updates;// one update for the entire swarm
+    coverageCalc->decay();
+}
+/*after completing all trials, combine fitness*/
+float DecayCoverage::after_trials()
+{
+    float meanfit = StatFuns::mean(fitness_per_trial);
+    fitness_per_trial.clear();
+
+    return meanfit;
+}
+
+/*after completing a trial, print some statistics (if desired)*/
+void DecayCoverage::print_progress(size_t trial)
+{
+
+    printf("\n\n fitness (coverage) in trial %zu is %f", trial, fitness_per_trial[trial]);
+}
+
+Aggregation::Aggregation(BaseLoopFunctions *cLoopFunctions) : FitFun()
+{
+    argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
+    maxdist = StatFuns::get_minkowski_distance(max,argos::CVector3::ZERO);
 }
 void Aggregation::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
@@ -169,8 +215,13 @@ void Aggregation::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 {
     //The fitness function is inversely
     //proportional to the average distance to the centre of mass over the entire simulation
-    float dist = trial_dist / (float) num_updates;
-    fitness_per_trial.push_back(1.0f / dist);
+    float dist = trial_dist / (maxdist*(float) num_updates);
+    float fitness = 1 - dist;
+    if(StatFuns::in_range(fitness,0.0f,1.0f))
+    {
+        throw std::runtime_error("fitness not in [0,1]");
+    }
+    fitness_per_trial.push_back(fitness);
     num_updates = 0;
     trial_dist = 0.0f;
 };
@@ -205,7 +256,7 @@ std::pair<std::vector<argos::CVector3>, argos::CVector3> Aggregation::centre_of_
     for (size_t i=0; i < cLoopFunctions.curr_pos.size(); ++i)
     {
 
-        float mass = 1.0; //get_mass(robot);
+        float mass = 1.0; //get_mass(robot); mass of 1 is used here
         M += mass;
         argos::CVector3 pos = cLoopFunctions.curr_pos[i];
         cm += pos;  //mass * pos;
