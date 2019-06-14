@@ -47,7 +47,8 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
    
    bash make_all_simulation.sh
    
-   
+7. To compile baseline behaviours, do
+    cmake -DRECORD_FITNESS=ON -DBASELINE=ON ..
 
 
 Instruction for running
@@ -58,6 +59,16 @@ Edit the ARGoS experiment configuration file for your own experiment setup
     emacs argos-sferes/experiments/obsavoid_evol.argos
 
 
+
+For now, preliminary multi-agent experiments can be run using 
+./bin/behaviour_evolcvt400D experiments/multiagent_spirit.argos
+
+and:
+./bin/baseline_behaviour experiments/baseline-behavs.argos
+
+
+
+For single-agent experiments:
 To run the EA, on the setting mentioned in point 5., you can run
 
     cd argos-sferes
@@ -71,4 +82,4 @@ To run the EA on other settings mentioned in point 6., you can run either of the
 
 To try out an evolved solution
 
-     ./bin/obehaviour_evol2D experiments/history.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
+     ./bin/behaviour_evol2D experiments/history.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>

@@ -148,11 +148,14 @@ void EvolutionLoopFunctions::init_simulation(TConfigurationNode &t_node)
 }
 void EvolutionLoopFunctions::init_robots()
 {
-    BaseLoopFunctions::init_robots();
-    m_pcvecController.resize(m_unNumberRobots);
-    for (size_t i = 0; i < m_unNumberRobots; ++i)
+    m_pcvecRobot.clear();
+    m_pcvecController.clear();
+    CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
+
+    for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
-        m_pcvecController[i] = &dynamic_cast<CThymioNNController &>(m_pcvecRobot[i]->GetControllableEntity().GetController());
+        m_pcvecRobot.push_back(any_cast<CThymioEntity *>(it->second));
+        m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot.back()->GetControllableEntity().GetController()));
     }
 }
 
@@ -243,8 +246,6 @@ void EvolutionLoopFunctions::PreStep()
         //assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
         inputs.clear();
         inputs = cController.InputStep();
-        if (cController.id_FaultyRobotInSwarm == robotindex)
-            cController.damage_sensors(inputs);
         this->descriptor->set_input_descriptor(robotindex, *this);
         inputs.push_back(+1.0); //Bias input
 
@@ -267,12 +268,12 @@ void EvolutionLoopFunctions::PreStep()
             if (std::isnan(_vecctrlrob[robotindex].get_outf()[j]))
                 outf[j] = 0.0;
             else
-                outf[j] = 10.0f * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
+                outf[j] = cController.m_sWheelTurningParams.MaxSpeed * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
                                                                          //outf[j]=10.0f*(2.0f*_vecctrlrob[robotindex].get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
 
         cController.m_fLeftSpeed = outf[0];
         cController.m_fRightSpeed = outf[1];
-        if (cController.id_FaultyRobotInSwarm == robotindex)
+        if (cController.b_damagedrobot)
             cController.damage_actuators();
         outf[0] = cController.m_fLeftSpeed; // use actual velocity for FloreanoMondada fitness
         outf[1] = cController.m_fRightSpeed;

@@ -9,17 +9,13 @@ BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0),m_vecInitSetup(0)
 
 void BaseLoopFunctions::init_robots()
 {
-    m_pcvecRobot.resize(m_unNumberRobots);
-    
-    
+    m_pcvecRobot.clear();
+    CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
 
-    for (size_t i = 0; i < m_unNumberRobots; ++i)
+    size_t robotindex = 0;
+    for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
-        m_pcvecRobot[i] = new CThymioEntity(
-            std::string("th") + std::to_string(i), // entity id
-            get_controller_id()   // controller id as set in the XML
-        );
-        AddEntity(*m_pcvecRobot[i]);
+        m_pcvecRobot.push_back(any_cast<CThymioEntity *>(it->second));
     }
 }
 

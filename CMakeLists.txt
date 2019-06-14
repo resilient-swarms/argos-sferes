@@ -143,8 +143,7 @@ if(BASELINE)
         src/baseline-behavs/flockingbehavior.cpp
         src/baseline-behavs/circlebehavior.h
         src/baseline-behavs/circlebehavior.cpp
-        src/baseline-behavs/sensingandcommunication.h
-        src/baseline-behavs/sensingandcommunication.cpp)
+      )
     
 else(NOT BASELINE)
     message("will use evolution")
@@ -186,6 +185,8 @@ else(NOT BASELINE)
     src/evolution/nn_controller.h
     src/evolution/nn_controller.cpp
     )
+
+
     set(EXECUTABLE behaviour_evol${tag})
 endif()
 
@@ -220,6 +221,10 @@ add_library(base_loopfunctions SHARED
   src/core/base_loop_functions.cpp
 )
 
+add_library(base_controller SHARED
+  src/core/base_controller.h
+  src/core/base_controller.cpp
+)
 
 
 add_library(arena_utils${tag} SHARED
@@ -235,7 +240,10 @@ add_library(fitness_functions${tag} SHARED
 
 
 
-
+add_library(communication SHARED
+  src/core/sensingandcommunication.h
+  src/core/sensingandcommunication.cpp
+)
 
 
 
@@ -246,7 +254,9 @@ add_library(fitness_functions${tag} SHARED
 add_executable(${EXECUTABLE} src/main.cpp)
 
 if(BASELINE)
-      target_link_libraries(baseline-behavs
+      target_link_libraries(${CONTROL}
+        base_controller
+        communication
         argos3core_simulator
         argos3plugin_simulator_thymio
         argos3plugin_simulator_genericrobot)
@@ -268,8 +278,8 @@ if(BASELINE)
     endif(ARGOS_COMPILE_QTOPENGL)
 else(NOT BASELINE)
   set(LOOPFUN evolution_loopfunctions${tag})
-endif()
-      target_link_libraries(${CONTROL}
+  target_link_libraries(${CONTROL}
+      base_controller
       argos3core_simulator
       #argos3plugin_simulator_actuators
       argos3plugin_simulator_thymio
@@ -278,11 +288,14 @@ endif()
       ${LUA_LIBRARIES}
       ${Boost_LIBRARIES}
       ${TBB_LIBRARIES})
+endif()
+
 
 
 
     target_link_libraries(${LOOPFUN}
       ${CONTROL}
+      base_controller
       argos3core_simulator
       #argos3plugin_simulator_actuators
       argos3plugin_simulator_dynamics2d
@@ -298,9 +311,9 @@ ${TBB_LIBRARIES})
 
 if(BASELINE)      
       target_link_libraries(${EXECUTABLE}
-      ${CONTROL}
       ${LOOPFUN}
       base_loopfunctions
+      ${CONTROL}
       fitness_functions${tag}
       arena_utils${tag}
       statistics
@@ -311,9 +324,9 @@ ${TBB_LIBRARIES})
    
 else(NOT BASELINE)
    target_link_libraries(${EXECUTABLE}
-      ${CONTROL}
       ${LOOPFUN}
       base_loopfunctions
+      ${CONTROL}
       descriptors${tag}
       fitness_functions${tag}
       arena_utils${tag}

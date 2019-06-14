@@ -5,32 +5,10 @@
  * Include some necessary headers.
  */
 #include <argos3/core/utility/math/angles.h>
-#include <argos3/core/control_interface/ci_controller.h>
+//#include <argos3/core/control_interface/ci_controller.h>
 #include <argos3/core/utility/logging/argos_log.h>
 
-/* Definition of the differential steering actuator */
-#include <argos3/plugins/robots/generic/control_interface/ci_differential_steering_actuator.h>
 
-/* Definition of the LEDs actuator */
-#include <argos3/plugins/robots/thymio/control_interface/ci_thymio_leds_actuator.h>
-
-/* Definition of proximity sensor */
-#include <argos3/plugins/robots/thymio/control_interface/ci_thymio_proximity_sensor.h>
-
-/* Definition of ground sensor */
-#include <argos3/plugins/robots/thymio/control_interface/ci_thymio_ground_sensor.h>
-
-/* Definition of the range and bearing actuator */
-#include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_actuator.h>
-
-/* Definition of the range and bearing sensor */
-#include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_sensor.h>
-
-/* Definition of the differential steering wheel encoder */
-#include <argos3/plugins/robots/generic/control_interface/ci_differential_steering_sensor.h>
-
-/* Definitions for random number generation */
-#include <argos3/core/utility/math/rng.h>
 
 /****************************************/
 /****************************************/
@@ -45,25 +23,33 @@
 #include "homingtofoodbeaconbehavior.h"
 #include "circlebehavior.h"
 #include "flockingbehavior.h"
-#include "sensingandcommunication.h"
+
 
 /****************************************/
 /****************************************/
 
+/* now include core utilities */
+#include <src/core/base_controller.h>
+
+#include <src/core/sensingandcommunication.h>
 /*
  * All the ARGoS stuff in the 'argos' namespace.
  * With this statement, you save typing argos:: every time.
  */
 using namespace argos;
 
+
+
+
 /*
  * A controller is simply an implementation of the CCI_Controller class.
  */
-class CBaselineBehavs : public CCI_Controller
+class CBaselineBehavs : public BaseController
 {
 
 public:
-
+    using BaseController::SWheelTurningParams;
+    using BaseController::FaultBehavior;
     struct ExperimentToRun
     {
         /* The type of experiment to run */
@@ -80,34 +66,7 @@ public:
         };
         enum SwarmBehavior SBehavior;
 
-        /* The possible faults on robot */
-        enum FaultBehavior
-        {
-            FAULT_NONE = 0,
 
-            /*faults whose effects cause one of the following four general failures */
-            FAULT_STRAIGHTLINE,
-            FAULT_RANDOMWALK,
-            FAULT_CIRCLE,
-            FAULT_STOP,
-
-            /* Implementing the faults themselves. The resulting behaviors will now depend on the normal behavior implementation. */
-            FAULT_PROXIMITYSENSORS_SETMIN,
-            FAULT_PROXIMITYSENSORS_SETMAX,
-            FAULT_PROXIMITYSENSORS_SETRANDOM,
-            FAULT_PROXIMITYSENSORS_SETOFFSET,
-
-            FAULT_RABSENSOR_SETOFFSET,
-            FAULT_RABSENSOR_MISSINGRECEIVERS,
-
-            FAULT_ACTUATOR_LWHEEL_SETZERO,
-            FAULT_ACTUATOR_RWHEEL_SETZERO,
-            FAULT_ACTUATOR_BWHEELS_SETZERO,
-
-            FAULT_SOFTWARE,
-
-            FAULT_POWER_FAILURE
-        } FBehavior;
 
         std::string id_FaultyRobotInSwarm;
         std::string swarmbehav;
@@ -118,19 +77,7 @@ public:
     };
 
 
-    /*
-        * The following variables are used as parameters for
-        * turning during navigation. You can set their value
-        * in the <parameters> section of the XML configuration
-        * file, under the
-        * <controllers><..._controller><parameters><wheel_turning>
-        * section.
-        */
-    struct SWheelTurningParams
-    {
-        Real MaxSpeed;
-        void Init(TConfigurationNode& t_tree);
-    };
+
 
 
     struct RobotDetails
@@ -255,159 +202,20 @@ public:
         return m_sExpRun;
     }
 
-    std::vector<CCI_ThymioProximitySensor::SReading> GetIRSensorReadings(bool b_DamagedRobot, ExperimentToRun::FaultBehavior fault_type)
-    {
-        std::vector<CCI_ThymioProximitySensor::SReading> sensor_readings = m_pcProximity->GetReadings();
-
-        if(!b_DamagedRobot)
-            return sensor_readings;
-
-        if(fault_type == ExperimentToRun::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMIN)
-        {
-            /* Front IR sensors */
-            for(size_t i = 0; i < 5; ++i)
-                sensor_readings[i].Value = 0.0f;
-            return sensor_readings;
-        }
-        else if(fault_type == ExperimentToRun::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMAX)
-        {
-            /* Front IR sensors */
-            for(size_t i = 0; i < 5; ++i)
-                sensor_readings[i].Value = 1.0f;
-            return sensor_readings;
-        }
-        else if(fault_type == ExperimentToRun::FaultBehavior::FAULT_PROXIMITYSENSORS_SETRANDOM)
-        {
-            /* Front IR sensors */
-            for(size_t i = 0; i < 5; ++i)
-                sensor_readings[i].Value = m_pcRNG->Uniform(CRange<Real>(0.0f, 1.0f));
-            return sensor_readings;
-        }
-        else if(fault_type == ExperimentToRun::FaultBehavior::FAULT_PROXIMITYSENSORS_SETOFFSET)
-        {
-            /* Front IR sensors */
-            for(size_t i = 0; i < 5; ++i)
-            {
-                sensor_readings[i].Value += m_pcRNG->Uniform(CRange<Real>(-0.5f, 0.5f));
-                if(sensor_readings[i].Value > 1.0f)
-                    sensor_readings[i].Value = 1.0f;
-                if(sensor_readings[i].Value < 0.0f)
-                    sensor_readings[i].Value = 0.0f;
-            }
-            return sensor_readings;
-        }
-
-        else
-        {
-            /* the robot is running one of the general faults or one of the specific faults that doesnot influence IR sensor readings*/
-            return sensor_readings;
-        }
-    }
-
-    CCI_RangeAndBearingSensor::TReadings GetRABSensorReadings(bool b_DamagedRobot, ExperimentToRun::FaultBehavior fault_type)
-    {
-        CCI_RangeAndBearingSensor::TReadings sensor_readings = m_pcRABS->GetReadings();
-
-        if(!b_DamagedRobot)
-            return sensor_readings;
-
-        if(fault_type == ExperimentToRun::FaultBehavior::FAULT_RABSENSOR_SETOFFSET)
-        {
-            for(size_t i = 0; i <  sensor_readings.size(); ++i)
-            {
-                CVector2 tmp(sensor_readings[i].Range, sensor_readings[i].HorizontalBearing);
-                tmp += CVector2(m_pcRNG->Uniform(CRange<Real>(75.0f, 100.0f)),
-                                m_pcRNG->Uniform(CRange<CRadians>(-CRadians::PI, CRadians::PI)));
-
-                sensor_readings[i].Range             = tmp.Length();
-                sensor_readings[i].HorizontalBearing = tmp.Angle();
-            }
-
-            return sensor_readings;
-        }
-
-        else if(fault_type == ExperimentToRun::FAULT_RABSENSOR_MISSINGRECEIVERS)
-        {
-            Real ReceiverSensingInterval[12][2];
-
-            ReceiverSensingInterval[0][0] = 0.0f;                    ReceiverSensingInterval[0][1] = 15.0f + (50.0f - 15.0f)/2.0f;
-            ReceiverSensingInterval[1][0] = 15.0f + (50.0f - 15.0f)/2.0f;    ReceiverSensingInterval[1][1] = 50.0f + (75.0f - 50.0f)/2.0f;
-            ReceiverSensingInterval[2][0] = 50.0f + (75.0f - 50.0f)/2.0f;    ReceiverSensingInterval[2][1] = 75.0f + (105.0f - 75.0f)/2.0f;
-            ReceiverSensingInterval[3][0] = 75.0f + (105.0f - 75.0f)/2.0f;   ReceiverSensingInterval[3][1] = 105.0f + (133.0f - 105.0f)/2.0f;
-            ReceiverSensingInterval[4][0] = 105.0f + (133.0f - 105.0f)/2.0f;  ReceiverSensingInterval[4][1] = 133.0f + (159.0f - 133.0f)/2.0f;
-            ReceiverSensingInterval[5][0] = 133.0f + (159.0f - 133.0f)/2.0f;  ReceiverSensingInterval[5][1] = 159.0f + (195.0f - 159.0f)/2.0f;
-            ReceiverSensingInterval[6][0] = 159.0f + (195.0f - 159.0f)/2.0f;  ReceiverSensingInterval[6][1] = 195.0f + (225.0f - 195.0f)/2.0f;
-            ReceiverSensingInterval[7][0] = 195.0f + (225.0f - 195.0f)/2.0f;  ReceiverSensingInterval[7][1] = 225.0f + (255.0f - 225.0f)/2.0f;
-            ReceiverSensingInterval[8][0] = 225.0f + (255.0f - 225.0f)/2.0f;  ReceiverSensingInterval[8][1] = 255.0f + (283.0f - 255.0f)/2.0f;
-            ReceiverSensingInterval[9][0] = 255.0f + (283.0f - 255.0f)/2.0f;  ReceiverSensingInterval[9][1] = 283.0f + (310.0f - 283.0f)/2.0f;
-            ReceiverSensingInterval[10][0] = 283.0f + (310.0f - 283.0f)/2.0f;  ReceiverSensingInterval[10][1] = 310.0f + (345.0f - 310.0f)/2.0f;
-            ReceiverSensingInterval[11][0] = 310.0f + (345.0f - 310.0f)/2.0f;  ReceiverSensingInterval[11][1] = 360.0f;
-
-            Real startangle, endangle;
-            // assume the front two receivers numbered 0 and 11 are missing
-            for(size_t i = 0; i <  sensor_readings.size(); ++i)
-            {
-                CRadians BearingAngle     = sensor_readings[i].HorizontalBearing;
-                Real BearingAngle_Degrees = ToDegrees(BearingAngle).UnsignedNormalize().GetValue();
-
-                assert(BearingAngle_Degrees >= 0.0f);
-
-                startangle = 105.0f + (133.0f - 105.0f) / 2.0f;
-                endangle   = 225.0f + (255.0f - 225.0f) / 2.0f;
-                if((BearingAngle_Degrees >= 0 && BearingAngle_Degrees <= startangle) || (BearingAngle_Degrees >= endangle && BearingAngle_Degrees <= 360.0f))
-                {
-                    if(BearingAngle_Degrees >= 0 && BearingAngle_Degrees <= startangle)
-                        BearingAngle_Degrees = startangle;
-                    else
-                        BearingAngle_Degrees = endangle;
-
-                    //sensor_readings[i].Range             = ;
-                    sensor_readings[i].HorizontalBearing = ToRadians(CDegrees(BearingAngle_Degrees));
-
-                    continue;
-                }
-            }
-            return sensor_readings;
-        }
-
-        else
-        {
-            /* the robot is running one of the general faults or one of the specific faults that doesnot influence IR sensor readings*/
-            return sensor_readings;
-        }
-    }
-
-    std::vector<Real> GetNormalizedSensorReadings();
+ 
 
     Real m_fInternalRobotTimer;
     std::vector <int> beaconrobots_ids;
-     unsigned m_uRABDataIndex;
+    unsigned m_uRABDataIndex;
 
 private:
 
 
     TBehaviorVector             m_vecBehaviors;
-    bool b_damagedrobot; // true if robot is damaged
 
     CFlockingBehavior* m_pFlockingBehavior;
 
-    /* Pointer to the LEDs */
-    CCI_ThymioLedsActuator*   m_pcLeds;
-    /* Pointer to the differential steering actuator */
-    CCI_DifferentialSteeringActuator* m_pcWheels;
-    /* Pointer to the differential steering encoder */
-    CCI_DifferentialSteeringSensor* m_pcWheelsEncoder;
-    /* Pointer to the Thymio proximity sensor */
-    CCI_ThymioProximitySensor* m_pcProximity;
-    /* Pointer to the Thymio ground sensors */
-    CCI_ThymioGroundSensor* m_pcGround;
-    /* Pointer to the range and bearing actuator */
-    CCI_RangeAndBearingActuator*  m_pcRABA;
-    /* Pointer to the range and bearing sensor */
-    CCI_RangeAndBearingSensor* m_pcRABS;
 
-    /* The random number generator */
-    CRandom::CRNG* m_pcRNG;
 
     /*
     * The following variables are used as parameters for the
@@ -436,8 +244,7 @@ private:
     /*Information on the experiment to run - the swarm behavior and the faulty behavior*/
     ExperimentToRun m_sExpRun;
 
-    /* The turning parameters */
-    SWheelTurningParams m_sWheelTurningParams;
+
 
     unsigned m_uRobotId;
 

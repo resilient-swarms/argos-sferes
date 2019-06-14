@@ -5,6 +5,8 @@
 /* 2D vector definition */
 #include <argos3/core/utility/math/vector2.h>
 
+
+
 /****************************************/
 /****************************************/
 
@@ -15,9 +17,7 @@ CBehavior::RobotData CBehavior::m_sRobotData;
 /****************************************/
 
 CBaselineBehavs::ExperimentToRun::ExperimentToRun() :
-    SBehavior(SWARM_AGGREGATION),
-    FBehavior(FAULT_NONE),
-    id_FaultyRobotInSwarm("-1")
+    SBehavior(SWARM_AGGREGATION)
 {
 }
 
@@ -26,13 +26,10 @@ CBaselineBehavs::ExperimentToRun::ExperimentToRun() :
 
 void CBaselineBehavs::ExperimentToRun::Init(TConfigurationNode& t_node)
 {
-    std::string errorbehav;
 
     try
     {
         GetNodeAttribute(t_node, "swarm_behavior", swarmbehav);
-        GetNodeAttribute(t_node, "fault_behavior", errorbehav);
-        GetNodeAttribute(t_node, "id_faulty_robot", id_FaultyRobotInSwarm);
     }
     catch(CARGoSException& ex)
             THROW_ARGOSEXCEPTION_NESTED("Error initializing type of experiment to run, and fault to simulate.", ex);
@@ -57,82 +54,16 @@ void CBaselineBehavs::ExperimentToRun::Init(TConfigurationNode& t_node)
         assert(-1);
     }
 
-    if (errorbehav.compare("FAULT_NONE") == 0)
-        FBehavior = FAULT_NONE;
-    else if  (errorbehav.compare("FAULT_STRAIGHTLINE") == 0)
-        FBehavior = FAULT_STRAIGHTLINE;
-    else if  (errorbehav.compare("FAULT_RANDOMWALK") == 0)
-        FBehavior = FAULT_RANDOMWALK;
-    else if  (errorbehav.compare("FAULT_CIRCLE") == 0)
-        FBehavior = FAULT_CIRCLE;
-    else if  (errorbehav.compare("FAULT_STOP") == 0)
-        FBehavior = FAULT_STOP;
 
-
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETMIN") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETMIN;
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETMAX") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETMAX;
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETRANDOM") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETRANDOM;
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETOFFSET") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETOFFSET;
-
-
-    else if  (errorbehav.compare("FAULT_RABSENSOR_SETOFFSET") == 0)
-        FBehavior = FAULT_RABSENSOR_SETOFFSET;
-    else if  (errorbehav.compare("FAULT_RABSENSOR_MISSINGRECEIVERS") == 0)
-        FBehavior = FAULT_RABSENSOR_MISSINGRECEIVERS;
-
-
-    else if  (errorbehav.compare("FAULT_ACTUATOR_LWHEEL_SETZERO") == 0)
-        FBehavior = FAULT_ACTUATOR_LWHEEL_SETZERO;
-    else if  (errorbehav.compare("FAULT_ACTUATOR_RWHEEL_SETZERO") == 0)
-        FBehavior = FAULT_ACTUATOR_RWHEEL_SETZERO;
-    else if  (errorbehav.compare("FAULT_ACTUATOR_BWHEELS_SETZERO") == 0)
-        FBehavior = FAULT_ACTUATOR_BWHEELS_SETZERO;
-
-    else if  (errorbehav.compare("FAULT_SOFTWARE") == 0)
-        FBehavior = FAULT_SOFTWARE;
-
-    else if  (errorbehav.compare("FAULT_POWER_FAILURE") == 0)
-        FBehavior = FAULT_POWER_FAILURE;
-
-    else
-    {
-        std::cerr << "invalid fault behavior";
-        assert(-1);
-    }
 }
 
-/****************************************/
-/****************************************/
-
-void CBaselineBehavs::SWheelTurningParams::Init(TConfigurationNode& t_node)
-{
-    try
-    {
-        GetNodeAttribute(t_node, "max_speed", MaxSpeed);
-    }
-    catch(CARGoSException& ex)
-            THROW_ARGOSEXCEPTION_NESTED("Error initializing controller wheel turning parameters.", ex);
-
-    //std::cout << " MaxSpeed " << MaxSpeed << std::endl;
-}
 
 /****************************************/
 /****************************************/
 
 
 CBaselineBehavs::CBaselineBehavs() :
-    m_pcWheels(NULL),
-    m_pcProximity(NULL),
-    m_pcGround(NULL),
-    m_pcLeds(NULL),
-    m_pcRABA(NULL),
-    m_pcRABS(NULL),
-    m_pcRNG(CRandom::CreateRNG("argos")),
-    b_damagedrobot(false),
+
     m_unBorderCoverageStartTime(999999u)
 {
     m_fInternalRobotTimer = 0.0f;
@@ -144,50 +75,7 @@ CBaselineBehavs::CBaselineBehavs() :
 
 void CBaselineBehavs::Init(TConfigurationNode& t_node)
 {
-    try
-    {
-        /*
-    * Get sensor/actuator handles
-    *
-    * The passed string (ex. "differential_steering") corresponds to the
-    * XML tag of the device whose handle we want to have. For a list of
-    * allowed values, type at the command prompt:
-    *
-    * $ argos3 -q actuators
-    *
-    * to have a list of all the possible actuators, or
-    *
-    * $ argos3 -q sensors
-    *
-    * to have a list of all the possible sensors.
-    *
-    * NOTE: ARGoS creates and initializes actuators and sensors
-    * internally, on the basis of the lists provided the configuration
-    * file at the <controllers><Thymio_diffusion><actuators> and
-    * <controllers><Thymio_diffusion><sensors> sections. If you forgot to
-    * list a device in the XML and then you request it here, an error
-    * occurs.
-    */
-        m_pcWheels    = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
-        m_pcWheelsEncoder = GetSensor <CCI_DifferentialSteeringSensor >("differential_steering");
-        m_pcLeds      = GetActuator<CCI_ThymioLedsActuator          >("thymio_led");
-        m_pcProximity = GetSensor  <CCI_ThymioProximitySensor       >("Thymio_proximity");
-        m_pcGround    = GetSensor  <CCI_ThymioGroundSensor          >("Thymio_ground");
-        m_pcRABA      = GetActuator<CCI_RangeAndBearingActuator     >("range_and_bearing" );
-        m_pcRABS      = GetSensor <CCI_RangeAndBearingSensor        >("range_and_bearing" );
-
-        /*
-   * Parse XML parameters
-   */
-        /* Experiment to run */
-        m_sExpRun.Init(GetNode(t_node, "experiment_run"));
-        /* Wheel turning */
-        m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
-    }
-    catch(CARGoSException& ex)
-            THROW_ARGOSEXCEPTION_NESTED("Error initializing the controller for robot \"" << GetId() << "\"", ex);
-
-    Reset();
+    BaseController::Init(t_node);
 
     m_sRobotDetails.SetKinematicDetails(m_sWheelTurningParams.MaxSpeed, m_sWheelTurningParams.MaxSpeed);
 
@@ -195,8 +83,7 @@ void CBaselineBehavs::Init(TConfigurationNode& t_node)
 
     m_pFlockingBehavior = new CFlockingBehavior(m_sRobotDetails.iterations_per_second * 1.0f); // 5.0f
 
-    if(this->GetId().compare("thymio"+m_sExpRun.id_FaultyRobotInSwarm) == 0)
-        b_damagedrobot = true;
+
 }
 
 /****************************************/
@@ -235,10 +122,10 @@ void CBaselineBehavs::ControlStep()
     m_uRABDataIndex = 0;
 
     bool b_RunningGeneralFaults(false);
-    if(b_damagedrobot && (m_sExpRun.FBehavior == ExperimentToRun::FAULT_STRAIGHTLINE ||
-                          m_sExpRun.FBehavior == ExperimentToRun::FAULT_RANDOMWALK ||
-                          m_sExpRun.FBehavior == ExperimentToRun::FAULT_CIRCLE ||
-                          m_sExpRun.FBehavior == ExperimentToRun::FAULT_STOP))
+    if(b_damagedrobot && (FBehavior == FaultBehavior::FAULT_STRAIGHTLINE ||
+                          FBehavior == FaultBehavior::FAULT_RANDOMWALK ||
+                          FBehavior == FaultBehavior::FAULT_CIRCLE ||
+                          FBehavior == FaultBehavior::FAULT_STOP))
     {
         b_RunningGeneralFaults = true;
         RunGeneralFaults();
@@ -254,49 +141,51 @@ void CBaselineBehavs::ControlStep()
         RunHomogeneousSwarmExperiment();
 
 
-    if(!b_damagedrobot || b_RunningGeneralFaults || m_sExpRun.FBehavior == ExperimentToRun::FAULT_NONE)
-        CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-    else
-    {
-        if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_PROXIMITYSENSORS_SETMIN)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_PROXIMITYSENSORS_SETMAX)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_PROXIMITYSENSORS_SETRANDOM)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_PROXIMITYSENSORS_SETOFFSET)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
+    // note: next lines were doing the same so I commented them
+    CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
+    // if(!b_damagedrobot || b_RunningGeneralFaults || FBehavior == FaultBehavior::FAULT_NONE)
+    //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
+    // else
+    // {
+        // if(FBehavior == FaultBehavior::FAULT_PROXIMITYSENSORS_SETMIN)
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
+        // else if(FBehavior == FaultBehavior::FAULT_PROXIMITYSENSORS_SETMAX)
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
+        // else if(FBehavior == FaultBehavior::FAULT_PROXIMITYSENSORS_SETRANDOM)
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
+        // else if(FBehavior == FaultBehavior::FAULT_PROXIMITYSENSORS_SETOFFSET)
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
 
 
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_RABSENSOR_SETOFFSET)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_RABSENSOR_MISSINGRECEIVERS)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
+        // else if(FBehavior == FaultBehavior::FAULT_RABSENSOR_SETOFFSET)
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
+        // else if(FBehavior == FaultBehavior::FAULT_RABSENSOR_MISSINGRECEIVERS)
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
 
 
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_LWHEEL_SETZERO)
-        {
-            // does not affect the sensors - they stay the same
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        }
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_RWHEEL_SETZERO)
-        {
-            // does not affect the sensors - they stay the same
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        }
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_BWHEELS_SETZERO)
-        {
-            // does not affect the sensors - they stay the same
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-        }
+        // else if(FBehavior == FaultBehavior::FAULT_ACTUATOR_LWHEEL_SETZERO)
+        // {
+        //     // does not affect the sensors - they stay the same
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
+        // }
+        // else if(FBehavior == FaultBehavior::FAULT_ACTUATOR_RWHEEL_SETZERO)
+        // {
+        //     // does not affect the sensors - they stay the same
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
+        // }
+        // else if(FBehavior == FaultBehavior::FAULT_ACTUATOR_BWHEELS_SETZERO)
+        // {
+        //     // does not affect the sensors - they stay the same
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
+        // }
 
 
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_SOFTWARE)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
+        // else if(FBehavior == FaultBehavior::FAULT_SOFTWARE)
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
 
-        else if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_POWER_FAILURE)
-            CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior), GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior));
-    }
+        // else if(FBehavior == FaultBehavior::FAULT_POWER_FAILURE)
+        //     CBehavior::m_sSensoryData.SetSensoryData(m_pcRNG, m_fInternalRobotTimer, GetIRSensorReadings(b_damagedrobot, FBehavior), GetRABSensorReadings(b_damagedrobot, FBehavior));
+    // }
 
     /*For flocking behavior - to compute relative velocity*/
     CBehavior::m_sSensoryData.SetWheelSpeedsFromEncoders(m_pcWheelsEncoder->GetReading().VelocityLeftWheel, m_pcWheelsEncoder->GetReading().VelocityRightWheel);
@@ -305,7 +194,7 @@ void CBaselineBehavs::ControlStep()
     m_pFlockingBehavior->SimulationStep();
 
 
-    Real leftSpeed = 0.0, rightSpeed = 0.0;
+ 
     bool bControlTaken = false;
     for (TBehaviorVectorIterator i = m_vecBehaviors.begin(); i != m_vecBehaviors.end(); i++)
     {
@@ -314,7 +203,7 @@ void CBaselineBehavs::ControlStep()
             bControlTaken = (*i)->TakeControl();
             if (bControlTaken)
             {
-                (*i)->Action(leftSpeed, rightSpeed);
+                (*i)->Action(m_fLeftSpeed, m_fRightSpeed);
             }
         } else
             (*i)->Suppress();
@@ -322,30 +211,24 @@ void CBaselineBehavs::ControlStep()
 
 
 
-
-    if(b_damagedrobot && m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_LWHEEL_SETZERO)
-        leftSpeed  = 0.0f;
-
-    if(b_damagedrobot && m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_RWHEEL_SETZERO)
-        rightSpeed = 0.0f;
-
-    if(b_damagedrobot && m_sExpRun.FBehavior == ExperimentToRun::FAULT_ACTUATOR_BWHEELS_SETZERO)
+    if (b_damagedrobot)
     {
-        leftSpeed = 0.0f;
-        rightSpeed = 0.0f;
+        damage_actuators();
     }
+    
 
-    m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed); // in cm/s
+    m_pcWheels->SetLinearVelocity(m_fLeftSpeed, m_fRightSpeed); // in cm/s
 
-    //std::cout << "LS:  " << leftSpeed << " RS:  " << rightSpeed << std::endl;
+    //std::cout << "LS:  " << m_fLeftSpeed << " RS:  " << m_fRightSpeed << std::endl;
 
-    //CCI_RangeAndBearingSensor::TReadings rabsensor_readings = GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior);
+    //CCI_RangeAndBearingSensor::TReadings rabsensor_readings = GetRABSensorReadings(b_damagedrobot, FBehavior);
 
     m_uRobotId = RobotIdStrToInt();
 
     SenseCommunicate(RobotIdStrToInt(), m_pcRABA, m_uRABDataIndex);
 
     m_fInternalRobotTimer++;
+    
 
     if(this->GetId().compare("thymio0") == 0)
     {
@@ -441,24 +324,24 @@ void CBaselineBehavs::RunGeneralFaults()
     //m_pcLEDs->SetAllColors(CColor::RED);
 
     m_vecBehaviors.clear();
-    if(m_sExpRun.FBehavior == ExperimentToRun::FAULT_STRAIGHTLINE)
+    if(FBehavior == FaultBehavior::FAULT_STRAIGHTLINE)
     {
         CRandomWalkBehavior* pcStraightLineBehavior = new CRandomWalkBehavior(0.0f);
         m_vecBehaviors.push_back(pcStraightLineBehavior);
     }
-    else if (m_sExpRun.FBehavior == ExperimentToRun::FAULT_RANDOMWALK)
+    else if (FBehavior == FaultBehavior::FAULT_RANDOMWALK)
     {
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f);  // 0.05f
         m_vecBehaviors.push_back(pcRandomWalkBehavior);
     }
 
-    else if (m_sExpRun.FBehavior == ExperimentToRun::FAULT_CIRCLE)
+    else if (FBehavior == FaultBehavior::FAULT_CIRCLE)
     {
         CCircleBehavior* pcCircleBehavior = new CCircleBehavior();
         m_vecBehaviors.push_back(pcCircleBehavior);
     }
 
-    else //m_sExpRun.FBehavior == ExperimentToRun::FAULT_STOP
+    else //FBehavior == FaultBehavior::FAULT_STOP
     {}
 }
 
@@ -566,54 +449,6 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 /****************************************/
 /****************************************/
 
-std::vector<Real> CBaselineBehavs::GetNormalizedSensorReadings()
-{
-    std::vector<Real> norm_readings;
-    std::vector<CCI_ThymioProximitySensor::SReading> proximity_sensors = GetIRSensorReadings(b_damagedrobot, m_sExpRun.FBehavior);
-    for(UInt8 i = 0; i < proximity_sensors.size(); ++i)
-        norm_readings.push_back((1.0f - proximity_sensors[i].Value) * 2.0f - 1.0f);
-
-    CCI_RangeAndBearingSensor::TReadings rab_sensors = GetRABSensorReadings(b_damagedrobot, m_sExpRun.FBehavior);
-    std::vector<CRadians> rab_cones;
-    rab_cones.push_back(ToRadians(CDegrees(0.0))); // going counter-clock wise
-    rab_cones.push_back(ToRadians(CDegrees(45.0)));
-    rab_cones.push_back(ToRadians(CDegrees(90.0)));
-    rab_cones.push_back(ToRadians(CDegrees(135.0)));
-    rab_cones.push_back(ToRadians(CDegrees(180.0)));
-    rab_cones.push_back(ToRadians(CDegrees(-135.0)));
-    rab_cones.push_back(ToRadians(CDegrees(-90.0)));
-    rab_cones.push_back(ToRadians(CDegrees(-45.0)));
-
-    Real max_rab_range = 100.0; // in cm
-
-    for(UInt8 i = proximity_sensors.size() + 1; i < proximity_sensors.size() + 8; ++i) // 8 cones
-    {
-        norm_readings.push_back(max_rab_range); // initialize rab sensor readings to max range of 100cm
-    }
-
-    for(UInt8 i = 0; i < rab_sensors.size(); ++i)
-    {
-        Real min_diff = 1000.0; UInt8 min_cone_index;
-        for(UInt8 rab_cone_index = 0; rab_cone_index < rab_cones.size(); ++rab_cone_index)
-        {
-            if(NormalizedDifference(rab_sensors[i].HorizontalBearing, rab_cones[rab_cone_index]).GetAbsoluteValue() < min_diff)
-            {
-                min_diff = NormalizedDifference(rab_sensors[i].HorizontalBearing, rab_cones[rab_cone_index]).GetAbsoluteValue();
-                min_cone_index = rab_cone_index;
-            }
-        }
-        if(min_diff != 1000.0)
-            if(norm_readings[proximity_sensors.size() + min_cone_index] > rab_sensors[i].Range)
-                norm_readings[proximity_sensors.size() + min_cone_index] = rab_sensors[i].Range;
-
-    }
-
-    for(UInt8 rab_cone_index = 0; rab_cone_index < rab_cones.size(); ++rab_cone_index)
-        norm_readings[proximity_sensors.size() + rab_cone_index] = (norm_readings[proximity_sensors.size() + rab_cone_index] / max_rab_range) * 2.0 - 1.0;
-
-
-    return norm_readings;
-}
 
 /****************************************/
 /****************************************/

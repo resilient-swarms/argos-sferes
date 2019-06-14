@@ -12,11 +12,30 @@
 #include <argos3/core/utility/math/range.h>
 #include <argos3/core/utility/math/vector2.h>
 
+/* Definition of the differential steering actuator */
+#include <argos3/plugins/robots/generic/control_interface/ci_differential_steering_actuator.h>
+
+/* Definition of the LEDs actuator */
+#include <argos3/plugins/robots/thymio/control_interface/ci_thymio_leds_actuator.h>
 
 /* Definition of proximity sensor */
 #include <argos3/plugins/robots/thymio/control_interface/ci_thymio_proximity_sensor.h>
+
+/* Definition of ground sensor */
 #include <argos3/plugins/robots/thymio/control_interface/ci_thymio_ground_sensor.h>
+
+/* Definition of the range and bearing actuator */
+#include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_actuator.h>
+
+/* Definition of the range and bearing sensor */
 #include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_sensor.h>
+
+/* Definition of the differential steering wheel encoder */
+#include <argos3/plugins/robots/generic/control_interface/ci_differential_steering_sensor.h>
+
+
+
+
 /******************************************************************************/
 /******************************************************************************/
 class CBehavior;
