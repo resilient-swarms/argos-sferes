@@ -11,34 +11,37 @@
                 random_seed="0" />
   </framework>
 
+
+
+
+
   <!-- *************** -->
   <!-- * Controllers * -->
   <!-- *************** -->
   <controllers>
 
-    <baseline-behavs id="bb" library="lib/libbaseline-behavs.so">
+        <nn_controller id="tnn"
+                           library="lib/libnn_controller.so"                
+                    >
       <actuators>
         <differential_steering implementation="default" />
         <thymio_led implementation="default" medium="leds"/>
-       <!--<range_and_bearing implementation="default"/> -->
+     <!--< <range_and_bearing implementation="default"/> -->
       </actuators>
       <sensors>
         <Thymio_proximity implementation="default" show_rays="false" range="0.1" />
 	    <Thymio_ground implementation="rot_z_only" show_rays="false"/>
-       <!-- <range_and_bearing implementation="medium" medium="rab" show_rays="true"/> -->
+        <!--<range_and_bearing implementation="medium" medium="rab" show_rays="true"/> -->
         <differential_steering implementation="default" vel_noise_range="-0.1:0.1" dist_noise_range="-1.0:1.0" />
       </sensors>
       <params>
-      <experiment_run swarm_behavior="SWARM_FLOCKING"
+      <wheel_turning max_speed="10" />
+      <experiment_run swarm_behavior="/"
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" />
-<<<<<<< HEAD
-        <wheel_turning max_speed="10" />
-=======
-        <wheel_turning max_speed="5.0" />
->>>>>>> 63399f780d416a96b908855b5221f65c98fd2009
+        
       </params>      
-    </baseline-behavs>
+    </nn_controller>
 
   </controllers>
 
@@ -46,14 +49,16 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libbaseline-behavs-loopfunc.so"
-                  label="baseline-behavs-loop-functions"
-                trials="5"
+  <loop_functions library="lib/libevolution_loopfunctionscvt400D.so"
+                  label="evolution_loopfunctionscvt400D"
+                  trials="5"
                   robots="20"
+                  descriptortype="cvt_spirit"  
                   fitfuntype="Aggregation"
-		  output_folder="experiments">>
-    <params />
-  </loop_functions>
+                  bd_dims="3"
+		  output_folder="experiments"
+        centroids_folder="experiments"
+                    />
 
 
   <!-- *********************** -->
@@ -66,16 +71,16 @@
            pixels_per_meter="50" />
 
     <box id="wall_north" size="7.0,0.1,0.5" movable="false">
-      <body position="0,7.0,0" orientation="0,0,0" />
+      <body position="3.5,7,0" orientation="0,0,0" />
     </box>
     <box id="wall_south" size="7.0,0.1,0.5" movable="false">
-      <body position="0,0,0" orientation="0,0,0" />
+      <body position="3.5,0,0" orientation="0,0,0" />
     </box>
     <box id="wall_east" size="0.1,7,0.5" movable="false">
-      <body position="7,0,0" orientation="0,0,0" />
+      <body position="7,3.5,0" orientation="0,0,0" />
     </box>
     <box id="wall_west" size="0.1,7,0.5" movable="false">
-      <body position="0,0,0" orientation="0,0,0" />
+      <body position="0,3.5,0" orientation="0,0,0" />
     </box>
 
 
@@ -91,18 +96,19 @@
        <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
      </entity>
     </distribute>
- <distribute>
+
+    <distribute>
       <position method="uniform" min="0,0,0" max="7,7,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
       <entity quantity="20" max_trials="1000">
         <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
-          <controller config="bb" />
+          <controller config="tnn" />
         </Thymio>
       </entity>
 </distribute>
   </arena>
 
- 
+
 
 
   <!-- ******************* -->
@@ -124,8 +130,10 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <qt-opengl>
+   <!-- <qt-opengl>
         <user_functions label="baseline-behavs-robids" />
-    </qt-opengl>
+    </qt-opengl> -->
+ <qt-opengl/>
   </visualization>
+
 </argos-configuration>
