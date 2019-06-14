@@ -91,7 +91,7 @@
      <distribute>
      <position method="uniform" min="-3,-3,0" max="3,3,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="20" max_trials="1000">
+      <entity quantity="1" max_trials="1000">
         <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
           <controller config="bb" />
         </Thymio>
