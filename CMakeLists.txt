@@ -213,7 +213,7 @@ endif()
 
 add_library(statistics SHARED
   src/core/statistics.h
-  src/core/statistics.cpp
+   src/core/statistics.cpp
 )
 
 add_library(base_loopfunctions SHARED

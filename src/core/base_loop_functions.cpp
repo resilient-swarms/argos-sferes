@@ -158,7 +158,7 @@ void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
         }
         else if (s == "Aggregation")
         {
-            this->fitfun = new Aggregation();
+            this->fitfun = new Aggregation(this);
             assert(m_unNumberRobots > 1 && "number of robots should be > 1 when choosing Aggregation fitnessfunction");
         }
         else if (s == "Coverage")
@@ -170,6 +170,10 @@ void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
             this->fitfun = new TrialCoverage(s, this);
         }
         else if (s == "BorderCoverage")
+        {
+            this->fitfun = new Coverage(s, this);
+        }
+        else if (s == "DecayCoverage" || s == "DecayBorderCoverage")
         {
             this->fitfun = new Coverage(s, this);
         }

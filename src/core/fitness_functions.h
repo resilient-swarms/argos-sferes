@@ -101,15 +101,46 @@ public:
   virtual void before_trial(BaseLoopFunctions &cLoopFunctions);
 };
 
+
+class DecayCoverage : public FitFun
+{
+  // Gomes & Christensen 2018
+  // The arena is discretised into a grid of 10 × 10, 
+  // and every time cell is visited by a robot, the value of the cell goes to 1, and then
+  // decays constantly at a rate of 0.005/s. 
+  // The fitness is the average value of all cells over the entire simulation.
+public:
+  size_t num_updates = 0;
+  DecayCoverageCalc* coverageCalc;
+  DecayCoverage(std::string init_type, BaseLoopFunctions *cLoopFunctions);
+
+  /*after a single step of all agents */
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
+  /*after completing trial, calc fitness*/
+  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
+
+  /*after completing all trials, combine fitness*/
+  virtual float after_trials();
+
+  /*after completing a trial, print some statistics (if desired)*/
+  virtual void print_progress(size_t trial);
+};
+
+
+
 class Aggregation : public FitFun
 {
   // Gomes & Christensen 2018
   // The fitness function is inversely
   //proportional to the average distance to the centre of mass over the entire simulation
 public:
+  /* keep track of the number of updates */
   size_t num_updates = 0;
+  /* keep track if the distance during the trial */
   float trial_dist = 0.0f;
-  Aggregation();
+  /* the maximal theoretical distance between agents */
+  float maxdist;
+  Aggregation(BaseLoopFunctions *cLoopFunctions);
 
   /*after completing trial, calc fitness*/
   virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
