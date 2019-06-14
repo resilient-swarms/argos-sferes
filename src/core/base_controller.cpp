@@ -29,12 +29,12 @@ void BaseController::SWheelTurningParams::Init(TConfigurationNode &t_node)
 {
     try
     {
-        GetNodeAttribute(t_node, "max_speed", MaxSpeed);
+        GetNodeAttribute(t_node, "max_speed", MaxSpeed); //why is this not getting a value from argos config file?
     }
     catch(CARGoSException& ex)
             THROW_ARGOSEXCEPTION_NESTED("Error initializing controller wheel turning parameters.", ex);
 
-//std::cout << " MaxSpeed " << MaxSpeed << std::endl;
+    //std::cout << " MaxSpeed " << MaxSpeed << std::endl;
 }
 
 void BaseController::Init(TConfigurationNode &t_node)
@@ -59,9 +59,6 @@ void BaseController::Init(TConfigurationNode &t_node)
     }
     catch (CARGoSException &ex1)
     {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing sensors/actuators", ex1);
-
-
         try{
             // assume the user just wants to use only proximity sensors
             m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
@@ -88,6 +85,9 @@ void BaseController::Init(TConfigurationNode &t_node)
     }
 
     process_faultbehaviour(errorbehav);
+
+    /* Wheel turning */
+    m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
 
     if(this->GetId().compare("thymio"+id_FaultyRobotInSwarm) == 0)
         b_damagedrobot = true;
