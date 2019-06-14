@@ -32,11 +32,7 @@
       <experiment_run swarm_behavior="SWARM_FLOCKING"
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" />
-<<<<<<< HEAD
-        <wheel_turning max_speed="10" />
-=======
         <wheel_turning max_speed="5.0" />
->>>>>>> 63399f780d416a96b908855b5221f65c98fd2009
       </params>      
     </baseline-behavs>
 
