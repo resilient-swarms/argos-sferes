@@ -55,12 +55,13 @@ void BaseController::Init(TConfigurationNode &t_node)
         m_pcGround = GetSensor<CCI_ThymioGroundSensor>("Thymio_ground");
         m_pcRABA = GetActuator<CCI_RangeAndBearingActuator>("range_and_bearing");
         m_pcRABS = GetSensor<CCI_RangeAndBearingSensor>("range_and_bearing");
-
-
         only_proximity = false;
     }
     catch (CARGoSException &ex1)
     {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing sensors/actuators", ex1);
+
+
         try{
             // assume the user just wants to use only proximity sensors
             m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");

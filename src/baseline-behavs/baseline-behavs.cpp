@@ -209,13 +209,12 @@ void CBaselineBehavs::ControlStep()
             bControlTaken = (*i)->TakeControl();
             if (bControlTaken)
             {
+                (*i)->PrintBehaviorIdentity();
                 (*i)->Action(m_fLeftSpeed, m_fRightSpeed);
             }
         } else
             (*i)->Suppress();
     }
-
-
 
     if (b_damagedrobot)
     {
