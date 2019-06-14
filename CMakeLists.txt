@@ -294,6 +294,7 @@ endif()
 
 
     target_link_libraries(${LOOPFUN}
+      base_loopfunctions
       ${CONTROL}
       base_controller
       argos3core_simulator
