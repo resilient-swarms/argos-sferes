@@ -17,9 +17,9 @@ void BaseLoopFunctions::init_robots()
     {
         m_pcvecRobot.push_back(any_cast<CThymioEntity *>(it->second));
     }
-    if(m_unNumberRobots != m_pcvecRobot.size());// we need to make sure the number of robots distributed in the arena match what is specified by the user in the loop function.
+    if(m_unNumberRobots != m_pcvecRobot.size())// we need to make sure the number of robots distributed in the arena match what is specified by the user in the loop function.
     {
-        printf("\n The number of robots distributed in the arena does not match what is specified by the user in the loop function.");
+        printf("\n The number of robots distributed in the arena %u does not match what is specified by the user in the loop function %u.", m_unNumberRobots, m_pcvecRobot.size());
         exit(-1);
     }
 }
