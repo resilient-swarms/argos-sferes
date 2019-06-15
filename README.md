@@ -61,10 +61,12 @@ Edit the ARGoS experiment configuration file for your own experiment setup
 
 
 For now, preliminary multi-agent experiments can be run using 
-./bin/behaviour_evolcvt400D experiments/multiagent_spirit.argos
+   
+   ./bin/behaviour_evolcvt400D experiments/multiagent_spirit.argos
 
 and:
-./bin/baseline_behaviour experiments/baseline-behavs.argos
+
+   ./bin/baseline_behaviour experiments/baseline-behavs.argos
 
 
 
