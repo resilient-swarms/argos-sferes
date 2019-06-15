@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-for dim in 2 14 21 400; do
+for dim in 2 10 14 21 400; do
     cd ~/argos-sferes
     mkdir build_${dim}D
     cd build_${dim}D
