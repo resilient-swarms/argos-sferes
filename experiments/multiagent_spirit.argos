@@ -26,12 +26,12 @@
       <actuators>
         <differential_steering implementation="default" />
         <thymio_led implementation="default" medium="leds"/>
-     <!--< <range_and_bearing implementation="default"/> -->
+    <!-- <range_and_bearing implementation="default"/> -->
       </actuators>
       <sensors>
         <Thymio_proximity implementation="default" show_rays="false" range="0.1" />
 	    <Thymio_ground implementation="rot_z_only" show_rays="false"/>
-        <!--<range_and_bearing implementation="medium" medium="rab" show_rays="true"/> -->
+     <!--   <range_and_bearing implementation="medium" medium="rab" show_rays="true"/> -->
         <differential_steering implementation="default" vel_noise_range="-0.1:0.1" dist_noise_range="-1.0:1.0" />
       </sensors>
       <params>
@@ -106,7 +106,9 @@
         </Thymio>
       </entity>
 </distribute>
-  </arena>
+</arena>
+
+
 
 
 
