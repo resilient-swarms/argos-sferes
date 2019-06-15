@@ -72,7 +72,11 @@ void EvolutionLoopFunctions::Init(TConfigurationNode &t_node)
     init_descriptors(t_node);
 }
 
-
+/* get the controller  */
+BaseController* EvolutionLoopFunctions::get_controller(size_t robot)
+{
+    return m_pcvecController[robot];
+}
 /* Process behavioural descriptor type  */
 void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
 {
@@ -337,7 +341,7 @@ void EvolutionLoopFunctions::PostStep()
 
 void EvolutionLoopFunctions::before_trials()
 {
-    
+    BaseLoopFunctions::before_trials();
     descriptor->before_trials(*this);
 }
 void EvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)

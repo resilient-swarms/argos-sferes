@@ -19,7 +19,7 @@ void BaseLoopFunctions::init_robots()
     }
     if(m_unNumberRobots != m_pcvecRobot.size())// we need to make sure the number of robots distributed in the arena match what is specified by the user in the loop function.
     {
-        printf("\n The number of robots distributed in the arena %u does not match what is specified by the user in the loop function %u.", m_unNumberRobots, m_pcvecRobot.size());
+        printf("\n The number of robots distributed in the arena %zu does not match what is specified by the user in the loop function %zu.", m_unNumberRobots, m_pcvecRobot.size());
         exit(-1);
     }
 }
@@ -28,7 +28,11 @@ CEmbodiedEntity& BaseLoopFunctions::get_embodied_entity(size_t robot)
 {
     return m_pcvecRobot[robot]->GetEmbodiedEntity();
 }
-
+/* get the controller  */
+BaseController* BaseLoopFunctions::get_controller(size_t robot)
+{
+    return dynamic_cast<BaseController*>(&m_pcvecRobot[robot]->GetControllableEntity().GetController());
+}
 void BaseLoopFunctions::place_robots()
 {
     init_robots();

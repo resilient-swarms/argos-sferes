@@ -11,8 +11,8 @@ FloreanoMondada::FloreanoMondada() : FitFun()
 void FloreanoMondada::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     // compute linear speed for fitness function
-    float s = (fabs(cLoopFunctions.outf[0]) + fabs(cLoopFunctions.outf[1])) / 20.0; // in [0,1]
-    float ds = fabs(cLoopFunctions.outf[0] - cLoopFunctions.outf[1]) / 20.0;        // in [0,1]
+    float s = cLoopFunctions.get_controller(0)->linear_speed_01(); // in [0,1]
+    float ds = cLoopFunctions.get_controller(0)->turn_speed_01();        // in [0,1]
     speed += s;
     float curr_lin_speed = s * (1.0 - sqrt(ds));
     lin_speed += curr_lin_speed;
@@ -52,9 +52,9 @@ MeanSpeed::MeanSpeed() : FitFun()
 
 void MeanSpeed::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
-    // compute linear speed for fitness function
-    float s = (fabs(cLoopFunctions.outf[0]) + fabs(cLoopFunctions.outf[1])) / 20.0; // in [0,1]
-    float ds = fabs(cLoopFunctions.outf[0] - cLoopFunctions.outf[1]) / 20.0;        // in [0,1]
+   // compute linear speed for fitness function
+    float s = cLoopFunctions.get_controller(0)->linear_speed_01(); // in [0,1]
+    float ds = cLoopFunctions.get_controller(0)->turn_speed_01();        // in [0,1]
     speed += s;
     float curr_lin_speed = s * (1.0 - sqrt(ds));
     lin_speed += curr_lin_speed;
@@ -202,7 +202,7 @@ void DecayCoverage::print_progress(size_t trial)
 Aggregation::Aggregation(BaseLoopFunctions *cLoopFunctions) : FitFun()
 {
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
-    maxdist = StatFuns::get_minkowski_distance(max,argos::CVector3::ZERO);
+    maxdist = StatFuns::get_minkowski_distance(CVector3(max.GetX(),max.GetY(),0.0f),argos::CVector3::ZERO);
 }
 void Aggregation::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
@@ -273,7 +273,7 @@ std::pair<std::vector<argos::CVector3>, argos::CVector3> Aggregation::centre_of_
 Dispersion::Dispersion(BaseLoopFunctions* cLoopFunctions)
 {
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
-    maxdist = StatFuns::get_minkowski_distance(max,argos::CVector3::ZERO);
+    maxdist = StatFuns::get_minkowski_distance(CVector3(max.GetX(),max.GetY(),0.0f),argos::CVector3::ZERO);
 }
 /*after completing trial, calc fitness*/
 void Dispersion::apply(BaseLoopFunctions &cLoopFunctions, Real time)

@@ -194,6 +194,9 @@ public:
     */
     virtual void Destroy(){}
 
+
+
+
     /*
         * Returns the experiment type
         */
@@ -202,7 +205,6 @@ public:
         return m_sExpRun;
     }
 
- 
 
     Real m_fInternalRobotTimer;
     std::vector <int> beaconrobots_ids;

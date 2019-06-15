@@ -89,6 +89,7 @@ public:
   virtual void Reset();
   virtual void Destroy();
 
+
   //private:
 public:
     /* Pointer to the LEDs */
@@ -128,6 +129,14 @@ public:
     void process_faultbehaviour(std::string errorbehav);
     void damage_sensors(std::vector<float> &inputs);
     void damage_actuators();
+    /* left wheel velocity normalised to [0,1]*/
+    float left_wheel_velocity_01();
+    /* right wheel velocity normalised to [0,1]*/
+    float right_wheel_velocity_01();
+    /* linear speed normalised to [0,1]*/
+    float linear_speed_01();
+    /* turn speed normalised to [0,1]*/
+    float turn_speed_01();
 
    
 

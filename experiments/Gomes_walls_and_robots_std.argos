@@ -49,11 +49,11 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libevolution_loopfunctionscvt400D.so"
-                  label="evolution_loopfunctionscvt400D"
+  <loop_functions library="lib/libevolution_loopfunctionscvt10D.so"
+                  label="evolution_loopfunctionscvt10D"
                   trials="5"
                   robots="20"
-                  descriptortype="cvt_spirit"  
+                  descriptortype="cvt_Gomes_sdbc_walls_and_robots_std"  
                   fitfuntype="Aggregation"
                   bd_dims="3"
 		  output_folder="experiments"
@@ -135,7 +135,7 @@
    <!-- <qt-opengl>
         <user_functions label="baseline-behavs-robids" />
     </qt-opengl> -->
- <qt-opengl/>
+ <!--<qt-opengl/>-->
   </visualization>
 
 </argos-configuration>

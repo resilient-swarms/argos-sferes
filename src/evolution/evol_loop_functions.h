@@ -189,6 +189,8 @@ public:
     {
         return "tnn";
     }
+    /* get the controller  */
+    virtual BaseController* get_controller(size_t robot);
     virtual void  Init(TConfigurationNode &t_node);
 
     //    /* Configures the robot controller from the genome */

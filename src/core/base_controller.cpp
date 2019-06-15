@@ -370,6 +370,28 @@ std::vector<Real> BaseController::GetNormalizedSensorReadings()
 
     return norm_readings;
 }
+
+/* left wheel speed normalised to [0,1]*/
+float BaseController::left_wheel_velocity_01()
+{
+    return (m_sWheelTurningParams.MaxSpeed + m_fLeftSpeed)/ (2.0*m_sWheelTurningParams.MaxSpeed); // in [0,1];
+}
+/* right wheel speed normalised to [0,1]*/
+float BaseController::right_wheel_velocity_01()
+{
+    return (m_sWheelTurningParams.MaxSpeed + m_fRightSpeed)/ (2.0*m_sWheelTurningParams.MaxSpeed); // in [0,1];
+}
+/* linear speed normalised to [0,1]*/
+float BaseController::linear_speed_01()
+{
+    return (std::abs(m_fLeftSpeed) + std::abs(m_fRightSpeed)) / (2.0*m_sWheelTurningParams.MaxSpeed); // in [0,1]
+}
+/* turn speed normalised to [0,1]*/
+float BaseController::turn_speed_01()
+{
+    return std::abs(m_fLeftSpeed - m_fRightSpeed) / (2.0*m_sWheelTurningParams.MaxSpeed);        // in [0,1]
+}
+
 /****************************************/
 /****************************************/
 

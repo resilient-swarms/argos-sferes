@@ -11,7 +11,6 @@
 #include <argos3/core/utility/math/rng.h>
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
-
 #include <src/core/arena_utils.h>
 /****************************************/
 /****************************************/
@@ -95,6 +94,63 @@ public:
   virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
 };
 
+struct RobotAttributeSetter
+{
+  float maxX,maxY;
+  RobotAttributeSetter(CLoopFunctions* cLoopFunctions)
+  {
+    argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
+	  maxX = max.GetX();
+	  maxY = max.GetY();
+  }
+
+  virtual std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)=0;
+
+};
+struct NormalAttributeSetter : public RobotAttributeSetter
+{
+  NormalAttributeSetter(CLoopFunctions* cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
+  {
+
+  }
+  virtual  std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+  {
+    // here just set the attributes of robot at index; let end
+    CVector3 pos = cLoopFunctions.curr_pos[robot_index];
+
+    float x = pos.GetX() / maxX;
+    float y = pos.GetY() / maxY;
+    float theta = cLoopFunctions.curr_theta[robot_index].UnsignedNormalize() / CRadians::TWO_PI; // normalise radians to [0,1]
+    float wheel1 = cLoopFunctions.get_controller(robot_index)->left_wheel_velocity_01();
+    float wheel2 = cLoopFunctions.get_controller(robot_index)->right_wheel_velocity_01();
+
+    std::vector<float> new_vec = {x, y, theta, wheel1, wheel2};
+#ifdef PRINTING
+    std::cout << "x,y,theta,w1,w2=" << x << "," << y << "," << theta << "," << wheel1 << "," << wheel2 << std::endl;
+#endif
+    return new_vec;
+  }
+};
+
+struct SpeedAttributeSetter : public RobotAttributeSetter
+{
+  SpeedAttributeSetter(CLoopFunctions* cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
+  {
+
+  }
+  virtual  std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+  {
+    float v_lin = cLoopFunctions.get_controller(robot_index)->linear_speed_01();
+    float v_turn= cLoopFunctions.get_controller(robot_index)->turn_speed_01();
+
+    std::vector<float> new_vec = {v_lin, v_turn};
+#ifdef PRINTING
+    std::cout << "v_lin, v_turn =" << v_lin << "," << v_turn << std::endl;
+#endif
+    return new_vec;
+  }
+};
+
 struct Entity
 {
   std::vector<float> attributes;
@@ -120,8 +176,7 @@ struct Entity_Group
   {
   }
 
-  Entity_Group(size_t k, size_t M, size_t m, std::vector<Entity> entity_vec, bool stat) :
-   kappa(k), max_size(M), min_size(m), entities(entity_vec), is_static(stat)
+  Entity_Group(size_t k, size_t M, size_t m, std::vector<Entity> entity_vec, bool stat) : kappa(k), max_size(M), min_size(m), entities(entity_vec), is_static(stat)
   {
   }
   size_t get_absolute_size()
@@ -169,7 +224,8 @@ class SDBC : public Descriptor
     *  Systematically Derived Behavioral Characterisation
     */
 public:
-  bool include_std;
+  bool include_std, include_closest_robot;
+  RobotAttributeSetter* attribute_setter;
   size_t bd_index, num_groups, num_features;
   float maxdist, maxX, maxY;
   std::map<std::string, Entity_Group> entity_groups;
@@ -177,7 +233,7 @@ public:
   std::vector<std::string> variable_groups;                                     // contains the keys of groups with variable sizes
   SDBC(CLoopFunctions *cLoopFunctions, std::string init_type);
   void init_walls(CLoopFunctions *cLoopFunctions);
-  void init_robots(CLoopFunctions *cLoopFunctions);
+  void init_robots(size_t num_features,CLoopFunctions *cLoopFunctions);
   void init_cylindric_obstacles(CLoopFunctions *cLoopFunctions);
 
   /* group sizes are the first BD dimensions*/
@@ -192,6 +248,9 @@ public:
   /* avg pair-wise distance between groups, the final BD dimensions*/
   void add_between_group_dispersion();
 
+  /* distance to closest robot */
+  void add_closest_robot_dist(EvolutionLoopFunctions &cLoopFunctions);
+
   /* prepare for trials*/
   virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
@@ -204,7 +263,7 @@ public:
   virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
   /*after the looping over robots*/
   virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
- /*summarise BD at the end of trials*/
+  /*summarise BD at the end of trials*/
   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
 };
 
@@ -314,8 +373,7 @@ public:
   const size_t num_act = ParamsDnn::dnn::nb_outputs;
 
   /* number of bins used for the probability distribution*/
-  const size_t num_act_bins = 5;// for now keep it the same as the sensory bins
-
+  const size_t num_act_bins = 5; // for now keep it the same as the sensory bins
 
   /* track the frequencies of the different bins for all groups*/
   std::vector<std::vector<float>> act_freqs; // for each actuator

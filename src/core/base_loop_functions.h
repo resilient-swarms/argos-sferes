@@ -34,8 +34,12 @@ public:
     virtual ~BaseLoopFunctions(){};
 
     virtual std::string get_controller_id()=0;
+
     /* embodied entity  */
     virtual CEmbodiedEntity& get_embodied_entity(size_t robot);
+
+    /* get the controller  */
+    virtual BaseController* get_controller(size_t robot);
 
     /* place robots on initial positions */
     void place_robots();
@@ -50,6 +54,7 @@ public:
 
     virtual void PreStep() = 0;
     virtual void PostStep() = 0;
+
     virtual void before_trials();
     /* set the current trial */
     inline void SetTrial()
@@ -68,6 +73,8 @@ public:
     void perform_trial(argos::CSimulator &cSimulator);
     float alltrials_fitness();
 
+
+    
 
 
     

@@ -155,26 +155,45 @@ float Entity::distance(const Entity e1, const Entity e2)
 
 SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 {
+	size_t num_attr;
+	if ( init_type.find("Gomes") != std::string::npos)
+	{
+		include_closest_robot = true; // add closest robot distance
+		attribute_setter = new SpeedAttributeSetter(cLoopFunctions);
+		num_attr = 2; // linear speed and turn speed
+	}
+	else{
+		include_closest_robot = false;
+		attribute_setter = new NormalAttributeSetter(cLoopFunctions);
+		num_attr = 5; // x,y,theta,w1,w2
+	}
+	
 	if (init_type.find("sdbc_all") !=std::string::npos)
 	{
 		init_walls(cLoopFunctions);
-		init_robots(cLoopFunctions);
+		init_robots(num_attr,cLoopFunctions);
 		init_cylindric_obstacles(cLoopFunctions);
 	}
 	else if (init_type.find("sdbc_walls_and_robots") !=std::string::npos)
 	{
 		init_walls(cLoopFunctions);
-		init_robots(cLoopFunctions);
+		init_robots(num_attr,cLoopFunctions);
 	}
 	else if (init_type.find("sdbc_robots") !=std::string::npos)
 	{
-		init_robots(cLoopFunctions);
+		init_robots(num_attr,cLoopFunctions);
 	}
 	else
 	{
 		throw std::runtime_error("init type " + init_type + "not found");
 	}
-	include_std = init_type.find("std") != std::string::npos ? true : false; // will calculate standard deviations as well
+
+
+
+
+	include_std = init_type.find("std") != std::string::npos ? true : false; // will calculate standard deviations as well]
+	
+
 	if (include_std)
 	{
 		num_features = behav_dim/2;
@@ -195,10 +214,8 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 			variable_groups.push_back(kv.first);
 		}
 	}
-	argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
-	maxX = max.GetX();
-	maxY = max.GetY();
-	maxdist = StatFuns::get_minkowski_distance(max, CVector3::ZERO);
+
+	maxdist = StatFuns::get_minkowski_distance(CVector3(attribute_setter->maxX,attribute_setter->maxY,0), CVector3::ZERO);
 }
 
 void SDBC::init_cylindric_obstacles(CLoopFunctions *cLoopFunctions)
@@ -244,7 +261,7 @@ void SDBC::init_walls(CLoopFunctions *cLoopFunctions)
 	std::pair<std::string, Entity_Group> wallpair = {"boxes", Entity_Group(0, boxes.size(), boxes.size(), boxes, is_static)};
 	entity_groups.insert(wallpair);
 }
-void SDBC::init_robots(CLoopFunctions *cLoopFunctions)
+void SDBC::init_robots(size_t num_features, CLoopFunctions *cLoopFunctions)
 {
 	// robot here has 5 features: x,y,orientation,wheelvelocity1,wheelvelocity2
 	// here it is assumed fixed number of robots
@@ -256,7 +273,7 @@ void SDBC::init_robots(CLoopFunctions *cLoopFunctions)
 	}
 	bool is_static = false;
 	std::pair<std::string, Entity_Group> robotpair = {"robots",
-													  Entity_Group(5, num_robots, num_robots, robots,is_static)}; // 5 features: x,y,rot,w1,w2
+													  Entity_Group(num_features, num_robots, num_robots, robots,is_static)}; // 5 features: x,y,rot,w1,w2
 	entity_groups.insert(robotpair);
 }
 
@@ -378,6 +395,34 @@ void SDBC::add_between_group_dispersion()
 	}
 }
 
+/* distance to closest robot */
+void SDBC::add_closest_robot_dist(EvolutionLoopFunctions &cLoopFunctions)
+{	
+	float mean_dist = 0.0f;
+	// we already have positions available in curr_pos
+	for(size_t i=0; i < cLoopFunctions.curr_pos.size(); ++i)
+	{
+		float mindist=std::numeric_limits<float>::infinity();
+		for(size_t j=0; j < cLoopFunctions.curr_pos.size(); ++j)
+		{
+			if (j==i)
+			{
+				continue;
+			}
+			// get the distance
+			float dist = StatFuns::get_minkowski_distance(cLoopFunctions.curr_pos[i],cLoopFunctions.curr_pos[j]);
+			if (dist < mindist)
+			{
+				mindist = dist;
+			}
+			
+		}
+		mean_dist += mindist;
+	}
+	mean_dist = mean_dist / (cLoopFunctions.curr_pos.size()*maxdist);
+	bd[bd_index].push_back(mean_dist);
+}
+
 /* prepare for trials*/
 void SDBC::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
@@ -398,20 +443,7 @@ void SDBC::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoo
 /*after getting outputs, can update the descriptor if needed*/
 void SDBC::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
-	// here just set the attributes of robot at index; let end
-	CVector3 pos = cLoopFunctions.curr_pos[robot_index];
-
-	float x = pos.GetX() / maxX;
-	float y = pos.GetY() / maxY;
-	float theta = cLoopFunctions.curr_theta[robot_index].UnsignedNormalize() / CRadians::TWO_PI; // normalise radians to [0,1]
-	float wheel1 = (10.0f + cLoopFunctions.outf[0]) / 20.0f;
-	float wheel2 = (10.0f + cLoopFunctions.outf[1]) / 20.0f;
-
-	std::vector<float> new_vec = {x, y, theta, wheel1, wheel2};
-	entity_groups["robots"][robot_index].set_attributes(new_vec, pos);
-#ifdef PRINTING
-	std::cout << "x,y,theta,w1,w2=" << x << "," << y << "," << theta << "," << wheel1 << "," << wheel2 << std::endl;
-#endif
+	entity_groups["robots"][robot_index].set_attributes(attribute_setter->get_attributes(robot_index,cLoopFunctions),cLoopFunctions.curr_pos[robot_index]);
 }
 /*after the looping over robots*/
 void SDBC::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
@@ -420,6 +452,10 @@ void SDBC::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 	add_group_meanstates();
 	add_between_group_dispersion();
 	add_within_group_dispersion();
+	if (include_closest_robot)
+	{
+		add_closest_robot_dist(cLoopFunctions);
+	}
 	bd_index = 0;
 	++num_updates;
 }
