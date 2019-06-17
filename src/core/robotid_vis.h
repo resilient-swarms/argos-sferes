@@ -6,13 +6,13 @@
 
 using namespace argos;
 
-class CBaselineBehavsRobIds : public CQTOpenGLUserFunctions {
+class RobotIDVis : public CQTOpenGLUserFunctions {
 
 public:
 
-   CBaselineBehavsRobIds();
+   RobotIDVis();
 
-   virtual ~CBaselineBehavsRobIds() {}
+   virtual ~RobotIDVis() {}
 
    void Draw(CThymioEntity &c_entity);
    

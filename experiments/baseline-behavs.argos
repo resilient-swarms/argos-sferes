@@ -123,7 +123,7 @@
   <!-- ****************** -->
   <visualization>
     <qt-opengl>
-        <user_functions label="baseline-behavs-robids" />
+        <user_functions label="robotid_vis" />
     </qt-opengl>
   </visualization>
 </argos-configuration>

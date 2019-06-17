@@ -117,10 +117,12 @@ option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
 option(PERTURB "Perturbations" OFF)
 
 
+# process baseline option and others, to define controller, loopfunction and executable
+
 if(BASELINE)
     message("will use baseline behaviours rather than evolution")
     add_definitions(-DBASELINEBEHAVS)  
-    set(EXECUTABLE baseline_behaviour)  
+    
     set(CONTROL "baseline-behavs")
     add_library(baseline-behavs SHARED
         src/baseline-behavs/baseline-behavs.h
@@ -144,7 +146,24 @@ if(BASELINE)
         src/baseline-behavs/circlebehavior.h
         src/baseline-behavs/circlebehavior.cpp
       )
-    
+     set(LOOPFUN baseline-behavs-loopfunc)
+    set(baseline-behavs-loopfunc-SOURCES src/baseline-behavs/baseline-behavs-loopfunc.cpp)
+    if(ARGOS_COMPILE_QTOPENGL)
+      set(baseline-behavs-loopfunc-SOURCES
+          ${baseline-behavs-loopfunc-SOURCES}
+          src/core/robotid_vis.cpp)
+    endif(ARGOS_COMPILE_QTOPENGL)
+
+    add_library(baseline-behavs-loopfunc SHARED
+        ${baseline-behavs-loopfunc-SOURCES})
+
+    message("LF SOURCES is "${baseline-behavs-loopfunc-SOURCES})
+
+    if(ARGOS_COMPILE_QTOPENGL)
+        target_link_libraries(baseline-behavs-loopfunc argos3plugin_simulator_qtopengl)
+    endif(ARGOS_COMPILE_QTOPENGL)
+
+    set(EXECUTABLE baseline_behaviour)  
 else(NOT BASELINE)
     message("will use evolution")
     message("Using ${BD}D behavioural characterisation")
@@ -170,25 +189,43 @@ else(NOT BASELINE)
     set(tag ${CVT_USE}${BD}D)
     add_definitions(-DTAG="${tag}")
 
+
+if(ARGOS_COMPILE_QTOPENGL)
     add_library(evolution_loopfunctions${tag} SHARED
       src/evolution/evol_loop_functions.h
       src/evolution/evol_loop_functions.cpp
+        src/core/robotid_vis.h
+       src/core/robotid_vis.cpp
     )
+elseif(NOT ARGOS_COMPILE_QTOPENGL)
+        add_library(evolution_loopfunctions${tag} SHARED
+      src/evolution/evol_loop_functions.h
+      src/evolution/evol_loop_functions.cpp
+    )
+endif()
+
 
     add_library(descriptors${tag} SHARED
-      src/evolution/descriptors.h
-      src/evolution/descriptors.cpp
-    )
+ src/evolution/descriptors.h
+        src/evolution/descriptors.cpp
+)
 
     # Descend into the controllers directory
     add_library(nn_controller SHARED
     src/evolution/nn_controller.h
     src/evolution/nn_controller.cpp
     )
+    
 
+    set(LOOPFUN evolution_loopfunctions${tag})
 
     set(EXECUTABLE behaviour_evol${tag})
 endif()
+
+
+
+
+# general options
 
 if(RECORD_FITNESS)
     message("will record fitness after each evaluation (useful for tests)")
@@ -209,6 +246,7 @@ endif()
 
 
 
+# core libraries
 
 
 add_library(statistics SHARED
@@ -253,37 +291,14 @@ add_library(communication SHARED
 
 
 
-
+# add executable
 
 add_executable(${EXECUTABLE} src/main.cpp)
 
-if(BASELINE)
+# link the controller
       target_link_libraries(${CONTROL}
-        base_controller
-        communication
-        argos3core_simulator
-        argos3plugin_simulator_thymio
-        argos3plugin_simulator_genericrobot)
-    set(LOOPFUN baseline-behavs-loopfunc)
-    set(baseline-behavs-loopfunc-SOURCES src/baseline-behavs/baseline-behavs-loopfunc.cpp)
-    if(ARGOS_COMPILE_QTOPENGL)
-      set(baseline-behavs-loopfunc-SOURCES
-          ${baseline-behavs-loopfunc-SOURCES}
-          src/baseline-behavs/baseline-behavs-robids.cpp)
-    endif(ARGOS_COMPILE_QTOPENGL)
-
-    add_library(baseline-behavs-loopfunc SHARED
-        ${baseline-behavs-loopfunc-SOURCES})
-
-
-
-    if(ARGOS_COMPILE_QTOPENGL)
-        target_link_libraries(baseline-behavs-loopfunc argos3plugin_simulator_qtopengl)
-    endif(ARGOS_COMPILE_QTOPENGL)
-else(NOT BASELINE)
-  set(LOOPFUN evolution_loopfunctions${tag})
-  target_link_libraries(${CONTROL}
       base_controller
+      communication
       argos3core_simulator
       #argos3plugin_simulator_actuators
       argos3plugin_simulator_thymio
@@ -292,11 +307,8 @@ else(NOT BASELINE)
       ${LUA_LIBRARIES}
       ${Boost_LIBRARIES}
       ${TBB_LIBRARIES})
-endif()
 
-
-
-
+# link the loop functions
     target_link_libraries(${LOOPFUN}
       base_loopfunctions
       ${CONTROL}
@@ -313,6 +325,9 @@ endif()
       ${Boost_LIBRARIES}
 ${TBB_LIBRARIES})
 
+
+
+# link the executable based on BASELINE setting (only difference so far is descriptor)
 
 if(BASELINE)      
       target_link_libraries(${EXECUTABLE}
@@ -342,6 +357,7 @@ else(NOT BASELINE)
 ${TBB_LIBRARIES})
 
 endif()
+   
 
 
 
