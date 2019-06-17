@@ -77,6 +77,9 @@ void CBaselineBehavs::Init(TConfigurationNode& t_node)
 {
     BaseController::Init(t_node);
 
+    /* Baseline behavior to run */
+    m_sExpRun.Init(GetNode(t_node, "experiment_run"));
+
     m_sRobotDetails.SetKinematicDetails(m_sWheelTurningParams.MaxSpeed, m_sWheelTurningParams.MaxSpeed);
 
     CopyRobotDetails(m_sRobotDetails);
@@ -209,7 +212,6 @@ void CBaselineBehavs::ControlStep()
             bControlTaken = (*i)->TakeControl();
             if (bControlTaken)
             {
-                (*i)->PrintBehaviorIdentity();
                 (*i)->Action(m_fLeftSpeed, m_fRightSpeed);
             }
         } else
@@ -359,6 +361,7 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
     if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION)
     {
+        std::cout << "Running aggregation " << std::endl;
         CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);    // 0.1f reflects a distance of about 4.5cm
         m_vecBehaviors.push_back(pcDisperseBehavior);
 

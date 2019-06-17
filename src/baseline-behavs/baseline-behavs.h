@@ -68,7 +68,7 @@ public:
 
 
 
-        std::string id_FaultyRobotInSwarm;
+        //std::string id_FaultyRobotInSwarm;
         std::string swarmbehav;
 
         ExperimentToRun();

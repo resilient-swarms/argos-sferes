@@ -316,7 +316,7 @@ CCI_RangeAndBearingSensor::TReadings BaseController::GetRABSensorReadings(bool b
 
     else
     {
-        /* the robot is running one of the general faults or one of the specific faults that doesnot influence IR sensor readings*/
+        /* the robot is running one of the general faults or one of the specific faults that doesnot influence RAB sensor readings*/
         return sensor_readings;
     }
 }

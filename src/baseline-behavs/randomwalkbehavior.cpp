@@ -70,8 +70,9 @@ void CRandomWalkBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
             fLeftWheelSpeed  = m_sRobotData.MaxSpeed * 3.0/4.0;
             fRightWheelSpeed = m_sRobotData.MaxSpeed;
         }
-        else         //std::cout << " move straight " << std::endl;
+        else
         {
+            //std::cout << " move straight " << std::endl;
             fLeftWheelSpeed  = m_sRobotData.MaxSpeed;
             fRightWheelSpeed = m_sRobotData.MaxSpeed;
         }
