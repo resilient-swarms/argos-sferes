@@ -28,7 +28,10 @@ public:
   virtual float after_trials() = 0;
 
   /*after completing a trial, print some statistics (if desired)*/
-  virtual void print_progress(size_t trial){};
+  virtual void print_progress(size_t trial)
+  {
+    printf("\n\n fitness in trial %zu is %f", trial, fitness_per_trial[trial]);
+  }
 };
 
 class FloreanoMondada : public FitFun
@@ -121,9 +124,6 @@ public:
 
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
-
-  /*after completing a trial, print some statistics (if desired)*/
-  virtual void print_progress(size_t trial);
 };
 
 

@@ -75,7 +75,7 @@ public:
     // create a grid of grid_size*grid_size
     // fill it up with zeros initially
     // upon visitation set to 1, then decay with decay rate
-    const float decay_rate=0.005;
+    float decay_rate;
     const size_t grid_size_x=10;
     const size_t grid_size_y=10;
     float grid_step_x, grid_step_y;

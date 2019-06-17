@@ -179,7 +179,7 @@ void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
         }
         else if (s == "DecayCoverage" || s == "DecayBorderCoverage")
         {
-            this->fitfun = new Coverage(s, this);
+            this->fitfun = new DecayCoverage(s, this);
         }
         else if (s == "Dispersion")
         {
@@ -209,9 +209,6 @@ void BaseLoopFunctions::Reset()
                    m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
                    false                                                    // this is not a check, leave the robot there
         );
-#ifdef PRINTING
-        std::cout << "position after reset " << get_position(m_pcvecRobot[m_unRobot]);
-#endif
     }
 }
 

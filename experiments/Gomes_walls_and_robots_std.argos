@@ -54,7 +54,7 @@
                   trials="5"
                   robots="20"
                   descriptortype="cvt_Gomes_sdbc_walls_and_robots_std"  
-                  fitfuntype="Aggregation"
+                  fitfuntype="Dispersion"
                   bd_dims="3"
 		  output_folder="experiments"
         centroids_folder="experiments"
@@ -132,9 +132,9 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <qt-opengl>
+ <!--   <qt-opengl>
         <user_functions label="robotid_vis" />
-    </qt-opengl>
+    </qt-opengl>  -->
   </visualization>
 
 </argos-configuration>

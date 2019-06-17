@@ -15,7 +15,7 @@ void CoverageCalc::define_grid(BaseLoopFunctions* cLoopFunctions)
 {
     // initialise grid (for calculating coverage and uniformity)
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
-    
+
 
     SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0).GetBoundingBox();
 
@@ -212,6 +212,11 @@ DecayCoverageCalc::DecayCoverageCalc(std::string init_type, BaseLoopFunctions *c
     grid_step_x = max.GetX()/grid_size_x;
     grid_step_y = max.GetY()/grid_size_y;
 
+    //static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
+    //CPhysicsEngine p = cSimulator.GetPhysicsEngine("dyn2d");
+    Real t = CPhysicsEngine::GetSimulationClockTick();// e.g., tick = 0.10 s
+    size_t decay_period = (size_t) (1.0f / (float) t);// e.g. 10 ticks per second
+    decay_rate = 0.005 / decay_period;// decay_rate is 0.005 per second or decay_rate/period per tick
     // define the grid
     if (init_type == "DecayCoverage")
     {
@@ -234,7 +239,7 @@ DecayCoverageCalc::DecayCoverageCalc(std::string init_type, BaseLoopFunctions *c
             grid.insert(std::pair<location_t,float>(l, 0.0f));
 
             location_t l2(grid_size_x - 1, y, 0);
-            grid.insert(std::pair<location_t,float>(l, 0.0f));
+            grid.insert(std::pair<location_t,float>(l2, 0.0f));
         }
 
         for (int x=0;x  < grid_size_x; ++x)
@@ -243,7 +248,7 @@ DecayCoverageCalc::DecayCoverageCalc(std::string init_type, BaseLoopFunctions *c
             grid.insert(std::pair<location_t,float>(l, 0.0f));
 
             location_t l2(x, grid_size_y - 1, 0);
-            grid.insert(std::pair<location_t,float>(l, 0.0f));
+            grid.insert(std::pair<location_t,float>(l2, 0.0f));
         }
     }
     else{
@@ -283,7 +288,7 @@ void DecayCoverageCalc::update(argos::CVector3 pos)
     //count the bin
     location_t bin = get_bin(pos);
     auto find_result = grid.find(bin);
-    if (find_result == grid.end())
+    if (find_result != grid.end())
     {
         grid[bin]=1.0;
     }

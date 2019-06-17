@@ -167,6 +167,10 @@ void DecayCoverage::apply(BaseLoopFunctions &cLoopFunctions, Real time)
     //coverage
     float sum = coverageCalc->accumulator;
     float coverage = sum / (coverageCalc->grid.size() * num_updates);
+    if(!StatFuns::in_range(coverage,0.0f,1.0f))
+    {
+        throw std::runtime_error("fitness not in [0,1]");
+    }
     fitness_per_trial.push_back(coverage);
     num_updates = 0;
     coverageCalc->end_trial();
@@ -182,6 +186,7 @@ void DecayCoverage::after_robotloop(BaseLoopFunctions &cLoopFunctions)
     coverageCalc->get_grid_sum();
     ++num_updates;// one update for the entire swarm
     coverageCalc->decay();
+    
 }
 /*after completing all trials, combine fitness*/
 float DecayCoverage::after_trials()
@@ -192,12 +197,7 @@ float DecayCoverage::after_trials()
     return meanfit;
 }
 
-/*after completing a trial, print some statistics (if desired)*/
-void DecayCoverage::print_progress(size_t trial)
-{
 
-    printf("\n\n fitness (coverage) in trial %zu is %f", trial, fitness_per_trial[trial]);
-}
 
 Aggregation::Aggregation(BaseLoopFunctions *cLoopFunctions) : FitFun()
 {
@@ -217,7 +217,7 @@ void Aggregation::apply(BaseLoopFunctions &cLoopFunctions, Real time)
     //proportional to the average distance to the centre of mass over the entire simulation
     float dist = trial_dist / (maxdist*(float) num_updates);
     float fitness = 1 - dist;
-    if(StatFuns::in_range(fitness,0.0f,1.0f))
+    if(!StatFuns::in_range(fitness,0.0f,1.0f))
     {
         throw std::runtime_error("fitness not in [0,1]");
     }
@@ -282,8 +282,12 @@ void Dispersion::apply(BaseLoopFunctions &cLoopFunctions, Real time)
     averaged over the entire simulation.*/
     float normalised_dist = trial_dist/(maxdist*num_updates);
 #ifdef PRINTING
-    std::cout<<"normalised dist "<<  normalised dist  <<std::endl;
+    std::cout<<"normalised dist "<<  normalised_dist  <<std::endl;
 #endif
+    if(!StatFuns::in_range(normalised_dist,0.0f,1.0f))
+    {
+        throw std::runtime_error("fitness not in [0,1]");
+    }
     fitness_per_trial.push_back(normalised_dist);
     num_updates = 0;
     trial_dist = 0.0f;
@@ -344,7 +348,10 @@ float Dispersion::avg_min_dist(BaseLoopFunctions &cLoopFunctions)
 //   /*The fitness function rewards robots for having an orientation 
 //    similar to the other robots within a radius of 25 cm (half the robot sensing range), 
 //    and for moving as fast as possible.*/
-
+//    if(!StatFuns::in_range(fitness,0.0f,1.0f))
+//    {
+//      throw std::runtime_error("fitness not in [0,1]");
+//    }
 // }
 // /*after completing all trials, combine fitness*/
 // float Flocking::after_trials()

@@ -364,7 +364,7 @@ void EvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 }
 void EvolutionLoopFunctions::end_trial(Real time)
 {
-    
+    BaseLoopFunctions::end_trial(time);
     descriptor->end_trial(*this);
 }
 
