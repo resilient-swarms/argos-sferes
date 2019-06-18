@@ -319,15 +319,18 @@ void EvolutionLoopFunctions::PreStep()
         //old_theta[robotindex] = curr_theta[robotindex];
         this->descriptor->set_output_descriptor(robotindex, *this);
         //this->fitfun->after_step(robotindex, *this);
-
-        stop_eval = cThymio.GetEmbodiedEntity().IsCollidingWithSomething();
-        if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
+        if(this->fitfun->quit_on_collision())
         {
-            argos::CSimulator::GetInstance().Terminate();
-#ifdef PRINTING
-            std::cout << "Terminate run permaturely" << std::endl;
-#endif
+            stop_eval = cThymio.GetEmbodiedEntity().IsCollidingWithSomething();
+            if (stop_eval ) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
+            {
+                argos::CSimulator::GetInstance().Terminate();
+    #ifdef PRINTING
+                std::cout << "Terminate run permaturely" << std::endl;
+    #endif
+            }
         }
+
         ++robotindex;
     }
     this->descriptor->after_robotloop(*this);

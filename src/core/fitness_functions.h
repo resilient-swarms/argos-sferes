@@ -12,6 +12,10 @@ class FitFun
 public:
   std::vector<float> fitness_per_trial;
   FitFun(){};
+  virtual inline bool quit_on_collision() const
+  {
+    return false;
+  }
   /* before trial */
   virtual void before_trial(BaseLoopFunctions &cLoopFunctions)
   {
@@ -83,7 +87,10 @@ public:
   size_t num_updates = 0;
   CoverageCalc* coverageCalc;
   Coverage(std::string init_type, BaseLoopFunctions *cLoopFunctions);
-
+  virtual inline bool quit_on_collision() const
+  {
+    return true;
+  }
   /*after a single step of all agents */
   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
   /*after completing trial, calc fitness*/
@@ -101,6 +108,10 @@ class TrialCoverage : public Coverage
   // Coverage but account for different trials
 public:
   TrialCoverage(std::string init_type, BaseLoopFunctions *cLoopFunctions);
+  virtual inline bool quit_on_collision() const
+  {
+    return true;
+  }
   virtual void before_trial(BaseLoopFunctions &cLoopFunctions);
 };
 
