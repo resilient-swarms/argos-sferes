@@ -50,6 +50,10 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
 7. To compile baseline behaviours, do
     cmake -DRECORD_FITNESS=ON -DBASELINE=ON ..
 
+8. To compile all descriptors for Bayesian Optimisation, use
+   
+   bash make_all_BO.sh
+
 
 Instruction for running
 -------------
@@ -85,3 +89,7 @@ To run the EA on other settings mentioned in point 6., you can run either of the
 To try out an evolved solution
 
      ./bin/behaviour_evol2D experiments/history.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
+
+To try out an evolved solution with Bayesian Optimisation, e.g. for individual 18:
+
+     ./bin/behaviour_evolBO2D experiments/history_BO.argos fitness18 --load <path to generation file>/gen_<number> -o <output file> -n 18

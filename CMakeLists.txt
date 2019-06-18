@@ -115,6 +115,9 @@ option(DEFINE_PRINT "print some variables" OFF)
 option(BD "behaviour description size" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
 option(PERTURB "Perturbations" OFF)
+option(BO "Bayesian Optimisation" OFF)
+
+
 
 
 # process baseline option and others, to define controller, loopfunction and executable
@@ -187,6 +190,17 @@ else(NOT BASELINE)
     set(CONTROL "nn_controller")
 
     set(tag ${CVT_USE}${BD}D)
+
+
+# process BO option
+if(BO)
+    message("Bayesian Optimisation is defined")
+    add_definitions(-DBAYESIAN_OPT)   
+    set(tag BO${CVT_USE}${BD}D)
+else(NOT BO)
+    message("Bayesian Optimisation is NOT defined")
+endif()
+    
     add_definitions(-DTAG="${tag}")
 
 
@@ -241,6 +255,8 @@ if(DEFINE_PRINT)
 else(NOT DEFINE_PRINT)
     message("print is NOT defined")
 endif()
+
+
 
 
 

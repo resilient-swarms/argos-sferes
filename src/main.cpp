@@ -16,9 +16,30 @@
     #include <src/evolution/descriptors.h>
 #endif
 
+#include <boost/program_options.hpp>
+ 
 
 /****************************************/
 /****************************************/
+// void set_fitfile(int argc, char **argv, boost::program_options::variables_map& vm, BaseLoopFunctions* cLoopFunctions)
+// {
+//     if(vm.count("fitfile"))
+//     {
+        
+// #ifdef RECORD_FIT
+//     std::string fitnessfile = vm["fitfile"].as<std::string>();
+//     // std::ios::app is the open mode "append" meaning
+//     // new data will be written to the end of the file.
+//     cLoopFunctions->fitness_writer.open(fitnessfile, std::ios::app);
+// #else
+//     throw std::runtime_error("you are trying to record fitness file, but are not using RECORD_FIT");
+// #endif
+//     del argv[2];
+//     argc -= 1
+//     }
+// }
+
+
 #ifdef CVT
 
 typedef Params::ea::point_t point_t;
@@ -85,6 +106,10 @@ std::vector<point_t> load_centroids(const std::string& centroids_filename)
 }
 std::vector<point_t> Params::ea::centroids;
 
+
+
+
+
 #endif
 int main(int argc, char **argv)
 {
@@ -103,12 +128,25 @@ int main(int argc, char **argv)
     /* Load it to configure ARGoS */
     cSimulator.LoadExperiment();
 
+
+
    
 #ifdef BASELINEBEHAVS
     static CBaselineBehavsLoopFunctions &cLoopFunctions = dynamic_cast<CBaselineBehavsLoopFunctions &>(cSimulator.GetLoopFunctions());
     cLoopFunctions.run_all_trials(cSimulator);
 #else
-         static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
+    static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
+    #ifdef BAYESIAN_OPT
+        // expects two arguments
+        std::string fitfile = argv[2];
+        // override the usual fitness file
+        cLoopFunctions.fitness_writer.close();
+        cLoopFunctions.fitness_writer.open(fitfile);
+        #ifndef RECORD_FIT
+            throw std::runtime_error("need to set RECORD_FIT true if using BO");
+        #endif
+    #endif
+    
     #ifdef CVT
         Params::ea::centroids = load_centroids(cLoopFunctions.centroids_folder+"/centroids_1000_"+std::to_string(Params::ea::number_of_dimensions)+".dat");
     #endif

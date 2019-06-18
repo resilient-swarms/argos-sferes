@@ -154,7 +154,6 @@ def convert_CoverageFitness(fitness,grid_size=0.1212,max_velocity=0.10, time_per
     max_cells_per_second = max_velocity/grid_size
     max_cells_per_trial = np.ceil(max_cells_per_second*time_per_trial)
 
-    # - 2 for maximum grid cells occupied completely by obstacles
     visited_cells = np.ceil(total_cells*fitness)  #e.g. 160 cells, then fitness=0.1  means 16 cells visited
     return visited_cells/max_cells_per_trial  # coverage now means visited cells compared to the maximum possible
 
