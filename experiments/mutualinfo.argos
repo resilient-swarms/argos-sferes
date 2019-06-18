@@ -33,11 +33,11 @@
       <sensors>
         <Thymio_proximity implementation="default"    show_rays="true"  range="0.50" noise_level="0.05"/>
       </sensors>
-       <params>
-      <faults
-      fault_behavior="FAULT_PROXIMITYSENSORS_SETRANDOM" 
-      id_faulty_robot="0"
-      />
+      <params>
+      <wheel_turning max_speed="10" />
+      <experiment_run swarm_behavior="/"
+			fault_behavior="FAULT_NONE" 
+	                id_faulty_robot="-1" />
       </params>
     </nn_controller>
 
@@ -49,7 +49,7 @@
   <loop_functions library="lib/libevolution_loopfunctionscvt21D.so"
                   label="evolution_loopfunctionscvt21D"
                   trials="5"
-                  robots="5"
+                  robots="1"
                   descriptortype="cvt_mutualinfo"  
                   fitfuntype="BorderCoverage"
                   bd_dims="3"
@@ -95,7 +95,15 @@
         <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
       </entity>
     </distribute>
-
+        <distribute>
+      <position method="uniform" min="0,0,0" max="4,4,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="1" max_trials="1000">
+        <Thymio id="thymio">    <!-- data size in bytes; range in m -->
+          <controller config="tnn" />
+        </Thymio>
+      </entity>
+</distribute>
   </arena>
 
   <!-- ******************* -->

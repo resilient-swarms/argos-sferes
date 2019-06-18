@@ -251,7 +251,6 @@ void EvolutionLoopFunctions::PreStep()
         inputs.clear();
         inputs = cController.InputStep();
         this->descriptor->set_input_descriptor(robotindex, *this);
-        inputs.push_back(+1.0); //Bias input
 
         //      _ctrlrob.step(inputs);
         _vecctrlrob[robotindex].step(inputs);

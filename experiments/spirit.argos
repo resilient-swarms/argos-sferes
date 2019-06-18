@@ -34,10 +34,10 @@
         <Thymio_proximity implementation="default"    show_rays="true"  range="0.11" noise_level="0.05"/>
       </sensors>
       <params>
-      <faults
-      fault_behavior="FAULT_PROXIMITYSENSORS_SETMIN" 
-      id_faulty_robot="0"
-      />
+      <wheel_turning max_speed="10" />
+      <experiment_run swarm_behavior="/"
+			fault_behavior="FAULT_NONE" 
+	                id_faulty_robot="-1" />
       </params>
     </nn_controller>
 
@@ -95,7 +95,15 @@
         <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
       </entity>
     </distribute>
-
+            <distribute>
+      <position method="uniform" min="0,0,0" max="4,4,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="1" max_trials="1000">
+        <Thymio id="thymio">    <!-- data size in bytes; range in m -->
+          <controller config="tnn" />
+        </Thymio>
+      </entity>
+</distribute>
   </arena>
 
   <!-- ******************* -->
@@ -117,6 +125,7 @@
   <!-- ****************** -->
   <!-- We don't want nor need a visualization during evolution -->
   <visualization>
+  <!-- <qt-opengl/>  -->
   </visualization>
 
 </argos-configuration>

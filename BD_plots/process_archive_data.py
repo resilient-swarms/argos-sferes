@@ -74,7 +74,7 @@ def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,includ
         combined_archive={}
     else:
         combined_archive=[]
-    for run in range(1,runs+1):
+    for run in runs:
         filepath=get_archive_filepath(BD_directory, run, archive_file_path)
         bin_performance_dict=get_bin_performances(filepath,as_string=by_bin)
         for key, value in bin_performance_dict.items():

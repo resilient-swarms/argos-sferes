@@ -54,7 +54,7 @@
                   trials="5"
                   robots="20"
                   descriptortype="cvt_Gomes_sdbc_walls_and_robots_std"  
-                  fitfuntype="Dispersion"
+                  fitfuntype="DecayCoverage"
                   bd_dims="3"
 		  output_folder="experiments"
         centroids_folder="experiments"
@@ -105,7 +105,7 @@
           <controller config="tnn" />
         </Thymio>
       </entity>
-</distribute>
+    </distribute>
 </arena>
 
 

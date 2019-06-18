@@ -552,12 +552,12 @@ void CVT_MutualInfo::set_input_descriptor(size_t robot_index, EvolutionLoopFunct
 {
 	size_t joint_index = 0;
 	// frequency + joint_frequency
-	for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
+	for (size_t i = 0; i < num_sensors; ++i)
 	{
 		size_t bin = cLoopFunctions.get_sensory_bin(i, num_bins);
 
 		++freqs[i][bin];
-		for (size_t j = i+1; j < cLoopFunctions.inputs.size() - 1; ++j)
+		for (size_t j = i+1; j < num_sensors; ++j)
 		{
 			size_t bin2 = cLoopFunctions.get_sensory_bin(j, num_bins);
 			size_t joint_bin = bin * num_bins + bin2;
@@ -719,17 +719,17 @@ void CVT_MutualInfoAct::normalise()
 /*after getting outputs, can update the descriptor if needed*/
 void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
-	for (size_t j = 0; j < cLoopFunctions.outf.size(); ++j)
+	for (size_t j = 0; j < num_act; ++j)
 	{
 		size_t bin2 = cLoopFunctions.get_actuator_bin(j, num_act_bins);
 		++act_freqs[j][bin2];
 	}
 	// frequency + joint_frequency
-	for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
+	for (size_t i = 0; i < num_sensors; ++i)
 	{
 		size_t bin = cLoopFunctions.get_sensory_bin(i, num_bins);
 		++freqs[i][bin];
-		for (size_t j = 0; j < cLoopFunctions.outf.size(); ++j)
+		for (size_t j = 0; j < num_act; ++j)
 		{
 			size_t bin2 = cLoopFunctions.get_actuator_bin(j, num_act_bins);
 			size_t joint_bin = bin * num_bins + bin2;

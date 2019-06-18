@@ -19,7 +19,7 @@ std::vector<float> CThymioNNController::InputStep()
         std::vector<Real> readings = GetNormalizedSensorReadings();
         in = std::vector<float>(readings.begin(), readings.end());
     }
-    
+    in.push_back(+1.0); //Bias input
 
     return in;
 }

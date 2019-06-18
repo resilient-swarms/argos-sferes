@@ -19,8 +19,7 @@ void BaseLoopFunctions::init_robots()
     }
     if(m_unNumberRobots != m_pcvecRobot.size())// we need to make sure the number of robots distributed in the arena match what is specified by the user in the loop function.
     {
-        printf("\n The number of robots distributed in the arena %zu does not match what is specified by the user in the loop function %zu.", m_unNumberRobots, m_pcvecRobot.size());
-        exit(-1);
+        throw std::runtime_error("\n The number of robots distributed in the arena " +std::to_string(m_unNumberRobots) + " does not match what is specified by the user in the loop function " +std::to_string(m_pcvecRobot.size()));
     }
 }
 

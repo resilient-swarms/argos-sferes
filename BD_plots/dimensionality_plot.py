@@ -10,7 +10,7 @@ RESULTSFOLDER="results"
 
 
 from pandas.plotting import scatter_matrix
-from BD_plots.process_archive_data import *
+from process_archive_data import *
 
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
