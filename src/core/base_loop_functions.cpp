@@ -37,6 +37,8 @@ void BaseLoopFunctions::place_robots()
     init_robots();
     curr_pos.resize(m_unNumberRobots);
     curr_theta.resize(m_unNumberRobots);
+    old_pos.resize(m_unNumberRobots);
+    old_theta.resize(m_unNumberRobots);
 
     //m_vecInitSetup.clear();
     CVector3 size = GetSpace().GetArenaSize();
@@ -92,6 +94,7 @@ void BaseLoopFunctions::Init(TConfigurationNode &t_node)
     * Create the random number generator
     */
     m_pcRNG = CRandom::CreateRNG("argos");
+    tick_time = CPhysicsEngine::GetSimulationClockTick();
 
     /*
     * Process trial information
@@ -208,6 +211,9 @@ void BaseLoopFunctions::Reset()
                    m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
                    false                                                    // this is not a check, leave the robot there
         );
+        old_pos[m_unRobot] = m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position;
+        CVector3 axis;
+        m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
     }
 }
 
@@ -283,3 +289,8 @@ float BaseLoopFunctions::alltrials_fitness()
 {
     return fitfun->after_trials();
 }
+
+
+
+
+

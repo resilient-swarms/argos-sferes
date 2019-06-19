@@ -9,7 +9,7 @@ for dim in 2 10 14 21 400; do
     then
     cmake -DCMAKE_BUILD_TYPE=Debug -DCVT_USAGE=ON -DBD=${dim} -DDEFINE_PRINT=ON ..
     else
-    cmake -DCMAKE_BUILD_TYPE=Debug -DBD=${dim}  -DDEFINE_PRINT=OFF ..
+    cmake -DCMAKE_BUILD_TYPE=Debug -DBD=${dim}  -DDEFINE_PRINT=ON ..
     fi
    make 
 

@@ -200,7 +200,6 @@ float StatFuns::normalise(std::vector<float> &probabilities,float C)
     #endif
 }
 
-
 float StatFuns::laplace_smoothing(float count, float C, float alpha, size_t num_options)
 {
     float num = count + alpha;

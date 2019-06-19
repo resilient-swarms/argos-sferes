@@ -82,17 +82,16 @@ public:
 public:
 
     CRandom::CRNG *m_pcRNG;
-
+    float tick_time;
     std::vector<float> outf;
     std::vector<float> inputs;
     FitFun *fitfun;
-    std::vector<CVector3> curr_pos;
-    std::vector<CRadians> curr_theta;
+    std::vector<CVector3> curr_pos, old_pos;
+    std::vector<CRadians> curr_theta, old_theta;
     size_t m_unNumberTrials;
     int m_unCurrentTrial; // will start with -1 for convenience
     std::vector<std::vector<SInitSetup>> m_vecInitSetup;
     size_t m_unNumberRobots;
-
     std::string output_folder;
 #ifdef RECORD_FIT
     std::ofstream fitness_writer;

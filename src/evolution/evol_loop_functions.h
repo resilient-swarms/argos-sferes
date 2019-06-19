@@ -238,6 +238,8 @@ public:
     CVector3 centre, max;
 
     /* config initialisation functions */
+
+
     /* Process behavioural descriptor type  */
     void init_descriptors(TConfigurationNode &t_node);
     /* Process initialisation of robots, number of trials, and outputfolder  */
@@ -251,9 +253,15 @@ public:
 
 
     /* next are functions that are done during loop */
+
+
     void before_trials();
     void start_trial(CSimulator &cSimulator);
     void end_trial(Real time);
+
+
+    /* following are all functions useful for setting the descriptor */
+
 
     std::vector<float> alltrials_descriptor();
 
@@ -279,6 +287,11 @@ public:
     /* get positions of objects of a type indicated by a string */
     std::vector<CVector3> get_object_positions(std::string type);
 
+    /* linear speed normalised to [0,1], based on the actual movement rather than wheel speed */
+    float actual_linear_velocity_01(size_t robot_index);
+
+    /* turn velocity normalised to [0,1], based on the actual orientations rather than wheel speed*/
+    float actual_turn_velocity_01(size_t robot_index);
 };
 
 namespace sferes
@@ -349,7 +362,6 @@ void eval(Indiv &ind)
 #ifdef RECORD_FIT
     cLoopFunctions.fitness_writer << fFitness << std::endl;
 #endif
-    Real time = (Real)cSimulator.GetMaxSimulationClock();
     std::vector<float> behavioural_descriptor = cLoopFunctions.alltrials_descriptor();
     this->set_desc(behavioural_descriptor);
 

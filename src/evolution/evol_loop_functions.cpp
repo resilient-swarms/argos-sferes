@@ -14,7 +14,6 @@
 EvolutionLoopFunctions::EvolutionLoopFunctions() : BaseLoopFunctions()
 
 {
-
 }
 
 /****************************************/
@@ -73,7 +72,7 @@ void EvolutionLoopFunctions::Init(TConfigurationNode &t_node)
 }
 
 /* get the controller  */
-BaseController* EvolutionLoopFunctions::get_controller(size_t robot)
+BaseController *EvolutionLoopFunctions::get_controller(size_t robot)
 {
     return m_pcvecController[robot];
 }
@@ -147,8 +146,6 @@ void EvolutionLoopFunctions::init_simulation(TConfigurationNode &t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing centroids_folder", ex);
     }
 #endif
-
-
 }
 void EvolutionLoopFunctions::init_robots()
 {
@@ -232,8 +229,6 @@ void EvolutionLoopFunctions::init_robots()
 /****************************************/
 /****************************************/
 
-
-
 /****************************************/
 /****************************************/
 
@@ -272,7 +267,7 @@ void EvolutionLoopFunctions::PreStep()
                 outf[j] = 0.0;
             else
                 outf[j] = cController.m_sWheelTurningParams.MaxSpeed * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
-                                                                         //outf[j]=10.0f*(2.0f*_vecctrlrob[robotindex].get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
+                                                                                                              //outf[j]=10.0f*(2.0f*_vecctrlrob[robotindex].get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
 
         cController.m_fLeftSpeed = outf[0];
         cController.m_fRightSpeed = outf[1];
@@ -284,6 +279,14 @@ void EvolutionLoopFunctions::PreStep()
         cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta[robotindex], axis);
 
         curr_pos[robotindex] = cThymio.GetEmbodiedEntity().GetOriginAnchor().Position;
+
+
+#ifdef PRINTING
+        std::cout << "current position" << curr_pos[robotindex] << std::endl;
+        std::cout << "old position" << old_pos[robotindex] << std::endl;
+        std::cout << "current orientation" << curr_pos[robotindex] << std::endl;
+        std::cout << "old orientation" << old_pos[robotindex] << std::endl;
+#endif
         // #ifdef PRINTING
         //         std::cout << "theta=" << curr_theta << std::endl;
         // #endif
@@ -319,18 +322,21 @@ void EvolutionLoopFunctions::PreStep()
         //old_theta[robotindex] = curr_theta[robotindex];
         this->descriptor->set_output_descriptor(robotindex, *this);
         //this->fitfun->after_step(robotindex, *this);
-        if(this->fitfun->quit_on_collision())
+        if (this->fitfun->quit_on_collision())
         {
             stop_eval = cThymio.GetEmbodiedEntity().IsCollidingWithSomething();
-            if (stop_eval ) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
+            if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
             {
                 argos::CSimulator::GetInstance().Terminate();
-    #ifdef PRINTING
+#ifdef PRINTING
                 std::cout << "Terminate run permaturely" << std::endl;
-    #endif
+#endif
             }
         }
 
+
+        old_pos[robotindex] = curr_pos[robotindex];
+        old_theta[robotindex] = curr_theta[robotindex];
         ++robotindex;
     }
     this->descriptor->after_robotloop(*this);
@@ -369,7 +375,6 @@ void EvolutionLoopFunctions::end_trial(Real time)
     BaseLoopFunctions::end_trial(time);
     descriptor->end_trial(*this);
 }
-
 
 std::vector<float> EvolutionLoopFunctions::alltrials_descriptor()
 {
@@ -433,6 +438,29 @@ size_t EvolutionLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
     return bin1 * num_bins + bin2;
 }
 
+/* linear speed normalised to [0,1], based on the actual movement rather than wheel speed */
+float EvolutionLoopFunctions::actual_linear_velocity_01(size_t robot_index)
+{
+    if (curr_pos[robot_index] == old_pos[robot_index])
+    {
+        return 0.5f; //exactly on the middle of the range (equivalent to V=0)
+    }
+    else
+    {
+        // calculate velocity w.r.t. old orientation
+        CVector3 displacement =  curr_pos[robot_index] - old_pos[robot_index]; // in [0,1]
+        float theta=old_theta[robot_index].GetValue();
+        float velocity = displacement.GetX()*std::cos(theta) + displacement.GetY() * std::sin(theta);
+        velocity/=(tick_time * get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed);//in [-1,1] now
+        velocity = 0.5f + 0.5f*velocity;// in [0,1] now
+        return velocity;
+    }
+}
+/* turn velocity normalised to [0,1], based on the actual orientations rather than wheel speed*/
+float EvolutionLoopFunctions::actual_turn_velocity_01(size_t robot_index)
+{
+    return (M_2PI + (curr_theta[robot_index].GetValue() - old_theta[robot_index].GetValue()))/(2.0*M_2PI);        // in [0,1]
+}
 /****************************************/
 /****************************************/
 

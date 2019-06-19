@@ -135,13 +135,10 @@ public:
     float right_wheel_velocity_01();
     /* linear speed normalised to [0,1]*/
     float linear_speed_01();
+    /* linear velocity normalised to [0,1]*/
+    float linear_velocity_01();
     /* turn speed normalised to [0,1]*/
     float turn_speed_01();
-
-   
-
-    
-
 
 };
 #endif

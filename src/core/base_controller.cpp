@@ -386,6 +386,11 @@ float BaseController::linear_speed_01()
 {
     return (std::abs(m_fLeftSpeed) + std::abs(m_fRightSpeed)) / (2.0*m_sWheelTurningParams.MaxSpeed); // in [0,1]
 }
+/* linear velocity normalised to [0,1]*/
+float BaseController::linear_velocity_01()
+{
+    return (2.0*m_sWheelTurningParams.MaxSpeed + (m_fLeftSpeed+m_fRightSpeed)) / (4.0*m_sWheelTurningParams.MaxSpeed); // in [0,1]
+}
 /* turn speed normalised to [0,1]*/
 float BaseController::turn_speed_01()
 {

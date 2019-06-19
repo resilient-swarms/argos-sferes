@@ -7,10 +7,11 @@
 #include <vector>
 #include <argos3/core/utility/math/vector3.h>
 #include <algorithm>
-
+#include <cmath>
 
 
 #define EPS std::numeric_limits<float>::epsilon()
+#define M_2PI 2*M_PI
 
 template <typename T>
 void element_wise_addition(std::vector<T> &result, const std::vector<T> &other)

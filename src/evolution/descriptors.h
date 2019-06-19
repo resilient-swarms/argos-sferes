@@ -140,12 +140,20 @@ struct SpeedAttributeSetter : public RobotAttributeSetter
   }
   virtual  std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
   {
-    float v_lin = cLoopFunctions.get_controller(robot_index)->linear_speed_01();
-    float v_turn= cLoopFunctions.get_controller(robot_index)->turn_speed_01();
+    float v_lin = cLoopFunctions.actual_linear_velocity_01(robot_index);
+    float v_turn= cLoopFunctions.actual_turn_velocity_01(robot_index);
 
     std::vector<float> new_vec = {v_lin, v_turn};
 #ifdef PRINTING
     std::cout << "v_lin, v_turn =" << v_lin << "," << v_turn << std::endl;
+    if (!StatFuns::in_range(v_lin,0.0f,1.0f))
+    {
+      throw std::runtime_error("v_lin not in [0,1]");
+    }
+    if (!StatFuns::in_range(v_turn,0.0f,1.0f))
+    {
+      throw std::runtime_error("v_turn not in [0,1]");
+    }
 #endif
     return new_vec;
   }
