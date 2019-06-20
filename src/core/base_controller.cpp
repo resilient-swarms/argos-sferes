@@ -341,8 +341,7 @@ std::vector<Real> BaseController::GetNormalizedSensorReadings()
     rab_cones.push_back(ToRadians(CDegrees(-90.0)));
     rab_cones.push_back(ToRadians(CDegrees(-45.0)));
 
-
-    for(UInt8 i = proximity_sensors.size() + 1; i < proximity_sensors.size() + 8; ++i) // 8 cones
+    for(UInt8 i = proximity_sensors.size(); i < proximity_sensors.size() + 8; ++i) // 8 cones
     {
         norm_readings.push_back(max_rab_range); // initialize rab sensor readings to max range of 100cm
     }
