@@ -56,7 +56,7 @@ for FitfunType in DecayCoverage DecayBorderCoverage Dispersion Aggregation Flock
                 -e "s|DESCRIPTOR_TYPE|${DescriptorType}|"                  \
                 -e "s|OUTPUTFOLDER|${Outfolder}|" \
 		-e "s|SENSOR_RANGE|${SensorRange}|" \
-		-e "s|CENTROIDSFOLDER|${Outfolder}|" \
+		-e "s|CENTROIDSFOLDER|experiments| " \
 		-e "s|NOISE_LEVEL|0.05|"    \
                 -e "s|BEHAVIOUR_TAG|${tag}|" \
 		experiments/Gomes_experiment_template.argos \
