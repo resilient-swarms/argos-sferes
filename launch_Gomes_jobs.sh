@@ -14,11 +14,19 @@ declare -A descriptors
 declare -A voronoi
 
 
-descriptors["Gomes_sdbc_all_std"]=10
-voronoi["Gomes_sdbc_all_std"]="cvt"
+descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+time["DecayCoverage"]=200
+time["DecayBorderCoverage"]=200
+time["Dispersion"]=100
+time["Aggregation"]=150
+time["Flocking"]=200
 
-for FitfunType in DecayCoverage DecayBorderCoverage Dispersion Aggregation ; do  # add Flocking later
-    echo 'Fitfun'${FitFunType}
+
+for FitfunType in DecayCoverage DecayBorderCoverage Dispersion Aggregation Flocking ; do  # add Flocking later
+    echo 'Fitfun'${FitfunType}
+    SimTime=${time[${FitfunType}]}
+    echo "simtime"${SimTime}
     for SensorRange in 11; do
 	echo 'sens'${SensorRange}
     for key in ${!descriptors[@]}; do
@@ -40,9 +48,10 @@ for FitfunType in DecayCoverage DecayBorderCoverage Dispersion Aggregation ; do 
 	    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 	
 	    mkdir -p $Outfolder
-            sed -e "s|TRIALS|15|" \
+            sed -e "s|TRIALS|5|" \
                 -e "s|ROBOTS|5|"                    \
-                -e "s|SEED|${Replicates}|"                    \
+                -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
+		-e "s|SEED|${Replicates}|"                    \
                 -e "s|FITFUN_TYPE|${FitfunType}|"                   \
                 -e "s|DESCRIPTOR_TYPE|${DescriptorType}|"                  \
                 -e "s|OUTPUTFOLDER|${Outfolder}|" \
@@ -54,10 +63,15 @@ for FitfunType in DecayCoverage DecayBorderCoverage Dispersion Aggregation ; do 
                 > ${ConfigFile}
              if [ ! -z "${CVT}"  ]; then
         	echo ${CVT}
-		#python sferes2/modules/cvt_map_elites/cvt.py -k 1000 -d ${BD_DIMS} -p 100000 -f ${Outfolder}
-		#vsuffix='-v '${CVT}
-		#cho ${cvsuffix}
-		cp ${ConfigFolder}/results1/centroids_1000_${BD_DIMS}.dat ${Outfolder}
+		#if [ $Replicates -eq 1 ]; then
+		#	python sferes2/modules/cvt_map_elites/cvt.py -k 1000 -d ${BD_DIMS} -p 100000 -f ${Outfolder}
+		#else
+
+		#	cp ${ConfigFolder}/results1/centroids_1000_${BD_DIMS}.dat ${Outfolder}
+		#fi
+		vsuffix='-v '${CVT}
+		echo ${cvsuffix}
+		
 	     fi
 	  
 	   # Call ARGoS
@@ -68,8 +82,8 @@ for FitfunType in DecayCoverage DecayBorderCoverage Dispersion Aggregation ; do 
 	   bash zero_padding_data.sh ${Outfolder}
 	   set_latest ${Outfolder}/gen_*
 
-
-	   RESUME_GENERATION=${latest} 
+	  #Comment below line if you start experiments (no previous generation files)
+	  #RESUME_GENERATION=${latest} 
 	   if [ ! -z "${RESUME_GENERATION}"  ]; then
 		echo "found last generation file: "${RESUME_GENERATION}
 	   	export GENERATION_FILE=${RESUME_GENERATION}
