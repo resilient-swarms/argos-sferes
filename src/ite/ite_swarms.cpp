@@ -14,7 +14,8 @@ namespace global
 {
     std::string argossim_bin_name;
     std::string argossim_config_name;
-    std::string archive_name;
+    std::string archive_path;
+    unsigned gen_to_load;
     unsigned behav_dim; // number of dimensions of MAP
 } // namespace global
 
@@ -41,7 +42,8 @@ struct Params
 
     struct stop_maxiterations
     {
-        BO_DYN_PARAM(int, iterations);
+        //BO_DYN_PARAM(int, iterations);
+        BO_PARAM(int, iterations, 10);
     };
 
     struct acqui_ucb : public defaults::acqui_ucb
@@ -53,7 +55,7 @@ struct Params
     {
         struct elem_archive
         {
-            std::vector<double> behav_descriptor;
+            std::vector<double> behav_descriptor; // the first entry of elem_archive should be the behaviour descriptor (see ln 19 in exhaustive_search_archive.hpp)
             float fit;
             unsigned controller;
         };
@@ -78,44 +80,76 @@ Params::archiveparams::archive_t load_archive(std::string archive_name);
 
 struct Eval
 {
-    BO_PARAM(size_t, dim_in, 6); //global::behav_dim
+    BO_PARAM(size_t, dim_in, 2); //global::behav_dim
     BO_PARAM(size_t, dim_out, 1);
 
     // the function to be optimized
     Eigen::VectorXd operator()(const Eigen::VectorXd& x) const
     {
-        assert(global::behav_dim == 6);
+        std::cout << "In Eval " << std::endl;
+
+        assert(global::behav_dim == 2);
 
         std::vector<double> key(x.size(), 0);
         Eigen::VectorXd::Map(key.data(), key.size()) = x;
 
         unsigned ctrl_index = Params::archiveparams::archive.at(key).controller;
 
+        // ./bin/behaviour_evolBO2D experiments/history_BO.argos experiments/fitness${INDIVIDUAL} --load ${DATA}/history/results1/gen_2000 -n ${INDIVIDUAL} -o experiments/nn${INDIVIDUAL}
+        std::string sim_cmd = global::argossim_bin_name + " " +
+                              global::argossim_config_name + " " +
+                              "experiments/fitness" + std::to_string(ctrl_index) + " "
+                              "--load " + global::archive_path + "/gen_" + std::to_string(global::gen_to_load) + " " +
+                              "-n " + std::to_string(ctrl_index) + " " +
+                              "-o " + "experiments/nn" + std::to_string(ctrl_index);
+
+        if(system(sim_cmd.c_str())!=0)
+        {
+            std::cerr << "Error executing simulation " << std::endl << sim_cmd << std::endl;
+            exit(-1);
+        }
+
+        std::cout << "Loading fitness" << ctrl_index << "file " << std::endl;
+        std::ifstream monFlux(("experiments/fitness" + std::to_string(ctrl_index)).c_str());
+        double fitness;
+        if (monFlux)
+        {
+            std::string line; unsigned line_count = 0;
+            while (std::getline(monFlux, line))
+            {
+                std::istringstream iss(line);
+                std::vector<double> numbers;
+                double num;
+                while (iss >> num)
+                    numbers.push_back(num);
+
+                if(numbers.size() > 1)
+                    std::cerr << "Warning ... we were expecting a single number in the fitness file " << " and not " << numbers.size();
+
+                fitness = numbers[0];
+
+                line_count++;
+            }
+            if(line_count > 1)
+                std::cerr << "Warning ... we were expecting a single line in the fitness file " << " and not " << line_count;
+        }
+        else
+        {
+            std::cerr << "ERROR: Could not load the fitness" << ctrl_index << "file " << std::endl;
+            exit(-1);
+        }
+
+        std::cout << "Fitness = " << fitness << std::endl;
 
         /*std::vector<double> ctrl = Params::archiveparams::archive.at(key).controller;
         hexapod_dart::HexapodDARTSimu<> simu(ctrl, global::global_robot->clone());
         simu.run(5);
 
         return tools::make_vector(simu.covered_distance());*/
-        return tools::make_vector(17.0f);
+        return tools::make_vector(fitness);
     }
 };
 
-/*void lecture(const std::vector<double>& ctrl)
-{
-    hexapod_dart::HexapodDARTSimu<> simu(ctrl, global::global_robot->clone());
-    simu.run(5);
-
-    std::cout << "Covered distance: " << simu.covered_distance() << std::endl;
-}*/
-
-void init_simu(std::string robot_file, std::vector<int> broken_legs = std::vector<int>())
-{
-    /*std::vector<hexapod_dart::HexapodDamage> damages(broken_legs.size());
-    for (size_t i = 0; i < broken_legs.size(); ++i)
-        damages.push_back(hexapod_dart::HexapodDamage("leg_removal", std::to_string(broken_legs[i])));
-    global::global_robot = std::make_shared<hexapod_dart::Hexapod>(robot_file, damages);*/
-}
 
 std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archiveparams::classcomp> load_archive(std::string archive_name)
 {
@@ -171,8 +205,8 @@ std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archi
     }
     else
     {
-        std::cerr << "ERROR: Could not load the archive." << std::endl;
-        return archive;
+        std::cerr << "ERROR: Could not load the archive " << global::archive_path+"/archive_"+std::to_string(global::gen_to_load)+".dat" << std::endl;
+        exit(-1);
     }
 
     std::cout << archive.size() << " elements loaded" << std::endl;
@@ -180,14 +214,15 @@ std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archi
 }
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
-BO_DECLARE_DYN_PARAM(int, Params::stop_maxiterations, iterations);
+//BO_DECLARE_DYN_PARAM(int, Params::stop_maxiterations, iterations);
 
 /* ite_swarms requires arguments in the following order:
- * a. -a MAP-ELITES archive filename <with path>
+ * a. -a MAP-ELITES path of MAP
  * b.    Number of dimensions of MAP
- * b. -s Binary file to execute the argos simulator <with path>
- * c.    ARGoS configuration file for b. <with path>
- * d. -i Number of iterations (optional)
+ * c.    Generation to load
+ * d. -s Binary file to execute the argos simulator <with path>
+ * e.    ARGoS configuration file for d. <with path>
+ * f. -i Number of iterations (optional)
 */
 int main(int argc, char** argv)
 {
@@ -239,24 +274,32 @@ int main(int argc, char** argv)
     }*/
 
     // you need a map archive with number of dimensions, as well a argos-sim binary and configuration files in order to run ite-swarms
-    if (argc < 5)
+    if (argc < 6)
     {
-        std::cerr << "Please provide the map archive with the number of dimensions, and the argos-sim binary and configuration files" << std::endl;
+        std::cerr << "Please provide the path to the map archive along with the number of dimensions of the MAP and the generation to load, as well as "
+                     "the argos-sim binary and configuration files" << std::endl;
         return -1;
     }
 
-    Params::archiveparams::archive = load_archive(argv[1]);
-    global::archive_name = argv[1];
+    global::archive_path = argv[1];
     global::behav_dim = atoi(argv[2]);
-    global::argossim_bin_name = argv[3];
-    global::argossim_config_name = argv[4];
+    global::gen_to_load= atoi(argv[3]);
+    global::argossim_bin_name = argv[4];
+    global::argossim_config_name = argv[5];
 
-    if (argc == 5)
+    //std::cerr << "Setting number of iterations if argc =  " << argc << " for argv[6] " << argv[6];
+
+    Params::archiveparams::archive = load_archive(std::string(argv[1])+"/archive_"+std::to_string(global::gen_to_load)+".dat");
+
+    /*std::cerr << "Setting number of iterations if argc =  " << argc;
+
+    if (argc == 7)
     {
+        std::cout << "Setting number of iterations to " << atoi(argv[6]);
         Params::stop_maxiterations::set_iterations(atoi(argv[5]));
     }
     else
-        Params::stop_maxiterations::set_iterations(10);
+        Params::stop_maxiterations::set_iterations(10);*/
 
     typedef kernel::MaternFiveHalves<Params> Kernel_t;
     typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;

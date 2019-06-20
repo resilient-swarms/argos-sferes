@@ -11,6 +11,8 @@ namespace limbo {
             template <typename GP>
             Eigen::VectorXd operator()(const Eigen::VectorXd& v, const GP&) const
             {
+                /*std::cout << "In MeanArchive operator " << std::endl;*/
+
                 std::vector<double> key(v.size(), 0);
                 for (int i = 0; i < v.size(); i++)
                     key[i] = v[i];
