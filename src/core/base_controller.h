@@ -107,7 +107,8 @@ public:
     /* Pointer to the range and bearing sensor */
     CCI_RangeAndBearingSensor* m_pcRABS;
 
-
+    /* maximum RAB range */
+    Real max_rab_range = 100.0; // in cm
     /* Wheel speeds */
     Real m_fLeftSpeed, m_fRightSpeed;
 
@@ -137,8 +138,12 @@ public:
     float linear_speed_01();
     /* linear velocity normalised to [0,1]*/
     float linear_velocity_01();
+    /* linear velocity normalised to [-1,1] */
+    float linear_velocity_signed();
     /* turn speed normalised to [0,1]*/
     float turn_speed_01();
+
+
 
 };
 #endif

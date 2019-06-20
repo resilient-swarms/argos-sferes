@@ -12,7 +12,7 @@ void FloreanoMondada::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     // compute linear speed for fitness function
     float s = cLoopFunctions.get_controller(0)->linear_speed_01(); // in [0,1]
-    float ds = cLoopFunctions.get_controller(0)->turn_speed_01();        // in [0,1]
+    float ds = cLoopFunctions.get_controller(0)->turn_speed_01();  // in [0,1]
     speed += s;
     float curr_lin_speed = s * (1.0 - sqrt(ds));
     lin_speed += curr_lin_speed;
@@ -52,9 +52,9 @@ MeanSpeed::MeanSpeed() : FitFun()
 
 void MeanSpeed::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
-   // compute linear speed for fitness function
+    // compute linear speed for fitness function
     float s = cLoopFunctions.get_controller(0)->linear_speed_01(); // in [0,1]
-    float ds = cLoopFunctions.get_controller(0)->turn_speed_01();        // in [0,1]
+    float ds = cLoopFunctions.get_controller(0)->turn_speed_01();  // in [0,1]
     speed += s;
     float curr_lin_speed = s * (1.0 - sqrt(ds));
     lin_speed += curr_lin_speed;
@@ -97,15 +97,16 @@ void MeanSpeed::print_progress(size_t trial)
 }
 Coverage::Coverage(std::string init_string, BaseLoopFunctions *cLoopFunctions)
 {
-    if (init_string=="Coverage")
+    if (init_string == "Coverage")
     {
         coverageCalc = new CoverageCalc(cLoopFunctions);
     }
-    else if(init_string=="BorderCoverage")
+    else if (init_string == "BorderCoverage")
     {
         coverageCalc = new BorderCoverageCalc(cLoopFunctions);
     }
-    else{
+    else
+    {
         throw std::runtime_error("init string should be either Coverage or BorderCoverage");
     }
 }
@@ -122,12 +123,11 @@ void Coverage::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 /*after a single step of single agent */
 void Coverage::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
-    for (size_t robot_index=0; robot_index < cLoopFunctions.curr_pos.size(); ++robot_index)
+    for (size_t robot_index = 0; robot_index < cLoopFunctions.curr_pos.size(); ++robot_index)
     {
         coverageCalc->update(cLoopFunctions.curr_pos[robot_index]);
         ++num_updates;
     }
-    
 }
 /*after completing all trials, combine fitness*/
 float Coverage::after_trials()
@@ -155,10 +155,9 @@ void TrialCoverage::before_trial(BaseLoopFunctions &cLoopFunctions)
     coverageCalc->get_num_cells(cLoopFunctions);
 }
 
-
 DecayCoverage::DecayCoverage(std::string init_string, BaseLoopFunctions *cLoopFunctions)
 {
-    coverageCalc = new DecayCoverageCalc(init_string,cLoopFunctions);
+    coverageCalc = new DecayCoverageCalc(init_string, cLoopFunctions);
 }
 
 /*after completing trial, calc fitness*/
@@ -166,8 +165,8 @@ void DecayCoverage::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 {
     //coverage
     float sum = coverageCalc->accumulator;
-    float coverage = sum / (coverageCalc->grid.size() * num_updates);
-    if(!StatFuns::in_range(coverage,0.0f,1.0f))
+    float coverage = sum / ((float)coverageCalc->grid.size() * (float)num_updates);
+    if (!StatFuns::in_range(coverage, 0.0f, 1.0f))
     {
         throw std::runtime_error("fitness not in [0,1]");
     }
@@ -179,14 +178,13 @@ void DecayCoverage::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 /*after a single step of single agent */
 void DecayCoverage::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
-    for (size_t robot_index=0; robot_index < cLoopFunctions.curr_pos.size(); ++robot_index)
+    for (size_t robot_index = 0; robot_index < cLoopFunctions.curr_pos.size(); ++robot_index)
     {
         coverageCalc->update(cLoopFunctions.curr_pos[robot_index]);
     }
     coverageCalc->get_grid_sum();
-    ++num_updates;// one update for the entire swarm
+    ++num_updates; // one update for the entire swarm
     coverageCalc->decay();
-    
 }
 /*after completing all trials, combine fitness*/
 float DecayCoverage::after_trials()
@@ -197,17 +195,15 @@ float DecayCoverage::after_trials()
     return meanfit;
 }
 
-
-
 Aggregation::Aggregation(BaseLoopFunctions *cLoopFunctions) : FitFun()
 {
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
-    maxdist = StatFuns::get_minkowski_distance(CVector3(max.GetX(),max.GetY(),0.0f),argos::CVector3::ZERO);
+    maxdist = StatFuns::get_minkowski_distance(CVector3(max.GetX(), max.GetY(), 0.0f), argos::CVector3::ZERO);
 }
 void Aggregation::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     std::pair<std::vector<argos::CVector3>, argos::CVector3> data = centre_of_mass(cLoopFunctions);
-    trial_dist +=  StatFuns::get_avg_dist(data.first, data.second);
+    trial_dist += StatFuns::get_avg_dist(data.first, data.second);
     ++num_updates;
 }
 /*after completing a trial,calc fitness*/
@@ -215,9 +211,9 @@ void Aggregation::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 {
     //The fitness function is inversely
     //proportional to the average distance to the centre of mass over the entire simulation
-    float dist = trial_dist / (maxdist*(float) num_updates);
+    float dist = trial_dist / (maxdist * (float)num_updates);
     float fitness = 1 - dist;
-    if(!StatFuns::in_range(fitness,0.0f,1.0f))
+    if (!StatFuns::in_range(fitness, 0.0f, 1.0f))
     {
         throw std::runtime_error("fitness not in [0,1]");
     }
@@ -253,13 +249,13 @@ std::pair<std::vector<argos::CVector3>, argos::CVector3> Aggregation::centre_of_
     //     cm += mass * pos;
     //     positions.push_back(pos);
     // }
-    for (size_t i=0; i < cLoopFunctions.curr_pos.size(); ++i)
+    for (size_t i = 0; i < cLoopFunctions.curr_pos.size(); ++i)
     {
 
         float mass = 1.0; //get_mass(robot); mass of 1 is used here
         M += mass;
         argos::CVector3 pos = cLoopFunctions.curr_pos[i];
-        cm += pos;  //mass * pos;
+        cm += pos; //mass * pos;
         positions.push_back(pos);
     }
     cm /= M;
@@ -269,22 +265,21 @@ std::pair<std::vector<argos::CVector3>, argos::CVector3> Aggregation::centre_of_
     return std::pair<std::vector<argos::CVector3>, argos::CVector3>(positions, cm);
 }
 
-
-Dispersion::Dispersion(BaseLoopFunctions* cLoopFunctions)
+Dispersion::Dispersion(BaseLoopFunctions *cLoopFunctions)
 {
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
-    maxdist = StatFuns::get_minkowski_distance(CVector3(max.GetX(),max.GetY(),0.0f),argos::CVector3::ZERO);
+    maxdist = StatFuns::get_minkowski_distance(CVector3(max.GetX(), max.GetY(), 0.0f), argos::CVector3::ZERO);
 }
 /*after completing trial, calc fitness*/
 void Dispersion::apply(BaseLoopFunctions &cLoopFunctions, Real time)
 {
     /*The fitness is proportional to the average distance to the nearest neighbour, 
     averaged over the entire simulation.*/
-    float normalised_dist = trial_dist/(maxdist*num_updates);
+    float normalised_dist = trial_dist / (maxdist * (float)num_updates);
 #ifdef PRINTING
-    std::cout<<"normalised dist "<<  normalised_dist  <<std::endl;
+    std::cout << "normalised dist " << normalised_dist << std::endl;
 #endif
-    if(!StatFuns::in_range(normalised_dist,0.0f,1.0f))
+    if (!StatFuns::in_range(normalised_dist, 0.0f, 1.0f))
     {
         throw std::runtime_error("fitness not in [0,1]");
     }
@@ -308,55 +303,104 @@ void Dispersion::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 float Dispersion::avg_min_dist(BaseLoopFunctions &cLoopFunctions)
 {
 
-    float avg_min_dist=0.0f;
-    for (size_t i =0 ; i < cLoopFunctions.curr_pos.size(); ++i)
+    float avg_min_dist = 0.0f;
+    for (size_t i = 0; i < cLoopFunctions.curr_pos.size(); ++i)
     {
-        float min_dist=std::numeric_limits<float>::infinity();
+        float min_dist = std::numeric_limits<float>::infinity();
 
-        for (size_t j=0; j < cLoopFunctions.curr_pos.size(); ++j)
+        for (size_t j = 0; j < cLoopFunctions.curr_pos.size(); ++j)
         {
-            if (i==j)
+            if (i == j)
                 continue;
-            float dist  = StatFuns::get_minkowski_distance(cLoopFunctions.curr_pos[i],cLoopFunctions.curr_pos[j]);
+            float dist = StatFuns::get_minkowski_distance(cLoopFunctions.curr_pos[i], cLoopFunctions.curr_pos[j]);
             if (dist < min_dist)
             {
                 min_dist = dist;
             }
         }
-        avg_min_dist+=min_dist;
+        avg_min_dist += min_dist;
     }
-    avg_min_dist/= (float) cLoopFunctions.curr_pos.size();
+    avg_min_dist /= (float)cLoopFunctions.curr_pos.size();
 #ifdef PRINTING
     std::cout << "avg min dist: " << avg_min_dist << std::endl;
 #endif
     return avg_min_dist;
 }
 
+Flocking::Flocking(BaseLoopFunctions *cLoopFunctions)
+{
+    BaseController *ctrl = cLoopFunctions->get_controller(0); // assume all robots have the same RAB range
+    flocking_range = (float)ctrl->max_rab_range / (2.0f);       //half the RAB sensor range (in meters)
+    accumulator = 0.0f;
+}
+void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
+{
+    float temp_accum = 0.0f;
+    for (int i = 0; i < cLoopFunctions.m_unNumberRobots; ++i)
+    {
+        CVector3 pos_i = cLoopFunctions.curr_pos[i];
+        CRadians theta_i = cLoopFunctions.curr_theta[i]; 
+        for (int j = i + 1; j < cLoopFunctions.m_unNumberRobots; ++j)
+        {
+            CVector3 pos_j = cLoopFunctions.curr_pos[j];
 
-// Flocking::Flocking(BaseLoopFunctions *cLoopFunctions)
-// {
+            float dist = StatFuns::get_minkowski_distance(pos_i,pos_j);
+#ifdef PRINTING
+            std::cout<<"position agent "<< i <<" "<< pos_i <<std::endl;
+            std::cout<<"position agent "<< j <<" "<< pos_j <<std::endl;
+            std::cout<<"flocking range "<<flocking_range << std::endl;
+            std::cout<<"distance "<<dist<<std::endl;
+#endif
+            if (dist < flocking_range)
+            {
+                float ai = cLoopFunctions.curr_theta[i].GetValue();  // [0,2PI]
+                float aj = cLoopFunctions.curr_theta[j].GetValue();  // [0,2PI]
+                float angleDifference = std::min((2.0f * BOOST_PI) - std::abs(ai - aj), std::abs(ai - aj)); // [0,PI]
 
-// }
-// void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
-// {
-//     trial_dist += avg_min_dist(cLoopFunctions);
-//     ++num_updates;
-// }
-// /*after completing trial, calc fitness*/
-// void Flocking::apply(BaseLoopFunctions &cLoopFunctions, Real time)
-// {
-//   /*The fitness function rewards robots for having an orientation 
-//    similar to the other robots within a radius of 25 cm (half the robot sensing range), 
-//    and for moving as fast as possible.*/
-//    if(!StatFuns::in_range(fitness,0.0f,1.0f))
-//    {
-//      throw std::runtime_error("fitness not in [0,1]");
-//    }
-// }
-// /*after completing all trials, combine fitness*/
-// float Flocking::after_trials()
-// {
-//     float meanfit = StatFuns::mean(fitness_per_trial);
-//     fitness_per_trial.clear();
-//     return meanfit;
-// }
+                float vi = cLoopFunctions.actual_linear_velocity_signed(i);                                           // [-1,1]
+                float vj = cLoopFunctions.actual_linear_velocity_signed(j);                                           // [-1,1]
+                // v1 and v2 need the same sign
+                // angle differences greater than pi/2 do not count
+                temp_accum += (1.0 - std::min(1.0, angleDifference * 2.0 / BOOST_PI)) * std::max(0.0f, vi * vj);
+#ifdef PRINTING
+
+                std::cout<<"orientation agent "<< i <<" "<<ai <<std::endl;
+                std::cout<<"orientation agent "<< j <<" "<< aj <<std::endl;
+                std::cout <<"angle diff "<< angleDifference << std::endl;
+                std::cout<<"signedvelocity "<< i <<" "<< vi <<std::endl;
+                std::cout<<"signedvelocity "<< j <<" "<< vj <<std::endl;
+                std::cout<<"accumulator "<< temp_accum <<std::endl;
+
+#endif
+            }
+        }
+    }
+    temp_accum = temp_accum / ((float) cLoopFunctions.m_unNumberRobots* (float)(cLoopFunctions.m_unNumberRobots - 1));// divide by the number of robot pairs
+    accumulator += temp_accum;
+    ++num_updates;
+}
+/*after completing trial, calc fitness*/
+void Flocking::apply(BaseLoopFunctions &cLoopFunctions, Real time)
+{
+    /*The fitness function rewards robots for having an orientation 
+   similar to the other robots within a radius of 25 cm (half the robot sensing range), 
+   and for moving as fast as possible.*/
+    float fitness = accumulator / (float) num_updates;
+#ifdef PRINTING
+    std::cout << "flocking fitness " << fitness << std::endl;
+#endif
+    fitness_per_trial.push_back(fitness);
+    if (!StatFuns::in_range(fitness, 0.0f, 1.0f))
+    {
+        throw std::runtime_error("fitness not in [0,1]");
+    }
+    num_updates = 0;
+    accumulator = 0.0f;
+}
+/*after completing all trials, combine fitness*/
+float Flocking::after_trials()
+{
+    float meanfit = StatFuns::mean(fitness_per_trial);
+    fitness_per_trial.clear();
+    return meanfit;
+}

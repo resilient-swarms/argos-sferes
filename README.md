@@ -23,7 +23,7 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
     git clone https://github.com/sferes2/sferes2.git 
 
 
-4. As nn2, map_elites and cvt_map_elites code are in header files, they don't need to be compiled -- so no need to add them to modules.conf
+4. A. As nn2, map_elites and cvt_map_elites code are in header files, they don't need to be compiled -- so no need to add them to modules.conf
 
     cd sferes2/modules
 
@@ -32,6 +32,10 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
     git clone https://github.com/sferes2/nn2.git
     
     git clone https://github.com/resilient-swarms/cvt_map_elites.git 
+   B. Need to install geometric-median calculations:
+
+    
+    git clone https://github.com/ialhashim/geometric-median.git
 
 5. Go back to the argos-sferes directory
 

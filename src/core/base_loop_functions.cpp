@@ -1,5 +1,9 @@
 #include <src/core/base_loop_functions.h>
+
+#include <src/core/statistics.h>
 #include <src/core/fitness_functions.h>
+
+#include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 
 
 BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0),m_vecInitSetup(0)
@@ -21,17 +25,29 @@ void BaseLoopFunctions::init_robots()
     {
         throw std::runtime_error("\n The number of robots distributed in the arena " +std::to_string(m_unNumberRobots) + " does not match what is specified by the user in the loop function " +std::to_string(m_pcvecRobot.size()));
     }
+    
+    for (int i=0; i < m_unNumberRobots; ++i)
+    {
+        // add the RAB range as a parameter to the controller class
+        Real max_rab = m_pcvecRobot[i]->GetRABEquippedEntity().GetRange();
+        BaseController* ctrl = get_controller(i);
+        ctrl->max_rab_range = max_rab;
+    }
+    
 }
 
 CEmbodiedEntity& BaseLoopFunctions::get_embodied_entity(size_t robot)
 {
     return m_pcvecRobot[robot]->GetEmbodiedEntity();
 }
+
 /* get the controller  */
 BaseController* BaseLoopFunctions::get_controller(size_t robot)
 {
     return dynamic_cast<BaseController*>(&m_pcvecRobot[robot]->GetControllableEntity().GetController());
 }
+
+
 void BaseLoopFunctions::place_robots()
 {
     init_robots();
@@ -187,10 +203,10 @@ void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
         {
             this->fitfun = new Dispersion(this);
         }
-        // else if (s == "Flocking")
-        // {
-        //     this->fitfun = new Flocking(this);
-        // }
+        else if (s == "Flocking")
+        {
+            this->fitfun = new Flocking(this);
+        }
         else
         {
             throw std::runtime_error("fitfuntype " + s + " not found");
@@ -217,6 +233,16 @@ void BaseLoopFunctions::Reset()
     }
 }
 
+void BaseLoopFunctions::PostStep()
+{
+    
+    fitfun->after_robotloop(*this);
+    for (size_t robotindex=0; robotindex < m_unNumberRobots; ++robotindex)
+    {
+        old_pos[robotindex] = curr_pos[robotindex];
+        old_theta[robotindex] = curr_theta[robotindex];
+    }
+}
 
 void BaseLoopFunctions::end_trial(Real time)
 {
@@ -292,5 +318,48 @@ float BaseLoopFunctions::alltrials_fitness()
 
 
 
+
+/* helper functions */
+
+/* linear speed normalised to [0,1], based on the actual movement rather than wheel speed */
+float BaseLoopFunctions::actual_linear_velocity_01(size_t robot_index)
+{
+    if (curr_pos[robot_index] == old_pos[robot_index])
+    {
+        return 0.5f; //exactly on the middle of the range (equivalent to V=0)
+    }
+    else
+    {
+        // calculate velocity w.r.t. old orientation
+        CVector3 displacement =  curr_pos[robot_index] - old_pos[robot_index];
+        float theta=old_theta[robot_index].GetValue();
+        float velocity = displacement.GetX()*std::cos(theta) + displacement.GetY() * std::sin(theta);
+        velocity/=(tick_time * get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed);//in [-1,1] now
+        velocity = 0.5f + 0.5f*velocity;// in [0,1] now
+        return velocity;
+    }
+}
+/* turn velocity normalised to [0,1], based on the actual orientations rather than wheel speed*/
+float BaseLoopFunctions::actual_turn_velocity_01(size_t robot_index)
+{
+    return (M_2PI + (curr_theta[robot_index].GetValue() - old_theta[robot_index].GetValue()))/(2.0*M_2PI);// in [0,1]
+}
+/* linear velocity normalised to [-1,1]*/
+float BaseLoopFunctions::actual_linear_velocity_signed(size_t robot_index)
+{
+    if (curr_pos[robot_index] == old_pos[robot_index])
+    {
+        return 0.0f; //exactly on the middle of the range (equivalent to V=0)
+    }
+    else
+    {
+        // calculate velocity w.r.t. old orientation
+        CVector3 displacement =  curr_pos[robot_index] - old_pos[robot_index]; // in [0,1]
+        float theta=old_theta[robot_index].GetValue();
+        float velocity = displacement.GetX()*std::cos(theta) + displacement.GetY() * std::sin(theta);
+        velocity/=(tick_time * get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed);//in [-1,1] now
+        return velocity;
+    }
+}
 
 

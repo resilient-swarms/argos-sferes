@@ -34,12 +34,6 @@ void CBaselineBehavsLoopFunctions::Init(TConfigurationNode &t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error parsing loop function parameters.", ex);
 }
 
-/****************************************/
-/****************************************/
-
-void CBaselineBehavsLoopFunctions::Reset()
-{
-}
 
 /****************************************/
 /****************************************/
@@ -62,16 +56,7 @@ void CBaselineBehavsLoopFunctions::PreStep()
    
 }
 
-/****************************************/
-/****************************************/
 
-void CBaselineBehavsLoopFunctions::PostStep()
-{
-    // just in case using single-robot FloreanoMondada fitfun
-    //outf[0] = cController.m_fLeftSpeed; // use actual velocity for FloreanoMondada fitness
-    //outf[1] = cController.m_fRightSpeed;
-    fitfun->after_robotloop(*this);
-}
 
 /****************************************/
 /****************************************/

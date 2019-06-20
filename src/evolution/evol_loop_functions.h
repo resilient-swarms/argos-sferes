@@ -287,11 +287,6 @@ public:
     /* get positions of objects of a type indicated by a string */
     std::vector<CVector3> get_object_positions(std::string type);
 
-    /* linear speed normalised to [0,1], based on the actual movement rather than wheel speed */
-    float actual_linear_velocity_01(size_t robot_index);
-
-    /* turn velocity normalised to [0,1], based on the actual orientations rather than wheel speed*/
-    float actual_turn_velocity_01(size_t robot_index);
 };
 
 namespace sferes

@@ -38,6 +38,9 @@ public:
     /* embodied entity  */
     virtual CEmbodiedEntity& get_embodied_entity(size_t robot);
 
+    /* get RAB range */
+    Real get_RAB_range(size_t robot);
+
     /* get the controller  */
     virtual BaseController* get_controller(size_t robot);
 
@@ -53,7 +56,7 @@ public:
     virtual void Reset();
 
     virtual void PreStep() = 0;
-    virtual void PostStep() = 0;
+    virtual void PostStep();
 
     virtual void before_trials();
     /* set the current trial */
@@ -73,9 +76,15 @@ public:
     void perform_trial(argos::CSimulator &cSimulator);
     float alltrials_fitness();
 
-
+    /* helper functions */
     
+    /* linear speed normalised to [0,1], based on the actual movement rather than wheel speed */
+    float actual_linear_velocity_01(size_t robot_index);
 
+    /* turn velocity normalised to [0,1], based on the actual orientations rather than wheel speed*/
+    float actual_turn_velocity_01(size_t robot_index);
+    /* linear velocity normalised to [-1,1]*/
+    float actual_linear_velocity_signed(size_t robot_index);
 
     
 

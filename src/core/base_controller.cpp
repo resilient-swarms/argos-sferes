@@ -56,6 +56,7 @@ void BaseController::Init(TConfigurationNode &t_node)
         m_pcRABA = GetActuator<CCI_RangeAndBearingActuator>("range_and_bearing");
         m_pcRABS = GetSensor<CCI_RangeAndBearingSensor>("range_and_bearing");
         only_proximity = false;
+ 
     }
     catch (CARGoSException &ex1)
     {
@@ -340,7 +341,6 @@ std::vector<Real> BaseController::GetNormalizedSensorReadings()
     rab_cones.push_back(ToRadians(CDegrees(-90.0)));
     rab_cones.push_back(ToRadians(CDegrees(-45.0)));
 
-    Real max_rab_range = 100.0; // in cm
 
     for(UInt8 i = proximity_sensors.size() + 1; i < proximity_sensors.size() + 8; ++i) // 8 cones
     {
@@ -390,6 +390,11 @@ float BaseController::linear_speed_01()
 float BaseController::linear_velocity_01()
 {
     return (2.0*m_sWheelTurningParams.MaxSpeed + (m_fLeftSpeed+m_fRightSpeed)) / (4.0*m_sWheelTurningParams.MaxSpeed); // in [0,1]
+}
+/* linear velocity normalised to [-1,1]*/
+float BaseController::linear_velocity_signed()
+{
+    return (m_fLeftSpeed+m_fRightSpeed) / (2.0*m_sWheelTurningParams.MaxSpeed); // in [-1,1]
 }
 /* turn speed normalised to [0,1]*/
 float BaseController::turn_speed_01()

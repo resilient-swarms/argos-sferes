@@ -23,6 +23,7 @@ class Descriptor
 {
 public:
   Descriptor();
+  bool geometric_median = false;
   size_t num_updates, current_trial;
   static const size_t behav_dim = BEHAV_DIM;
 
@@ -232,7 +233,7 @@ class SDBC : public Descriptor
     *  Systematically Derived Behavioral Characterisation
     */
 public:
-  bool include_std, include_closest_robot;
+  bool include_std, include_closest_robot,geometric_median;
   RobotAttributeSetter* attribute_setter;
   size_t bd_index, num_groups, num_features;
   float maxdist, maxX, maxY;

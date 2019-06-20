@@ -3,7 +3,6 @@ project(argos_sferes)
 
 set(SFERES ${PROJECT_SOURCE_DIR}/sferes2) # location of sferes2 - where https://github.com/sferes2/sferes2 has been cloned
 include_directories(${SFERES})
-#include_directories($ENV{HOME}/geometric-median) 
 
 set(THYMIO $ENV{THYMIO}) # location of Thymio plugin installation -- include and libs
 IF( NOT THYMIO )

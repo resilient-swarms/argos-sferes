@@ -48,7 +48,39 @@ float StatFuns::log(float number, float base)
 {
     return base == EULER ? std::log(number) : std::log(number) / std::log(base);
 }
+std::vector<float> StatFuns::geometric_median(std::vector<std::vector<float>> results,size_t iterations)
+{
+    /* code based on Weiszfeld algorithm, cf. https://github.com/ialhashim/geometric-median/blob/master/geometric-median.h */
+    size_t dim = results[0].size();
+    size_t N = results.size();
+    // initial guess
+    std::vector<float> A_init = element_wise_additiondiv<float>(results[0],results[1],2.0f);
+    std::vector<std::vector<float>> A(2,A_init);
+    size_t stop_it;
+    for(int it = 0; it < iterations; it++)
+    {
+        std::vector<float> numerator(dim,0.0f);
+        float denominator = 0.0f;
 
+        int t = it % 2;
+
+        for (int n = 0; n < N; n++)
+        {
+            float dist = get_minkowski_distance(results[n], A[t], 2);// 2: euclidian distance is normally used
+            if (dist != 0)
+            {
+                std::vector<float> divided = divide(results[n],dist);
+                element_wise_addition<float>(numerator,divided);
+                denominator += 1.0 / dist;
+            }
+        }
+        
+        A[1-t] = divide(numerator,denominator);
+
+    }
+
+    return A[stop_it%2];
+}
 /*  Combine info across trials  */
 float StatFuns::mean(std::vector<float> results)
 {
@@ -176,9 +208,17 @@ float StatFuns::uniformity(std::vector<float> probabilities)
     assert(dist <= m);
     return m - dist;
 }
+std::vector<float> StatFuns::divide(std::vector<float> results,float C)
+{
 
+    for(float &result: results)
+    {
+        result/=C;
+    }
+    return results;
+}
 
-float StatFuns::normalise(std::vector<float> &probabilities,float C)
+void StatFuns::normalise(std::vector<float> &probabilities,float C)
 {
     #ifdef PRINTING
             std::cout<<"prob=";

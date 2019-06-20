@@ -333,18 +333,15 @@ void EvolutionLoopFunctions::PreStep()
 #endif
             }
         }
-
-
-        old_pos[robotindex] = curr_pos[robotindex];
-        old_theta[robotindex] = curr_theta[robotindex];
         ++robotindex;
     }
-    this->descriptor->after_robotloop(*this);
-    this->fitfun->after_robotloop(*this);
+   
 }
-
 void EvolutionLoopFunctions::PostStep()
 {
+    
+    descriptor->after_robotloop(*this);
+    BaseLoopFunctions::PostStep();
 }
 
 void EvolutionLoopFunctions::before_trials()
@@ -438,29 +435,7 @@ size_t EvolutionLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
     return bin1 * num_bins + bin2;
 }
 
-/* linear speed normalised to [0,1], based on the actual movement rather than wheel speed */
-float EvolutionLoopFunctions::actual_linear_velocity_01(size_t robot_index)
-{
-    if (curr_pos[robot_index] == old_pos[robot_index])
-    {
-        return 0.5f; //exactly on the middle of the range (equivalent to V=0)
-    }
-    else
-    {
-        // calculate velocity w.r.t. old orientation
-        CVector3 displacement =  curr_pos[robot_index] - old_pos[robot_index]; // in [0,1]
-        float theta=old_theta[robot_index].GetValue();
-        float velocity = displacement.GetX()*std::cos(theta) + displacement.GetY() * std::sin(theta);
-        velocity/=(tick_time * get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed);//in [-1,1] now
-        velocity = 0.5f + 0.5f*velocity;// in [0,1] now
-        return velocity;
-    }
-}
-/* turn velocity normalised to [0,1], based on the actual orientations rather than wheel speed*/
-float EvolutionLoopFunctions::actual_turn_velocity_01(size_t robot_index)
-{
-    return (M_2PI + (curr_theta[robot_index].GetValue() - old_theta[robot_index].GetValue()))/(2.0*M_2PI);        // in [0,1]
-}
+
 /****************************************/
 /****************************************/
 

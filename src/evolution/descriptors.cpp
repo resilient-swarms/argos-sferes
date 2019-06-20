@@ -45,14 +45,22 @@ std::vector<float> Descriptor::after_trials(EvolutionLoopFunctions &cLoopFunctio
 
 	std::vector<float> final_bd;
 	final_bd.resize(behav_dim);
-	for (size_t i = 0; i < behav_dim; ++i)
+	if(geometric_median)
 	{
-		final_bd[i] = StatFuns::mean(this->bd[i]);
-		if (!StatFuns::in_range(final_bd[i], 0.0f, 1.0f))
-		{
-			throw std::runtime_error("bd not in [0,1]");
+		final_bd = StatFuns::geometric_median(StatFuns::transpose<float>(this->bd));
+	}
+	else{
+		for (size_t i = 0; i < behav_dim; ++i)
+		{	
+			final_bd[i] = StatFuns::mean(this->bd[i]);
+			
+			if (!StatFuns::in_range(final_bd[i], 0.0f, 1.0f))
+			{
+				throw std::runtime_error("bd not in [0,1]");
+			}
 		}
 	}
+
 	return final_bd;
 }
 
@@ -161,6 +169,7 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 		include_closest_robot = true; // add closest robot distance
 		attribute_setter = new SpeedAttributeSetter(cLoopFunctions);
 		num_attr = 2; // linear speed and turn speed
+		geometric_median = true;//apply geometric median instead of mean
 	}
 	else{
 		include_closest_robot = false;

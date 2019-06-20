@@ -8,10 +8,12 @@
 #include <argos3/core/utility/math/vector3.h>
 #include <algorithm>
 #include <cmath>
+#include <boost/math/constants/constants.hpp>
 
+#define BOOST_PI boost::math::constants::pi<float>()
 
 #define EPS std::numeric_limits<float>::epsilon()
-#define M_2PI 2*M_PI
+#define M_2PI 2.0*BOOST_PI
 
 template <typename T>
 void element_wise_addition(std::vector<T> &result, const std::vector<T> &other)
@@ -21,6 +23,17 @@ void element_wise_addition(std::vector<T> &result, const std::vector<T> &other)
     std::transform(result.begin(), result.end(), other.begin(),
                    result.begin(), std::plus<T>());
 }
+template <typename T>
+std::vector<T> element_wise_additiondiv(std::vector<T> result, const std::vector<T> &other,const T divisor)
+{
+    assert(result.size() == other.size());
+    for (int i=0; i < result.size(); ++i)
+    {
+        result[i]= (result[i] + other[i])/divisor;
+    }
+    return result;//note this is a copy !
+}
+
 template <int N>
 struct Factorial 
 {
@@ -69,12 +82,25 @@ static const float EULER=std::exp(1);
 class StatFuns
 {
   public:
+    template<typename T>
+    static std::vector<std::vector<T> > transpose(const std::vector<std::vector<T> > data) {
+    // this assumes that all inner vectors have the same size and
+    // allocates space for the complete result in advance
+    std::vector<std::vector<T> > result(data[0].size(),
+                                          std::vector<T>(data.size()));
+    for (size_t i = 0; i < data[0].size(); i++) 
+        for (size_t j = 0; j < data.size(); j++) {
+            result[i][j] = data[j][i];
+        }
+    return result;
+    }
     static size_t get_bin(float activation, float min_act, float max_act, size_t num_bins);
     static bool in_range(float num1,float a, float b);
     static bool float_equal(float num1,float num2);
     static bool float_smallerorequal(float num1,float num2);
     static float log(float number, float base = EULER);
     /*  Combine info across trials  */
+    static std::vector<float> geometric_median(std::vector<std::vector<float>> results,size_t iterations=200);
     static float mean(std::vector<float> results);
     static float quantile(std::vector<float> results, float cumul_dens, bool sorted = false);
     static float standard_dev(std::vector<float> results);
@@ -83,7 +109,8 @@ class StatFuns
     static float range(std::vector<float> results);
     static float IQR(std::vector<float> results, bool sorted = false);
     static float sum(std::vector<float> results);
-    static float normalise(std::vector<float> &results,float C);
+    static std::vector<float> divide(std::vector<float> results,float C);
+    static void normalise(std::vector<float> &results,float C);
     static float laplace_smoothing(float count, float C, float alpha, size_t num_options);
 
     /* get the minkowski-distance between two 3D vectors ; k is the parameter that determines e.g. manhattan vs Euclid vs 3D movements 

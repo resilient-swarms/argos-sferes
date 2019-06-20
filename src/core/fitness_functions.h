@@ -185,21 +185,25 @@ public:
   float avg_min_dist(BaseLoopFunctions &cLoopFunctions);
 };
 
-// class Flocking : public FitFun
-// {
-//   /* Gomes & Christensen 2018
-//   The fitness function rewards robots for having an orientation 
-//   similar to the other robots within a radius of 25 cm (half the robot sensing range), 
-//   and for moving as fast as possible.*/
-// public:
-//   Flocking(BaseLoopFunctions *cLoopFunctions);
+class Flocking : public FitFun
+{
+  /* Gomes & Christensen 2018
+  The fitness function rewards robots for having an orientation 
+  similar to the other robots within a radius of 25 cm (half the robot sensing range), 
+  and for moving as fast as possible.*/
+public:
+  /* range of neighbour in which to optimise similar orientation and high speed */
+  float flocking_range;
+  float accumulator;
+  size_t num_updates = 0;
+  Flocking(BaseLoopFunctions *cLoopFunctions);
 
-//   /*after completing trial, calc fitness*/
-//   virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
-//   /*after completing all trials, combine fitness*/
-//   virtual float after_trials();
-//   /*after a single step of all agents */
-//   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
-// };
+  /*after completing trial, calc fitness*/
+  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
+  /*after completing all trials, combine fitness*/
+  virtual float after_trials();
+  /*after a single step of all agents */
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
+};
 
 // #endif
