@@ -32,10 +32,6 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
     git clone https://github.com/sferes2/nn2.git
     
     git clone https://github.com/resilient-swarms/cvt_map_elites.git 
-   B. Need to install geometric-median calculations:
-
-    
-    git clone https://github.com/ialhashim/geometric-median.git
 
 5. Go back to the argos-sferes directory
 
