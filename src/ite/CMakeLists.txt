@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(ite_swarms)
 
-set(LIMBO_PATH /home/danesh/argos-limbo/limbo/src) # location of limbo - where https://github.com/resibots/limbo.git branch release-2.1 has been cloned
+set(LIMBO_PATH /home/danesh/argos-sferes/limbo/src) # location of limbo - where https://github.com/resibots/limbo.git branch release-2.1 has been cloned
 include_directories(${LIMBO_PATH})
 
 
