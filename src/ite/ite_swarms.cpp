@@ -44,7 +44,7 @@ struct Params
     struct stop_maxiterations
     {
         //BO_DYN_PARAM(int, iterations);
-        BO_PARAM(int, iterations, 10);
+        BO_PARAM(int, iterations, 100);
     };
 
     struct acqui_ucb : public defaults::acqui_ucb
@@ -111,8 +111,8 @@ struct Eval
             exit(-1);
         }
 
-        std::cout << "Loading fitness" << ctrl_index << "file " << std::endl;
-        std::ifstream monFlux(("experiments/fitness" + std::to_string(ctrl_index)).c_str());
+        std::cout << "Loading fitness" << ctrl_index << " file " << std::endl;
+        std::ifstream monFlux((global::results_path + "/fitness" + std::to_string(ctrl_index)+ ".dat").c_str());
         double fitness;
         if (monFlux)
         {
