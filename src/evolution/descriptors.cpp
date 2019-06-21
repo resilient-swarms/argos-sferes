@@ -4,7 +4,7 @@
 #include <src/evolution/descriptors.h>
 #include <argos3/plugins/simulator/entities/cylinder_entity.h>
 #include <iterator>
-
+#include <random>
 #define SENSOR_ACTIVATION_THRESHOLD 0.5
 
 // #ifdef TWO_D_BEHAV
@@ -26,6 +26,7 @@
 // const size_t SDBC::behav_dim=3;
 Descriptor::Descriptor()
 {
+	geometric_median = false;
 	bd.resize(behav_dim);
 }
 void Descriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
@@ -45,15 +46,16 @@ std::vector<float> Descriptor::after_trials(EvolutionLoopFunctions &cLoopFunctio
 
 	std::vector<float> final_bd;
 	final_bd.resize(behav_dim);
-	if(geometric_median)
+	if (geometric_median)
 	{
 		final_bd = StatFuns::geometric_median(StatFuns::transpose<float>(this->bd));
 	}
-	else{
+	else
+	{
 		for (size_t i = 0; i < behav_dim; ++i)
-		{	
+		{
 			final_bd[i] = StatFuns::mean(this->bd[i]);
-			
+
 			if (!StatFuns::in_range(final_bd[i], 0.0f, 1.0f))
 			{
 				throw std::runtime_error("bd not in [0,1]");
@@ -164,49 +166,50 @@ float Entity::distance(const Entity e1, const Entity e2)
 SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 {
 	size_t num_attr;
-	if ( init_type.find("Gomes") != std::string::npos)
+
+	if (init_type.find("Gomes") != std::string::npos)
 	{
 		include_closest_robot = true; // add closest robot distance
 		attribute_setter = new SpeedAttributeSetter(cLoopFunctions);
-		num_attr = 2; // linear speed and turn speed
-		geometric_median = true;//apply geometric median instead of mean
+		num_attr = 2;			 // linear speed and turn speed
+		geometric_median = true; //apply geometric median instead of mean
 	}
-	else{
+	else
+	{
 		include_closest_robot = false;
 		attribute_setter = new NormalAttributeSetter(cLoopFunctions);
 		num_attr = 5; // x,y,theta,w1,w2
 	}
-	
-	if (init_type.find("sdbc_all") !=std::string::npos)
+
+	if (init_type.find("sdbc_all") != std::string::npos)
 	{
 		init_walls(cLoopFunctions);
-		init_robots(num_attr,cLoopFunctions);
+		init_robots(num_attr, cLoopFunctions);
 		init_cylindric_obstacles(cLoopFunctions);
 	}
-	else if (init_type.find("sdbc_walls_and_robots") !=std::string::npos)
+	else if (init_type.find("sdbc_walls_and_robots") != std::string::npos)
 	{
 		init_walls(cLoopFunctions);
-		init_robots(num_attr,cLoopFunctions);
+		init_robots(num_attr, cLoopFunctions);
 	}
-	else if (init_type.find("sdbc_robots") !=std::string::npos)
+	else if (init_type.find("sdbc_robots") != std::string::npos)
 	{
-		init_robots(num_attr,cLoopFunctions);
+		init_robots(num_attr, cLoopFunctions);
 	}
 	else
 	{
 		throw std::runtime_error("init type " + init_type + "not found");
 	}
 
-
-
-
 	include_std = init_type.find("std") != std::string::npos ? true : false; // will calculate standard deviations as well]
-	
 
 	if (include_std)
 	{
-		num_features = behav_dim/2;
-		bd.resize(num_features);
+		num_features = behav_dim / 2;
+		temp_bd.resize(num_features);
+	}
+	else{
+		temp_bd.resize(behav_dim);
 	}
 	num_groups = entity_groups.size();
 	for (auto &kv : entity_groups)
@@ -224,7 +227,7 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 		}
 	}
 
-	maxdist = StatFuns::get_minkowski_distance(CVector3(attribute_setter->maxX,attribute_setter->maxY,0), CVector3::ZERO);
+	maxdist = StatFuns::get_minkowski_distance(CVector3(attribute_setter->maxX, attribute_setter->maxY, 0), CVector3::ZERO);
 }
 
 void SDBC::init_cylindric_obstacles(CLoopFunctions *cLoopFunctions)
@@ -233,18 +236,17 @@ void SDBC::init_cylindric_obstacles(CLoopFunctions *cLoopFunctions)
 	CSpace::TMapPerType &argos_cylinders = cLoopFunctions->GetSpace().GetEntitiesByType("cylinder");
 	for (CSpace::TMapPerType::iterator it = argos_cylinders.begin(); it != argos_cylinders.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
 	{
-		CCylinderEntity &cBody = *any_cast<CCylinderEntity*>(it->second);
+		CCylinderEntity &cBody = *any_cast<CCylinderEntity *>(it->second);
 		CVector3 position = cBody.GetEmbodiedEntity().GetOriginAnchor().Position;
 		Entity e = Entity();
 		e.position = CVector3(position);
 		obstacles.push_back(e);
 	}
 	bool is_static = false;
-	std::pair<std::string, Entity_Group> cylinderpair = {"cylinders", 
-			Entity_Group(0, obstacles.size(), obstacles.size(), obstacles,is_static)};
+	std::pair<std::string, Entity_Group> cylinderpair = {"cylinders",
+														 Entity_Group(0, obstacles.size(), obstacles.size(), obstacles, is_static)};
 	entity_groups.insert(cylinderpair);
 }
-
 
 void SDBC::init_walls(CLoopFunctions *cLoopFunctions)
 {
@@ -266,7 +268,7 @@ void SDBC::init_walls(CLoopFunctions *cLoopFunctions)
 		e.position = CVector3(position);
 		boxes.push_back(e);
 	}
-	bool is_static=true;
+	bool is_static = true;
 	std::pair<std::string, Entity_Group> wallpair = {"boxes", Entity_Group(0, boxes.size(), boxes.size(), boxes, is_static)};
 	entity_groups.insert(wallpair);
 }
@@ -282,7 +284,7 @@ void SDBC::init_robots(size_t num_features, CLoopFunctions *cLoopFunctions)
 	}
 	bool is_static = false;
 	std::pair<std::string, Entity_Group> robotpair = {"robots",
-													  Entity_Group(num_features, num_robots, num_robots, robots,is_static)}; // 5 features: x,y,rot,w1,w2
+													  Entity_Group(num_features, num_robots, num_robots, robots, is_static)}; // 5 features: x,y,rot,w1,w2
 	entity_groups.insert(robotpair);
 }
 
@@ -299,7 +301,7 @@ void SDBC::add_group_sizes()
 		std::cout << "group: " << key << std::endl;
 		std::cout << "size : " << size << std::endl;
 #endif
-		bd[bd_index].push_back(size); // add to average out later
+		temp_bd[bd_index].push_back(size); // add to average out later
 		bd_index++;
 	}
 }
@@ -318,7 +320,7 @@ void SDBC::add_group_meanstates()
 
 			float mean_state = group.mean_state_vec(i);
 
-			bd[bd_index].push_back(mean_state);
+			temp_bd[bd_index].push_back(mean_state);
 			bd_index++;
 #ifdef PRINTING
 			std::cout << "attribute " << i << ": " << mean_state << std::endl;
@@ -361,7 +363,7 @@ void SDBC::add_within_group_dispersion()
 		}
 
 		sum = sum / ((float)(group.get_absolute_size() - 1) * (group.get_absolute_size() - 1) * maxdist);
-		this->bd[bd_index].push_back(sum);
+		this->temp_bd[bd_index].push_back(sum);
 		++bd_index;
 	}
 }
@@ -374,7 +376,7 @@ void SDBC::add_between_group_dispersion()
 	{
 		std::string key = between_comparison_groups[i];
 		Entity_Group &group = entity_groups[key];
-		for (size_t j = i+1; j < between_comparison_groups.size() ; ++j)
+		for (size_t j = i + 1; j < between_comparison_groups.size(); ++j)
 		{
 			std::string key2 = between_comparison_groups[j];
 			Entity_Group &group2 = entity_groups[key2];
@@ -398,7 +400,7 @@ void SDBC::add_between_group_dispersion()
 				}
 			}
 			sum = sum / ((float)(group.get_absolute_size() * group2.get_absolute_size()) * maxdist); // divide by product of group sizes; add for now, we will average the number of times
-			bd[bd_index].push_back(sum);
+			temp_bd[bd_index].push_back(sum);
 			++bd_index;
 		}
 	}
@@ -406,37 +408,37 @@ void SDBC::add_between_group_dispersion()
 
 /* distance to closest robot */
 void SDBC::add_closest_robot_dist(EvolutionLoopFunctions &cLoopFunctions)
-{	
+{
 	float mean_dist = 0.0f;
 	// we already have positions available in curr_pos
-	for(size_t i=0; i < cLoopFunctions.curr_pos.size(); ++i)
+	for (size_t i = 0; i < cLoopFunctions.curr_pos.size(); ++i)
 	{
-		float mindist=std::numeric_limits<float>::infinity();
-		for(size_t j=0; j < cLoopFunctions.curr_pos.size(); ++j)
+		float mindist = std::numeric_limits<float>::infinity();
+		for (size_t j = 0; j < cLoopFunctions.curr_pos.size(); ++j)
 		{
-			if (j==i)
+			if (j == i)
 			{
 				continue;
 			}
 			// get the distance
-			float dist = StatFuns::get_minkowski_distance(cLoopFunctions.curr_pos[i],cLoopFunctions.curr_pos[j]);
+			float dist = StatFuns::get_minkowski_distance(cLoopFunctions.curr_pos[i], cLoopFunctions.curr_pos[j]);
 			if (dist < mindist)
 			{
 				mindist = dist;
 			}
-			
 		}
 		mean_dist += mindist;
 	}
-	mean_dist = mean_dist / (cLoopFunctions.curr_pos.size()*maxdist);
-	bd[bd_index].push_back(mean_dist);
+	mean_dist = mean_dist / (cLoopFunctions.curr_pos.size() * maxdist);
+	temp_bd[bd_index].push_back(mean_dist);
 }
 
 /* prepare for trials*/
 void SDBC::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
 	for (size_t t = 0; t < num_features; ++t)
-		bd[t].clear();
+		temp_bd[t].clear();
+	Descriptor::before_trials(cLoopFunctions);
 	//current_trial = -1; // will add +1 at start of each new trial
 }
 /*reset BD at the start of a trial*/
@@ -452,7 +454,7 @@ void SDBC::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoo
 /*after getting outputs, can update the descriptor if needed*/
 void SDBC::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
-	entity_groups["robots"][robot_index].set_attributes(attribute_setter->get_attributes(robot_index,cLoopFunctions),cLoopFunctions.curr_pos[robot_index]);
+	entity_groups["robots"][robot_index].set_attributes(attribute_setter->get_attributes(robot_index, cLoopFunctions), cLoopFunctions.curr_pos[robot_index]);
 }
 /*after the looping over robots*/
 void SDBC::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
@@ -482,44 +484,35 @@ void SDBC::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 // 	}
 // }
 
-
-
- /*summarise BD at the end of trials*/
-  std::vector<float> SDBC::after_trials(EvolutionLoopFunctions &cLoopFunctions)
-  {
-	std::vector<float> final_bd;
+/*summarise BD at the end of trials*/
+void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+{
 	//After a simulation has ended, the samples obtained for each
 	//behaviour feature at each time step are aggregated to assem-ble a fixed-length characterisation vector.
 	for (size_t i = 0; i < behav_dim; ++i)
 	{
 		if (include_std)
 		{
-			if(i%2==0)
+			if (i % 2 == 0)
 			{
-				final_bd.push_back(StatFuns::mean(this->bd[i/2]));
+				bd[i][current_trial]=StatFuns::mean(this->temp_bd[i/2]);
 			}
 			else
 			{
-				final_bd.push_back(StatFuns::standard_dev(this->bd[i/2]));
+				bd[i][current_trial] = StatFuns::standard_dev(this->temp_bd[i / 2]);
 			}
 		}
 		else
 		{
-			final_bd.push_back(StatFuns::mean(this->bd[i]));
+			bd[i][current_trial] = StatFuns::mean(this->temp_bd[i]);
 		}
-		
-		
-		if (!StatFuns::in_range(final_bd[i], 0.0f, 1.0f))
+
+		if (!StatFuns::in_range(bd[i][current_trial], 0.0f, 1.0f))
 		{
-			throw std::runtime_error("bd" + std::to_string(i) + " not in [0,1]: " + std::to_string(final_bd[i]));
+			throw std::runtime_error("bd" + std::to_string(i) + " not in [0,1]: " + std::to_string(bd[i][current_trial]));
 		};
 	}
-	return final_bd;
-
-  }
-
-
-
+}
 
 CVT_MutualInfo::CVT_MutualInfo()
 {
@@ -539,10 +532,11 @@ void CVT_MutualInfo::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 
 	for (size_t i = 0; i < num_sensors; ++i)
 	{
-		freqs[i]=std::vector<float>(num_bins,0.0f);;
-		for (size_t j = i+1; j < num_sensors; ++j)
+		freqs[i] = std::vector<float>(num_bins, 0.0f);
+		;
+		for (size_t j = i + 1; j < num_sensors; ++j)
 		{
-			joint_freqs[i][j-i-1]=std::vector<float>(num_bins*num_bins,0.0f);
+			joint_freqs[i][j - i - 1] = std::vector<float>(num_bins * num_bins, 0.0f);
 		}
 	}
 }
@@ -566,11 +560,11 @@ void CVT_MutualInfo::set_input_descriptor(size_t robot_index, EvolutionLoopFunct
 		size_t bin = cLoopFunctions.get_sensory_bin(i, num_bins);
 
 		++freqs[i][bin];
-		for (size_t j = i+1; j < num_sensors; ++j)
+		for (size_t j = i + 1; j < num_sensors; ++j)
 		{
 			size_t bin2 = cLoopFunctions.get_sensory_bin(j, num_bins);
 			size_t joint_bin = bin * num_bins + bin2;
-			++joint_freqs[i][j-i-1][joint_bin];
+			++joint_freqs[i][j - i - 1][joint_bin];
 		}
 	}
 	num_updates++;
@@ -602,9 +596,9 @@ void CVT_MutualInfo::normalise()
 	{
 		StatFuns::normalise(freqs[i], num_updates);
 
-		for (size_t j = i+1; j < num_sensors; ++j)
+		for (size_t j = i + 1; j < num_sensors; ++j)
 		{
-			StatFuns::normalise(joint_freqs[i][j-i-1], num_updates);
+			StatFuns::normalise(joint_freqs[i][j - i - 1], num_updates);
 		}
 	}
 }
@@ -615,7 +609,7 @@ std::vector<float> CVT_MutualInfo::get_bd()
 	/* calculate MI */
 	for (size_t i = 0; i < num_sensors; ++i)
 	{
-		for (size_t j = i+1; j < num_sensors; ++j)
+		for (size_t j = i + 1; j < num_sensors; ++j)
 		{
 			float MI = calc_and_check(i, j);
 			final_bd.push_back(MI);
@@ -625,7 +619,7 @@ std::vector<float> CVT_MutualInfo::get_bd()
 }
 float CVT_MutualInfo::calc_and_check(size_t i, size_t j)
 {
-	float mi = StatFuns::mutual_information(joint_freqs[i][j-i-1], freqs[i], freqs[j], num_updates);
+	float mi = StatFuns::mutual_information(joint_freqs[i][j - i - 1], freqs[i], freqs[j], num_updates);
 	float MI = mi / StatFuns::max_entropy(num_bins, EULER);
 #ifdef PRINTING
 	printf("\n MI_{%zu,%zu} = %f", i, j, MI);
@@ -636,12 +630,6 @@ float CVT_MutualInfo::calc_and_check(size_t i, size_t j)
 	}
 	return MI;
 }
-
-
-
-
-
-
 
 CVT_MutualInfoAct::CVT_MutualInfoAct()
 {
@@ -654,7 +642,6 @@ CVT_MutualInfoAct::CVT_MutualInfoAct()
 	}
 }
 
-
 /* prepare for trials*/
 void CVT_MutualInfoAct::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
@@ -663,25 +650,24 @@ void CVT_MutualInfoAct::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 
 	for (size_t j = 0; j < num_act; ++j)
 	{
-		act_freqs[j]=std::vector<float>(num_act_bins,0.0f);
+		act_freqs[j] = std::vector<float>(num_act_bins, 0.0f);
 	}
 	for (size_t i = 0; i < num_sensors; ++i)
 	{
-		freqs[i]=std::vector<float>(num_bins, 0.0f);
+		freqs[i] = std::vector<float>(num_bins, 0.0f);
 
 		for (size_t j = 0; j < num_act; ++j)
 		{
-			joint_freqs[i][j]=std::vector<float>(num_bins * num_act_bins, 0.0f);
+			joint_freqs[i][j] = std::vector<float>(num_bins * num_act_bins, 0.0f);
 		}
 	}
 }
-
 
 /* calculate entropies */
 float CVT_MutualInfoAct::calc_and_check(size_t i, size_t j)
 {
 	float mi = StatFuns::mutual_information(joint_freqs[i][j], freqs[i], act_freqs[j], num_updates);
-	float MI = mi / StatFuns::max_entropy(std::max(num_bins,num_act_bins), EULER);
+	float MI = mi / StatFuns::max_entropy(std::max(num_bins, num_act_bins), EULER);
 #ifdef PRINTING
 	printf("\n MI_{%zu,%zu} = %f", i, j, MI);
 #endif
@@ -748,14 +734,10 @@ void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, EvolutionLoopF
 	num_updates++;
 }
 
-
-
 CVT_Spirit::CVT_Spirit()
 {
 	freqs.resize(num_joint_sensory_bins);
 }
-
-
 
 /* prepare for trials*/
 void CVT_Spirit::before_trials(EvolutionLoopFunctions &cLoopFunctions)
@@ -764,8 +746,7 @@ void CVT_Spirit::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 	for (size_t i = 0; i < num_joint_sensory_bins; ++i)
 	{
 
-		freqs[i]=std::vector<float>(num_joint_actuator_bins,0.0f);
-		
+		freqs[i] = std::vector<float>(num_joint_actuator_bins, 0.0f);
 	}
 }
 /*reset BD at the start of a trial*/
@@ -795,17 +776,18 @@ std::vector<float> CVT_Spirit::get_bd()
 		for (int j = 0; j < num_joint_actuator_bins; ++j)
 		{
 			//final_bd.push_back(StatFuns::laplace_smoothing(freqs[i][j], total_observations, alpha_smooth, num_joint_actuator_bins));
-			if(total_observations==0)
+			if (total_observations == 0)
 			{
-				final_bd.push_back(1.0/(float)num_joint_actuator_bins);
+				final_bd.push_back(1.0 / (float)num_joint_actuator_bins);
 			}
-			else{
-				final_bd.push_back(freqs[i][j]/total_observations);
+			else
+			{
+				final_bd.push_back(freqs[i][j] / total_observations);
 			}
-			#ifdef PRINTING
+#ifdef PRINTING
 
-				std::cout<<"prob_{"<<i<<","<<j<<"}="<<final_bd.back()<<std::endl;
-			#endif
+			std::cout << "prob_{" << i << "," << j << "}=" << final_bd.back() << std::endl;
+#endif
 		}
 	}
 	return final_bd;
@@ -861,5 +843,29 @@ void CVT_Trajectory::set_output_descriptor(size_t robot_index, EvolutionLoopFunc
 /*summarise BD at the end of trials*/
 std::vector<float> CVT_Trajectory::after_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
+	return final_bd;
+}
+
+EnvironmentDiversity::EnvironmentDiversity(std::string path, size_t num_generators)
+{
+	this->bd.resize(1);
+	/* note path is the path without the .argos prefix */
+	for (size_t i = 1; i <= num_generators; ++i)
+	{
+		env_generators.push_back(new ConfigurationBasedGenerator(path + std::to_string(i) + ".argos"));
+	}
+}
+
+/* before all trials, prepare */
+void EnvironmentDiversity::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+{
+	// select a random generator
+	id = cLoopFunctions.m_pcRNG->Uniform(CRange<int>(0, env_generators.size() - 1));
+	env_generators[id]->generate(&cLoopFunctions);
+}
+/*summarise BD at the end of trials*/
+std::vector<float> EnvironmentDiversity::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+{
+	std::vector<float> final_bd(1, (float)id / (float)env_generators.size());
 	return final_bd;
 }

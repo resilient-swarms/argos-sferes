@@ -6,6 +6,7 @@
 #include <tuple>
 #include <cmath>
 #include <src/evolution/nn_controller.h>
+#include <src/core/environment_generator.h>
 
 #include <argos3/core/utility/math/angles.h>
 #include <argos3/core/control_interface/ci_controller.h>
@@ -58,7 +59,7 @@ public:
     virtual void PreStep() = 0;
     virtual void PostStep();
 
-    virtual void before_trials();
+    virtual void before_trials(argos::CSimulator& cSimulator);
     /* set the current trial */
     inline void SetTrial()
     {

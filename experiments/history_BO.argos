@@ -36,7 +36,7 @@
       <params>
       <wheel_turning max_speed="10" />
       <experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_NONE" 
+			fault_behavior="FAULT_PROXIMITYSENSORS_SETMIN" 
 	                id_faulty_robot="-1" />
       </params>
     </nn_controller>

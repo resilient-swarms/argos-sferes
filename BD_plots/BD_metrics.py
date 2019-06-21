@@ -81,7 +81,7 @@ def precisions(BD_directory,runs,archive_file_path):
     stats = []
     for run in runs:
         stats.append(_precision(combined_archive,BD_directory, run, archive_file_path))
-    print("global precisions"+str(stats))
+    print("precisions"+str(stats))
     return stats
 def _precision(combined_archive, BD_directory, run, archive_file_path):
 

@@ -116,6 +116,10 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new CVT_Spirit();
         }
+        else if (s == "environment_diversity")
+        {
+            this->descriptor = new EnvironmentDiversity("experiments/generator",2);
+        }
         else
         {
             throw std::runtime_error("descriptortype " + s + " not found");
@@ -344,9 +348,9 @@ void EvolutionLoopFunctions::PostStep()
     BaseLoopFunctions::PostStep();
 }
 
-void EvolutionLoopFunctions::before_trials()
+void EvolutionLoopFunctions::before_trials(argos::CSimulator &cSimulator)
 {
-    BaseLoopFunctions::before_trials();
+    BaseLoopFunctions::before_trials(cSimulator);
     descriptor->before_trials(*this);
 }
 void EvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)

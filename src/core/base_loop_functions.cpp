@@ -8,7 +8,6 @@
 
 BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0),m_vecInitSetup(0)
 {
-     m_pcRNG = CRandom::CreateRNG("argos");
 }
 
 void BaseLoopFunctions::init_robots()
@@ -258,7 +257,7 @@ void BaseLoopFunctions::print_progress()
 
 
 
-void BaseLoopFunctions::before_trials()
+void BaseLoopFunctions::before_trials(argos::CSimulator &cSimulator)
 {
     m_unCurrentTrial = -1;
 }
@@ -280,11 +279,11 @@ void BaseLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 /* these methods are not be overridden */
 float BaseLoopFunctions::run_all_trials(argos::CSimulator& cSimulator)
 {
-    before_trials();
+    
+    before_trials(cSimulator);
     /*
-         * Run x trials and take the worst performance as final value.
-        */
-
+    * Run x trials and take the average performance as final value.
+    */
     for (size_t i = 0; i < m_unNumberTrials; ++i)
     {
         perform_trial(cSimulator);

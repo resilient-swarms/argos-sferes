@@ -23,7 +23,7 @@ class Descriptor
 {
 public:
   Descriptor();
-  bool geometric_median = false;
+  bool geometric_median;
   size_t num_updates, current_trial;
   static const size_t behav_dim = BEHAV_DIM;
 
@@ -233,13 +233,15 @@ class SDBC : public Descriptor
     *  Systematically Derived Behavioral Characterisation
     */
 public:
-  bool include_std, include_closest_robot,geometric_median;
+  bool include_std, include_closest_robot;
   RobotAttributeSetter* attribute_setter;
   size_t bd_index, num_groups, num_features;
   float maxdist, maxX, maxY;
   std::map<std::string, Entity_Group> entity_groups;
   std::vector<std::string> within_comparison_groups, between_comparison_groups; //
-  std::vector<std::string> variable_groups;                                     // contains the keys of groups with variable sizes
+  std::vector<std::string> variable_groups; 
+  
+  std::vector<std::vector<float>>  temp_bd;// accumulate the features over time
   SDBC(CLoopFunctions *cLoopFunctions, std::string init_type);
   void init_walls(CLoopFunctions *cLoopFunctions);
   void init_robots(size_t num_features,CLoopFunctions *cLoopFunctions);
@@ -265,6 +267,8 @@ public:
   /*reset BD at the start of a trial*/
   virtual void start_trial();
 
+  /*end the trial*/
+  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
   /*after getting inputs, can update the descriptor if needed*/
   virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
 
@@ -273,7 +277,7 @@ public:
   /*after the looping over robots*/
   virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
   /*summarise BD at the end of trials*/
-  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+  //virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
 };
 
 // class RNNHistoryDescriptor: public HistoryDescriptor{
@@ -492,8 +496,7 @@ public:
 //     virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions){};
 
 //     /*after getting outputs, can update the descriptor if needed*/
-//     virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions){};
-
+//     virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions){}
 //     /*after the looping over robots*/
 //     virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 //     {
@@ -561,3 +564,18 @@ public:
 //     /*summarise BD at the end of trials*/
 //     virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
 // };
+
+
+
+class EnvironmentDiversity : public Descriptor
+{
+public:
+  std::vector<EnvironmentGenerator*> env_generators;
+  size_t id; // the  id of the current generator
+  EnvironmentDiversity(std::string path, size_t num_generators);
+
+  /* before all trials, prepare */
+  void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  /*summarise BD at the end of trials*/
+  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+};
