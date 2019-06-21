@@ -118,7 +118,7 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         }
         else if (s == "environment_diversity")
         {
-            this->descriptor = new EnvironmentDiversity("experiments/generator",2);
+            this->descriptor = new EnvironmentDiversity(*this,"experiments/generator",2);
         }
         else
         {

@@ -3,6 +3,8 @@
 #include <src/core/statistics.h>
 #include <src/core/fitness_functions.h>
 
+#include <src/core/environment_generator.h>
+
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 
 
@@ -284,6 +286,15 @@ float BaseLoopFunctions::run_all_trials(argos::CSimulator& cSimulator)
     /*
     * Run x trials and take the average performance as final value.
     */
+
+
+    // /* generate a new environment if necessary */
+    // if (generator != NULL)
+    // {
+    //     generator->generate(cSimulator);
+    // }
+        
+
     for (size_t i = 0; i < m_unNumberTrials; ++i)
     {
         perform_trial(cSimulator);

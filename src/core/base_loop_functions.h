@@ -6,7 +6,7 @@
 #include <tuple>
 #include <cmath>
 #include <src/evolution/nn_controller.h>
-#include <src/core/environment_generator.h>
+
 
 #include <argos3/core/utility/math/angles.h>
 #include <argos3/core/control_interface/ci_controller.h>
@@ -16,6 +16,7 @@
 #include <argos3/core/simulator/entity/embodied_entity.h>
 
 /*******************/
+class EnvironmentGenerator;
 
 class FitFun;
 
@@ -32,7 +33,15 @@ public:
     };
 
     BaseLoopFunctions();
-    virtual ~BaseLoopFunctions(){};
+
+    virtual void Destroy()
+    {
+        m_pcvecRobot.clear();
+    }
+    virtual ~BaseLoopFunctions(){
+
+        
+    };
 
     virtual std::string get_controller_id()=0;
 
@@ -96,6 +105,7 @@ public:
     std::vector<float> outf;
     std::vector<float> inputs;
     FitFun *fitfun;
+    EnvironmentGenerator* generator;
     std::vector<CVector3> curr_pos, old_pos;
     std::vector<CRadians> curr_theta, old_theta;
     size_t m_unNumberTrials;

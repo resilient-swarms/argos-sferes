@@ -12,6 +12,7 @@
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
 #include <src/core/arena_utils.h>
+#include <src/core/environment_generator.h>
 /****************************************/
 /****************************************/
 /****************************************/
@@ -572,7 +573,7 @@ class EnvironmentDiversity : public Descriptor
 public:
   std::vector<EnvironmentGenerator*> env_generators;
   size_t id; // the  id of the current generator
-  EnvironmentDiversity(std::string path, size_t num_generators);
+  EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators);
 
   /* before all trials, prepare */
   void before_trials(EvolutionLoopFunctions &cLoopFunctions);

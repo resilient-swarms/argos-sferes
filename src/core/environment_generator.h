@@ -1,12 +1,12 @@
-class BaseLoopFunctions;
 
+#include <argos3/core/simulator/simulator.h>
 class EnvironmentGenerator
 {
   public:
     EnvironmentGenerator()
     {
     }
-    virtual void generate(BaseLoopFunctions* cLoopFunctions);
+    virtual void generate(argos::CSimulator& cSimulator);
 };
 
 
@@ -19,5 +19,5 @@ public:
   {
     filename = file_name;
   }
-  virtual void generate(BaseLoopFunctions* cLoopFunctions);
+  virtual void generate(argos::CSimulator& cSimulator);
 };

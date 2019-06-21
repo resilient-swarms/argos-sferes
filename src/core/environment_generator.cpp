@@ -1,14 +1,19 @@
 
-#include <src/core/base_loop_functions.h>
 #include <src/core/environment_generator.h>
+#include <src/core/base_loop_functions.h>
 
-
-void EnvironmentGenerator::generate(BaseLoopFunctions* cLoopFunctions)
+void EnvironmentGenerator::generate(argos::CSimulator& cSimulator)
 {
 
 }
 
-void ConfigurationBasedGenerator::generate(BaseLoopFunctions* cLoopFunctions)
+void ConfigurationBasedGenerator::generate(argos::CSimulator& cSimulator)
 {
-    cLoopFunctions->Init(filename);
+
+    cSimulator.SetExperimentFileName(filename);
+
+    /* Load it to configure ARGoS */
+    cSimulator.LoadExperiment();
+
+
 }

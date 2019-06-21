@@ -846,7 +846,7 @@ std::vector<float> CVT_Trajectory::after_trials(EvolutionLoopFunctions &cLoopFun
 	return final_bd;
 }
 
-EnvironmentDiversity::EnvironmentDiversity(std::string path, size_t num_generators)
+EnvironmentDiversity::EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators)
 {
 	this->bd.resize(1);
 	/* note path is the path without the .argos prefix */
@@ -854,14 +854,15 @@ EnvironmentDiversity::EnvironmentDiversity(std::string path, size_t num_generato
 	{
 		env_generators.push_back(new ConfigurationBasedGenerator(path + std::to_string(i) + ".argos"));
 	}
+	// select a random generator
+	id = cLoopFunctions.m_pcRNG->Uniform(CRange<int>(0, env_generators.size() - 1));
+	cLoopFunctions.generator = env_generators[id];
 }
 
 /* before all trials, prepare */
 void EnvironmentDiversity::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
-	// select a random generator
-	id = cLoopFunctions.m_pcRNG->Uniform(CRange<int>(0, env_generators.size() - 1));
-	env_generators[id]->generate(&cLoopFunctions);
+	
 }
 /*summarise BD at the end of trials*/
 std::vector<float> EnvironmentDiversity::after_trials(EvolutionLoopFunctions &cLoopFunctions)
