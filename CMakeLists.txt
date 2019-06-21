@@ -178,6 +178,49 @@ else(NOT BASELINE)
     # process BO option
     if(BO)
         message("Bayesian Optimisation is defined")
+
+        #######################################################################
+        # For ite-swarms
+        set(LIMBO_PATH ${PROJECT_SOURCE_DIR}/limbo/src) # location of limbo - where https://github.com/resibots/limbo.git has been cloned
+        include_directories(${LIMBO_PATH})
+
+        SET(NLOPT_INCLUDE_DIR "$ENV{NLOPT_INCLUDE_DIR}")
+        SET(NLOPT_LIB_DIR "$ENV{NLOPT_LIB_DIR}")
+        IF(NOT NLOPT_INCLUDE_DIR OR NOT NLOPT_LIB_DIR)
+            MESSAGE( WARNING "NLOpt not found. Please point the environment variables NLOPT_INCLUDE_DIR and NLOPT_LIB_DIR to your NLopt installation.")
+        ELSE()
+            include_directories("${NLOPT_INCLUDE_DIR}")
+            link_directories("${NLOPT_LIB_DIR}")
+            add_definitions(-DUSE_NLOPT)
+        ENDIF()
+
+        SET(CMAES_INCLUDE_DIR "$ENV{CMAES_INCLUDE_DIR}")
+        SET(CMAES_LIB_DIR "$ENV{CMAES_LIB_DIR}")
+        IF(NOT CMAES_INCLUDE_DIR OR NOT CMAES_LIB_DIR)
+            MESSAGE( WARNING "CMAES not found. Please point the environment variables CMAES_INCLUDE_DIR and CMAES_LIB_DIR to your CMAES installation.")
+        ELSE()
+            include_directories("${CMAES_INCLUDE_DIR}")
+            link_directories("${CMAES_LIB_DIR}")
+            add_definitions(-DUSE_LIBCMAES)
+        ENDIF()
+
+        include_directories(${PROJECT_SOURCE_DIR}/src/ite) # location of ite-swarm includes
+
+        message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
+        set(TMP_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+        set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -g -march=native" CACHE STRING "" FORCE)
+
+        add_executable(ite_swarms_${BD}D
+            src/ite/ite_swarms.cpp)
+        target_link_libraries(ite_swarms_${BD}D
+            ${Boost_LIBRARIES}
+            ${TBB_LIBRARIES})
+
+        set(CMAKE_CXX_FLAGS ${TMP_CMAKE_CXX_FLAGS} CACHE STRING "" FORCE)
+        message("${PROJECT_SOURCE_DIR} " ${PROJECT_SOURCE_DIR})
+        #######################################################################
+
+        # For the argos simulator called by ite-swarms Eval function
         add_definitions(-DBAYESIAN_OPT)
         set(tag BO${CVT_USE}${BD}D)
     else(NOT BO)
@@ -229,8 +272,6 @@ if(DEFINE_PRINT)
 else(NOT DEFINE_PRINT)
     message("print is NOT defined")
 endif()
-
-
 
 
 # core libraries
