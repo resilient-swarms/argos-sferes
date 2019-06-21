@@ -270,74 +270,6 @@ int main(int argc, char** argv)
         global::argossim_config_name = *(eval_it+2);
     }
 
-
-    /*std::vector<int> brokenleg;
-    if (legs_it != cmd_args.end()) {
-        std::vector<std::string>::iterator end_it = (legs_it < ctrl_it) ? ctrl_it : cmd_args.end();
-        end_it = (end_it < n_it || n_it < legs_it) ? end_it : n_it;
-
-        for (std::vector<std::string>::iterator ii = legs_it + 1; ii != end_it; ii++) {
-            brokenleg.push_back(atoi((*ii).c_str()));
-        }
-        if (brokenleg.size() >= 6) {
-            std::cerr << "The robot should at least have one leg!" << std::endl;
-            if (global::global_robot)
-                global::global_robot.reset();
-            return -1;
-        }
-    }
-    global::brokenLegs = brokenleg;
-
-    init_simu(std::string(std::getenv("RESIBOTS_DIR")) + "/share/hexapod_models/URDF/pexod.urdf", global::brokenLegs);
-
-    if (ctrl_it != cmd_args.end()) {
-        std::vector<std::string>::iterator end_it = ctrl_it + 37;
-
-        std::vector<double> ctrl;
-        for (std::vector<std::string>::iterator ii = ctrl_it + 1; ii != end_it; ii++) {
-            ctrl.push_back(atof((*ii).c_str()));
-        }
-        if (ctrl.size() != 36) {
-            std::cerr << "You have to provide 36 controller parameters!" << std::endl;
-            if (global::global_robot)
-                global::global_robot.reset();
-            return -1;
-        }
-        lecture(ctrl);
-
-        if (global::global_robot)
-            global::global_robot.reset();
-        return 1;
-    }*/
-
-    // you need a map archive with number of dimensions, as well a argos-sim binary and configuration files in order to run ite-swarms
-//    if (argc < 6)
-//    {
-//        std::cerr << "Please provide the path to the map archive along with the number of dimensions of the MAP and the generation to load, as well as "
-//                     "the argos-sim binary and configuration files" << std::endl;
-//        return -1;
-//    }
-
-//    global::archive_path = argv[1];
-//    global::behav_dim = atoi(argv[2]);
-//    global::gen_to_load= atoi(argv[3]);
-//    global::argossim_bin_name = argv[4];
-//    global::argossim_config_name = argv[5];
-
-//    //std::cerr << "Setting number of iterations if argc =  " << argc << " for argv[6] " << argv[6];
-
-//    Params::archiveparams::archive = load_archive(std::string(argv[1])+"/archive_"+std::to_string(global::gen_to_load)+".dat");
-
-    /*std::cerr << "Setting number of iterations if argc =  " << argc;
-
-    if (argc == 7)
-    {
-        std::cout << "Setting number of iterations to " << atoi(argv[6]);
-        Params::stop_maxiterations::set_iterations(atoi(argv[5]));
-    }
-    else
-        Params::stop_maxiterations::set_iterations(10);*/
-
     typedef kernel::MaternFiveHalves<Params> Kernel_t;
     typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
     typedef boost::fusion::vector<stop::MaxIterations<Params>> Stop_t;
@@ -358,9 +290,6 @@ int main(int argc, char** argv)
     Eigen::VectorXd result = opt.best_sample().transpose();
 
     std::cout << val << " res  " << result.transpose() << std::endl;
-
-    /*if (global::global_robot)
-        global::global_robot.reset();*/
 
     return 0;
 }
