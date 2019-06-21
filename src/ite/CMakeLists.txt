@@ -58,6 +58,9 @@ include_directories("/home/danesh/argos-sferes/src/ite") # location of local inc
 add_definitions(-DUSE_NLOPT)
 add_definitions(-DUSE_LIBCMAES)
 
+set(BD 2)
+add_definitions(-DBEHAV_DIM=${BD})
+
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -g -march=native" CACHE STRING "" FORCE)
 message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
 

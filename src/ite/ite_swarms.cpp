@@ -12,11 +12,12 @@ using namespace limbo;
 
 namespace global
 {
+    std::string results_path;
     std::string argossim_bin_name;
     std::string argossim_config_name;
-    std::string archive_path;
+    std::string archive_path;    
     unsigned gen_to_load;
-    unsigned behav_dim; // number of dimensions of MAP
+    unsigned behav_dim = BEHAV_DIM; // number of dimensions of MAP
 } // namespace global
 
 struct Params
@@ -80,7 +81,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name);
 
 struct Eval
 {
-    BO_PARAM(size_t, dim_in, 2); //global::behav_dim
+    BO_PARAM(size_t, dim_in, BEHAV_DIM); //global::behav_dim
     BO_PARAM(size_t, dim_out, 1);
 
     // the function to be optimized
@@ -88,7 +89,7 @@ struct Eval
     {
         std::cout << "In Eval " << std::endl;
 
-        assert(global::behav_dim == 2);
+        //assert(global::behav_dim == 2);
 
         std::vector<double> key(x.size(), 0);
         Eigen::VectorXd::Map(key.data(), key.size()) = x;
@@ -98,10 +99,11 @@ struct Eval
         // ./bin/behaviour_evolBO2D experiments/history_BO.argos experiments/fitness${INDIVIDUAL} --load ${DATA}/history/results1/gen_2000 -n ${INDIVIDUAL} -o experiments/nn${INDIVIDUAL}
         std::string sim_cmd = global::argossim_bin_name + " " +
                               global::argossim_config_name + " " +
-                              "experiments/fitness" + std::to_string(ctrl_index) + " "
+                              global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat "
                               "--load " + global::archive_path + "/gen_" + std::to_string(global::gen_to_load) + " " +
                               "-n " + std::to_string(ctrl_index) + " " +
-                              "-o " + "experiments/nn" + std::to_string(ctrl_index);
+                              "-o " + global::results_path + "/nn" + std::to_string(ctrl_index) + ".dot " +
+                              "-d " + global::results_path;
 
         if(system(sim_cmd.c_str())!=0)
         {
@@ -217,12 +219,10 @@ Params::archiveparams::archive_t Params::archiveparams::archive;
 //BO_DECLARE_DYN_PARAM(int, Params::stop_maxiterations, iterations);
 
 /* ite_swarms requires arguments in the following order:
- * a. -a MAP-ELITES path of MAP
- * b.    Number of dimensions of MAP
- * c.    Generation to load
- * d. -s Binary file to execute the argos simulator <with path>
- * e.    ARGoS configuration file for d. <with path>
- * f. -i Number of iterations (optional)
+ * a. -m MAP-ELITES path of MAP
+ * b.    Generation to load
+ * c. -e Binary file to execute the argos simulator <with path>
+ * d.    ARGoS configuration file for c. <with path>
 */
 int main(int argc, char** argv)
 {
@@ -230,11 +230,48 @@ int main(int argc, char** argv)
     for (int i = 0; i < argc; i++)
         cmd_args.push_back(std::string(argv[i]));
 
-    /*std::vector<std::string>::iterator legs_it = std::find(cmd_args.begin(), cmd_args.end(), "-l");
-    std::vector<std::string>::iterator ctrl_it = std::find(cmd_args.begin(), cmd_args.end(), "-c");
-    std::vector<std::string>::iterator n_it = std::find(cmd_args.begin(), cmd_args.end(), "-n");
+    std::vector<std::string>::iterator map_it = std::find(cmd_args.begin(), cmd_args.end(), "-m");
+    std::vector<std::string>::iterator eval_it = std::find(cmd_args.begin(), cmd_args.end(), "-e");
 
-    std::vector<int> brokenleg;
+    if(map_it == cmd_args.end())
+    {
+        std::cerr << "Argument -m map_path generation_to_load is missing. Exiting ..." << std::endl;
+        exit(-1);
+    }
+
+    // Reading MAP arguments
+    if((map_it+2 > cmd_args.end()) || (map_it+1 == eval_it) || (map_it+2 == eval_it))
+    {
+        std::cerr << "Argument -m is to be followed by map_path and generation_to_load. Exiting ..." << std::endl;
+        exit(-1);
+    }
+    else
+    {
+        global::archive_path = *(map_it+1);
+        global::gen_to_load= atoi((*(map_it+2)).c_str());
+        Params::archiveparams::archive = load_archive(global::archive_path+"/archive_"+std::to_string(global::gen_to_load)+".dat");
+    }
+
+    if(eval_it == cmd_args.end())
+    {
+        std::cerr << "Argument -e argos_simulator_binary argos_config_file is missing. Exiting ...";
+        exit(-1);
+    }
+
+    // Reading argos simulator arguments
+    if((eval_it+2 > cmd_args.end()) || (eval_it+1 == map_it) || (eval_it+2 == map_it))
+    {
+        std::cerr << "Argument -e is to be followed by argos_simulator_binary argos_config_file. Exiting ..." << std::endl;
+        exit(-1);
+    }
+    else
+    {
+        global::argossim_bin_name = *(eval_it+1);
+        global::argossim_config_name = *(eval_it+2);
+    }
+
+
+    /*std::vector<int> brokenleg;
     if (legs_it != cmd_args.end()) {
         std::vector<std::string>::iterator end_it = (legs_it < ctrl_it) ? ctrl_it : cmd_args.end();
         end_it = (end_it < n_it || n_it < legs_it) ? end_it : n_it;
@@ -274,22 +311,22 @@ int main(int argc, char** argv)
     }*/
 
     // you need a map archive with number of dimensions, as well a argos-sim binary and configuration files in order to run ite-swarms
-    if (argc < 6)
-    {
-        std::cerr << "Please provide the path to the map archive along with the number of dimensions of the MAP and the generation to load, as well as "
-                     "the argos-sim binary and configuration files" << std::endl;
-        return -1;
-    }
+//    if (argc < 6)
+//    {
+//        std::cerr << "Please provide the path to the map archive along with the number of dimensions of the MAP and the generation to load, as well as "
+//                     "the argos-sim binary and configuration files" << std::endl;
+//        return -1;
+//    }
 
-    global::archive_path = argv[1];
-    global::behav_dim = atoi(argv[2]);
-    global::gen_to_load= atoi(argv[3]);
-    global::argossim_bin_name = argv[4];
-    global::argossim_config_name = argv[5];
+//    global::archive_path = argv[1];
+//    global::behav_dim = atoi(argv[2]);
+//    global::gen_to_load= atoi(argv[3]);
+//    global::argossim_bin_name = argv[4];
+//    global::argossim_config_name = argv[5];
 
-    //std::cerr << "Setting number of iterations if argc =  " << argc << " for argv[6] " << argv[6];
+//    //std::cerr << "Setting number of iterations if argc =  " << argc << " for argv[6] " << argv[6];
 
-    Params::archiveparams::archive = load_archive(std::string(argv[1])+"/archive_"+std::to_string(global::gen_to_load)+".dat");
+//    Params::archiveparams::archive = load_archive(std::string(argv[1])+"/archive_"+std::to_string(global::gen_to_load)+".dat");
 
     /*std::cerr << "Setting number of iterations if argc =  " << argc;
 
@@ -312,7 +349,10 @@ int main(int argc, char** argv)
     typedef acqui::UCB<Params, GP_t> Acqui_t;
 
     bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>, stopcrit<Stop_t>> opt;
+    global::results_path = opt.res_dir();
+
     opt.optimize(Eval());
+
 
     auto val = opt.best_observation();
     Eigen::VectorXd result = opt.best_sample().transpose();
