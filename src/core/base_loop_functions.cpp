@@ -27,14 +27,6 @@ void BaseLoopFunctions::init_robots()
         throw std::runtime_error("\n The number of robots distributed in the arena " +std::to_string(m_unNumberRobots) + " does not match what is specified by the user in the loop function " +std::to_string(m_pcvecRobot.size()));
     }
     
-    for (int i=0; i < m_unNumberRobots; ++i)
-    {
-        // add the RAB range as a parameter to the controller class
-        Real max_rab = m_pcvecRobot[i]->GetRABEquippedEntity().GetRange();
-        BaseController* ctrl = get_controller(i);
-        ctrl->max_rab_range = max_rab;
-    }
-    
 }
 
 CEmbodiedEntity& BaseLoopFunctions::get_embodied_entity(size_t robot)
@@ -52,6 +44,14 @@ BaseController* BaseLoopFunctions::get_controller(size_t robot)
 void BaseLoopFunctions::place_robots()
 {
     init_robots();
+    // set RAB range
+    for (int i=0; i < m_unNumberRobots; ++i)
+    {
+        // add the RAB range as a parameter to the controller class
+        Real max_rab = m_pcvecRobot[i]->GetRABEquippedEntity().GetRange();
+        BaseController* ctrl = get_controller(i);
+        ctrl->max_rab_range = max_rab;
+    }
     curr_pos.resize(m_unNumberRobots);
     curr_theta.resize(m_unNumberRobots);
     old_pos.resize(m_unNumberRobots);

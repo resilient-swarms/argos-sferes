@@ -72,7 +72,7 @@ void EvolutionLoopFunctions::Init(TConfigurationNode &t_node)
 }
 
 /* get the controller  */
-BaseController *EvolutionLoopFunctions::get_controller(size_t robot)
+BaseController* EvolutionLoopFunctions::get_controller(size_t robot)
 {
     return m_pcvecController[robot];
 }
@@ -153,13 +153,12 @@ void EvolutionLoopFunctions::init_simulation(TConfigurationNode &t_node)
 }
 void EvolutionLoopFunctions::init_robots()
 {
-    m_pcvecRobot.clear();
+
+    BaseLoopFunctions::init_robots();
     m_pcvecController.clear();
-    CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
-    for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+    for (size_t robotindex=0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
-        m_pcvecRobot.push_back(any_cast<CThymioEntity *>(it->second));
-        m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot.back()->GetControllableEntity().GetController()));
+        m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
     }
 }
 
@@ -237,17 +236,15 @@ void EvolutionLoopFunctions::init_robots()
 
 void EvolutionLoopFunctions::PreStep()
 {
-    CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
 
-    size_t robotindex = 0;
-    for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+    for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
-        CThymioEntity &cThymio = *any_cast<CThymioEntity *>(it->second);
-        CThymioNNController &cController = dynamic_cast<CThymioNNController &>(cThymio.GetControllableEntity().GetController());
+        CThymioEntity *cThymio = m_pcvecRobot[robotindex];
+        CThymioNNController *cController = m_pcvecController[robotindex];
 
         //assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
         inputs.clear();
-        inputs = cController.InputStep();
+        inputs = cController->InputStep();
         this->descriptor->set_input_descriptor(robotindex, *this);
 
         //      _ctrlrob.step(inputs);
@@ -269,19 +266,19 @@ void EvolutionLoopFunctions::PreStep()
             if (std::isnan(_vecctrlrob[robotindex].get_outf()[j]))
                 outf[j] = 0.0;
             else
-                outf[j] = cController.m_sWheelTurningParams.MaxSpeed * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
+                outf[j] = cController->m_sWheelTurningParams.MaxSpeed * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
                                                                                                               //outf[j]=10.0f*(2.0f*_vecctrlrob[robotindex].get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
 
-        cController.m_fLeftSpeed = outf[0];
-        cController.m_fRightSpeed = outf[1];
-        if (cController.b_damagedrobot)
-            cController.damage_actuators();
-        outf[0] = cController.m_fLeftSpeed; // use actual velocity for FloreanoMondada fitness
-        outf[1] = cController.m_fRightSpeed;
+        cController->m_fLeftSpeed = outf[0];
+        cController->m_fRightSpeed = outf[1];
+        if (cController->b_damagedrobot)
+            cController->damage_actuators();
+        outf[0] = cController->m_fLeftSpeed; // use actual velocity for FloreanoMondada fitness
+        outf[1] = cController->m_fRightSpeed;
         CVector3 axis;
-        cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta[robotindex], axis);
+        cThymio->GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta[robotindex], axis);
 
-        curr_pos[robotindex] = cThymio.GetEmbodiedEntity().GetOriginAnchor().Position;
+        curr_pos[robotindex] = cThymio->GetEmbodiedEntity().GetOriginAnchor().Position;
 
 
 #ifdef PRINTING
@@ -296,7 +293,7 @@ void EvolutionLoopFunctions::PreStep()
         // *** To save simulation time, we stop evaluation if the robot is stuck for more than 100 time steps ***
         /*
         CRadians c_y, c_x;
-        cThymio.GetEmbodiedEntity().GetOriginAnchor().Orientation.ToEulerAngles(curr_theta, c_y, c_x);
+        cThymio->GetEmbodiedEntity().GetOriginAnchor().Orientation.ToEulerAngles(curr_theta, c_y, c_x);
 
         if (((old_pos-curr_pos).Length() <0.005))// &&
              //(fabs(old_theta.GetValue()-curr_theta.GetValue())<0.0001))
@@ -327,7 +324,7 @@ void EvolutionLoopFunctions::PreStep()
         //this->fitfun->after_step(robotindex, *this);
         if (this->fitfun->quit_on_collision())
         {
-            stop_eval = cThymio.GetEmbodiedEntity().IsCollidingWithSomething();
+            stop_eval = cThymio->GetEmbodiedEntity().IsCollidingWithSomething();
             if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
             {
                 argos::CSimulator::GetInstance().Terminate();
@@ -336,7 +333,6 @@ void EvolutionLoopFunctions::PreStep()
 #endif
             }
         }
-        ++robotindex;
     }
    
 }

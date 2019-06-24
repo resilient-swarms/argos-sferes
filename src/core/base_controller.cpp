@@ -39,6 +39,7 @@ void BaseController::SWheelTurningParams::Init(TConfigurationNode &t_node)
 
 void BaseController::Init(TConfigurationNode &t_node)
 {
+    //std::cout<<"base controller"<<std::endl;
     /*
     * Create the random number generator
     */
@@ -123,7 +124,7 @@ void BaseController::Destroy()
 
 void BaseController::process_faultbehaviour(std::string errorbehav)
 {
-
+    
     if (errorbehav.compare("FAULT_NONE") == 0)
         FBehavior = FAULT_NONE;
     // these are not supported yet for the NN controller

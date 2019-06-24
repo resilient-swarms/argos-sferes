@@ -102,7 +102,7 @@ struct Params
 #ifdef CVT
     struct ea
     {
-        SFERES_CONST size_t number_of_clusters = 1000;
+        SFERES_CONST size_t number_of_clusters = 5000;
         SFERES_CONST size_t number_of_dimensions = BEHAV_DIM;
         typedef boost::array<double, number_of_dimensions> point_t;
         static std::vector<point_t> centroids;
@@ -149,10 +149,10 @@ struct Params
     struct pop
     {
         // number of initial random points
-        SFERES_CONST size_t init_size = 200; //1000;
+        SFERES_CONST size_t init_size = 2000; //1000;
         // size of a batch
         SFERES_CONST size_t size = 200; //1000;
-        SFERES_CONST size_t nb_gen = 5000;
+        SFERES_CONST size_t nb_gen = 1000;
         SFERES_CONST size_t dump_period = 50;
     };
 };

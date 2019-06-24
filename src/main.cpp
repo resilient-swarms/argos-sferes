@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     #endif
     
     #ifdef CVT
-        Params::ea::centroids = load_centroids(cLoopFunctions.centroids_folder+"/centroids_1000_"+std::to_string(Params::ea::number_of_dimensions)+".dat");
+        Params::ea::centroids = load_centroids(cLoopFunctions.centroids_folder+"/centroids_"+std::to_string(Params::ea::number_of_clusters)+"_"+std::to_string(Params::ea::number_of_dimensions)+".dat");
     #endif
         //typedef FitObstacle<Params> fit_t;
         typedef FitObstacleMapElites<Params> fit_t;
