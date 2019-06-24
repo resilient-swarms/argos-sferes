@@ -61,6 +61,7 @@ public:
             SWARM_COVERAGE,
             SWARM_BORDERCOVERAGE,
             SWARM_FLOCKING,
+            SWARM_CHAINING,
             SWARM_STOP,
             SWARM_NONE
         };

@@ -43,6 +43,8 @@ private:
    std::ofstream m_cOutput;
    Real fArenaLength;
 
+   bool swarm_chaining_behav;
+
 };
 
 #endif

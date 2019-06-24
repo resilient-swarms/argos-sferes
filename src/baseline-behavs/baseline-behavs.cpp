@@ -42,6 +42,8 @@ void CBaselineBehavs::ExperimentToRun::Init(TConfigurationNode& t_node)
         SBehavior = SWARM_COVERAGE;
     else if (swarmbehav.compare("SWARM_BORDERCOVERAGE") == 0)
         SBehavior = SWARM_BORDERCOVERAGE;
+    else if (swarmbehav.compare("SWARM_CHAINING") == 0)
+        SBehavior = SWARM_CHAINING;
     else if (swarmbehav.compare("SWARM_FLOCKING") == 0)
         SBehavior = SWARM_FLOCKING;
     else if (swarmbehav.compare("SWARM_HOMING") == 0)
@@ -146,6 +148,7 @@ void CBaselineBehavs::ControlStep()
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING         ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_COVERAGE       ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_BORDERCOVERAGE ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_CHAINING       ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP)
         RunHomogeneousSwarmExperiment();
 
@@ -449,6 +452,19 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
             m_vecBehaviors.push_back(pcRandomWalkBehavior);
         }
     }
+
+    else if (m_sExpRun.SBehavior == ExperimentToRun::SWARM_CHAINING)
+    {
+
+
+
+        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
+        m_vecBehaviors.push_back(pcDisperseBehavior);
+
+        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.01f);
+        m_vecBehaviors.push_back(pcRandomWalkBehavior);
+    }
+
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP)
     {
     }
