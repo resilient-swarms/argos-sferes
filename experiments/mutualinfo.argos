@@ -54,7 +54,7 @@
                   fitfuntype="BorderCoverage"
                   bd_dims="3"
 		  output_folder="experiments"
-        centroids_folder="experiments"
+        centroids_folder="experiments/centroids"
                     />
 
   <!-- *********************** -->
