@@ -105,7 +105,7 @@ public:
     std::vector<float> outf;
     std::vector<float> inputs;
     FitFun *fitfun;
-    EnvironmentGenerator* generator;
+    // EnvironmentGenerator* generator = NULL;
     std::vector<CVector3> curr_pos, old_pos;
     std::vector<CRadians> curr_theta, old_theta;
     size_t m_unNumberTrials;

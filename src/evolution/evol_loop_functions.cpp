@@ -156,7 +156,6 @@ void EvolutionLoopFunctions::init_robots()
     m_pcvecRobot.clear();
     m_pcvecController.clear();
     CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
-
     for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
         m_pcvecRobot.push_back(any_cast<CThymioEntity *>(it->second));

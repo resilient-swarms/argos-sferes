@@ -287,7 +287,6 @@ FIT_MAP(FitObstacleMapElites){
     public :
         friend class argos::CSimulator;
         FitObstacleMapElites(){}
-        EnvironmentGenerator* generator;
         EvolutionLoopFunctions &
         getLoopFun(){
             /* The CSimulator class of ARGoS is a singleton. Therefore, to
@@ -328,16 +327,18 @@ FIT_MAP(FitObstacleMapElites){
             * it is faster. 
             */
            
-            if (generator != NULL)
-            {   
-                static argos::CSimulator &cSim = argos::CSimulator::GetInstance();
-                //undo earlier Init and destroy controllers; start new simulation
-                cSim.Destroy();
-                static argos::CSimulator &cSim2 = argos::CSimulator::GetInstance();
-                // do a new Init
-                generator->generate(cSim2);// problem: could not remove the "tnn" controllers now they are duplicate
+            // if (generator != NULL)
+            // {   
+            //     static argos::CSimulator &cSim = argos::CSimulator::GetInstance();
+            //     static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
 
-            }
+            //     //undo earlier Init and destroy controllers; start new simulation
+            //     cSim.Destroy();
+            //     static argos::CSimulator &cSim2 = argos::CSimulator::GetInstance();
+            //     // do a new Init
+            //     generator->generate(cSim2);// problem: could not remove the "tnn" controllers now they are duplicate
+
+            // }
             static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
             static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
 

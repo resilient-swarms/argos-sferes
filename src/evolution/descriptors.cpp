@@ -856,7 +856,6 @@ EnvironmentDiversity::EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunction
 	}
 	// select a random generator
 	id = cLoopFunctions.m_pcRNG->Uniform(CRange<int>(0, env_generators.size() - 1));
-	cLoopFunctions.generator = env_generators[id];
 }
 
 /* before all trials, prepare */
