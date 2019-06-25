@@ -95,7 +95,7 @@ public:
     /* decay */
     void decay();
 
-    /* add the summed value across the grid to the acummulator */
+    /* add the summed value across the grid to the accumulator */
     void get_grid_sum();
 };
 

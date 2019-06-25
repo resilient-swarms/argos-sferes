@@ -268,15 +268,13 @@ void EvolutionLoopFunctions::PreStep()
             else
                 outf[j] = cController->m_sWheelTurningParams.MaxSpeed * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
                                                                                                               //outf[j]=10.0f*(2.0f*_vecctrlrob[robotindex].get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
-
         cController->m_fLeftSpeed = outf[0];
         cController->m_fRightSpeed = outf[1];
         if (cController->b_damagedrobot)
             cController->damage_actuators();
-        outf[0] = cController->m_fLeftSpeed; // use actual velocity for FloreanoMondada fitness
-        outf[1] = cController->m_fRightSpeed;
         CVector3 axis;
         cThymio->GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta[robotindex], axis);
+        curr_theta[robotindex].UnsignedNormalize();
 
         curr_pos[robotindex] = cThymio->GetEmbodiedEntity().GetOriginAnchor().Position;
 
@@ -287,41 +285,8 @@ void EvolutionLoopFunctions::PreStep()
         std::cout << "current orientation" << curr_pos[robotindex] << std::endl;
         std::cout << "old orientation" << old_pos[robotindex] << std::endl;
 #endif
-        // #ifdef PRINTING
-        //         std::cout << "theta=" << curr_theta << std::endl;
-        // #endif
-        // *** To save simulation time, we stop evaluation if the robot is stuck for more than 100 time steps ***
-        /*
-        CRadians c_y, c_x;
-        cThymio->GetEmbodiedEntity().GetOriginAnchor().Orientation.ToEulerAngles(curr_theta, c_y, c_x);
 
-        if (((old_pos-curr_pos).Length() <0.005))// &&
-             //(fabs(old_theta.GetValue()-curr_theta.GetValue())<0.0001))
-        {
-            stand_still++;
-            if (stand_still>100)
-            {
-                stop_eval=true;
-                // We add collisions to be fair and avoid side effects
-                if (cFootBot.GetEmbodiedEntity().IsCollidingWithSomething())
-                    nb_coll += argos::CSimulator::GetInstance().GetMaxSimulationClock() - argos::CSimulator::GetInstance().GetSpace().GetSimulationClock();
-            }
-        }
-        else
-        {
-            if (cFootBot.GetEmbodiedEntity().IsCollidingWithSomething())
-            {
-                nb_coll++;
-            }
-        }
-
-        old_pos     = curr_pos;
-        old_theta   = curr_theta;*/
-
-        //old_pos[robotindex] = curr_pos[robotindex];
-        //old_theta[robotindex] = curr_theta[robotindex];
         this->descriptor->set_output_descriptor(robotindex, *this);
-        //this->fitfun->after_step(robotindex, *this);
         if (this->fitfun->quit_on_collision())
         {
             stop_eval = cThymio->GetEmbodiedEntity().IsCollidingWithSomething();
@@ -352,9 +317,6 @@ void EvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 {
 
     stop_eval = false;
-    // stand_still = 0;
-    // old_pos   = CVector3(0.0f, 0.0f, 0.0f);
-    // old_theta = CRadians(0.0f);
     descriptor->start_trial();
 
     BaseLoopFunctions::start_trial(cSimulator);

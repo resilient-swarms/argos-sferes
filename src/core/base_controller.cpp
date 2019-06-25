@@ -179,13 +179,16 @@ void BaseController::damage_actuators()
     if (FBehavior == FaultBehavior::FAULT_ACTUATOR_LWHEEL_SETHALF)
         m_fLeftSpeed *= 0.5;
 
-    if (FBehavior == FaultBehavior::FAULT_ACTUATOR_RWHEEL_SETHALF)
+    else if (FBehavior == FaultBehavior::FAULT_ACTUATOR_RWHEEL_SETHALF)
         m_fRightSpeed *= 0.5;
 
-    if (FBehavior == FaultBehavior::FAULT_ACTUATOR_BWHEELS_SETHALF)
+    else if (FBehavior == FaultBehavior::FAULT_ACTUATOR_BWHEELS_SETHALF)
     {
         m_fLeftSpeed *= 0.5;
         m_fRightSpeed *= 0.5;
+    }
+    else{
+        return;
     }
 }
 

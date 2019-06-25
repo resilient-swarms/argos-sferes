@@ -211,14 +211,12 @@ public:
     }
 
 private:
-    //CEPuckEntity* m_pcEPuck;
-    //CEPuckNNController* m_pcController;
 
 public:
 #ifdef CVT
     std::string centroids_folder;
 #endif
-    //robots_nn::nn_t _ctrlrob;
+
 
     std::vector<robots_nn::nn_t> _vecctrlrob;
     std::vector<CThymioNNController *> m_pcvecController;

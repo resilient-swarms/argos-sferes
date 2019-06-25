@@ -336,10 +336,11 @@ Flocking::Flocking(BaseLoopFunctions *cLoopFunctions)
 void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     float temp_accum = 0.0f;
+    float num_calcs=0.0f;
     for (int i = 0; i < cLoopFunctions.m_unNumberRobots; ++i)
     {
         CVector3 pos_i = cLoopFunctions.curr_pos[i];
-        CRadians theta_i = cLoopFunctions.curr_theta[i]; 
+        float ai = cLoopFunctions.curr_theta[i].GetValue(); 
         for (int j = i + 1; j < cLoopFunctions.m_unNumberRobots; ++j)
         {
             CVector3 pos_j = cLoopFunctions.curr_pos[j];
@@ -353,7 +354,7 @@ void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 #endif
             if (dist < flocking_range)
             {
-                float ai = cLoopFunctions.curr_theta[i].GetValue();  // [0,2PI]
+
                 float aj = cLoopFunctions.curr_theta[j].GetValue();  // [0,2PI]
                 float angleDifference = std::min((2.0f * BOOST_PI) - std::abs(ai - aj), std::abs(ai - aj)); // [0,PI]
 
@@ -373,9 +374,10 @@ void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 
 #endif
             }
+            num_calcs += 1.0f;
         }
     }
-    temp_accum = temp_accum / ((float) cLoopFunctions.m_unNumberRobots* (float)(cLoopFunctions.m_unNumberRobots - 1));// divide by the number of robot pairs
+    temp_accum = temp_accum / num_calcs;// divide by the number of robot pairs
     accumulator += temp_accum;
     ++num_updates;
 }

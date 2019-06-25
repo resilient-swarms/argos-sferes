@@ -231,6 +231,7 @@ void BaseLoopFunctions::Reset()
         old_pos[m_unRobot] = m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position;
         CVector3 axis;
         m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
+        old_theta[ m_unRobot].UnsignedNormalize();
     }
 }
 
@@ -342,9 +343,11 @@ float BaseLoopFunctions::actual_linear_velocity_01(size_t robot_index)
     {
         // calculate velocity w.r.t. old orientation
         CVector3 displacement =  curr_pos[robot_index] - old_pos[robot_index];
-        float theta=old_theta[robot_index].GetValue();
+        float theta = old_theta[robot_index].GetValue();
         float velocity = displacement.GetX()*std::cos(theta) + displacement.GetY() * std::sin(theta);
-        velocity/=(tick_time * get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed);//in [-1,1] now
+        // convert max speed in cm to max_speed in meters
+        float max_speed = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed/100.0f;
+        velocity/=(tick_time * max_speed);//in [-1,1] now
         velocity = 0.5f + 0.5f*velocity;// in [0,1] now
         return velocity;
     }
@@ -352,6 +355,7 @@ float BaseLoopFunctions::actual_linear_velocity_01(size_t robot_index)
 /* turn velocity normalised to [0,1], based on the actual orientations rather than wheel speed*/
 float BaseLoopFunctions::actual_turn_velocity_01(size_t robot_index)
 {
+    float theta = old_theta[robot_index].GetValue();
     return (M_2PI + (curr_theta[robot_index].GetValue() - old_theta[robot_index].GetValue()))/(2.0*M_2PI);// in [0,1]
 }
 /* linear velocity normalised to [-1,1]*/
@@ -364,10 +368,12 @@ float BaseLoopFunctions::actual_linear_velocity_signed(size_t robot_index)
     else
     {
         // calculate velocity w.r.t. old orientation
-        CVector3 displacement =  curr_pos[robot_index] - old_pos[robot_index]; // in [0,1]
-        float theta=old_theta[robot_index].GetValue();
+        CVector3 displacement =  curr_pos[robot_index] - old_pos[robot_index];
+        float theta = old_theta[robot_index].GetValue();
         float velocity = displacement.GetX()*std::cos(theta) + displacement.GetY() * std::sin(theta);
-        velocity/=(tick_time * get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed);//in [-1,1] now
+        // convert max speed in cm to max_speed in meters
+        float max_speed = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed/100.0f;
+        velocity/=(tick_time * max_speed );//in [-1,1] now
         return velocity;
     }
 }

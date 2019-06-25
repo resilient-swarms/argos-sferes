@@ -163,9 +163,13 @@ float Entity::distance(const Entity e1, const Entity e2)
 	return StatFuns::get_minkowski_distance(e1.position, e2.position);
 }
 
-SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
+SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Descriptor()
 {
+	
+	include_std = init_type.find("std") != std::string::npos ? true : false; // will calculate standard deviations as well
+
 	size_t num_attr;
+	
 
 	if (init_type.find("Gomes") != std::string::npos)
 	{
@@ -173,6 +177,13 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 		attribute_setter = new SpeedAttributeSetter(cLoopFunctions);
 		num_attr = 2;			 // linear speed and turn speed
 		geometric_median = true; //apply geometric median instead of mean
+
+		// get the average of the closest robot distance in the given uniform robot positioning
+
+		float min = minimal_robot_distance(cLoopFunctions);
+		float max = get_max_avgdist(cLoopFunctions);
+		// range for the closest robot feature
+		maxrange.insert(std::pair<std::string,std::pair<float,float>>("closest_robot",std::pair<float,float>(min,max)));
 	}
 	else
 	{
@@ -191,6 +202,10 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 	{
 		init_walls(cLoopFunctions);
 		init_robots(num_attr, cLoopFunctions);
+
+
+		// range for the boxesrobots feature
+		maxrange.insert(std::pair<std::string,std::pair<float,float>>("boxesrobots",get_wallsrobots_range(cLoopFunctions)));
 	}
 	else if (init_type.find("sdbc_robots") != std::string::npos)
 	{
@@ -201,7 +216,7 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 		throw std::runtime_error("init type " + init_type + "not found");
 	}
 
-	include_std = init_type.find("std") != std::string::npos ? true : false; // will calculate standard deviations as well]
+
 
 	if (include_std)
 	{
@@ -217,6 +232,11 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 		if (kv.second.max_size > 1 && kv.first == "robots")
 		{
 			within_comparison_groups.push_back(kv.first); // within-group distance computations
+
+			// range for the robots feature (within robot comparison)
+			float min = minimal_robot_distance(cLoopFunctions);
+			float max = get_max_avgdist(cLoopFunctions);
+			maxrange.insert(std::pair<std::string,std::pair<float,float>>("robots",std::pair<float,float>(min,max)));
 		}
 
 		between_comparison_groups.push_back(kv.first); // between-group distance computations
@@ -227,9 +247,102 @@ SDBC::SDBC(CLoopFunctions *cLoopFunctions, std::string init_type) : Descriptor()
 		}
 	}
 
-	maxdist = StatFuns::get_minkowski_distance(CVector3(attribute_setter->maxX, attribute_setter->maxY, 0), CVector3::ZERO);
+	//maxdist = StatFuns::get_minkowski_distance(CVector3(attribute_setter->maxX, attribute_setter->maxY, 0), CVector3::ZERO);
 }
 
+
+/* minimial robot distance */
+float SDBC::minimal_robot_distance(EvolutionLoopFunctions* cLoopFunctions)
+{
+	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0).GetBoundingBox();
+
+    float min = StatFuns::get_minkowski_distance(bounding_box.MaxCorner,bounding_box.MinCorner);// at least one robot body
+}
+// /* uniform closest distance as proxy to the maximal avg closest distance */
+// float SDBC::get_uniform_closestdist(EvolutionLoopFunctions* cLoopFunctions)
+// {
+// 	float avg_mindist=0.0f;
+// 	size_t num_calcs=0;
+// 	for(size_t trial=0; trial < cLoopFunctions->m_unNumberTrials; ++trial)
+// 	{
+
+		
+// 		for (size_t i = 0; i < cLoopFunctions->m_unNumberRobots  ; ++i)
+// 		{
+// 			float mindist = std::numeric_limits<float>::infinity();
+// 			for (size_t j = 0; j < cLoopFunctions->m_unNumberRobots; ++j)
+// 			{
+// 				if (j == i)
+// 				{
+// 					continue;
+// 				}
+// 				// get the distance
+// 				float dist = StatFuns::get_minkowski_distance(cLoopFunctions->m_vecInitSetup[trial][i].Position, cLoopFunctions->m_vecInitSetup[trial][j].Position);
+// 				if (dist < mindist)
+// 				{
+// 					mindist = dist;
+// 				}
+// 			}
+// 			avg_mindist += mindist;
+// 			++num_calcs;
+// 		}
+		
+// 	}
+// 	avg_mindist = avg_mindist/(float) num_calcs;
+// 	return avg_mindist;
+// }
+/* Divide the max arena distance by the number of robots to get max average robotdist */
+float SDBC::get_max_avgdist(EvolutionLoopFunctions* cLoopFunctions)
+{
+	/* approximate equation obtained by recursively adding agents at maximum distance to the previous */
+	CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
+	float maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
+	float robot_correction = std::sqrt(cLoopFunctions->m_unNumberRobots - 1.0);// since we are working with squares
+	maxdist = maxdist/robot_correction;// NOTE: if number of robots changes during the trial, need to use entity group's max_size (elsewhere too)
+	return maxdist;
+}
+/* walls robots min and max distance */
+std::pair<float,float> SDBC::get_wallsrobots_range(EvolutionLoopFunctions* cLoopFunctions)
+{
+	// the range depends on the arena; since many robots can be close to each other without affecting this metric
+	// here approximate this by filling the XY-grid and calculating the distance, then taking max and min
+	CVector3 maxArena = cLoopFunctions->GetSpace().GetArenaSize();
+	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0).GetBoundingBox();
+
+    float xdim = bounding_box.MaxCorner.GetX() - bounding_box.MinCorner.GetX();
+    float ydim = bounding_box.MaxCorner.GetY() - bounding_box.MinCorner.GetY();
+	float dim = std::max(xdim,ydim);//robot body unit
+
+	float max = 0;
+	float min = std::numeric_limits<float>::infinity();
+
+
+	Entity_Group walls = entity_groups["boxes"];
+	// define grid based 
+	for (float x=dim; x <= maxArena.GetX() - dim; x+=dim)
+	{
+		for (float y=dim; y <= maxArena.GetY() - dim; y+=dim)
+		{
+			CVector3 pos = CVector3(x,y,0.0f);
+			float avg_dist = 0.0f;
+			for (size_t i=0; i < walls.get_absolute_size(); ++i)
+			{
+				float dist = StatFuns::get_minkowski_distance(pos,walls[i].position);
+				avg_dist += dist;
+			}
+			avg_dist/=(float)walls.get_absolute_size();
+			if (avg_dist > max)
+			{
+				max = avg_dist;
+			}
+			if (avg_dist < min)
+			{
+				min = avg_dist;
+			}
+		}
+	}
+	return std::pair<float,float>(min,max);
+}
 void SDBC::init_cylindric_obstacles(CLoopFunctions *cLoopFunctions)
 {
 	std::vector<Entity> obstacles;
@@ -353,21 +466,30 @@ void SDBC::add_within_group_dispersion()
 		else
 		{
 			sum = 0.0f;
+			float num_calcs=0.0f;
 			for (int i = 0; i < group.get_absolute_size(); ++i)
 			{
-				for (int j = 1; j < group.get_absolute_size() && j != i; ++j)
+				for (int j = 1; j < group.get_absolute_size(); ++j)
 				{
 					sum += Entity::distance(group[i], group[j]);
+					num_calcs+=1.0f;
 				}
+				
 			}
+			sum = sum / num_calcs;
+			sum = normalise(sum, key);
+			this->temp_bd[bd_index].push_back(sum);
+			++bd_index;
 		}
-
-		sum = sum / ((float)(group.get_absolute_size() - 1) * (group.get_absolute_size() - 1) * maxdist);
-		this->temp_bd[bd_index].push_back(sum);
-		++bd_index;
+		
 	}
 }
-
+/* normalise to get full range across [0,1] */
+float SDBC::normalise(float number, std::string key)
+{
+	std::pair<float,float> range =  maxrange[key];
+	return (number - std::get<0>(range)) / (std::get<1>(range) - std::get<0>(range));
+}
 /* avg pair-wise distance between groups, the final BD dimensions*/
 void SDBC::add_between_group_dispersion()
 {
@@ -391,17 +513,21 @@ void SDBC::add_between_group_dispersion()
 			else
 			{
 				sum = 0.0f;
+				float num_calcs=0.0f;
 				for (Entity e1 : group.entities)
 				{
 					for (Entity e2 : group2.entities)
 					{
 						sum += Entity::distance(e1, e2);
+						++num_calcs;
 					}
 				}
+				sum = sum / num_calcs; // divide by product of group sizes; add for now, we will average the number of times
+				sum = normalise(sum, key+key2);
+				temp_bd[bd_index].push_back(sum);
+				++bd_index;
 			}
-			sum = sum / ((float)(group.get_absolute_size() * group2.get_absolute_size()) * maxdist); // divide by product of group sizes; add for now, we will average the number of times
-			temp_bd[bd_index].push_back(sum);
-			++bd_index;
+
 		}
 	}
 }
@@ -429,7 +555,8 @@ void SDBC::add_closest_robot_dist(EvolutionLoopFunctions &cLoopFunctions)
 		}
 		mean_dist += mindist;
 	}
-	mean_dist = mean_dist / (cLoopFunctions.curr_pos.size() * maxdist);
+	mean_dist = mean_dist / ((float) cLoopFunctions.curr_pos.size());
+	mean_dist = normalise(mean_dist, "closest_robot");
 	temp_bd[bd_index].push_back(mean_dist);
 }
 
@@ -495,11 +622,11 @@ void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 		{
 			if (i % 2 == 0)
 			{
-				bd[i][current_trial]=StatFuns::mean(this->temp_bd[i/2]);
+				bd[i][current_trial]=StatFuns::mean(this->temp_bd[i/2]);// already normalised
 			}
 			else
 			{
-				bd[i][current_trial] = StatFuns::standard_dev(this->temp_bd[i / 2]);
+				bd[i][current_trial] = 3.0f * StatFuns::standard_dev(this->temp_bd[i / 2]);// normalise because std will be small compared to range
 			}
 		}
 		else

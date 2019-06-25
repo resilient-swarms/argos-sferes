@@ -99,7 +99,7 @@ public:
 struct RobotAttributeSetter
 {
   float maxX,maxY;
-  RobotAttributeSetter(CLoopFunctions* cLoopFunctions)
+  RobotAttributeSetter(EvolutionLoopFunctions* cLoopFunctions)
   {
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
 	  maxX = max.GetX();
@@ -111,7 +111,7 @@ struct RobotAttributeSetter
 };
 struct NormalAttributeSetter : public RobotAttributeSetter
 {
-  NormalAttributeSetter(CLoopFunctions* cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
+  NormalAttributeSetter(EvolutionLoopFunctions* cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
   {
 
   }
@@ -136,7 +136,7 @@ struct NormalAttributeSetter : public RobotAttributeSetter
 
 struct SpeedAttributeSetter : public RobotAttributeSetter
 {
-  SpeedAttributeSetter(CLoopFunctions* cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
+  SpeedAttributeSetter(EvolutionLoopFunctions* cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
   {
 
   }
@@ -189,10 +189,12 @@ struct Entity_Group
   Entity_Group(size_t k, size_t M, size_t m, std::vector<Entity> entity_vec, bool stat) : kappa(k), max_size(M), min_size(m), entities(entity_vec), is_static(stat)
   {
   }
+  /* get the number of entities in the group */
   size_t get_absolute_size()
   {
     return entities.size();
   }
+  /* get normalised size of entities in the group (useful as a feature)  */
   float get_size()
   {
     return ((float)get_absolute_size() - (float)min_size) / ((float)max_size - (float)min_size);
@@ -237,16 +239,37 @@ public:
   bool include_std, include_closest_robot;
   RobotAttributeSetter* attribute_setter;
   size_t bd_index, num_groups, num_features;
-  float maxdist, maxX, maxY;
+  float maxX, maxY;
+  std::map<std::string, std::pair<float,float>> maxrange;
   std::map<std::string, Entity_Group> entity_groups;
   std::vector<std::string> within_comparison_groups, between_comparison_groups; //
   std::vector<std::string> variable_groups; 
   
   std::vector<std::vector<float>>  temp_bd;// accumulate the features over time
-  SDBC(CLoopFunctions *cLoopFunctions, std::string init_type);
+  SDBC(EvolutionLoopFunctions *cLoopFunctions, std::string init_type);
+  
+
+  /* minimal robot distance */
+  float minimal_robot_distance(EvolutionLoopFunctions* cLoopFunctions);
+  /* uniform closest distance as proxy to the maximal avg closest distance */
+  //float get_uniform_closestdist(EvolutionLoopFunctions* cLoopFunctions);
+  /* Divide the max arena distance by the number of robots to get max average robotdist */
+  float get_max_avgdist(EvolutionLoopFunctions* cLoopFunctions);
+
+  /* walls robots min and max distance */
+  std::pair<float,float> get_wallsrobots_range(EvolutionLoopFunctions* cLoopFunctions);
+  
+  
+  
   void init_walls(CLoopFunctions *cLoopFunctions);
   void init_robots(size_t num_features,CLoopFunctions *cLoopFunctions);
   void init_cylindric_obstacles(CLoopFunctions *cLoopFunctions);
+
+
+
+
+  /* normalise to get full range across [0,1] */
+  float normalise(float number, std::string key);
 
   /* group sizes are the first BD dimensions*/
   void add_group_sizes();
