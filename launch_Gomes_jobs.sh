@@ -48,7 +48,8 @@ for FitfunType in DecayCoverage DecayBorderCoverage Dispersion Aggregation Flock
 	    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 	
 	    mkdir -p $Outfolder
-            sed -e "s|TRIALS|5|" \
+            sed -e "s|THREADS|10|" \
+		-e "s|TRIALS|50|" \
                 -e "s|ROBOTS|5|"                    \
                 -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
 		-e "s|SEED|${Replicates}|"                    \

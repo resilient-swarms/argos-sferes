@@ -626,7 +626,7 @@ void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 			}
 			else
 			{
-				bd[i][current_trial] = 3.0f * StatFuns::standard_dev(this->temp_bd[i / 2]);// normalise because std will be small compared to range
+				bd[i][current_trial] = 2.0f * StatFuns::standard_dev(this->temp_bd[i / 2]);// normalise because std will be small compared to range
 			}
 		}
 		else
