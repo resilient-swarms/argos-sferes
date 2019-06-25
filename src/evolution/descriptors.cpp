@@ -295,15 +295,11 @@ float SDBC::minimal_robot_distance(EvolutionLoopFunctions* cLoopFunctions)
 float SDBC::get_max_avgdist(EvolutionLoopFunctions* cLoopFunctions)
 {
 	/* approximate equation obtained by recursively adding agents at maximum distance to the previous */
-	// CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
-	// float maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
-	// float robot_correction = std::sqrt(cLoopFunctions->m_unNumberRobots - 1.0);// since we are working with squares
-	// maxdist = maxdist/robot_correction;// NOTE: if number of robots changes during the trial, need to use entity group's max_size (elsewhere too)
-
-	/* approximate equation obtained by half the maxdist, works for most settings of number of agents (5-10 we are using)*/
 	CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
 	float maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
-	maxdist/=2.0f;
+	float robot_correction = std::sqrt(cLoopFunctions->m_unNumberRobots/2.0f);
+	// 2 robots --> maxdist; 4 robots --> maxdist/sqrt(2); 8 robots --> maxdist/2 (seems to work in drawings)
+	maxdist = maxdist/robot_correction;// NOTE: if number of robots changes during the trial, need to use entity group's max_size (elsewhere too)
 	return maxdist;
 }
 /* walls robots min and max distance */
@@ -632,8 +628,8 @@ void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 			else
 			{
 				// For a set of N > 4 data spanning a range of values R, an upper bound on the standard deviation s is given by s = 0.6R
-				// s = 0.6 maximally --> multiply by 1/0.6 = 
-				bd[i][current_trial] = 1.50f*StatFuns::standard_dev(this->temp_bd[i / 2]);
+				// with R=1 then s = 0.6 maximally --> multiply by 1/0.6 = 1.666666666667
+				bd[i][current_trial] = 1.666666666666666666666*StatFuns::standard_dev(this->temp_bd[i / 2]);
 			}
 		}
 		else
