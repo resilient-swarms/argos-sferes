@@ -158,7 +158,7 @@ void IntuitiveHistoryDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunction
 	coverageCalc.after_trial();
 }
 
-float Entity::distance(const Entity e1, const Entity e2)
+float Entity::distance(const Entity& e1, const Entity& e2)
 {
 	return StatFuns::get_minkowski_distance(e1.position, e2.position);
 }
@@ -295,10 +295,15 @@ float SDBC::minimal_robot_distance(EvolutionLoopFunctions* cLoopFunctions)
 float SDBC::get_max_avgdist(EvolutionLoopFunctions* cLoopFunctions)
 {
 	/* approximate equation obtained by recursively adding agents at maximum distance to the previous */
+	// CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
+	// float maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
+	// float robot_correction = std::sqrt(cLoopFunctions->m_unNumberRobots - 1.0);// since we are working with squares
+	// maxdist = maxdist/robot_correction;// NOTE: if number of robots changes during the trial, need to use entity group's max_size (elsewhere too)
+
+	/* approximate equation obtained by half the maxdist, works for most settings of number of agents (5-10 we are using)*/
 	CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
 	float maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
-	float robot_correction = std::sqrt(cLoopFunctions->m_unNumberRobots - 1.0);// since we are working with squares
-	maxdist = maxdist/robot_correction;// NOTE: if number of robots changes during the trial, need to use entity group's max_size (elsewhere too)
+	maxdist/=2.0f;
 	return maxdist;
 }
 /* walls robots min and max distance */
@@ -446,7 +451,7 @@ void SDBC::add_group_meanstates()
 void SDBC::add_within_group_dispersion()
 {
 	float sum;
-	for (std::string key : within_comparison_groups)
+	for (std::string& key : within_comparison_groups)
 	{
 
 		Entity_Group &group = entity_groups[key];
@@ -514,9 +519,9 @@ void SDBC::add_between_group_dispersion()
 			{
 				sum = 0.0f;
 				float num_calcs=0.0f;
-				for (Entity e1 : group.entities)
+				for (Entity& e1 : group.entities)
 				{
-					for (Entity e2 : group2.entities)
+					for (Entity& e2 : group2.entities)
 					{
 						sum += Entity::distance(e1, e2);
 						++num_calcs;
@@ -626,7 +631,9 @@ void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 			}
 			else
 			{
-				bd[i][current_trial] = 2.0f * StatFuns::standard_dev(this->temp_bd[i / 2]);// normalise because std will be small compared to range
+				// For a set of N > 4 data spanning a range of values R, an upper bound on the standard deviation s is given by s = 0.6R
+				// s = 0.6 maximally --> multiply by 1/0.6 = 
+				bd[i][current_trial] = 1.50f*StatFuns::standard_dev(this->temp_bd[i / 2]);
 			}
 		}
 		else

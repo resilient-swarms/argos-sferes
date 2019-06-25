@@ -96,6 +96,7 @@ class StatFuns
     }
     static size_t get_bin(float activation, float min_act, float max_act, size_t num_bins);
     static bool in_range(float num1,float a, float b);
+    static float clip(float num1,float a, float b);
     static bool float_equal(float num1,float num2);
     static bool float_smallerorequal(float num1,float num2);
     static float log(float number, float base = EULER);
@@ -121,8 +122,8 @@ class StatFuns
            https://www.argos-sim.info/api/a00293_source.php#l00205
            l. 684; problem is it always uses k=2
     */
-    static float get_minkowski_distance(argos::CVector3 x, argos::CVector3 y, size_t k = 2);
-    static float get_minkowski_distance(std::vector<float> x, std::vector<float> y, size_t k = 2);
+    static float get_minkowski_distance(const argos::CVector3& x, const argos::CVector3& y, size_t k = 2);
+    static float get_minkowski_distance(const std::vector<float>& x, const std::vector<float>& y, size_t k = 2);
     static float uniform_prob(size_t n);
     static float max_variation_distance(size_t n);
     static float min_variation_distance();

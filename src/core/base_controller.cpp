@@ -57,6 +57,15 @@ void BaseController::Init(TConfigurationNode &t_node)
         m_pcRABA = GetActuator<CCI_RangeAndBearingActuator>("range_and_bearing");
         m_pcRABS = GetSensor<CCI_RangeAndBearingSensor>("range_and_bearing");
         only_proximity = false;
+
+        rab_cones.push_back(ToRadians(CDegrees(0.0))); // going counter-clock wise
+        rab_cones.push_back(ToRadians(CDegrees(45.0)));
+        rab_cones.push_back(ToRadians(CDegrees(90.0)));
+        rab_cones.push_back(ToRadians(CDegrees(135.0)));
+        rab_cones.push_back(ToRadians(CDegrees(180.0)));
+        rab_cones.push_back(ToRadians(CDegrees(-135.0)));
+        rab_cones.push_back(ToRadians(CDegrees(-90.0)));
+        rab_cones.push_back(ToRadians(CDegrees(-45.0)));
  
     }
     catch (CARGoSException &ex1)
@@ -335,15 +344,7 @@ std::vector<Real> BaseController::GetNormalizedSensorReadings()
         norm_readings.push_back((1.0f - proximity_sensors[i].Value) * 2.0f - 1.0f);
 
     CCI_RangeAndBearingSensor::TReadings rab_sensors = GetRABSensorReadings(b_damagedrobot, FBehavior);
-    std::vector<CRadians> rab_cones;
-    rab_cones.push_back(ToRadians(CDegrees(0.0))); // going counter-clock wise
-    rab_cones.push_back(ToRadians(CDegrees(45.0)));
-    rab_cones.push_back(ToRadians(CDegrees(90.0)));
-    rab_cones.push_back(ToRadians(CDegrees(135.0)));
-    rab_cones.push_back(ToRadians(CDegrees(180.0)));
-    rab_cones.push_back(ToRadians(CDegrees(-135.0)));
-    rab_cones.push_back(ToRadians(CDegrees(-90.0)));
-    rab_cones.push_back(ToRadians(CDegrees(-45.0)));
+
 
     for(UInt8 i = proximity_sensors.size(); i < proximity_sensors.size() + 8; ++i) // 8 cones
     {
