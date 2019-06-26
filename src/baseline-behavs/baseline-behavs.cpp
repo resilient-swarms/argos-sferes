@@ -465,16 +465,24 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
     else if (m_sExpRun.SBehavior == ExperimentToRun::SWARM_CHAINING)
     {
         if(src_robot)
-            m_pcLeds->SetColor(CColor::RED);
+        {
+            CSrcChainBehavior* pcSrcChainBehavior = new CSrcChainBehavior(&m_uRABDataIndex, m_pcRABA, m_pcLeds, RobotIdStrToInt());
+            m_vecBehaviors.push_back(pcSrcChainBehavior);
+        }
+        else
+        {
+            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
+            m_vecBehaviors.push_back(pcDisperseBehavior);
 
-        if(dest_robot)
-            m_pcLeds->SetColor(CColor::GREEN);
+            CLinkChainBehavior* pcLnkChainBehavior = new CLinkChainBehavior(&m_uRABDataIndex, m_pcRABA, m_pcLeds, RobotIdStrToInt());
+            m_vecBehaviors.push_back(pcLnkChainBehavior);
 
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
-        m_vecBehaviors.push_back(pcDisperseBehavior);
+            CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.01f);
+            m_vecBehaviors.push_back(pcRandomWalkBehavior);
+        }
 
-        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.01f);
-        m_vecBehaviors.push_back(pcRandomWalkBehavior);
+        /*if(dest_robot)
+            m_pcLeds->SetColor(CColor::GREEN);*/
     }
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP)

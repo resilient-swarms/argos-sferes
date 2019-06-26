@@ -15,7 +15,7 @@ using namespace argos;
 class CSrcChainBehavior : public CBehavior
 {
 public:
-    CSrcChainBehavior(unsigned* ptr_rabdataindex, CCI_RangeAndBearingActuator* m_pcRABA, CCI_ThymioLedsActuator* m_pcLeds);
+    CSrcChainBehavior(unsigned* ptr_rabdataindex, CCI_RangeAndBearingActuator* m_pcRABA, CCI_ThymioLedsActuator* m_pcLeds, unsigned robot_id);
 
     void SimulationStep()
     {
@@ -30,9 +30,11 @@ public:
 
 protected:
     unsigned*      m_ptrRabDataIndex;
-    bool           m_bSrcSignalOn;
+    static bool    m_bSrcSignalOn;
+    static int     m_iChildRobotId;
     CCI_RangeAndBearingActuator *m_pcRABA;
     CCI_ThymioLedsActuator*   m_pcLeds;
+    unsigned       m_unRobotId;
 
 };
 

@@ -23,6 +23,9 @@
 #include "homingtofoodbeaconbehavior.h"
 #include "circlebehavior.h"
 #include "flockingbehavior.h"
+#include "src_chain_behavior.h"
+#include "link_chain_behavior.h"
+#include "dest_chain_behavior.h"
 
 
 /****************************************/

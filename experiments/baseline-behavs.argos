@@ -8,7 +8,7 @@
     <system threads="0" />
     <experiment length="120"
                 ticks_per_second="10"
-                random_seed="0" />
+                random_seed="908573" />
   </framework>
 
   <!-- *************** -->
@@ -45,7 +45,7 @@
   <loop_functions library="lib/libbaseline-behavs-loopfunc.so"
                   label="baseline-behavs-loop-functions"
                   trials="5"
-                  robots="20"
+                  robots="3"
                   fitfuntype="Aggregation"
                   output_folder="experiments">
     <params />
@@ -91,8 +91,8 @@
     <distribute>
       <position method="uniform" min="0,0,0" max="7,7,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="20" max_trials="1000">
-        <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
+      <entity quantity="3" max_trials="1000">
+        <Thymio id="thymio" rab_data_size="1000" rab_range="3">    <!-- data size in bytes; range in m -->
           <controller config="bb" />
         </Thymio>
       </entity>

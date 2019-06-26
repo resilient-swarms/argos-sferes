@@ -15,7 +15,7 @@ using namespace argos;
 class CLinkChainBehavior : public CBehavior
 {
 public:
-    CLinkChainBehavior(unsigned* ptr_rabdataindex, CCI_RangeAndBearingActuator* m_pcRABA, CCI_ThymioLedsActuator* m_pcLeds);
+    CLinkChainBehavior(unsigned* ptr_rabdataindex, CCI_RangeAndBearingActuator* m_pcRABA, CCI_ThymioLedsActuator* m_pcLeds, unsigned RobotId);
 
     void SimulationStep()
     {
@@ -30,9 +30,12 @@ public:
 
 protected:
     unsigned*      m_ptrRabDataIndex;
-    bool           m_bSrcSignalOn;
+    static bool    m_bBeaconSignalOn;
+    static int     m_iParentRobotId;
+    static int     m_iChildRobotId;
     CCI_RangeAndBearingActuator *m_pcRABA;
     CCI_ThymioLedsActuator*   m_pcLeds;
+    unsigned       m_unRobotId;
 
 };
 
