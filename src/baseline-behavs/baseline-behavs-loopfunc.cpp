@@ -47,6 +47,30 @@ void CBaselineBehavsLoopFunctions::Init(TConfigurationNode &t_node)
              break;
          }
     }
+
+    if(swarm_chaining_behav)
+    {
+        std::vector<CVector3> vec_robot_pos;
+        std::vector<CThymioEntity> vec_thymio;
+        for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+        {
+            CThymioEntity &cThymio = *any_cast<CThymioEntity *>(it->second);
+            vec_thymio.push_back(cThymio);
+            vec_robot_pos.push_back(cThymio.GetEmbodiedEntity().GetOriginAnchor().Position);
+        }
+
+        Real max_sq_dist = -1000.0; size_t src_robot, dest_robot;
+        for(size_t i = 0; i < vec_robot_pos.size(); ++i)
+            for(size_t j = i+1; i < vec_robot_pos.size(); ++i)
+                if(SquareDistance(vec_robot_pos[i],vec_robot_pos[j]) > max_sq_dist)
+                {
+                    max_sq_dist = SquareDistance(vec_robot_pos[i],vec_robot_pos[j]);
+                    src_robot = i; dest_robot = j;
+                }
+
+         dynamic_cast<CBaselineBehavs&>(vec_thymio[src_robot].GetControllableEntity().GetController()).src_robot   = true;
+         dynamic_cast<CBaselineBehavs&>(vec_thymio[dest_robot].GetControllableEntity().GetController()).dest_robot = true;
+    }
 }
 
 

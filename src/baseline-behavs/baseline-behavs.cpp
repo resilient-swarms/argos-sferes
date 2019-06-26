@@ -65,7 +65,8 @@ void CBaselineBehavs::ExperimentToRun::Init(TConfigurationNode& t_node)
 
 
 CBaselineBehavs::CBaselineBehavs() :
-
+    src_robot(false),
+    dest_robot(false),
     m_unBorderCoverageStartTime(999999u)
 {
     m_fInternalRobotTimer = 0.0f;
@@ -117,6 +118,12 @@ void CBaselineBehavs::CopyRobotDetails(RobotDetails& robdetails)
     CBehavior::m_sRobotData.NEST_BEACON_SIGNAL_MARKER      = NEST_BEACON_SIGNAL;
     CBehavior::m_sRobotData.SELF_INFO_PACKET_MARKER        = SELF_INFO_PACKET;
     CBehavior::m_sRobotData.SELF_INFO_PACKET_FOOTER_MARKER = SELF_INFO_PACKET_FOOTER;
+
+    CBehavior::m_sRobotData.CHAIN_CONNECTOR_PACKET_MARKER           = CHAIN_CONNECTOR_PACKET;
+    CBehavior::m_sRobotData.CHAIN_CONNECTOR_REQUEST_MARKER          = CHAIN_CONNECTOR_REQUEST;
+    CBehavior::m_sRobotData.CHAIN_CONNECTOR_REQUESTACCEPTED_MARKER  = CHAIN_CONNECTOR_REQUESTACCEPTED;
+    CBehavior::m_sRobotData.CHAIN_CONNECTOR_PACKET_FOOTER_MARKER    = CHAIN_CONNECTOR_PACKET_FOOTER;
+
     CBehavior::m_sRobotData.RELAY_PACKET_MARKER            = RELAY_PACKET;
     CBehavior::m_sRobotData.RELAY_PACKET_FOOTER_MARKER     = RELAY_PACKET_FOOTER;
     CBehavior::m_sRobotData.VOTER_PACKET_MARKER            = VOTER_PACKET;
@@ -205,8 +212,6 @@ void CBaselineBehavs::ControlStep()
     /*The robot has to continually track the velocity of its neighbours - since this is done over a period of time. It can't wait until the flocking behavior is activated to start tracking neighbours*/
     m_pFlockingBehavior->SimulationStep();
 
-
- 
     bool bControlTaken = false;
     for (TBehaviorVectorIterator i = m_vecBehaviors.begin(); i != m_vecBehaviors.end(); i++)
     {
@@ -222,20 +227,25 @@ void CBaselineBehavs::ControlStep()
     }
 
     if (b_damagedrobot)
-    {
         damage_actuators();
-    }
-    
 
     m_pcWheels->SetLinearVelocity(m_fLeftSpeed, m_fRightSpeed); // in cm/s
 
-    //std::cout << "LS:  " << m_fLeftSpeed << " RS:  " << m_fRightSpeed << std::endl;
-
-    //CCI_RangeAndBearingSensor::TReadings rabsensor_readings = GetRABSensorReadings(b_damagedrobot, FBehavior);
 
     m_uRobotId = RobotIdStrToInt();
 
-    SenseCommunicate(RobotIdStrToInt(), m_pcRABA, m_uRABDataIndex);
+    /*Communicate self-info -- robot id */
+    //SenseCommunicate(RobotIdStrToInt(), m_pcRABA, m_uRABDataIndex);
+    m_pcRABA->SetData(m_uRABDataIndex++, CBehavior::m_sRobotData.SELF_INFO_PACKET_MARKER);
+    m_pcRABA->SetData(m_uRABDataIndex++, m_uRobotId);
+    if(m_uRABDataIndex > m_pcRABA->GetSize()-1)
+    {
+        std::cerr << " rab buffer full. exiting";
+        exit(-1);
+    }
+     m_pcRABA->SetData(m_uRABDataIndex++, CBehavior::m_sRobotData.SELF_INFO_PACKET_FOOTER_MARKER);
+
+
 
     m_fInternalRobotTimer++;
     
@@ -398,7 +408,6 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_BORDERCOVERAGE)
     {
-
         // hug walls, then slide along them
 
         //CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
@@ -455,8 +464,11 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
     else if (m_sExpRun.SBehavior == ExperimentToRun::SWARM_CHAINING)
     {
+        if(src_robot)
+            m_pcLeds->SetColor(CColor::RED);
 
-
+        if(dest_robot)
+            m_pcLeds->SetColor(CColor::GREEN);
 
         CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
         m_vecBehaviors.push_back(pcDisperseBehavior);

@@ -211,10 +211,12 @@ public:
     std::vector <int> beaconrobots_ids;
     unsigned m_uRABDataIndex;
 
+    bool src_robot, dest_robot;
+
 private:
 
 
-    TBehaviorVector             m_vecBehaviors;
+    TBehaviorVector m_vecBehaviors;
 
     CFlockingBehavior* m_pFlockingBehavior;
 

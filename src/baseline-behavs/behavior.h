@@ -85,10 +85,16 @@ public:
         Real     seconds_per_iterations;
         CRadians m_cNoTurnOnAngleThreshold;
         CRadians m_cSoftTurnOnAngleThreshold;
+
         size_t   BEACON_SIGNAL_MARKER, NEST_BEACON_SIGNAL_MARKER;
 
         size_t   SELF_INFO_PACKET_MARKER;
         size_t   SELF_INFO_PACKET_FOOTER_MARKER;
+
+        size_t   CHAIN_CONNECTOR_PACKET_MARKER;
+        size_t   CHAIN_CONNECTOR_REQUEST_MARKER;
+        size_t   CHAIN_CONNECTOR_REQUESTACCEPTED_MARKER;
+        size_t   CHAIN_CONNECTOR_PACKET_FOOTER_MARKER;
 
         size_t   RELAY_PACKET_MARKER;
         size_t   RELAY_PACKET_FOOTER_MARKER;

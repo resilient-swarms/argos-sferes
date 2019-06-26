@@ -34,15 +34,19 @@
 #define BEACON_SIGNAL 241
 #define NEST_BEACON_SIGNAL 242
 
-
-#define SELF_INFO_PACKET 243 /* used to encompass info of self, be that the proprioceptively computed FVs, the bearings at which neighbours are observed, or proprioceptively computed angular acceleration.*/
+#define SELF_INFO_PACKET 243 /* used to encompass info of self -- in this case, robot id.*/
 #define SELF_INFO_PACKET_FOOTER 244
 
-#define RELAY_PACKET 245
-#define RELAY_PACKET_FOOTER 246
+#define CHAIN_CONNECTOR_PACKET 245
+#define CHAIN_CONNECTOR_REQUEST 246
+#define CHAIN_CONNECTOR_REQUESTACCEPTED 247
+#define CHAIN_CONNECTOR_PACKET_FOOTER 248
 
-#define VOTER_PACKET 247
-#define VOTER_PACKET_FOOTER 248
+#define RELAY_PACKET 249
+#define RELAY_PACKET_FOOTER 250
+
+#define VOTER_PACKET 251
+#define VOTER_PACKET_FOOTER 252
 
 
 /****************************************/

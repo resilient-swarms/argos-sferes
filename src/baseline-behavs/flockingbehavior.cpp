@@ -206,7 +206,13 @@ void CFlockingBehavior::SimulationStep()
 
 unsigned CFlockingBehavior::GetIdFromRABPacket(CCI_RangeAndBearingSensor::TReadings& rab_packet, size_t rab_packet_index)
 {
-    if (rab_packet[rab_packet_index].Data[0] == m_sRobotData.BEACON_SIGNAL_MARKER)
+    for(size_t i = 0; i < rab_packet[rab_packet_index].Data.Size(); ++i)
+        if (rab_packet[rab_packet_index].Data[i] == m_sRobotData.VOTER_PACKET_MARKER || rab_packet[rab_packet_index].Data[0] == m_sRobotData.SELF_INFO_PACKET_MARKER)
+            return rab_packet[rab_packet_index].Data[i+1];
+
+    return ROBOTID_NOT_IN_SIGNAL;
+
+    /*if (rab_packet[rab_packet_index].Data[0] == m_sRobotData.BEACON_SIGNAL_MARKER)
     {
         if (rab_packet[rab_packet_index].Data[1] == m_sRobotData.VOTER_PACKET_MARKER || rab_packet[rab_packet_index].Data[1] == m_sRobotData.SELF_INFO_PACKET_MARKER)
         {
@@ -227,7 +233,7 @@ unsigned CFlockingBehavior::GetIdFromRABPacket(CCI_RangeAndBearingSensor::TReadi
         {
             return ROBOTID_NOT_IN_SIGNAL;
         }
-    }
+    }*/
 }
 
 /******************************************************************************/
