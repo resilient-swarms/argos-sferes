@@ -208,7 +208,7 @@ else(NOT BASELINE)
 
         message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
         set(TMP_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-        set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -g -march=native" CACHE STRING "" FORCE)
+        set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -g -march=native" CACHE STRING "" FORCE)  
 
         add_executable(ite_swarms_${BD}D
             src/ite/ite_swarms.cpp)
@@ -225,6 +225,8 @@ else(NOT BASELINE)
         set(tag BO${CVT_USE}${BD}D)
     else(NOT BO)
         message("Bayesian Optimisation is NOT defined")
+        message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native" )  
     endif()
     
     add_definitions(-DTAG="${tag}")

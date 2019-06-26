@@ -627,7 +627,7 @@ void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 			}
 			else
 			{
-				// For a set of N > 4 data spanning a range of values R, an upper bound on the standard deviation s is given by s = 0.6R
+				// https://en.wikipedia.org/wiki/Standard_deviation: For a set of N > 4 data spanning a range of values R, an upper bound on the standard deviation s is given by s = 0.6R
 				// with R=1 then s = 0.6 maximally --> multiply by 1/0.6 = 1.666666666667
 				bd[i][current_trial] = 1.666666666666666666666*StatFuns::standard_dev(this->temp_bd[i / 2]);
 			}
