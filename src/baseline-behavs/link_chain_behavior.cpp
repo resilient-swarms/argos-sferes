@@ -1,0 +1,96 @@
+#include "link_chain_behavior.h"
+#include <argos3/core/utility/datatypes/color.h>
+
+/******************************************************************************/
+/******************************************************************************/
+
+CLinkChainBehavior::CLinkChainBehavior(unsigned *ptr_rabdataindex, CCI_RangeAndBearingActuator *RABA, CCI_ThymioLedsActuator *Leds) :
+    m_ptrRabDataIndex(ptr_rabdataindex),
+    m_bSrcSignalOn(false),
+    m_pcRABA(RABA),
+    m_pcLeds(Leds)
+
+{
+}
+
+/******************************************************************************/
+/******************************************************************************/
+    
+bool CLinkChainBehavior::TakeControl()
+{
+    // take control if not already a beacon and receive CHAIN_CONNECTOR_REQUESTACCEPTED_MARKER allowing you to become the next node in the chain
+
+    return true;
+}
+
+/******************************************************************************/
+/******************************************************************************/
+
+void CLinkChainBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
+{
+    fLeftWheelSpeed  = 0.0;
+    fRightWheelSpeed = 0.0;
+
+    if(m_bSrcSignalOn)
+    {
+        m_pcLeds->SetColor(CColor::RED);
+
+        // Send out the beacon signal
+        m_pcRABA->SetData(*m_ptrRabDataIndex, CBehavior::m_sRobotData.BEACON_SIGNAL_MARKER);
+        (*m_ptrRabDataIndex)++;
+
+        // decide if the beacon can be passed on to another robot to form the chain
+        Real min_dist_to_beacon = 10000.0;
+        int new_beacon_id = -1;
+        for(size_t i = 0; i <  m_sSensoryData.m_RABSensorData.size(); ++i)
+        {
+            // Extract robot id of RAB emitter
+            int robot_id = -1;
+            for(size_t j = 0; j <  m_sSensoryData.m_RABSensorData[i].Data.Size(); ++j)
+                if(m_sSensoryData.m_RABSensorData[i].Data[j] == CBehavior::m_sRobotData.SELF_INFO_PACKET_MARKER)
+                    robot_id = m_sSensoryData.m_RABSensorData[i].Data[j+1];
+
+            if(robot_id == -1)
+            {
+                printf("\n Robot id has not been communicated. Exiting ...  ");
+                exit(-1);
+            }
+
+
+            // Check if RAB emitter is making a connection request. If so
+            for(size_t j = 0; j <  m_sSensoryData.m_RABSensorData[i].Data.Size(); ++j)
+            {
+                if(m_sSensoryData.m_RABSensorData[i].Data[j] == CBehavior::m_sRobotData.CHAIN_CONNECTOR_REQUEST_MARKER &&
+                   m_sSensoryData.m_RABSensorData[i].Range < min_dist_to_beacon)
+                {
+                    min_dist_to_beacon = m_sSensoryData.m_RABSensorData[i].Range;
+                    new_beacon_id = robot_id;
+                    break;
+                }
+            }
+        }
+
+        if(new_beacon_id != -1)
+        {
+            m_bSrcSignalOn = false;
+            m_pcRABA->SetData((*m_ptrRabDataIndex)++, CBehavior::m_sRobotData.CHAIN_CONNECTOR_PACKET_MARKER);
+            m_pcRABA->SetData((*m_ptrRabDataIndex)++, CBehavior::m_sRobotData.CHAIN_CONNECTOR_REQUESTACCEPTED_MARKER);
+            m_pcRABA->SetData((*m_ptrRabDataIndex)++, new_beacon_id);
+            m_pcRABA->SetData((*m_ptrRabDataIndex)++, CBehavior::m_sRobotData.CHAIN_CONNECTOR_PACKET_FOOTER_MARKER);
+        }
+    }
+    else
+        m_pcLeds->SetColor(CColor::BLUE);
+
+}
+
+/******************************************************************************/
+/******************************************************************************/
+
+void CLinkChainBehavior::PrintBehaviorIdentity()
+{
+    std::cout << "Src-chain behaviour taking over";
+}
+
+/******************************************************************************/
+/******************************************************************************/
