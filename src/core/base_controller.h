@@ -109,6 +109,8 @@ public:
 
     /* maximum RAB range */
     Real max_rab_range = 100.0; // in cm
+    /* rab cones */
+    std::vector<CRadians> rab_cones;
     /* Wheel speeds */
     Real m_fLeftSpeed, m_fRightSpeed;
 

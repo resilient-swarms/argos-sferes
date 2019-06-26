@@ -32,6 +32,21 @@ bool StatFuns::in_range(float num1,float a, float b)
 {
     return StatFuns::float_smallerorequal(num1,b) && StatFuns::float_smallerorequal(a,num1);
 }
+/* check float in range */
+float StatFuns::clip(float num1,float a, float b)
+{
+    if (num1> 1.0f)
+    {
+        return 1.0f;
+    }
+    else if (num1 < 0.0f)
+    {
+        return 0.0f;
+    }
+    else{
+        return num1;
+    }
+}
 
 /* check float equality */
 bool StatFuns::float_equal(float num1,float num2)
@@ -138,7 +153,7 @@ float StatFuns::sum(std::vector<float> results)
     return std::accumulate(results.begin(), results.end(), 0.0);
 }
 
-float StatFuns::get_minkowski_distance(argos::CVector3 x, argos::CVector3 y, size_t k)
+float StatFuns::get_minkowski_distance(const argos::CVector3& x, const argos::CVector3& y, size_t k)
 {
     /* get the minkowski-distance between two 3D vectors ; k is the parameter that determines e.g. manhattan vs Euclid vs 3D movements 
        on a flat surface, the Thymio can only move in two directions, so in that case use k=2
@@ -157,7 +172,7 @@ float StatFuns::get_minkowski_distance(argos::CVector3 x, argos::CVector3 y, siz
 
     return std::pow(sum, 1.0 / (float)k);
 }
-float StatFuns::get_minkowski_distance(std::vector<float> x, std::vector<float> y, size_t k)
+float StatFuns::get_minkowski_distance(const std::vector<float>& x, const std::vector<float>& y, size_t k)
 {
     /* get the minkowski-distance between two 3D vectors ; k is the parameter that determines e.g. manhattan vs Euclid vs 3D movements 
        on a flat surface, the Thymio can only move in two directions, so in that case use k=2

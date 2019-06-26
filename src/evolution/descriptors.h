@@ -167,7 +167,7 @@ struct Entity
   CVector3 position;
   Entity() {}
   float &operator[](size_t idx) { return attributes[idx]; }
-  static float distance(const Entity e1, const Entity e2);
+  static float distance(const Entity& e1, const Entity& e2);
   void set_attributes(const std::vector<float> new_vec, CVector3 pos)
   {
     attributes = new_vec;
