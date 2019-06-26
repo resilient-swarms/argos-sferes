@@ -23,6 +23,9 @@
 #include "homingtofoodbeaconbehavior.h"
 #include "circlebehavior.h"
 #include "flockingbehavior.h"
+#include "src_chain_behavior.h"
+#include "link_chain_behavior.h"
+#include "dest_chain_behavior.h"
 
 
 /****************************************/
@@ -211,10 +214,12 @@ public:
     std::vector <int> beaconrobots_ids;
     unsigned m_uRABDataIndex;
 
+    bool src_robot, dest_robot;
+
 private:
 
 
-    TBehaviorVector             m_vecBehaviors;
+    TBehaviorVector m_vecBehaviors;
 
     CFlockingBehavior* m_pFlockingBehavior;
 
