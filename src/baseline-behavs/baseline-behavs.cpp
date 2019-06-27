@@ -95,7 +95,11 @@ void CBaselineBehavs::Init(TConfigurationNode& t_node)
 
     m_pFlockingBehavior = new CFlockingBehavior(m_sRobotDetails.iterations_per_second * 1.0f); // 5.0f
 
-
+    // For chaining behaviours
+    m_iParentRobotId   = -1;
+    m_iChildRobotId    = -1;
+    m_bBeaconSignalOn  = false;
+    m_iTimeLastRequest = -1;
 }
 
 /****************************************/
@@ -471,14 +475,18 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
         }
         else
         {
-            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
-            m_vecBehaviors.push_back(pcDisperseBehavior);
+            /*CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
+            m_vecBehaviors.push_back(pcDisperseBehavior);*/
 
-            CLinkChainBehavior* pcLnkChainBehavior = new CLinkChainBehavior(&m_uRABDataIndex, m_pcRABA, m_pcLeds, RobotIdStrToInt());
+            CLinkChainBehavior* pcLnkChainBehavior = new CLinkChainBehavior(&m_uRABDataIndex, m_pcRABA, m_pcLeds, RobotIdStrToInt(), &m_bBeaconSignalOn, &m_iParentRobotId,
+                                                                            &m_iChildRobotId, &m_iTimeLastRequest);
             m_vecBehaviors.push_back(pcLnkChainBehavior);
 
+            /*CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
+            m_vecBehaviors.push_back(pcDisperseBehavior);
+
             CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.01f);
-            m_vecBehaviors.push_back(pcRandomWalkBehavior);
+            m_vecBehaviors.push_back(pcRandomWalkBehavior);*/
         }
 
         /*if(dest_robot)

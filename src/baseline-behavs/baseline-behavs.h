@@ -216,6 +216,12 @@ public:
 
     bool src_robot, dest_robot;
 
+    // For chaining behaviours
+    int  m_iParentRobotId;
+    int  m_iChildRobotId;
+    bool m_bBeaconSignalOn;
+    int  m_iTimeLastRequest;
+
 private:
 
 
