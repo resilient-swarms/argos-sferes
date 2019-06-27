@@ -100,8 +100,6 @@ void BaseLoopFunctions::place_robots()
             m_vecInitSetup[m_unTrial][m_unRobot].Orientation = Orientation;
         }
     }
-
-    Reset();
 }
 
 
@@ -219,7 +217,8 @@ void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
     }
 }
 
-void BaseLoopFunctions::Reset()
+
+void BaseLoopFunctions::reset_agent_positions()
 {
     for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
     {
@@ -231,6 +230,19 @@ void BaseLoopFunctions::Reset()
         old_pos[m_unRobot] = m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position;
         CVector3 axis;
         m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
+        old_theta[m_unRobot].UnsignedNormalize();
+    }
+}
+void BaseLoopFunctions::Reset()
+{
+    //NOTE : replaced code from here to reset_agent_positions to allow multiple physics engines
+
+    //
+    for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
+    {
+        old_pos[m_unRobot] =get_embodied_entity(m_unRobot).GetOriginAnchor().Position;
+        CVector3 axis;
+        get_embodied_entity(m_unRobot).GetOriginAnchor().Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
         old_theta[ m_unRobot].UnsignedNormalize();
     }
 }
@@ -269,8 +281,16 @@ void BaseLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 {
     /* Tell the loop functions to get ready for the i-th trial */
     SetTrial();
+
+
+
     /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
     cSimulator.Reset();
+
+
+    // comment this line if you want to run without error
+    reset_agent_positions();
+
     /* take into account the new settings in the fitness functions */
     fitfun->before_trial(*this);
 }

@@ -256,7 +256,7 @@ float SDBC::minimal_robot_distance(EvolutionLoopFunctions* cLoopFunctions)
 {
 	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0).GetBoundingBox();
 
-    float min = StatFuns::get_minkowski_distance(bounding_box.MaxCorner,bounding_box.MinCorner);// at least one robot body
+    return StatFuns::get_minkowski_distance(bounding_box.MaxCorner,bounding_box.MinCorner);// at least one robot body
 }
 // /* uniform closest distance as proxy to the maximal avg closest distance */
 // float SDBC::get_uniform_closestdist(EvolutionLoopFunctions* cLoopFunctions)

@@ -74,6 +74,7 @@ public:
     {
         ++m_unCurrentTrial;
     }
+    void reset_agent_positions();
     virtual void start_trial(argos::CSimulator& cSimulator);
     virtual void end_trial(Real time);
     virtual void print_progress();
@@ -109,6 +110,7 @@ public:
     std::vector<CVector3> curr_pos, old_pos;
     std::vector<CRadians> curr_theta, old_theta;
     size_t m_unNumberTrials;
+    size_t  seed;// seed part corresponding to the one in the config
     int m_unCurrentTrial; // will start with -1 for convenience
     std::vector<std::vector<SInitSetup>> m_vecInitSetup;
     size_t m_unNumberRobots;

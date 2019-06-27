@@ -5,7 +5,7 @@
   <!-- * General configuration * -->
   <!-- ************************* -->
   <framework>
-    <system threads="0" />
+    <system threads="4" />
     <experiment length="120"
                 ticks_per_second="10"
                 random_seed="1" />
@@ -92,7 +92,7 @@
     <distribute>
      <position method="uniform" min="0.5,0.5,0" max="6.5,6.5,0" />
      <orientation method="constant" values="0,0,0" />
-     <entity quantity="0" max_trials="2000">
+     <entity quantity="1" max_trials="2000">
        <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
      </entity>
     </distribute>
@@ -117,8 +117,7 @@
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-
-    <dynamics2d id="dyn2d_0">
+<dynamics2d id="dyn2d_0">
       <boundaries>
         <top height="1" />
         <bottom height="0" />
@@ -166,6 +165,7 @@
         </sides>
       </boundaries>
     </dynamics2d>
+    
 
   </physics_engines>
 
@@ -181,9 +181,9 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-<!--  <qt-opengl>
+  <qt-opengl>
         <user_functions label="robotid_vis" />
-    </qt-opengl>  -->
+    </qt-opengl>  
   </visualization>
 
 </argos-configuration>
