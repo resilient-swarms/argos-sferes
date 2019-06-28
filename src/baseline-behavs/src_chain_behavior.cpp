@@ -42,8 +42,6 @@ void CSrcChainBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
 
         // Send out the beacon signal
         m_pcRABA->SetData(*m_ptrRabDataIndex, CBehavior::m_sRobotData.BEACON_SIGNAL_MARKER);
-        if(*m_ptrRabDataIndex != 0)
-            exit(-1);
         (*m_ptrRabDataIndex)++;
         std::cout << "CSrcChainBehavior emitting beacon signal " << std::endl;
 
@@ -52,7 +50,7 @@ void CSrcChainBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
         int new_beacon_id = -1;
         for(size_t i = 0; i <  m_sSensoryData.m_RABSensorData.size(); ++i)
         {
-            // Extract robot id of RAB emitter
+            // Extract robot id of requester
             int robot_id = -1;
             for(size_t j = 0; j <  m_sSensoryData.m_RABSensorData[i].Data.Size(); ++j)
                 if(m_sSensoryData.m_RABSensorData[i].Data[j] == CBehavior::m_sRobotData.SELF_INFO_PACKET_MARKER)
@@ -87,11 +85,15 @@ void CSrcChainBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
             m_pcRABA->SetData((*m_ptrRabDataIndex)++, new_beacon_id);
             m_pcRABA->SetData((*m_ptrRabDataIndex)++, CBehavior::m_sRobotData.CHAIN_CONNECTOR_PACKET_FOOTER_MARKER);
             m_iChildRobotId = new_beacon_id;
+            std::cout << "CSrcChainBehavior passing beacon to robot " << new_beacon_id << std::endl;
+
         }
     }
     else
     {
         m_pcLeds->SetColor(CColor::BLUE);
+        std::cout << "CSrcChainBehavior not emitting beacon signal " << std::endl;
+
 
         // Check if you are still connected to the child robot
         for(size_t i = 0; i <  m_sSensoryData.m_RABSensorData.size(); ++i)
@@ -99,6 +101,8 @@ void CSrcChainBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
                 if(m_sSensoryData.m_RABSensorData[i].Data[j]   == CBehavior::m_sRobotData.SELF_INFO_PACKET_MARKER &&
                    m_sSensoryData.m_RABSensorData[i].Data[j+1] == m_iChildRobotId)
                     return;
+
+        std::cout << "CSrcChainBehavior resuming emitting beacon signal " << std::endl;
 
         m_iChildRobotId = -1;
         m_bSrcSignalOn = true;

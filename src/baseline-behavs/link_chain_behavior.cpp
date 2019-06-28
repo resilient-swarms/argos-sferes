@@ -4,15 +4,20 @@
 /******************************************************************************/
 /******************************************************************************/
 
-int  CLinkChainBehavior::m_iParentRobotId = -1;
-int  CLinkChainBehavior::m_iChildRobotId = -1;
-bool CLinkChainBehavior::m_bBeaconSignalOn = false;
 
-CLinkChainBehavior::CLinkChainBehavior(unsigned *ptr_rabdataindex, CCI_RangeAndBearingActuator *RABA, CCI_ThymioLedsActuator *Leds, unsigned RobotId) :
+CLinkChainBehavior::CLinkChainBehavior(unsigned *ptr_rabdataindex, CCI_RangeAndBearingActuator *RABA, CCI_ThymioLedsActuator *Leds, unsigned RobotId,
+                                       bool *BeaconSignalOn,
+                                       int *ParentRobotId,
+                                       int *ChildRobotId,
+                                       int *TimeLastRequest) :
     m_ptrRabDataIndex(ptr_rabdataindex),
     m_pcRABA(RABA),
     m_pcLeds(Leds),
-    m_unRobotId(RobotId)
+    m_unRobotId(RobotId),
+    m_bBeaconSignalOn(BeaconSignalOn),
+    m_iParentRobotId(ParentRobotId),
+    m_iChildRobotId(ChildRobotId),
+    m_iTimeLastRequest(TimeLastRequest)
 
 {
 }
@@ -22,38 +27,46 @@ CLinkChainBehavior::CLinkChainBehavior(unsigned *ptr_rabdataindex, CCI_RangeAndB
 
 bool CLinkChainBehavior::TakeControl()
 {
-    std::cout << "For robot " << m_unRobotId << " CLinkChainBehavior::TakeControl of robot -- " <<  m_iParentRobotId << " " << m_bBeaconSignalOn << std::endl;
+    std::cout << "For robot " << m_unRobotId << " in CLinkChainBehavior::TakeControl of robot -- " <<  (*m_iParentRobotId) << " " << (*m_bBeaconSignalOn) << " " << (*m_iTimeLastRequest) << std::endl;
+
+//    if((*m_iTimeLastRequest) != -1)
+//        if((m_sSensoryData.m_rTime - (*m_iTimeLastRequest)) < 100)
+//            return true;
+//        else
+//            (*m_iTimeLastRequest) = -1;
 
     // relinquish control if robot was a link in the chain and now have lost contact with its parent node in the chain
-    if(m_iParentRobotId != -1)
+    if((*m_iParentRobotId) != -1)
     {
         for(size_t i = 0; i <  m_sSensoryData.m_RABSensorData.size(); ++i)
             for(size_t j = 0; j <  m_sSensoryData.m_RABSensorData[i].Data.Size(); ++j)
                 if(m_sSensoryData.m_RABSensorData[i].Data[j]   == CBehavior::m_sRobotData.SELF_INFO_PACKET_MARKER &&
-                        m_sSensoryData.m_RABSensorData[i].Data[j+1] == m_iParentRobotId)
+                        m_sSensoryData.m_RABSensorData[i].Data[j+1] == (*m_iParentRobotId))
                     return true;
 
-        m_iParentRobotId = -1;
-        m_iChildRobotId  = -1;
-        m_bBeaconSignalOn = false;
+        (*m_iParentRobotId) = -1;
+        (*m_iChildRobotId)  = -1;
+        (*m_bBeaconSignalOn) = false;
 
-        std::cout << "For robot " << m_unRobotId << " CLinkChainBehavior::TakeControl of robot -- relinquish control -1 " <<  m_iParentRobotId << " " << m_bBeaconSignalOn << std::endl;
+        std::cout << "For robot " << m_unRobotId << " in CLinkChainBehavior::TakeControl of robot -- retutning false -1 " <<  (*m_iParentRobotId) << " " << (*m_bBeaconSignalOn) << std::endl;
 
+        m_pcLeds->SetColor(CColor::BLACK);
         return false;
     }
 
     // retain control if beacon and is still connected to parent node. Action send beacon signal
-    if(m_bBeaconSignalOn)
+    if((*m_bBeaconSignalOn))
         return true;
 
     // get control if not part of chain, but has sensed a beacon signal
-    if(!m_bBeaconSignalOn && m_iParentRobotId == -1)
+    if(!(*m_bBeaconSignalOn) && (*m_iParentRobotId) == -1)
         for(size_t i = 0; i <  m_sSensoryData.m_RABSensorData.size(); ++i)
             if(m_sSensoryData.m_RABSensorData[i].Data[0] == CBehavior::m_sRobotData.BEACON_SIGNAL_MARKER)
                 return true;
 
-    std::cout << "For robot " << m_unRobotId << " CLinkChainBehavior::TakeControl of robot -- relinquish control - 2" <<  m_iParentRobotId << " " << m_bBeaconSignalOn << std::endl;
+    std::cout << "For robot " << m_unRobotId << "in CLinkChainBehavior::TakeControl of robot -- retutning control - 2" <<  (*m_iParentRobotId) << " " << (*m_bBeaconSignalOn) << std::endl;
 
+    m_pcLeds->SetColor(CColor::BLACK);
     return false;
 
 }
@@ -64,12 +77,13 @@ bool CLinkChainBehavior::TakeControl()
 void CLinkChainBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
 {
     // Todo: Set wheel speeds to match your child node's movement with some springness, while avoiding snaping away from your parent
-    fLeftWheelSpeed  = 10.0;
-    fRightWheelSpeed = -10.0;
+    fLeftWheelSpeed  = 0.0;
+    fRightWheelSpeed = 0.0;
 
     std::cout << "For robot " << m_unRobotId << " CLinkChainBehavior::Action of robot " <<  std::endl;
+    std::cout << "*m_iChildRobotId = " << *m_iChildRobotId << std::endl;
 
-    if(m_bBeaconSignalOn)
+    if((*m_bBeaconSignalOn))
     {
         m_pcLeds->SetColor(CColor::RED);
 
@@ -114,15 +128,17 @@ void CLinkChainBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
 
         if(new_beacon_id != -1)
         {
-            m_bBeaconSignalOn = false;
+            (*m_bBeaconSignalOn) = false;
             m_pcRABA->SetData((*m_ptrRabDataIndex)++, CBehavior::m_sRobotData.CHAIN_CONNECTOR_PACKET_MARKER);
             m_pcRABA->SetData((*m_ptrRabDataIndex)++, CBehavior::m_sRobotData.CHAIN_CONNECTOR_REQUESTACCEPTED_MARKER);
             m_pcRABA->SetData((*m_ptrRabDataIndex)++, new_beacon_id);
             m_pcRABA->SetData((*m_ptrRabDataIndex)++, CBehavior::m_sRobotData.CHAIN_CONNECTOR_PACKET_FOOTER_MARKER);
-            m_iChildRobotId = new_beacon_id;
+            (*m_iChildRobotId) = new_beacon_id;
+
+            std::cout << "For robot " << m_unRobotId << " in CLinkChainBehavior passing beacon signal to robot " << new_beacon_id << std::endl;
         }
     }
-    else
+    else if(*m_iParentRobotId == -1) // robot is not yet part of chain
     {
         m_pcLeds->SetColor(CColor::BLUE);
 
@@ -150,13 +166,14 @@ void CLinkChainBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
                 // First, check if beacon robot has accepted a connection request.
                 for(size_t j = 0; j <  m_sSensoryData.m_RABSensorData[i].Data.Size(); ++j)
                 {
-                    if(m_sSensoryData.m_RABSensorData[i].Data[j] == CBehavior::m_sRobotData.CHAIN_CONNECTOR_REQUESTACCEPTED_MARKER)
+                    if(m_sSensoryData.m_RABSensorData[i].Data[j]   == CBehavior::m_sRobotData.CHAIN_CONNECTOR_REQUESTACCEPTED_MARKER &&
+                       m_sSensoryData.m_RABSensorData[i].Data[j+1] == m_unRobotId)
                     {
 
                         std::cout << "For robot " << m_unRobotId << " CLinkChainBehavior::Action of robot -- beacon signal passed" <<  std::endl;
 
-                        m_bBeaconSignalOn = true;
-                        m_iParentRobotId = robot_id;
+                        (*m_bBeaconSignalOn) = true;
+                        (*m_iParentRobotId) = robot_id;
                         return;
                     }
                 }
@@ -166,10 +183,14 @@ void CLinkChainBehavior::Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed)
                 m_pcRABA->SetData((*m_ptrRabDataIndex)++, CBehavior::m_sRobotData.CHAIN_CONNECTOR_PACKET_MARKER);
                 m_pcRABA->SetData((*m_ptrRabDataIndex)++, CBehavior::m_sRobotData.CHAIN_CONNECTOR_REQUEST_MARKER);
                 m_pcRABA->SetData((*m_ptrRabDataIndex)++, CBehavior::m_sRobotData.CHAIN_CONNECTOR_PACKET_FOOTER_MARKER);
+                (*m_iTimeLastRequest) = m_sSensoryData.m_rTime;
+                std::cout << "For robot " << m_unRobotId << " in CLinkChainBehavior requesting beacon signal " << std::endl;
                 return;
             }
         }
     }
+    else // robot is part of chain -- but not the last node
+        m_pcLeds->SetColor(CColor::GREEN);
 }
 
 /******************************************************************************/
