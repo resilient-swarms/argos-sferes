@@ -13,7 +13,8 @@ mkdir -p $data
 declare -A descriptors
 declare -A voronoi
 
-
+descriptors["cvt_spirit"]=10
+voronoi["cvt_spirit"]="cvt"
 descriptors["Gomes_sdbc_walls_and_robots_std"]=10
 voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 time["DecayCoverage"]=200
@@ -48,7 +49,7 @@ for FitfunType in DecayCoverage DecayBorderCoverage Dispersion Aggregation Flock
 	    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 	
 	    mkdir -p $Outfolder
-            sed -e "s|THREADS|10|" \
+           sed -e "s|THREADS|0|" \
 		-e "s|TRIALS|50|" \
                 -e "s|ROBOTS|5|"                    \
                 -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
