@@ -50,10 +50,10 @@
                   label="evolution_loopfunctionscvt14D"
                   trials="5"
                   robots="1"
-                  descriptortype="cvt_mutualinfoact"  
+                  descriptortype="cvt_sdbc_all_std"  
                   fitfuntype="Coverage"
                   bd_dims="3"
-		  output_folder="experiments"
+		   output_folder="experiments/sdbc_all_std"
 centroids_folder="experiments/centroids"
                     />
 
