@@ -46,17 +46,26 @@ else(NOT Boost_FOUND)
     message(FATAL_ERROR "Unable to continue without BOOST")
 endif()
 
-#Find TBB libs -- script from https://github.com/justusc/FindTBB
-find_package(TBB) #COMPONENTS tbbmalloc tbbmalloc_proxy 
-if(TBB_FOUND)
-    include_directories(${TBB_INCLUDE_DIRS})
-    message("TBB headers found in: " ${TBB_INCLUDE_DIRS})
-    message("TBB libs: " ${TBB_LIBRARIES})
-else(NOT TBB_FOUND)
-    message("Unable to find TBB. Will not be able to run sferes eval::Parallel")
-    add_definitions( -DNO_PARALLEL )
-    set(TBB_INCLUDE_DIRS "")
-    set(TBB_LIBRARIES "")
+
+option(IRIDIS "using IRIDIS or not" OFF)
+
+if(IRIDIS)
+	include_directories($ENV{TBB_INCLUDE_DIRS})  # /local/software/intel-tbb/2018.1/include
+	link_directories($ENV{TBB_LIBRARIES})   # /local/software/intel-tbb/2018.1/lib
+	set(TBB_LIBRARIES $ENV{TBB_LIBRARIES}/libtbb.so $ENV{TBB_LIBRARIES}/libtbb.so $ENV{TBB_LIBRARIES}/libtbbmalloc.so $ENV{TBB_LIBRARIES}/libtbbmalloc_proxy.so)
+
+else(NOT IRIDIS)
+	#Find TBB libs -- script from https://github.com/justusc/FindTBB
+	find_package(TBB COMPONENTS tbbmalloc tbbmalloc_proxy) 
+	if(TBB_FOUND)
+     		 message("TBB headers found in: " ${TBB_INCLUDE_DIRS})
+    		message("TBB libs: " ${TBB_LIBRARIES})
+	else(NOT TBB_FOUND)
+		message("Unable to find TBB. Will not be able to run sferes eval::Parallel")
+		add_definitions( -DNO_PARALLEL )
+		set(TBB_INCLUDE_DIRS "")
+		set(TBB_LIBRARIES "")
+	endif()
 endif()
 
 # Eigen3
@@ -232,7 +241,7 @@ else(NOT BASELINE)
     else(NOT BO)
         message("Bayesian Optimisation is NOT defined")
         message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native" )  
+        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
     endif()
     
     add_definitions(-DTAG="${tag}")

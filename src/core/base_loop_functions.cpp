@@ -221,12 +221,28 @@ void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
 void BaseLoopFunctions::reset_agent_positions()
 {
     for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
-    {
-        MoveEntity(get_embodied_entity(m_unRobot),            // move the body of the robot
+    {   
+        CEmbodiedEntity& entity = get_embodied_entity(m_unRobot);
+        CPhysicsModel* model;
+
+        
+        bool moved = entity.MoveTo(
                    m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
                    m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
                    false                                                    // this is not a check, leave the robot there
         );
+
+        for (size_t i=0; i < 4; ++i)
+        {
+            try{
+                model = &entity.GetPhysicsModel("dyn2d_"+std::to_string(i));
+                std::cout<<"Found the entity !"<<std::endl;
+            }
+            catch(argos::CARGoSException e){
+                continue;
+            }
+        }
+        model->UpdateEntityStatus();
         old_pos[m_unRobot] = m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position;
         CVector3 axis;
         m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
@@ -238,13 +254,14 @@ void BaseLoopFunctions::Reset()
     //NOTE : replaced code from here to reset_agent_positions to allow multiple physics engines
 
     //
-    for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
-    {
-        old_pos[m_unRobot] =get_embodied_entity(m_unRobot).GetOriginAnchor().Position;
-        CVector3 axis;
-        get_embodied_entity(m_unRobot).GetOriginAnchor().Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
-        old_theta[ m_unRobot].UnsignedNormalize();
-    }
+    // for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
+    // {
+    //     old_pos[m_unRobot] =get_embodied_entity(m_unRobot).GetOriginAnchor().Position;
+    //     CVector3 axis;
+    //     get_embodied_entity(m_unRobot).GetOriginAnchor().Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
+    //     old_theta[ m_unRobot].UnsignedNormalize();
+    // }
+    reset_agent_positions();
 }
 
 void BaseLoopFunctions::PostStep()
@@ -283,13 +300,13 @@ void BaseLoopFunctions::start_trial(argos::CSimulator &cSimulator)
     SetTrial();
 
 
+ 
 
     /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
     cSimulator.Reset();
 
-
     // comment this line if you want to run without error
-    reset_agent_positions();
+    //reset_agent_positions();
 
     /* take into account the new settings in the fitness functions */
     fitfun->before_trial(*this);
