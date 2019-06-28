@@ -236,7 +236,7 @@ void BaseLoopFunctions::reset_agent_positions()
         {
             try{
                 model = &entity.GetPhysicsModel("dyn2d_"+std::to_string(i));
-                std::cout<<"Found the entity !"<<std::endl;
+                //std::cout<<"Found the entity !"<<std::endl;
             }
             catch(argos::CARGoSException e){
                 continue;
@@ -253,7 +253,7 @@ void BaseLoopFunctions::Reset()
 {
     //NOTE : replaced code from here to reset_agent_positions to allow multiple physics engines
 
-    //
+    
     // for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
     // {
     //     old_pos[m_unRobot] =get_embodied_entity(m_unRobot).GetOriginAnchor().Position;
@@ -261,6 +261,8 @@ void BaseLoopFunctions::Reset()
     //     get_embodied_entity(m_unRobot).GetOriginAnchor().Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
     //     old_theta[ m_unRobot].UnsignedNormalize();
     // }
+    
+    
     reset_agent_positions();
 }
 
