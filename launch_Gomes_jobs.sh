@@ -13,7 +13,7 @@ mkdir -p $data
 declare -A descriptors
 declare -A voronoi
 
-descriptors["cvt_spirit"]=10
+descriptors["cvt_spirit"]=400
 voronoi["cvt_spirit"]="cvt"
 descriptors["Gomes_sdbc_walls_and_robots_std"]=10
 voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
