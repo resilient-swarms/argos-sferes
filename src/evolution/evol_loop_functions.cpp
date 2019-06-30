@@ -303,13 +303,16 @@ void EvolutionLoopFunctions::PostStep()
         // update the position and orientation
         CVector3 axis;
         cThymio->GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta[robotindex], axis);
-        curr_theta[robotindex].UnsignedNormalize();
-
+        //curr_theta[robotindex].UnsignedNormalise();
+        
         curr_pos[robotindex] = cThymio->GetEmbodiedEntity().GetOriginAnchor().Position;
 
         std::cout<<"PostStep : before descriptor"<<std::endl;
-        std::cout<<"old theta"<<robotindex<<":"<<old_theta[robotindex]<<std::endl;
-        std::cout<<"curr theta"<<robotindex<<":"<<curr_theta[robotindex]<<std::endl;
+        std::cout<<"old theta"<<robotindex<<":"<<old_theta[robotindex].GetValue()<<std::endl;
+        std::cout<<"curr theta"<<robotindex<<":"<<curr_theta[robotindex].GetValue()<<std::endl;
+        CRadians theta;
+        cThymio->GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(theta, axis);
+        std::cout<<"comparison with thymio "<<robotindex<<":"<<theta.GetValue();
         this->descriptor->set_input_descriptor(robotindex, *this);
         this->descriptor->set_output_descriptor(robotindex, *this);
     }

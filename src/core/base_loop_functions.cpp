@@ -30,9 +30,9 @@ void BaseLoopFunctions::init_robots()
     
 }
 
-CEmbodiedEntity& BaseLoopFunctions::get_embodied_entity(size_t robot)
+CEmbodiedEntity* BaseLoopFunctions::get_embodied_entity(size_t robot)
 {
-    return m_pcvecRobot[robot]->GetEmbodiedEntity();
+    return &m_pcvecRobot[robot]->GetEmbodiedEntity();
 }
 
 /* get the controller  */
@@ -80,10 +80,10 @@ void BaseLoopFunctions::place_robots()
                                         CRadians::ZERO,
                                         CRadians::ZERO);
 
-            while (!MoveEntity(get_embodied_entity(m_unRobot), // move the body of the robot
+            while (!get_embodied_entity(m_unRobot)->MoveTo( // move the body of the robot
                                Position,                                     // to this position
                                Orientation,                                  // with this orientation
-                               false                                         // this is not a check, leave the robot there
+                               false                                        // this is not a check, leave the robot there
                                ))
             {
                 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
@@ -223,11 +223,11 @@ void BaseLoopFunctions::reset_agent_positions()
 {
     for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
     {   
-        CEmbodiedEntity& entity = get_embodied_entity(m_unRobot);
+        CEmbodiedEntity* entity = get_embodied_entity(m_unRobot);
         CPhysicsModel* model;
 
         
-        bool moved = entity.MoveTo(
+        bool moved = entity->MoveTo(
                    m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
                    m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
                    false                                                    // this is not a check, leave the robot there
@@ -236,7 +236,7 @@ void BaseLoopFunctions::reset_agent_positions()
         for (size_t i=0; i < 4; ++i)
         {
             try{
-                model = &entity.GetPhysicsModel("dyn2d_"+std::to_string(i));
+                model = &entity->GetPhysicsModel("dyn2d_"+std::to_string(i));
                 //std::cout<<"Found the entity !"<<std::endl;
             }
             catch(argos::CARGoSException e){
@@ -245,15 +245,25 @@ void BaseLoopFunctions::reset_agent_positions()
         }
         model->UpdateEntityStatus();
 
-        old_pos[m_unRobot] = m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position;
+        old_pos[m_unRobot] = entity->GetOriginAnchor().Position;
         curr_pos[m_unRobot] = old_pos[m_unRobot];
         CVector3 axis;
-        m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
-        old_theta[m_unRobot].UnsignedNormalize();
+        entity->GetOriginAnchor().Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
         curr_theta[m_unRobot] = old_theta[m_unRobot];
-        std::cout<<"reset"<<std::endl;
-        std::cout<<"old theta"<<m_unRobot<<":"<<old_theta[m_unRobot]<<std::endl;
-        std::cout<<"curr theta"<<m_unRobot<<":"<<curr_theta[m_unRobot]<<std::endl;
+        // old_pos[m_unRobot] = m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position;
+        // curr_pos[m_unRobot] = old_pos[m_unRobot];
+        // CVector3 axis;
+        // m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation;
+        // curr_theta[m_unRobot] = old_theta[m_unRobot];
+
+        
+        // std::cout<<"reset"<<std::endl;
+        // std::cout<<"old theta"<<m_unRobot<<":"<<old_theta[m_unRobot]<<std::endl;
+        // std::cout<<"curr theta"<<m_unRobot<<":"<<curr_theta[m_unRobot]<<std::endl;
+        // CVector3 axis2;
+        // CRadians theta;
+        // .ToAngleAxis(theta, axis);
+        // std::cout<<"comparison with thymio "<<m_unRobot<<":"<<theta<<std::endl;
     }
 }
 void BaseLoopFunctions::Reset()
@@ -270,7 +280,7 @@ void BaseLoopFunctions::Reset()
     // }
     
     
-    reset_agent_positions();
+    //reset_agent_positions();
 }
 
 void BaseLoopFunctions::PostStep()
@@ -313,7 +323,7 @@ void BaseLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 
     /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
     cSimulator.Reset();
-
+    reset_agent_positions();
     // comment this line if you want to run without error
     //reset_agent_positions();
 
@@ -410,7 +420,7 @@ float BaseLoopFunctions::actual_turn_velocity_01(size_t robot_index)
         // need to normalise by the max possible angle change; cf. https://www.argos-sim.info/forum/viewtopic.php?t=79
         // maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed = (A * B) / (2 * T)
         // --> maxA = 2*T*maxV/B
-        float B =0.09;// THYMIO's INTERWHEEL DISTANCE (m) !
+        float B =0.045;// THYMIO's INTERWHEEL DISTANCE (m) ! ( a little bit lower than actual seems to be needed)
         float maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed/100.0f;// max speed (m/s)
         float theta_curr = curr_theta[robot_index].GetValue();
         float theta_old = old_theta[robot_index].GetValue();
@@ -418,18 +428,19 @@ float BaseLoopFunctions::actual_turn_velocity_01(size_t robot_index)
         float maxA = 2*tick_time*maxV/B;
         int sign;
         float signed_angle;
-        if (diff > maxA)
-        {
-            // check if we passed the periodicity
-            // if so, add two pi to the lowest
-            if(theta_curr<theta_old)
-            {
-                theta_curr += M_2PI;
-            }
-            else{
-                theta_old += M_2_PI;
-            }
-        }
+        // does not seem to be necessary: even without normalisation radians seems to never go out [0,2Pi]
+        // if (diff > maxA)
+        // {
+        //     // check if we passed the periodicity
+        //     // if so, add two pi to the lowest
+        //     if(theta_curr<theta_old)
+        //     {
+        //         theta_curr += M_2PI;
+        //     }
+        //     else{
+        //         theta_old += M_2_PI;
+        //     }
+        // }
         if (theta_curr < theta_old)
         {
             sign = 1.0;
@@ -439,9 +450,18 @@ float BaseLoopFunctions::actual_turn_velocity_01(size_t robot_index)
             sign = -1.0;
         }
         
+
+        // at 2pi radians it seems to go back in direction regardless, alternative is to determine sign of the rotation based on wheel speeds
+        // if (get_controller(robot_index)->m_fLeftSpeed < get_controller(robot_index)->m_fRightSpeed)
+        // {
+        //     sign = 1.0;
+        // }
+        // else
+        // {
+        //     sign = -1.0;
+        // }
         float turn_velocity = sign*(theta_curr - theta_old)/maxA;// in [-1,1]
         turn_velocity =0.5 + 0.5*turn_velocity;
-        
         return turn_velocity;
     }
 

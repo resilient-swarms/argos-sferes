@@ -253,6 +253,9 @@ public:
     bool check_BD_choice(const std::string choice);
 
     Real get_Max_Sens(CThymioNNController &controller);
+    
+
+
 
     /* get bin for sensory probabilities  */
     size_t get_sensory_bin(size_t i, size_t num_bins) const;

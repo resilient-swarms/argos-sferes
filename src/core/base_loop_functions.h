@@ -46,7 +46,7 @@ public:
     virtual std::string get_controller_id()=0;
 
     /* embodied entity  */
-    virtual CEmbodiedEntity& get_embodied_entity(size_t robot);
+    virtual CEmbodiedEntity* get_embodied_entity(size_t robot);
 
     /* get RAB range */
     Real get_RAB_range(size_t robot);
@@ -96,8 +96,6 @@ public:
     float actual_turn_velocity_01(size_t robot_index);
     /* linear velocity normalised to [-1,1]*/
     float actual_linear_velocity_signed(size_t robot_index);
-
-    
 
 public:
 

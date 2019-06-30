@@ -254,7 +254,7 @@ SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Desc
 /* minimial robot distance */
 float SDBC::minimal_robot_distance(EvolutionLoopFunctions* cLoopFunctions)
 {
-	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0).GetBoundingBox();
+	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0)->GetBoundingBox();
 
     return StatFuns::get_minkowski_distance(bounding_box.MaxCorner,bounding_box.MinCorner);// at least one robot body
 }
@@ -308,7 +308,7 @@ std::pair<float,float> SDBC::get_wallsrobots_range(EvolutionLoopFunctions* cLoop
 	// the range depends on the arena; since many robots can be close to each other without affecting this metric
 	// here approximate this by filling the XY-grid and calculating the distance, then taking max and min
 	CVector3 maxArena = cLoopFunctions->GetSpace().GetArenaSize();
-	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0).GetBoundingBox();
+	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0)->GetBoundingBox();
 
     float xdim = bounding_box.MaxCorner.GetX() - bounding_box.MinCorner.GetX();
     float ydim = bounding_box.MaxCorner.GetY() - bounding_box.MinCorner.GetY();

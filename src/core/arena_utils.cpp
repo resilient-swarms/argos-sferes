@@ -17,7 +17,7 @@ void CoverageCalc::define_grid(BaseLoopFunctions* cLoopFunctions)
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
 
 
-    SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0).GetBoundingBox();
+    SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0)->GetBoundingBox();
 
     float xdim = bounding_box.MaxCorner.GetX() - bounding_box.MinCorner.GetX();
     float ydim = bounding_box.MaxCorner.GetY() - bounding_box.MinCorner.GetY();
