@@ -241,7 +241,7 @@ else(NOT BASELINE)
     else(NOT BO)
         message("Bayesian Optimisation is NOT defined")
         message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
+      #  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
     endif()
     
     add_definitions(-DTAG="${tag}")

@@ -72,7 +72,7 @@ void EvolutionLoopFunctions::Init(TConfigurationNode &t_node)
 }
 
 /* get the controller  */
-BaseController* EvolutionLoopFunctions::get_controller(size_t robot)
+BaseController *EvolutionLoopFunctions::get_controller(size_t robot)
 {
     return m_pcvecController[robot];
 }
@@ -118,7 +118,7 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         }
         else if (s == "environment_diversity")
         {
-            this->descriptor = new EnvironmentDiversity(*this,"experiments/generator",2);
+            this->descriptor = new EnvironmentDiversity(*this, "experiments/generator", 2);
         }
         else
         {
@@ -156,7 +156,7 @@ void EvolutionLoopFunctions::init_robots()
 
     BaseLoopFunctions::init_robots();
     m_pcvecController.clear();
-    for (size_t robotindex=0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+    for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
         m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
     }
@@ -245,7 +245,7 @@ void EvolutionLoopFunctions::PreStep()
         //assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
         inputs.clear();
         inputs = cController->InputStep();
-        this->descriptor->set_input_descriptor(robotindex, *this);
+        
 
         //      _ctrlrob.step(inputs);
         _vecctrlrob[robotindex].step(inputs);
@@ -267,17 +267,11 @@ void EvolutionLoopFunctions::PreStep()
                 outf[j] = 0.0;
             else
                 outf[j] = cController->m_sWheelTurningParams.MaxSpeed * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
-                                                                                                              //outf[j]=10.0f*(2.0f*_vecctrlrob[robotindex].get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
+                                                                                                               //outf[j]=10.0f*(2.0f*_vecctrlrob[robotindex].get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
         cController->m_fLeftSpeed = outf[0];
         cController->m_fRightSpeed = outf[1];
         if (cController->b_damagedrobot)
             cController->damage_actuators();
-        CVector3 axis;
-        cThymio->GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta[robotindex], axis);
-        curr_theta[robotindex].UnsignedNormalize();
-
-        curr_pos[robotindex] = cThymio->GetEmbodiedEntity().GetOriginAnchor().Position;
-
 
 #ifdef PRINTING
         std::cout << "current position" << curr_pos[robotindex] << std::endl;
@@ -286,7 +280,7 @@ void EvolutionLoopFunctions::PreStep()
         std::cout << "old orientation" << old_pos[robotindex] << std::endl;
 #endif
 
-        this->descriptor->set_output_descriptor(robotindex, *this);
+        
         if (this->fitfun->quit_on_collision())
         {
             stop_eval = cThymio->GetEmbodiedEntity().IsCollidingWithSomething();
@@ -299,11 +293,26 @@ void EvolutionLoopFunctions::PreStep()
             }
         }
     }
-   
 }
 void EvolutionLoopFunctions::PostStep()
 {
-    
+    for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+    {
+        CThymioEntity *cThymio = m_pcvecRobot[robotindex];
+        CThymioNNController *cController = m_pcvecController[robotindex];
+        // update the position and orientation
+        CVector3 axis;
+        cThymio->GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta[robotindex], axis);
+        curr_theta[robotindex].UnsignedNormalize();
+
+        curr_pos[robotindex] = cThymio->GetEmbodiedEntity().GetOriginAnchor().Position;
+
+        std::cout<<"PostStep : before descriptor"<<std::endl;
+        std::cout<<"old theta"<<robotindex<<":"<<old_theta[robotindex]<<std::endl;
+        std::cout<<"curr theta"<<robotindex<<":"<<curr_theta[robotindex]<<std::endl;
+        this->descriptor->set_input_descriptor(robotindex, *this);
+        this->descriptor->set_output_descriptor(robotindex, *this);
+    }
     descriptor->after_robotloop(*this);
     BaseLoopFunctions::PostStep();
 }
@@ -395,7 +404,6 @@ size_t EvolutionLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
     size_t bin2 = get_actuator_bin(1, num_bins);
     return bin1 * num_bins + bin2;
 }
-
 
 /****************************************/
 /****************************************/

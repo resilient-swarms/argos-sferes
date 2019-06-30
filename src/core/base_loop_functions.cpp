@@ -6,6 +6,7 @@
 #include <src/core/environment_generator.h>
 
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
+#include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
 
 BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0),m_vecInitSetup(0)
@@ -243,10 +244,16 @@ void BaseLoopFunctions::reset_agent_positions()
             }
         }
         model->UpdateEntityStatus();
+
         old_pos[m_unRobot] = m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position;
+        curr_pos[m_unRobot] = old_pos[m_unRobot];
         CVector3 axis;
         m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
         old_theta[m_unRobot].UnsignedNormalize();
+        curr_theta[m_unRobot] = old_theta[m_unRobot];
+        std::cout<<"reset"<<std::endl;
+        std::cout<<"old theta"<<m_unRobot<<":"<<old_theta[m_unRobot]<<std::endl;
+        std::cout<<"curr theta"<<m_unRobot<<":"<<curr_theta[m_unRobot]<<std::endl;
     }
 }
 void BaseLoopFunctions::Reset()
@@ -394,8 +401,50 @@ float BaseLoopFunctions::actual_linear_velocity_01(size_t robot_index)
 /* turn velocity normalised to [0,1], based on the actual orientations rather than wheel speed*/
 float BaseLoopFunctions::actual_turn_velocity_01(size_t robot_index)
 {
-    float theta = old_theta[robot_index].GetValue();
-    return (M_2PI + (curr_theta[robot_index].GetValue() - old_theta[robot_index].GetValue()))/(2.0*M_2PI);// in [0,1]
+    if (curr_theta[robot_index] == old_theta[robot_index])
+    {
+        return 0.5f; //exactly on the middle of the range (equivalent to V=0)
+    }
+    else
+    {
+        // need to normalise by the max possible angle change; cf. https://www.argos-sim.info/forum/viewtopic.php?t=79
+        // maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed = (A * B) / (2 * T)
+        // --> maxA = 2*T*maxV/B
+        float B =0.09;// THYMIO's INTERWHEEL DISTANCE (m) !
+        float maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed/100.0f;// max speed (m/s)
+        float theta_curr = curr_theta[robot_index].GetValue();
+        float theta_old = old_theta[robot_index].GetValue();
+        float diff = std::abs(theta_curr - theta_old);
+        float maxA = 2*tick_time*maxV/B;
+        int sign;
+        float signed_angle;
+        if (diff > maxA)
+        {
+            // check if we passed the periodicity
+            // if so, add two pi to the lowest
+            if(theta_curr<theta_old)
+            {
+                theta_curr += M_2PI;
+            }
+            else{
+                theta_old += M_2_PI;
+            }
+        }
+        if (theta_curr < theta_old)
+        {
+            sign = 1.0;
+        }
+        else
+        {
+            sign = -1.0;
+        }
+        
+        float turn_velocity = sign*(theta_curr - theta_old)/maxA;// in [-1,1]
+        turn_velocity =0.5 + 0.5*turn_velocity;
+        
+        return turn_velocity;
+    }
+
 }
 /* linear velocity normalised to [-1,1]*/
 float BaseLoopFunctions::actual_linear_velocity_signed(size_t robot_index)
