@@ -8,6 +8,8 @@
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
+#include <argos3/plugins/robots/thymio/simulator/thymio_measures.h>
+
 
 BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0),m_vecInitSetup(0)
 {
@@ -403,7 +405,7 @@ float BaseLoopFunctions::actual_turn_velocity_01(size_t robot_index)
         // need to normalise by the max possible angle change; cf. https://www.argos-sim.info/forum/viewtopic.php?t=79
         // maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed = (A * B) / (2 * T)
         // --> maxA = 2*T*maxV/B
-        float B =0.08;// THYMIO's INTERWHEEL DISTANCE (m) ! ( a little bit lower than actual seems to be needed)
+        float B = Thymio_WHEEL_DISTANCE;// THYMIO's INTERWHEEL DISTANCE (m)
         float maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed/100.0f;// max speed (m/s)
         float angle_difference = argos::NormalizedDifference(curr_theta[robot_index],old_theta[robot_index]).GetValue();
         float maxA = 2*tick_time*maxV/B;// this comes at 0.25 which agrees with the value when setting V_l=-Max and V_r=+Max
