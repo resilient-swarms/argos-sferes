@@ -244,7 +244,7 @@ public:
 
     void before_trials(argos::CSimulator &cSimulator);
     void start_trial(CSimulator &cSimulator);
-    void end_trial(Real time);
+    void end_trial();
 
     /* following are all functions useful for setting the descriptor */
 

@@ -6,6 +6,7 @@
 
 FloreanoMondada::FloreanoMondada() : FitFun()
 {
+    num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock();
 }
 
 void FloreanoMondada::after_robotloop(BaseLoopFunctions &cLoopFunctions)
@@ -25,9 +26,9 @@ void FloreanoMondada::after_robotloop(BaseLoopFunctions &cLoopFunctions)
     nb_coll += (1.0f - maxIRSensor);
 }
 /*after completing a trial,calc fitness*/
-void FloreanoMondada::apply(BaseLoopFunctions &cLoopFunctions, Real time)
+void FloreanoMondada::apply(BaseLoopFunctions &cLoopFunctions)
 {
-    float fit = lin_speed / time * (Real)nb_coll / time;
+    float fit = lin_speed / num_updates * (Real)nb_coll / num_updates;
     fitness_per_trial.push_back(fit);
 };
 
@@ -48,6 +49,7 @@ void FloreanoMondada::print_progress(size_t trial)
 }
 MeanSpeed::MeanSpeed() : FitFun()
 {
+    num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock();
 }
 
 void MeanSpeed::after_robotloop(BaseLoopFunctions &cLoopFunctions)
@@ -67,9 +69,9 @@ void MeanSpeed::after_robotloop(BaseLoopFunctions &cLoopFunctions)
     nb_coll += (1.0f - maxIRSensor);
 }
 /*after completing a trial,calc fitness*/
-void MeanSpeed::apply(BaseLoopFunctions &cLoopFunctions, Real time)
+void MeanSpeed::apply(BaseLoopFunctions &cLoopFunctions)
 {
-    float fit = lin_speed / time * (Real)nb_coll / time;
+    float fit = lin_speed / num_updates * (Real)nb_coll / num_updates;
     fitness_per_trial.push_back(fit);
 
     // reset
@@ -109,14 +111,14 @@ Coverage::Coverage(std::string init_string, BaseLoopFunctions *cLoopFunctions)
     {
         throw std::runtime_error("init string should be either Coverage or BorderCoverage");
     }
+    num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock();
 }
 
 /*after completing trial, calc fitness*/
-void Coverage::apply(BaseLoopFunctions &cLoopFunctions, Real time)
+void Coverage::apply(BaseLoopFunctions &cLoopFunctions)
 {
     //coverage
     fitness_per_trial.push_back(coverageCalc->get_coverage());
-    num_updates = 0;
     coverageCalc->after_trial();
 }
 
@@ -126,7 +128,6 @@ void Coverage::after_robotloop(BaseLoopFunctions &cLoopFunctions)
     for (size_t robot_index = 0; robot_index < cLoopFunctions.curr_pos.size(); ++robot_index)
     {
         coverageCalc->update(cLoopFunctions.curr_pos[robot_index]);
-        ++num_updates;
     }
 }
 /*after completing all trials, combine fitness*/
@@ -158,10 +159,11 @@ void TrialCoverage::before_trial(BaseLoopFunctions &cLoopFunctions)
 DecayCoverage::DecayCoverage(std::string init_string, BaseLoopFunctions *cLoopFunctions)
 {
     coverageCalc = new DecayCoverageCalc(init_string, cLoopFunctions);
+    num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock(); // one update for the entire swarm
 }
 
 /*after completing trial, calc fitness*/
-void DecayCoverage::apply(BaseLoopFunctions &cLoopFunctions, Real time)
+void DecayCoverage::apply(BaseLoopFunctions &cLoopFunctions)
 {
     //coverage
     float sum = coverageCalc->accumulator;
@@ -171,7 +173,6 @@ void DecayCoverage::apply(BaseLoopFunctions &cLoopFunctions, Real time)
         throw std::runtime_error("fitness not in [0,1]");
     }
     fitness_per_trial.push_back(coverage);
-    num_updates = 0;
     coverageCalc->end_trial();
 }
 
@@ -182,8 +183,7 @@ void DecayCoverage::after_robotloop(BaseLoopFunctions &cLoopFunctions)
     {
         coverageCalc->update(cLoopFunctions.curr_pos[robot_index]);
     }
-    coverageCalc->get_grid_sum();
-    ++num_updates; // one update for the entire swarm
+    coverageCalc->get_grid_sum(); // one update for the entire swarm
     coverageCalc->decay();
 }
 /*after completing all trials, combine fitness*/
@@ -199,15 +199,15 @@ Aggregation::Aggregation(BaseLoopFunctions *cLoopFunctions) : FitFun()
 {
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
     maxdist = StatFuns::get_minkowski_distance(CVector3(max.GetX(), max.GetY(), 0.0f), argos::CVector3::ZERO);
+    num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock(); // one update for the entire swarm // one update for the entire swarm
 }
 void Aggregation::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     std::pair<std::vector<argos::CVector3>, argos::CVector3> data = centre_of_mass(cLoopFunctions);
     trial_dist += StatFuns::get_avg_dist(data.first, data.second);
-    ++num_updates;
 }
 /*after completing a trial,calc fitness*/
-void Aggregation::apply(BaseLoopFunctions &cLoopFunctions, Real time)
+void Aggregation::apply(BaseLoopFunctions &cLoopFunctions)
 {
     //The fitness function is inversely
     //proportional to the average distance to the centre of mass over the entire simulation
@@ -218,7 +218,6 @@ void Aggregation::apply(BaseLoopFunctions &cLoopFunctions, Real time)
         throw std::runtime_error("fitness not in [0,1]");
     }
     fitness_per_trial.push_back(fitness);
-    num_updates = 0;
     trial_dist = 0.0f;
 };
 
@@ -269,9 +268,11 @@ Dispersion::Dispersion(BaseLoopFunctions *cLoopFunctions)
 {
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
     maxdist = StatFuns::get_minkowski_distance(CVector3(max.GetX(), max.GetY(), 0.0f), argos::CVector3::ZERO);
+    num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock(); // one update for the entire swarm
+
 }
 /*after completing trial, calc fitness*/
-void Dispersion::apply(BaseLoopFunctions &cLoopFunctions, Real time)
+void Dispersion::apply(BaseLoopFunctions &cLoopFunctions)
 {
     /*The fitness is proportional to the average distance to the nearest neighbour, 
     averaged over the entire simulation.*/
@@ -284,7 +285,6 @@ void Dispersion::apply(BaseLoopFunctions &cLoopFunctions, Real time)
         throw std::runtime_error("fitness not in [0,1]");
     }
     fitness_per_trial.push_back(normalised_dist);
-    num_updates = 0;
     trial_dist = 0.0f;
 }
 /*after completing all trials, combine fitness*/
@@ -297,7 +297,6 @@ float Dispersion::after_trials()
 void Dispersion::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     trial_dist += avg_min_dist(cLoopFunctions);
-    ++num_updates;
 }
 
 float Dispersion::avg_min_dist(BaseLoopFunctions &cLoopFunctions)
@@ -332,6 +331,7 @@ Flocking::Flocking(BaseLoopFunctions *cLoopFunctions)
     BaseController *ctrl = cLoopFunctions->get_controller(0); // assume all robots have the same RAB range
     flocking_range = (float)ctrl->max_rab_range / (2.0f);       //half the RAB sensor range (in meters)
     accumulator = 0.0f;
+    num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock(); // one update for the entire swarm
 }
 void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
@@ -340,7 +340,7 @@ void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
     for (int i = 0; i < cLoopFunctions.m_unNumberRobots; ++i)
     {
         CVector3 pos_i = cLoopFunctions.curr_pos[i];
-        float ai = cLoopFunctions.curr_theta[i].GetValue(); 
+        CRadians theta_i = cLoopFunctions.old_theta[i]; 
         for (int j = i + 1; j < cLoopFunctions.m_unNumberRobots; ++j)
         {
             CVector3 pos_j = cLoopFunctions.curr_pos[j];
@@ -354,9 +354,8 @@ void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 #endif
             if (dist < flocking_range)
             {
-
-                float aj = cLoopFunctions.curr_theta[j].GetValue();  // [0,2PI]
-                float angleDifference = std::min((2.0f * BOOST_PI) - std::abs(ai - aj), std::abs(ai - aj)); // [0,PI]
+                float angleDifference = argos::NormalizedDifference(theta_i,cLoopFunctions.old_theta[j]).GetValue();
+                angleDifference = std::min((2.0f * BOOST_PI) - std::abs(angleDifference), std::abs(angleDifference)); // [0,PI]
 
                 float vi = cLoopFunctions.actual_linear_velocity_signed(i);                                           // [-1,1]
                 float vj = cLoopFunctions.actual_linear_velocity_signed(j);                                           // [-1,1]
@@ -365,8 +364,8 @@ void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
                 temp_accum += (1.0 - std::min(1.0, angleDifference * 2.0 / BOOST_PI)) * std::max(0.0f, vi * vj);
 #ifdef PRINTING
 
-                std::cout<<"orientation agent "<< i <<" "<<ai <<std::endl;
-                std::cout<<"orientation agent "<< j <<" "<< aj <<std::endl;
+                std::cout<<"orientation agent "<< i <<" "<<theta_i <<std::endl;
+                std::cout<<"orientation agent "<< j <<" "<< cLoopFunctions.old_theta[j] <<std::endl;
                 std::cout <<"angle diff "<< angleDifference << std::endl;
                 std::cout<<"signedvelocity "<< i <<" "<< vi <<std::endl;
                 std::cout<<"signedvelocity "<< j <<" "<< vj <<std::endl;
@@ -379,10 +378,9 @@ void Flocking::after_robotloop(BaseLoopFunctions &cLoopFunctions)
     }
     temp_accum = temp_accum / num_calcs;// divide by the number of robot pairs
     accumulator += temp_accum;
-    ++num_updates;
 }
 /*after completing trial, calc fitness*/
-void Flocking::apply(BaseLoopFunctions &cLoopFunctions, Real time)
+void Flocking::apply(BaseLoopFunctions &cLoopFunctions)
 {
     /*The fitness function rewards robots for having an orientation 
    similar to the other robots within a radius of 25 cm (half the robot sensing range), 
@@ -396,7 +394,6 @@ void Flocking::apply(BaseLoopFunctions &cLoopFunctions, Real time)
     {
         throw std::runtime_error("fitness not in [0,1]");
     }
-    num_updates = 0;
     accumulator = 0.0f;
 }
 /*after completing all trials, combine fitness*/

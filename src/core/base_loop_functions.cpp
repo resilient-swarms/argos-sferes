@@ -235,17 +235,20 @@ void BaseLoopFunctions::reset_agent_positions()
                    false                                                    // this is not a check, leave the robot there
         );
 
-        for (size_t i=0; i < 4; ++i)
-        {
-            try{
-                model = &entity->GetPhysicsModel("dyn2d_"+std::to_string(i));
-                //std::cout<<"Found the entity !"<<std::endl;
-            }
-            catch(argos::CARGoSException e){
-                continue;
-            }
-        }
+        // for (size_t i=0; i < 4; ++i)
+        // {
+        //     try{
+        //         model = &entity->GetPhysicsModel("dyn2d_"+std::to_string(i));
+        //         //std::cout<<"Found the entity !"<<std::endl;
+        //     }
+        //     catch(argos::CARGoSException e){
+        //         continue;
+        //     }
+        // }
+        model = &entity->GetPhysicsModel("dyn2d_0");
         model->UpdateEntityStatus();
+
+ 
 
         old_pos[m_unRobot] = entity->GetOriginAnchor().Position;
         curr_pos[m_unRobot] = old_pos[m_unRobot];
@@ -253,6 +256,17 @@ void BaseLoopFunctions::reset_agent_positions()
         curr_theta[m_unRobot] = zAngle;
         old_theta[m_unRobot] = zAngle;
     }
+
+    // for (size_t i=0; i < 4; ++i)
+    // {
+    //     try{
+    //         CSimulator::GetInstance().GetPhysicsEngines()[i]->TransferEntities();
+        
+    //     }
+    //     catch (argos::CARGoSException e){
+    //         continue;
+    //     }
+    // }
 }
 void BaseLoopFunctions::Reset()
 {
@@ -270,9 +284,9 @@ void BaseLoopFunctions::PostStep()
     }
 }
 
-void BaseLoopFunctions::end_trial(Real time)
+void BaseLoopFunctions::end_trial()
 {
-    fitfun->apply(*this, time);
+    fitfun->apply(*this);
 }
 void BaseLoopFunctions::print_progress()
 {
@@ -344,9 +358,8 @@ void BaseLoopFunctions::perform_trial(argos::CSimulator &cSimulator)
 
     /* Run the experiment */
     cSimulator.Execute();
-    Real time = (Real)cSimulator.GetMaxSimulationClock();
 
-    end_trial(time);
+    end_trial();
 }
 float BaseLoopFunctions::alltrials_fitness()
 {

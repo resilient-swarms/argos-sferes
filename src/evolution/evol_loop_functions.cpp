@@ -194,6 +194,7 @@ void EvolutionLoopFunctions::PreStep()
         cController->m_fLeftSpeed = outf[0];
         cController->m_fRightSpeed = outf[1];
 
+        //TODO uncomment when doing perturbations
         /* if (cController->b_damagedrobot)
             cController->damage_actuators(); */
 
@@ -203,19 +204,27 @@ void EvolutionLoopFunctions::PreStep()
         std::cout << "current orientation" << curr_pos[robotindex] << std::endl;
         std::cout << "old orientation" << old_pos[robotindex] << std::endl;
 #endif
-
-        
-        if (this->fitfun->quit_on_collision())
+        stop_eval = cThymio->GetEmbodiedEntity().IsCollidingWithSomething();
+        if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
         {
-            stop_eval = cThymio->GetEmbodiedEntity().IsCollidingWithSomething();
-            if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
-            {
-                argos::CSimulator::GetInstance().Terminate();
+            argos::CSimulator::GetInstance().Terminate();
 #ifdef PRINTING
                 std::cout << "Terminate run permaturely" << std::endl;
 #endif
-            }
+            return;
         }
+        
+//         if (this->fitfun->quit_on_collision())
+//         {
+//             stop_eval = cThymio->GetEmbodiedEntity().IsCollidingWithSomething();
+//             if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
+//             {
+//                 argos::CSimulator::GetInstance().Terminate();
+// #ifdef PRINTING
+//                 std::cout << "Terminate run permaturely" << std::endl;
+// #endif
+//             }
+//         }
     }
 }
 void EvolutionLoopFunctions::PostStep()
@@ -225,7 +234,6 @@ void EvolutionLoopFunctions::PostStep()
         CThymioEntity *cThymio = m_pcvecRobot[robotindex];
         // update the position and orientation
         curr_theta[robotindex] = get_orientation(robotindex);
-        //curr_theta[robotindex].UnsignedNormalise();
         
         curr_pos[robotindex] = cThymio->GetEmbodiedEntity().GetOriginAnchor().Position;
 
@@ -256,9 +264,9 @@ void EvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)
     for (size_t j = 0; j < m_unNumberRobots; ++j)
         _vecctrlrob[j].init(); // a copied nn object needs to be init before use
 }
-void EvolutionLoopFunctions::end_trial(Real time)
+void EvolutionLoopFunctions::end_trial()
 {
-    BaseLoopFunctions::end_trial(time);
+    BaseLoopFunctions::end_trial();
     descriptor->end_trial(*this);
 }
 

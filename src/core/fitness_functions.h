@@ -10,8 +10,11 @@
 class FitFun
 {
 public:
+  size_t num_updates;
   std::vector<float> fitness_per_trial;
-  FitFun(){};
+  FitFun(){
+
+  };
   virtual inline bool quit_on_collision() const
   {
     return false;
@@ -26,7 +29,7 @@ public:
   /*after a single step of all agents */
   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions){};
   /*after completing trial, calc fitness*/
-  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time) = 0;
+  virtual void apply(BaseLoopFunctions &cLoopFunctions) = 0;
 
   /*after completing all trials, combine fitness*/
   virtual float after_trials() = 0;
@@ -50,7 +53,7 @@ public:
   /*after a single step of all agents */
   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
   /*after completing trial, calc fitness*/
-  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions);
 
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
@@ -71,7 +74,7 @@ public:
   /*after a single step of all agents */
   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
   /*after completing trial, calc fitness*/
-  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions);
 
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
@@ -94,7 +97,7 @@ public:
   /*after a single step of all agents */
   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
   /*after completing trial, calc fitness*/
-  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions);
 
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
@@ -131,7 +134,7 @@ public:
   /*after a single step of all agents */
   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
   /*after completing trial, calc fitness*/
-  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions);
 
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
@@ -154,7 +157,7 @@ public:
   Aggregation(BaseLoopFunctions *cLoopFunctions);
 
   /*after completing trial, calc fitness*/
-  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions);
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
   /*after a single step of all agents */
@@ -176,7 +179,7 @@ public:
   Dispersion(BaseLoopFunctions *cLoopFunctions);
 
   /*after completing trial, calc fitness*/
-  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions);
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
   /*after a single step of all agents */
@@ -199,7 +202,7 @@ public:
   Flocking(BaseLoopFunctions *cLoopFunctions);
 
   /*after completing trial, calc fitness*/
-  virtual void apply(BaseLoopFunctions &cLoopFunctions, Real time);
+  virtual void apply(BaseLoopFunctions &cLoopFunctions);
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
   /*after a single step of all agents */
