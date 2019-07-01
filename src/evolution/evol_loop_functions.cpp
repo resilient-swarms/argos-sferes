@@ -161,73 +161,6 @@ void EvolutionLoopFunctions::init_robots()
         m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
     }
 }
-
-// /* Process perturbations */
-// void EvolutionLoopFunctions::init_perturbations(TConfigurationNode &t_node)
-// {
-//     try
-//     {
-//         std::string s;
-//         GetNodeAttribute(t_node, "perturbationtype", s);
-//         if (s == "proximity_random")
-//         {
-//             this->descriptor = new AutoDescriptor();
-//         }
-//         else if (s == "history")
-//         {
-//             this->descriptor = new IntuitiveHistoryDescriptor(this);
-//         }
-//         else if (s.find("sdbc")!=std::string::npos)
-//         {
-//             this->descriptor = new SDBC(this, s);
-//         }
-//         else if (s == "average")
-//         {
-//             this->descriptor = new AverageDescriptor();
-//         }
-//         else if (s == "cvt_trajectory")
-//         {
-//             this->descriptor = new CVT_Trajectory(*this, argos::CSimulator::GetInstance().GetMaxSimulationClock());
-//         }
-//         else if (s == "cvt_mutualinfo")
-//         {
-//             this->descriptor = new CVT_MutualInfo();
-//         }
-//         else if (s == "cvt_mutualinfoact")
-//         {
-//             this->descriptor = new CVT_MutualInfoAct();
-//         }
-//         else if (s == "cvt_spirit")
-//         {
-//             this->descriptor = new CVT_Spirit();
-//         }
-//         else
-//         {
-//             throw std::runtime_error("descriptortype " + s + " not found");
-//         }
-
-//         check_BD_choice(s);
-//     }
-//     catch (CARGoSException &ex)
-//     {
-//         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
-//     }
-
-//                 /* Implementing the faults themselves. The resulting behaviors will now depend on the normal behavior implementation. */
-//             FAULT_PROXIMITYSENSORS_SETMIN,
-//             FAULT_PROXIMITYSENSORS_SETMAX,
-//             FAULT_PROXIMITYSENSORS_SETRANDOM,
-//             FAULT_PROXIMITYSENSORS_SETOFFSET,
-
-//             FAULT_RABSENSOR_SETOFFSET,
-//             FAULT_RABSENSOR_MISSINGRECEIVERS,
-
-//             FAULT_ACTUATOR_LWHEEL_SETZERO,
-//             FAULT_ACTUATOR_RWHEEL_SETZERO,
-//             FAULT_ACTUATOR_BWHEELS_SETZERO,
-
-// }
-
 /****************************************/
 /****************************************/
 
@@ -250,15 +183,6 @@ void EvolutionLoopFunctions::PreStep()
         //      _ctrlrob.step(inputs);
         _vecctrlrob[robotindex].step(inputs);
         _vecctrlrob[robotindex].get_outf();
-
-        //        outf.resize(_ctrlrob.get_outf().size());
-        //        assert(_ctrlrob.get_outf().size() == 2);
-
-        //        for(size_t j = 0; j < _ctrlrob.get_outf().size(); j++)
-        //            if(std::isnan(_ctrlrob.get_outf()[j]))
-        //                outf[j] = 0.0;
-        //            else
-        //                outf[j]=10.0f*(2.0f*_ctrlrob.get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
 
         outf.resize(_vecctrlrob[robotindex].get_outf().size());
         assert(_vecctrlrob[robotindex].get_outf().size() == 2);
@@ -301,18 +225,11 @@ void EvolutionLoopFunctions::PostStep()
         CThymioEntity *cThymio = m_pcvecRobot[robotindex];
         CThymioNNController *cController = m_pcvecController[robotindex];
         // update the position and orientation
-        CVector3 axis;
-        cThymio->GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(curr_theta[robotindex], axis);
+        curr_theta[robotindex] = get_orientation(robotindex);
         //curr_theta[robotindex].UnsignedNormalise();
         
         curr_pos[robotindex] = cThymio->GetEmbodiedEntity().GetOriginAnchor().Position;
 
-        std::cout<<"PostStep : before descriptor"<<std::endl;
-        std::cout<<"old theta"<<robotindex<<":"<<old_theta[robotindex].GetValue()<<std::endl;
-        std::cout<<"curr theta"<<robotindex<<":"<<curr_theta[robotindex].GetValue()<<std::endl;
-        CRadians theta;
-        cThymio->GetEmbodiedEntity().GetOriginAnchor().Orientation.ToAngleAxis(theta, axis);
-        std::cout<<"comparison with thymio "<<robotindex<<":"<<theta.GetValue();
         this->descriptor->set_input_descriptor(robotindex, *this);
         this->descriptor->set_output_descriptor(robotindex, *this);
     }

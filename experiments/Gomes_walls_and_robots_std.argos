@@ -8,7 +8,8 @@
     <system threads="0" />
     <experiment length="120"
                 ticks_per_second="10"
-                random_seed="0" />
+                random_seed="0" 
+/>
   </framework>
 
 
@@ -114,8 +115,8 @@
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-<dynamics2d id="dyn2d_0" />
-     
+<dynamics2d id="dyn2d_0" iterations="5"  />
+                     
     
 
   </physics_engines>
@@ -132,9 +133,9 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-  <!-- <qt-opengl>
+ <!-- <qt-opengl>
         <user_functions label="robotid_vis" />
-    </qt-opengl>  -->
+    </qt-opengl> -->
   </visualization>
 
 </argos-configuration>

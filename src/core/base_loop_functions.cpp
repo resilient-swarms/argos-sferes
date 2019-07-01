@@ -247,40 +247,14 @@ void BaseLoopFunctions::reset_agent_positions()
 
         old_pos[m_unRobot] = entity->GetOriginAnchor().Position;
         curr_pos[m_unRobot] = old_pos[m_unRobot];
-        CVector3 axis;
-        entity->GetOriginAnchor().Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
-        curr_theta[m_unRobot] = old_theta[m_unRobot];
-        // old_pos[m_unRobot] = m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position;
-        // curr_pos[m_unRobot] = old_pos[m_unRobot];
-        // CVector3 axis;
-        // m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation;
-        // curr_theta[m_unRobot] = old_theta[m_unRobot];
-
-        
-        // std::cout<<"reset"<<std::endl;
-        // std::cout<<"old theta"<<m_unRobot<<":"<<old_theta[m_unRobot]<<std::endl;
-        // std::cout<<"curr theta"<<m_unRobot<<":"<<curr_theta[m_unRobot]<<std::endl;
-        // CVector3 axis2;
-        // CRadians theta;
-        // .ToAngleAxis(theta, axis);
-        // std::cout<<"comparison with thymio "<<m_unRobot<<":"<<theta<<std::endl;
+        CRadians zAngle = get_orientation(m_unRobot);
+        curr_theta[m_unRobot] = zAngle;
+        old_theta[m_unRobot] = zAngle;
     }
 }
 void BaseLoopFunctions::Reset()
 {
-    //NOTE : replaced code from here to reset_agent_positions to allow multiple physics engines
-
-    
-    // for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
-    // {
-    //     old_pos[m_unRobot] =get_embodied_entity(m_unRobot).GetOriginAnchor().Position;
-    //     CVector3 axis;
-    //     get_embodied_entity(m_unRobot).GetOriginAnchor().Orientation.ToAngleAxis(old_theta[m_unRobot], axis);
-    //     old_theta[ m_unRobot].UnsignedNormalize();
-    // }
-    
-    
-    //reset_agent_positions();
+    reset_agent_positions();
 }
 
 void BaseLoopFunctions::PostStep()
@@ -318,14 +292,8 @@ void BaseLoopFunctions::start_trial(argos::CSimulator &cSimulator)
     /* Tell the loop functions to get ready for the i-th trial */
     SetTrial();
 
-
- 
-
     /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
     cSimulator.Reset();
-    reset_agent_positions();
-    // comment this line if you want to run without error
-    //reset_agent_positions();
 
     /* take into account the new settings in the fitness functions */
     fitfun->before_trial(*this);
@@ -386,7 +354,22 @@ float BaseLoopFunctions::alltrials_fitness()
 
 
 
+
+
+
+
 /* helper functions */
+
+/*get the orientation of the robot */
+CRadians BaseLoopFunctions::get_orientation(size_t robot_index)
+{
+    CVector3 axis;
+    CQuaternion quat = get_embodied_entity(robot_index)->GetOriginAnchor().Orientation;
+    CRadians zAngle, yAngle,xAngle;
+    quat.ToEulerAngles(zAngle,yAngle,xAngle);
+    return zAngle;
+}
+
 
 /* linear speed normalised to [0,1], based on the actual movement rather than wheel speed */
 float BaseLoopFunctions::actual_linear_velocity_01(size_t robot_index)
@@ -420,47 +403,11 @@ float BaseLoopFunctions::actual_turn_velocity_01(size_t robot_index)
         // need to normalise by the max possible angle change; cf. https://www.argos-sim.info/forum/viewtopic.php?t=79
         // maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed = (A * B) / (2 * T)
         // --> maxA = 2*T*maxV/B
-        float B =0.045;// THYMIO's INTERWHEEL DISTANCE (m) ! ( a little bit lower than actual seems to be needed)
+        float B =0.08;// THYMIO's INTERWHEEL DISTANCE (m) ! ( a little bit lower than actual seems to be needed)
         float maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed/100.0f;// max speed (m/s)
-        float theta_curr = curr_theta[robot_index].GetValue();
-        float theta_old = old_theta[robot_index].GetValue();
-        float diff = std::abs(theta_curr - theta_old);
-        float maxA = 2*tick_time*maxV/B;
-        int sign;
-        float signed_angle;
-        // does not seem to be necessary: even without normalisation radians seems to never go out [0,2Pi]
-        // if (diff > maxA)
-        // {
-        //     // check if we passed the periodicity
-        //     // if so, add two pi to the lowest
-        //     if(theta_curr<theta_old)
-        //     {
-        //         theta_curr += M_2PI;
-        //     }
-        //     else{
-        //         theta_old += M_2_PI;
-        //     }
-        // }
-        if (theta_curr < theta_old)
-        {
-            sign = 1.0;
-        }
-        else
-        {
-            sign = -1.0;
-        }
-        
-
-        // at 2pi radians it seems to go back in direction regardless, alternative is to determine sign of the rotation based on wheel speeds
-        // if (get_controller(robot_index)->m_fLeftSpeed < get_controller(robot_index)->m_fRightSpeed)
-        // {
-        //     sign = 1.0;
-        // }
-        // else
-        // {
-        //     sign = -1.0;
-        // }
-        float turn_velocity = sign*(theta_curr - theta_old)/maxA;// in [-1,1]
+        float angle_difference = argos::NormalizedDifference(curr_theta[robot_index],old_theta[robot_index]).GetValue();
+        float maxA = 2*tick_time*maxV/B;// this comes at 0.25 which agrees with the value when setting V_l=-Max and V_r=+Max
+        float turn_velocity = angle_difference/maxA;// in [-1,1]
         turn_velocity =0.5 + 0.5*turn_velocity;
         return turn_velocity;
     }

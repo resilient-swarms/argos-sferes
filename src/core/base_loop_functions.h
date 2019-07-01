@@ -89,6 +89,10 @@ public:
 
     /* helper functions */
     
+
+    /*get the orientation of the robot */
+    CRadians get_orientation(size_t robot_index);
+    
     /* linear speed normalised to [0,1], based on the actual movement rather than wheel speed */
     float actual_linear_velocity_01(size_t robot_index);
 

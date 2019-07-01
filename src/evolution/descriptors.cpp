@@ -7,23 +7,7 @@
 #include <random>
 #define SENSOR_ACTIVATION_THRESHOLD 0.5
 
-// #ifdef TWO_D_BEHAV
-// const size_t Descriptor::behav_dim = 3;
-// #endif
-// #ifdef THREE_D_BEHAV
-// const size_t Descriptor::behav_dim = 3;
-// #endif
-// #ifdef SIX_D_BEHAV
-// const size_t Descriptor::behav_dim = 6;
-// #endif
-// #ifdef FOURTYTWO_D_BEHAV
-// const size_t Descriptor::behav_dim = 42;
-// #endif
-// #ifdef HUNDREDFIFTY_D_BEHAV
-// const size_t Descriptor::behav_dim = 150;
-// #endif
-//const size_t Descriptor::behav_dim
-// const size_t SDBC::behav_dim=3;
+
 Descriptor::Descriptor()
 {
 	geometric_median = false;
@@ -180,7 +164,7 @@ SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Desc
 
 		// get the average of the closest robot distance in the given uniform robot positioning
 
-		float min = minimal_robot_distance(cLoopFunctions);
+		float min = 0;// minimal_robot_distance(cLoopFunctions);
 		float max = get_max_avgdist(cLoopFunctions);
 		// range for the closest robot feature
 		maxrange.insert(std::pair<std::string,std::pair<float,float>>("closest_robot",std::pair<float,float>(min,max)));
@@ -234,7 +218,7 @@ SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Desc
 			within_comparison_groups.push_back(kv.first); // within-group distance computations
 
 			// range for the robots feature (within robot comparison)
-			float min = minimal_robot_distance(cLoopFunctions);
+			float min = 0; //minimal_robot_distance(cLoopFunctions);
 			float max = get_max_avgdist(cLoopFunctions);
 			maxrange.insert(std::pair<std::string,std::pair<float,float>>("robots",std::pair<float,float>(min,max)));
 		}
@@ -388,7 +372,6 @@ void SDBC::init_walls(CLoopFunctions *cLoopFunctions)
 }
 void SDBC::init_robots(size_t num_features, CLoopFunctions *cLoopFunctions)
 {
-	// robot here has 5 features: x,y,orientation,wheelvelocity1,wheelvelocity2
 	// here it is assumed fixed number of robots
 	std::vector<Entity> robots;
 	size_t num_robots = static_cast<EvolutionLoopFunctions *>(cLoopFunctions)->m_unNumberRobots;
@@ -587,13 +570,13 @@ void SDBC::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLo
 /*after the looping over robots*/
 void SDBC::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 {
-	add_group_sizes();
-	add_group_meanstates();
-	add_between_group_dispersion();
-	add_within_group_dispersion();
+	add_group_sizes();// in case group sizes are variable, group size is descriptor
+	add_group_meanstates();// for each group calculate mean state (if it has features)
+	add_between_group_dispersion();// calculate distances between groups
+	add_within_group_dispersion();// calculate distances within groups
 	if (include_closest_robot)
 	{
-		add_closest_robot_dist(cLoopFunctions);
+		add_closest_robot_dist(cLoopFunctions);// calculate closest robot distance
 	}
 	bd_index = 0;
 	++num_updates;
