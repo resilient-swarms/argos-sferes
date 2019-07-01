@@ -1,5 +1,5 @@
-#ifndef DISPERSEBEHAVIOR_H_
-#define DISPERSEBEHAVIOR_H_
+#ifndef OBSTACLEAVOIDANCRBEHAVIOR_H_
+#define OBSTACLEAVOIDANCRBEHAVIOR_H_
 
 /******************************************************************************/
 /******************************************************************************/
@@ -15,10 +15,11 @@ using namespace argos;
 
 class CProximitySensorEquippedEntity;
 
-class CDisperseBehavior : public CBehavior 
+class CObstacleAvoidanceBehavior : public CBehavior
 {
 public:
-    CDisperseBehavior();
+    CObstacleAvoidanceBehavior(Real m_fProximitySensorThreshold);
+    CObstacleAvoidanceBehavior(Real m_fProximitySensorThreshold, CRadians m_cGoStraightAngleThreshold);
 
     virtual bool TakeControl();
     virtual void Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed);
@@ -32,6 +33,8 @@ public:
 
 
 protected:
+    Real           m_fProximitySensorThreshold;
+    CRadians       m_cGoStraightAngleThreshold;
     CVector2       m_cDiffusionVector;
 };
 

@@ -127,6 +127,8 @@ if(BASELINE)
         src/baseline-behavs/baseline-behavs.cpp
         src/baseline-behavs/behavior.h
         src/baseline-behavs/behavior.cpp
+        src/baseline-behavs/obstacleavoidancebehavior.h
+        src/baseline-behavs/obstacleavoidancebehavior.cpp
         src/baseline-behavs/dispersebehavior.h
         src/baseline-behavs/dispersebehavior.cpp
         src/baseline-behavs/randomwalkbehavior.h
