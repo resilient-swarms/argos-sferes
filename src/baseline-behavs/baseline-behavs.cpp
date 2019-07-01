@@ -379,8 +379,8 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
     if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION)
     {
         std::cout << "Running aggregation " << std::endl;
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);    // 0.1f reflects a distance of about 4.5cm
-        m_vecBehaviors.push_back(pcDisperseBehavior);
+        CObstacleAvoidanceBehavior* pcObstacleAvoidanceBehavior = new CObstacleAvoidanceBehavior(0.1f);    // 0.1f reflects a distance of about 4.5cm
+        m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
 
         CAggregateBehavior* pcAggregateBehavior = new CAggregateBehavior(100.0f); //range threshold in cm //60.0
         m_vecBehaviors.push_back(pcAggregateBehavior);
@@ -391,7 +391,10 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION)
     {
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
+        CObstacleAvoidanceBehavior* pcObstacleAvoidanceBehavior = new CObstacleAvoidanceBehavior(0.1f);
+        m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
+
+        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior();
         m_vecBehaviors.push_back(pcDisperseBehavior);
 
         CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
@@ -400,8 +403,8 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_COVERAGE)
     {
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
-        m_vecBehaviors.push_back(pcDisperseBehavior);
+        CObstacleAvoidanceBehavior* pcObstacleAvoidanceBehavior = new CObstacleAvoidanceBehavior(0.1f);
+        m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
 
         CCoverageBehavior* pcCoverageBehavior = new CCoverageBehavior(100.0f);
         m_vecBehaviors.push_back(pcCoverageBehavior);
@@ -414,8 +417,8 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
     {
         // hug walls, then slide along them
 
-        //CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
-        //m_vecBehaviors.push_back(pcDisperseBehavior);
+        //CDisperseBehavior* pcObstacleAvoidanceBehavior = new CDisperseBehavior(0.1f);
+        //m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
 
         CCoverageBehavior* pcCoverageBehavior = new CCoverageBehavior(1.0f); // use rab sensors to keep from colliding robots.
         m_vecBehaviors.push_back(pcCoverageBehavior);
@@ -431,8 +434,8 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 
     else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING)
     {
-        CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
-        m_vecBehaviors.push_back(pcDisperseBehavior);
+        CObstacleAvoidanceBehavior* pcObstacleAvoidanceBehavior = new CObstacleAvoidanceBehavior(0.1f);
+        m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
 
         m_vecBehaviors.push_back(m_pFlockingBehavior);
 
@@ -454,8 +457,8 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
         }
         else
         {
-            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);    // 0.1f reflects a distance of about 4.5cm
-            m_vecBehaviors.push_back(pcDisperseBehavior);
+            CObstacleAvoidanceBehavior* pcObstacleAvoidanceBehavior = new CObstacleAvoidanceBehavior(0.1f);    // 0.1f reflects a distance of about 4.5cm
+            m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
 
             Real MAX_BEACON_SIGNAL_RANGE = 1.0f; //1m
             CHomingToFoodBeaconBehavior* pcHomingToFoodBeaconBehavior = new CHomingToFoodBeaconBehavior(BEACON_SIGNAL, MAX_BEACON_SIGNAL_RANGE);
@@ -475,15 +478,15 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
         }
         else
         {
-            /*CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
-            m_vecBehaviors.push_back(pcDisperseBehavior);*/
+            /*CDisperseBehavior* pcObstacleAvoidanceBehavior = new CDisperseBehavior(0.1f);
+            m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);*/
 
             CLinkChainBehavior* pcLnkChainBehavior = new CLinkChainBehavior(&m_uRABDataIndex, m_pcRABA, m_pcLeds, RobotIdStrToInt(), &m_bBeaconSignalOn, &m_iParentRobotId,
                                                                             &m_iChildRobotId, &m_iTimeLastRequest);
             m_vecBehaviors.push_back(pcLnkChainBehavior);
 
-            /*CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(0.1f);
-            m_vecBehaviors.push_back(pcDisperseBehavior);
+            /*CDisperseBehavior* pcObstacleAvoidanceBehavior = new CDisperseBehavior(0.1f);
+            m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
 
             CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.01f);
             m_vecBehaviors.push_back(pcRandomWalkBehavior);*/

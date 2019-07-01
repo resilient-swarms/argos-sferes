@@ -17,6 +17,7 @@
 #include "behavior.h"
 #include "aggregatebehavior.h"
 #include "dispersebehavior.h"
+#include "obstacleavoidancebehavior.h"
 #include "coveragebehavior.h"
 #include "bordercoveragebehavior.h"
 #include "randomwalkbehavior.h"
