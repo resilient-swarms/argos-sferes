@@ -187,15 +187,15 @@ void EvolutionLoopFunctions::PreStep()
         outf.resize(_vecctrlrob[robotindex].get_outf().size());
         assert(_vecctrlrob[robotindex].get_outf().size() == 2);
         for (size_t j = 0; j < _vecctrlrob[robotindex].get_outf().size(); j++)
-            if (std::isnan(_vecctrlrob[robotindex].get_outf()[j]))
-                outf[j] = 0.0;
-            else
-                outf[j] = cController->m_sWheelTurningParams.MaxSpeed * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
-                                                                                                               //outf[j]=10.0f*(2.0f*_vecctrlrob[robotindex].get_outf()[j]-1.0f); // to put nn values in the interval [-10;10] instead of [0;1]
+        {
+            assert(!std::isnan(_vecctrlrob[robotindex].get_outf()[j]));
+            outf[j] = cController->m_sWheelTurningParams.MaxSpeed * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
+        }
         cController->m_fLeftSpeed = outf[0];
         cController->m_fRightSpeed = outf[1];
-        if (cController->b_damagedrobot)
-            cController->damage_actuators();
+
+        /* if (cController->b_damagedrobot)
+            cController->damage_actuators(); */
 
 #ifdef PRINTING
         std::cout << "current position" << curr_pos[robotindex] << std::endl;
@@ -223,7 +223,6 @@ void EvolutionLoopFunctions::PostStep()
     for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
         CThymioEntity *cThymio = m_pcvecRobot[robotindex];
-        CThymioNNController *cController = m_pcvecController[robotindex];
         // update the position and orientation
         curr_theta[robotindex] = get_orientation(robotindex);
         //curr_theta[robotindex].UnsignedNormalise();

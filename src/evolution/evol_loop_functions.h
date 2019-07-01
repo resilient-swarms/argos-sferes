@@ -286,26 +286,12 @@ namespace sferes
 FIT_MAP(FitObstacleMapElites){
 
     public :
-        friend class argos::CSimulator;
         FitObstacleMapElites(){}
-        EvolutionLoopFunctions &
-        getLoopFun(){
-            /* The CSimulator class of ARGoS is a singleton. Therefore, to
-        * manipulate an ARGoS experiment, it is enough to get its instance.
-        * This variable is declared 'static' so it is created
-        * once and then reused at each call of this function.
-        * This line would work also without 'static', but written this way
-        * it is faster. */
-            static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
 
-            /* Get a reference to the loop functions */
-            static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
-            return cLoopFunctions;
-        } // namespace sferes
         inline bool dead()
         {
             return false;
-        } // namespace sferes
+        }
 
         // *************** _eval ************
         //
