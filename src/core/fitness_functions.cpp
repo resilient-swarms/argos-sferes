@@ -204,15 +204,16 @@ Aggregation::Aggregation(BaseLoopFunctions *cLoopFunctions) : FitFun()
 void Aggregation::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     std::pair<std::vector<argos::CVector3>, argos::CVector3> data = centre_of_mass(cLoopFunctions);
-    trial_dist += StatFuns::get_avg_dist(data.first, data.second);
+    //trial_dist += StatFuns::get_avg_dist(data.first, data.second); 
+    trial_dist += (1.0 - StatFuns::get_avg_dist(data.first, data.second)/maxdist);// doing normalisation now because exit on collisions
 }
 /*after completing a trial,calc fitness*/
 void Aggregation::apply(BaseLoopFunctions &cLoopFunctions)
 {
     //The fitness function is inversely
     //proportional to the average distance to the centre of mass over the entire simulation
-    float dist = trial_dist / (maxdist * (float)num_updates);
-    float fitness = 1 - dist;
+    float fitness = trial_dist / ((float)num_updates);
+    //fitness = 1 - fitness;// this would work if no exits on collision
     if (!StatFuns::in_range(fitness, 0.0f, 1.0f))
     {
         throw std::runtime_error("fitness not in [0,1]");

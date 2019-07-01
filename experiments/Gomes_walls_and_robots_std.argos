@@ -55,7 +55,7 @@
                   trials="5"
                   robots="2"
                   descriptortype="cvt_Gomes_sdbc_walls_and_robots_std"  
-                  fitfuntype="Flocking"
+                  fitfuntype="Aggregation"
                   bd_dims="3"
 		  output_folder="experiments"
         centroids_folder="experiments/centroids"

@@ -29,7 +29,7 @@
         <differential_steering implementation="default" vel_noise_range="-0.1:0.1" dist_noise_range="-1.0:1.0" />
       </sensors>
       <params>
-      <experiment_run swarm_behavior="SWARM_DISPERSION"
+      <experiment_run swarm_behavior="SWARM_AGGREGATION"
                       fault_behavior="FAULT_NONE"
                       id_faulty_robot="-1" />
         <wheel_turning max_speed="13.0" />
@@ -46,7 +46,7 @@
                   label="baseline-behavs-loop-functions"
                   trials="5"
                   robots="20"
-                  fitfuntype="Dispersion"
+                  fitfuntype="Aggregation"
                   output_folder="experiments">
     <params />
   </loop_functions>
