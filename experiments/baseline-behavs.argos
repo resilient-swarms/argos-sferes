@@ -46,7 +46,7 @@
                   label="baseline-behavs-loop-functions"
                   trials="5"
                   robots="20"
-                  fitfuntype="Aggregation"
+                  fitfuntype="Dispersion"
                   output_folder="experiments">
     <params />
   </loop_functions>
@@ -122,8 +122,8 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <qt-opengl>
+  <!--  <qt-opengl>
         <user_functions label="robotid_vis" />
-    </qt-opengl>
+    </qt-opengl> -->
   </visualization>
 </argos-configuration>
