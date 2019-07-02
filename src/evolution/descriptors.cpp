@@ -850,6 +850,7 @@ void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, EvolutionLoopF
 CVT_Spirit::CVT_Spirit()
 {
 	freqs.resize(num_joint_sensory_bins);
+	
 }
 
 /* prepare for trials*/
@@ -921,6 +922,34 @@ std::vector<float> CVT_Spirit::after_trials(EvolutionLoopFunctions &cLoopFunctio
 	return final_bd;
 }
 
+
+MultiAgent_Spirit::MultiAgent_Spirit()
+{
+	/* most of the code remains the same as CVT_Spirit except the meaning of the bins and the number 
+	* number of bins 
+	/*
+
+	/* number of joint sensory bins */
+    num_joint_sensory_bins = 36;// here 9 (3*3) bins for mean CM of position + 4 (2*2) bins for SD of position
+
+	/* number of joint actuator bins simply */
+    num_joint_actuator_bins = 16; // here  2*2 for mean displacement 2*2 for SD displacement
+
+	freqs.resize(num_joint_sensory_bins);
+}
+
+/*after getting outputs, can update the descriptor if needed*/
+void MultiAgent_Spirit::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+{
+	// nothing here; do in after_robotloop
+}
+/*after getting outputs, can update the descriptor if needed*/
+void MultiAgent_Spirit::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+{
+	size_t sens_bin = cLoopFunctions.get_CM_bin(3,2);
+	size_t act_bin = cLoopFunctions.get_swarmmovement_bin(2,2);
+	++freqs[sens_bin][act_bin];
+}
 // NonMarkovianStochasticPolicyInduction::NonMarkovianStochasticPolicyInduction()
 // {
 // 	bd.resize(behav_dim);

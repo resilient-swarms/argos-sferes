@@ -68,6 +68,9 @@ Preliminary multi-agent experiments can be run using
    
    ./bin/behaviour_evolcvt10D experiments/Gomes_walls_and_robots_std.argos
 
+    
+    ./bin/behaviour_evolcvt576D experiments/multiagent_spirit.argos
+
 and:
 
    ./bin/baseline_behaviour experiments/baseline-behavs.argos

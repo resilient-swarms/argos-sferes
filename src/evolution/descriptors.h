@@ -435,20 +435,23 @@ public:
 
 class CVT_Spirit : public Descriptor
 {
+  /* most of the code remains the same as CVT_Spirit except the meaning of the bins and the number 
+  number of bins */
 public:
+  
   CVT_Spirit();
 
   /* smoothing factor */
   const float alpha_smooth = 1.0;
 
   /* number of joint sensory bins */
-  const size_t num_joint_sensory_bins = 16;
+  size_t num_joint_sensory_bins;
 
   /* number of actuator bins */
-  const size_t num_actuator_bins = 5;
+  size_t num_actuator_bins;
 
   /* number of joint actuator bins */
-  const size_t num_joint_actuator_bins = std::pow(num_actuator_bins, 2); // assuming two actuators
+  size_t num_joint_actuator_bins; // assuming two actuators
 
   /* track the frequencies of the different bins for all groups*/
   std::vector<std::vector<float>> freqs; // for each sensory state the action probabilities
@@ -476,6 +479,22 @@ public:
   /* get the descriptor */
   virtual std::vector<float> get_bd();
 };
+
+class MultiAgent_Spirit : public CVT_Spirit
+{
+public:
+
+  MultiAgent_Spirit();
+
+  /*after getting outputs, can update the descriptor if needed*/
+  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+
+  /*after the looping over robots*/
+  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+
+};
+
+
 class CompressionDescriptor : public Descriptor
 {
 public:

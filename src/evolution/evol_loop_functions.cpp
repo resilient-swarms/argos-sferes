@@ -116,6 +116,10 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new CVT_Spirit();
         }
+        else if (s == "multiagent_spirit")
+        {
+            this->descriptor = new MultiAgent_Spirit();
+        }
         else if (s == "environment_diversity")
         {
             this->descriptor = new EnvironmentDiversity(*this, "experiments/generator", 2);
@@ -176,7 +180,6 @@ void EvolutionLoopFunctions::PreStep()
         CThymioNNController *cController = m_pcvecController[robotindex];
 
         //assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
-        inputs.clear();
         inputs = cController->InputStep();
         
 
@@ -286,7 +289,7 @@ size_t EvolutionLoopFunctions::get_actuator_bin(size_t i, size_t num_bins) const
     return StatFuns::get_bin(outf[i], -10.0f, 10.0f, num_bins);
 }
 
-/* get activation bin for the activations of each sensory quadrant */
+/* get activation bin for the activations of each sensory quadrant get joint activation bin for the actuators (used for Spirit)*/
 size_t EvolutionLoopFunctions::get_quadrant_bin() const
 {
     // quadrant bin e.g. [0,0,0,0] ---> 0  , [0,0,1,0] --> 3
@@ -322,7 +325,7 @@ size_t EvolutionLoopFunctions::get_quadrant_bin() const
     }
     return bin;
 }
-/* get joint activation bin for the actuators */
+/* get joint activation bin for the actuators (used for Spirit) */
 size_t EvolutionLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
 {
     // joint bin (e.g. with three bins each): (-10,-10) --> 0  ; (-10,0) --> 1; ... (10,10) --> 9
@@ -330,6 +333,71 @@ size_t EvolutionLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
     size_t bin1 = get_actuator_bin(0, num_bins);
     size_t bin2 = get_actuator_bin(1, num_bins);
     return bin1 * num_bins + bin2;
+}
+/* get bin for the centre of mass of the swarm (used for MultiAgentSpirit) */
+size_t EvolutionLoopFunctions::get_CM_bin(size_t num_bins, size_t num_SD_bins)
+{   
+
+    CVector3 arena = GetSpace().GetArenaSize();
+    CVector3 grid = arena /num_bins;
+    argos::CVector3 cm = centre_of_mass(old_pos);
+    /* split CM into bins */
+    float bin = StatFuns::get_bin(cm.GetX(),0.0f,arena.GetX(),num_bins);// multiplied =1 ( first symbol)
+    float multiplier = (float) num_bins;// now multiplier is num_bins
+    bin+=multiplier*StatFuns::get_bin(cm.GetY(),0.0f,arena.GetY(),num_bins);
+
+    multiplier *= (float) num_bins;
+
+    /* split SD across positions into bins */
+    //for a set of N > 4 data spanning a range of values R, an upper bound on the standard deviation s is given by s = 0.6R
+				// with R=1 then s = 0.6
+    CVector3 SD_arena = 0.6*arena;
+    CVector2 SDs = StatFuns::XY_standard_dev(old_pos);
+    float sdx = SDs.GetX();
+    bin+=multiplier*StatFuns::get_bin(sdx,0.0f,SD_arena.GetX(),num_SD_bins);
+
+    multiplier *= (float) num_SD_bins;
+    float sdy = SDs.GetY();
+    bin+=multiplier*StatFuns::get_bin(sdy,0.0f,SD_arena.GetX(),num_SD_bins);
+    return bin;
+}
+
+
+/* get bin for the movement of he swarm */
+size_t EvolutionLoopFunctions::get_swarmmovement_bin(size_t num_bins, size_t num_SD_bins)
+{
+    // compute displacement vectors' mean and SD for each dimension
+    std::vector<float> displacement_X, displacement_Y;
+    for (size_t i=0; i < curr_pos.size(); ++i)
+    {
+        displacement_X.push_back(curr_pos[i].GetX() - old_pos[i].GetX());
+        displacement_Y.push_back(curr_pos[i].GetY() - old_pos[i].GetY());
+    }
+    float mean_dX = StatFuns::mean(displacement_X);
+    float mean_dY = StatFuns::mean(displacement_Y);
+    float SD_dx = StatFuns::standard_dev(displacement_X);
+    float SD_dy = StatFuns::standard_dev(displacement_Y);
+
+    // now bin them 
+    
+    /* split CM into bins */
+    float max_displacement = get_controller(0)->m_sWheelTurningParams.MaxSpeed*tick_time/(100.0f);
+    float bin = StatFuns::get_bin(mean_dX,-max_displacement,max_displacement,num_bins);// multiplied =1 ( first symbol)
+    float multiplier = (float) num_bins;// now multiplier is num_bins
+    bin+=multiplier*StatFuns::get_bin(mean_dY,-max_displacement,max_displacement,num_bins);
+
+    multiplier *= (float) num_bins;
+
+    /* split SD across positions into bins */
+    //for a set of N > 4 data spanning a range of values R, an upper bound on the standard deviation s is given by s = 0.6R
+				// with R=1 then s = 0.6
+    // multiply by 2 then because range=2*max_displacement
+    float max_sd = 1.2*max_displacement;
+    bin+=multiplier*StatFuns::get_bin(SD_dx,0.0f,max_sd, num_SD_bins);
+
+    multiplier *= (float) num_SD_bins;
+    bin+=multiplier*StatFuns::get_bin(SD_dy,0.0f,max_sd, num_SD_bins);
+    return bin;
 }
 
 /****************************************/

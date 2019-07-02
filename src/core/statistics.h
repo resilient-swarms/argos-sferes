@@ -101,15 +101,16 @@ class StatFuns
     static bool float_smallerorequal(float num1,float num2);
     static float log(float number, float base = EULER);
     /*  Combine info across trials  */
-    static std::vector<float> geometric_median(std::vector<std::vector<float>> results,size_t iterations=200);
-    static float mean(std::vector<float> results);
+    static std::vector<float> geometric_median(const std::vector<std::vector<float>>& results,size_t iterations=200);
+    static float mean(const std::vector<float>& results);
     static float quantile(std::vector<float> results, float cumul_dens, bool sorted = false);
-    static float standard_dev(std::vector<float> results);
-    static float min(std::vector<float> results);
-    static float max(std::vector<float> results);
-    static float range(std::vector<float> results);
+    static float standard_dev(const std::vector<float>& results);
+    static argos::CVector2 XY_standard_dev(const std::vector<argos::CVector3>& results);
+    static float min(const std::vector<float>& results);
+    static float max(const std::vector<float>& results);
+    static float range(const std::vector<float>& results);
     static float IQR(std::vector<float> results, bool sorted = false);
-    static float sum(std::vector<float> results);
+    static float sum(const std::vector<float>& results);
     static std::vector<float> divide(std::vector<float> results,float C);
     static void normalise(std::vector<float> &results,float C);
     static float laplace_smoothing(float count, float C, float alpha, size_t num_options);
@@ -132,7 +133,7 @@ class StatFuns
     *  it is defined as the largest possible probability difference for the same event
     */
     static float uniformity(std::vector<float> probabilities);
-    static float get_avg_dist(std::vector<argos::CVector3> pos, argos::CVector3 cm);
+    static float get_avg_dist(const std::vector<argos::CVector3>& pos, const argos::CVector3& cm);
 
     /* entropy based on log with custom base; however, does the correction imply always use natural log ? */
     static std::pair<float, float> entropy(std::vector<float> p, float time, float base = EULER);
