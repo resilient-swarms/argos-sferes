@@ -49,11 +49,11 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libevolution_loopfunctionscvt400D.so"
-                  label="evolution_loopfunctionscvt400D"
+  <loop_functions library="lib/libevolution_loopfunctionscvt576D.so"
+                  label="evolution_loopfunctionscvt576D"
                   trials="5"
                   robots="5"
-                  descriptortype="cvt_spirit"  
+                  descriptortype="multiagent_spirit"  
                   fitfuntype="Aggregation"
                   bd_dims="3"
 		  output_folder="experiments"
@@ -98,7 +98,7 @@
     </distribute>
 
     <distribute>
-      <position method="uniform" min="0,0,0" max="7,7,0" />
+      <position method="uniform" min="0.5,0.5,0" max="6.5,6.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
       <entity quantity="5" max_trials="1000">
         <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->

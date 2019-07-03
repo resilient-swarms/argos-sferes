@@ -203,9 +203,9 @@ Aggregation::Aggregation(BaseLoopFunctions *cLoopFunctions) : FitFun()
 }
 void Aggregation::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
-    std::pair<std::vector<argos::CVector3>, argos::CVector3> data = centre_of_mass(cLoopFunctions);
+    argos::CVector3 cm = cLoopFunctions.centre_of_mass(cLoopFunctions.curr_pos);
     //trial_dist += StatFuns::get_avg_dist(data.first, data.second); 
-    trial_dist += (1.0 - StatFuns::get_avg_dist(data.first, data.second)/maxdist);// doing normalisation now because exit on collisions
+    trial_dist += (1.0 - StatFuns::get_avg_dist(cLoopFunctions.curr_pos, cm)/maxdist);// doing normalisation now because exit on collisions
 }
 /*after completing a trial,calc fitness*/
 void Aggregation::apply(BaseLoopFunctions &cLoopFunctions)
@@ -229,41 +229,7 @@ float Aggregation::after_trials()
     fitness_per_trial.clear();
     return meanfit;
 };
-float Aggregation::get_mass(CThymioEntity *robot)
-{
-    return 1.0f;
-}
 
-std::pair<std::vector<argos::CVector3>, argos::CVector3> Aggregation::centre_of_mass(BaseLoopFunctions &cLoopFunctions)
-{
-    float M = 0.0;
-    argos::CVector3 cm = argos::CVector3(0., 0., 0.);
-    std::vector<argos::CVector3> positions;
-
-    // for (CThymioEntity *robot : cLoopFunctions.m_pcvecRobot)
-    // {
-
-    //     float mass = get_mass(robot);
-    //     M += mass;
-    //     argos::CVector3 pos = cLoopFunctions.get_position(robot);
-    //     cm += mass * pos;
-    //     positions.push_back(pos);
-    // }
-    for (size_t i = 0; i < cLoopFunctions.curr_pos.size(); ++i)
-    {
-
-        float mass = 1.0; //get_mass(robot); mass of 1 is used here
-        M += mass;
-        argos::CVector3 pos = cLoopFunctions.curr_pos[i];
-        cm += pos; //mass * pos;
-        positions.push_back(pos);
-    }
-    cm /= M;
-#ifdef PRINTING
-    std::cout << "centre of mass: " << cm << std::endl;
-#endif
-    return std::pair<std::vector<argos::CVector3>, argos::CVector3>(positions, cm);
-}
 
 Dispersion::Dispersion(BaseLoopFunctions *cLoopFunctions)
 {

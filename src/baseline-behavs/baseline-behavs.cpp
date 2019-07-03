@@ -89,7 +89,9 @@ void CBaselineBehavs::Init(TConfigurationNode& t_node)
 
     if(GetExperimentType().SBehavior==m_sExpRun.SWARM_FLOCKING && m_sWheelTurningParams.MaxSpeed > 5.0f) // max speed and speed limit cm/s
     {
-        printf("In Flocking, robots running at high speeds result in inaccurate observed heading vectors because the physics engine provides a too high \"momentum\" to the robots with the current step-size\n");
+        printf("In Flocking, robots running at high speeds result in inaccurate observed heading vectors "
+               "because the physics engine provides a too high \"momentum\" to the robots with the current step-size.\n"
+               "Also make sure the simulation ticks is set to 10 / second and interations is set to 10 per tick.\n");
         exit(-1);
     }
 

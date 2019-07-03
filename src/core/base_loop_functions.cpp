@@ -448,4 +448,25 @@ float BaseLoopFunctions::actual_linear_velocity_signed(size_t robot_index)
     }
 }
 
-
+/* get the mass */
+float BaseLoopFunctions::get_mass(CThymioEntity *robot)
+{
+    return 1.0f;
+}
+/* get the centre of mass of the swarm */
+argos::CVector3 BaseLoopFunctions::centre_of_mass(const std::vector<CVector3>& positions)
+{
+    float M = 0.0;
+    argos::CVector3 cm = argos::CVector3(0., 0., 0.);
+    for (size_t i = 0; i < positions.size(); ++i)
+    {
+        float mass = 1.0; //get_mass(robot);// mass of 1 is used here, else use this code
+        M += mass;
+        cm += positions[i]; //mass * pos;// use this code if you implement real mass
+    }
+    cm /= M;
+#ifdef PRINTING
+    std::cout << "centre of mass: " << cm << std::endl;
+#endif
+    return cm;
+}

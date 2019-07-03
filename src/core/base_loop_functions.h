@@ -101,6 +101,13 @@ public:
     /* linear velocity normalised to [-1,1]*/
     float actual_linear_velocity_signed(size_t robot_index);
 
+    /* get the mass */
+    float get_mass(CThymioEntity *robot);
+
+    /* get the centre of mass */
+    argos::CVector3 centre_of_mass(const std::vector<CVector3>& positions);
+
+
 public:
 
     CRandom::CRNG *m_pcRNG;

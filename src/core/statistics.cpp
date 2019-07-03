@@ -63,7 +63,7 @@ float StatFuns::log(float number, float base)
 {
     return base == EULER ? std::log(number) : std::log(number) / std::log(base);
 }
-std::vector<float> StatFuns::geometric_median(std::vector<std::vector<float>> results,size_t iterations)
+std::vector<float> StatFuns::geometric_median(const std::vector<std::vector<float>>& results,size_t iterations)
 {
     /* code based on Weiszfeld algorithm, cf. https://github.com/ialhashim/geometric-median/blob/master/geometric-median.h */
     size_t dim = results[0].size();
@@ -97,7 +97,7 @@ std::vector<float> StatFuns::geometric_median(std::vector<std::vector<float>> re
     return A[stop_it%2];
 }
 /*  Combine info across trials  */
-float StatFuns::mean(std::vector<float> results)
+float StatFuns::mean(const std::vector<float>& results)
 {
     float sum = std::accumulate(results.begin(), results.end(), 0.0);
     return sum / (float)results.size();
@@ -115,7 +115,7 @@ float StatFuns::quantile(std::vector<float> results, float cumul_dens, bool sort
     return quantile;
 }
 
-float StatFuns::standard_dev(std::vector<float> results)
+float StatFuns::standard_dev(const std::vector<float>& results)
 {
     float mean = StatFuns::mean(results);
     float var = 0.0;
@@ -126,15 +126,25 @@ float StatFuns::standard_dev(std::vector<float> results)
     var /= (float)results.size();
     return sqrt(var);
 }
-float StatFuns::min(std::vector<float> results)
+argos::CVector2 StatFuns::XY_standard_dev(const std::vector<argos::CVector3>& results)
+{
+    std::vector<float> x,y;
+    for (size_t n = 0; n < results.size(); n++)
+    {
+        x.push_back(results[n].GetX());
+        y.push_back(results[n].GetY());
+    }
+    return argos::CVector2(standard_dev(x),standard_dev(y));
+}
+float StatFuns::min(const std::vector<float>& results)
 {
     return *std::min_element(results.begin(), results.end());
 }
-float StatFuns::max(std::vector<float> results)
+float StatFuns::max(const std::vector<float>& results)
 {
     return *std::max_element(results.begin(), results.end());
 }
-float StatFuns::range(std::vector<float> results)
+float StatFuns::range(const std::vector<float>& results)
 {
     return StatFuns::max(results) - StatFuns::min(results);
 }
@@ -148,7 +158,7 @@ float IQR(std::vector<float> results, bool sorted)
     float Q1 = StatFuns::quantile(results, 0.25, true);
     return Q3 - Q1;
 }
-float StatFuns::sum(std::vector<float> results)
+float StatFuns::sum(const std::vector<float>& results)
 {
     return std::accumulate(results.begin(), results.end(), 0.0);
 }
@@ -267,7 +277,7 @@ float StatFuns::laplace_smoothing(float count, float C, float alpha, size_t num_
     return estimated_prob;
 }
 
-float StatFuns::get_avg_dist(std::vector<argos::CVector3> positions, argos::CVector3 cm)
+float StatFuns::get_avg_dist(const std::vector<argos::CVector3>& positions, const argos::CVector3& cm)
 {
     float avg_dist = 0.0f;
     for (argos::CVector3 pos : positions)

@@ -255,8 +255,6 @@ public:
     Real get_Max_Sens(CThymioNNController &controller);
     
 
-
-
     /* get bin for sensory probabilities  */
     size_t get_sensory_bin(size_t i, size_t num_bins) const;
     /* get bin for sensory probabilities  */
@@ -271,11 +269,24 @@ public:
     /* get activation bin for the activations of each sensory quadrant */
     std::string quadrant_from_bin() const;
 
+    /* get bin for the centre of mass of the swarm */
+    size_t get_CM_bin(size_t num_bins, size_t num_SD_bins);
+
+
+    /* get bin for the movement of he swarm */
+    size_t get_swarmmovement_bin(size_t num_bins, size_t num_SD_bins);
+
+
+
+
+
     /* get positions of objects of a type indicated by a string */
     std::vector<CVector3> get_object_positions(std::string type);
 
     /* number of sensors */
     size_t get_num_sensors() const;
+
+
 };
 
 namespace sferes
