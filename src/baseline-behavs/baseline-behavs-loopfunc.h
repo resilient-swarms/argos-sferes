@@ -43,7 +43,9 @@ private:
    std::ofstream m_cOutput;
    Real fArenaLength;
 
-   bool swarm_chaining_behav;
+   bool swarm_chaining_behav, swarm_chaining_behav1;
+   std::vector<CThymioEntity> vec_thymio;
+   size_t src_robot, dest_robot;
 
 };
 
