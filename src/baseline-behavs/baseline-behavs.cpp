@@ -519,9 +519,15 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
             CObstacleAvoidanceBehavior* pcObstacleAvoidanceBehavior = new CObstacleAvoidanceBehavior(0.1f);
             m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
 
+
+            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(25.0);
+            m_vecBehaviors.push_back(pcDisperseBehavior);
+
+
             CLinkChainBehavior1* pcLnkChainBehavior = new CLinkChainBehavior1(&m_uRABDataIndex, m_pcRABA, m_pcLeds, RobotIdStrToInt(),
                                                                               src_pos, dest_pos, global_position, global_orientation);
             m_vecBehaviors.push_back(pcLnkChainBehavior);
+
 
             CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
             m_vecBehaviors.push_back(pcRandomWalkBehavior);

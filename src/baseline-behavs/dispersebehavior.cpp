@@ -12,6 +12,14 @@ CDisperseBehavior::CDisperseBehavior()
 /******************************************************************************/
 /******************************************************************************/
 
+CDisperseBehavior::CDisperseBehavior(Real CommunicationRange) :
+    m_fCommunicationRange(CommunicationRange)
+{
+}
+
+/******************************************************************************/
+/******************************************************************************/
+
 bool CDisperseBehavior::TakeControl() 
 {
     bool controltaken(false);
@@ -19,7 +27,7 @@ bool CDisperseBehavior::TakeControl()
     m_cDiffusionVector.Set(0.0f, 0.0f);
 
     size_t m_unRobotsInRange = 0;
-    Real min_dist = 10000.0;
+    Real min_dist = m_fCommunicationRange;
     for(size_t i = 0; i <  m_sSensoryData.m_RABSensorData.size(); ++i)
     {
         if(m_sSensoryData.m_RABSensorData[i].Range < min_dist)
