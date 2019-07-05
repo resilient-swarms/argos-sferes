@@ -520,7 +520,7 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
             m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
 
 
-            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(25.0);
+            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(75.0);
             m_vecBehaviors.push_back(pcDisperseBehavior);
 
 
