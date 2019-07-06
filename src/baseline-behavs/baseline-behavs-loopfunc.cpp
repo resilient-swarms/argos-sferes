@@ -47,7 +47,8 @@ void CBaselineBehavsLoopFunctions::Init(TConfigurationNode &t_node)
             swarm_chaining_behav = true;
             break;
         }
-        else if(cController.GetExperimentType().SBehavior == CBaselineBehavs::ExperimentToRun::SWARM_CHAINING1)
+        else if(cController.GetExperimentType().SBehavior == CBaselineBehavs::ExperimentToRun::SWARM_CHAINING1 ||
+                cController.GetExperimentType().SBehavior == CBaselineBehavs::ExperimentToRun::SWARM_DYNAMIC_CHAINING)
         {
             swarm_chaining_behav1 = true;
             break;

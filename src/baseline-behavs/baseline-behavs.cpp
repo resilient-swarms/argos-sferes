@@ -46,6 +46,8 @@ void CBaselineBehavs::ExperimentToRun::Init(TConfigurationNode& t_node)
         SBehavior = SWARM_CHAINING;
     else if (swarmbehav.compare("SWARM_CHAINING1") == 0)
         SBehavior = SWARM_CHAINING1;
+    else if (swarmbehav.compare("SWARM_DYNAMIC_CHAINING") == 0)
+        SBehavior = SWARM_DYNAMIC_CHAINING;
     else if (swarmbehav.compare("SWARM_FLOCKING") == 0)
         SBehavior = SWARM_FLOCKING;
     else if (swarmbehav.compare("SWARM_HOMING") == 0)
@@ -165,6 +167,7 @@ void CBaselineBehavs::ControlStep()
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_BORDERCOVERAGE ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_CHAINING       ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_CHAINING1      ||
+            m_sExpRun.SBehavior == ExperimentToRun::SWARM_DYNAMIC_CHAINING ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_STOP)
         RunHomogeneousSwarmExperiment();
 
@@ -511,6 +514,43 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
         else if(dest_robot)
         {
             CDestChainBehavior1* pcDestChainBehavior = new CDestChainBehavior1(&m_uRABDataIndex, m_pcRABA, m_pcLeds, RobotIdStrToInt());
+            m_vecBehaviors.push_back(pcDestChainBehavior);
+        }
+
+        else
+        {
+            CObstacleAvoidanceBehavior* pcObstacleAvoidanceBehavior = new CObstacleAvoidanceBehavior(0.1f);
+            m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
+
+
+            CDisperseBehavior* pcDisperseBehavior = new CDisperseBehavior(75.0);
+            m_vecBehaviors.push_back(pcDisperseBehavior);
+
+
+            CLinkChainBehavior1* pcLnkChainBehavior = new CLinkChainBehavior1(&m_uRABDataIndex, m_pcRABA, m_pcLeds, RobotIdStrToInt(),
+                                                                              src_pos, dest_pos, global_position, global_orientation);
+            m_vecBehaviors.push_back(pcLnkChainBehavior);
+
+
+            CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
+            m_vecBehaviors.push_back(pcRandomWalkBehavior);
+        }
+
+        /*if(dest_robot)
+            m_pcLeds->SetColor(CColor::GREEN);*/
+    }
+
+    else if (m_sExpRun.SBehavior == ExperimentToRun::SWARM_DYNAMIC_CHAINING)
+    {
+        if(src_robot)
+        {
+            CSrcChainBehavior1* pcSrcChainBehavior = new CSrcChainBehavior1(&m_uRABDataIndex, m_pcRABA, m_pcLeds, RobotIdStrToInt());
+            m_vecBehaviors.push_back(pcSrcChainBehavior);
+        }
+
+        else if(dest_robot)
+        {
+            CDestChainBehavior1* pcDestChainBehavior = new CDestChainBehavior1(&m_uRABDataIndex, m_pcRABA, m_pcLeds, RobotIdStrToInt(), true);
             m_vecBehaviors.push_back(pcDestChainBehavior);
         }
 

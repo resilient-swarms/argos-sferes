@@ -29,7 +29,7 @@
         <differential_steering implementation="default" vel_noise_range="-0.1:0.1" dist_noise_range="-1.0:1.0" />
       </sensors>
       <params>
-      <experiment_run swarm_behavior="SWARM_CHAINING1"
+      <experiment_run swarm_behavior="SWARM_DYNAMIC_CHAINING"
                       fault_behavior="FAULT_NONE"
                       id_faulty_robot="-1" />
         <wheel_turning max_speed="13.0" />

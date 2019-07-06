@@ -69,6 +69,7 @@ public:
             SWARM_FLOCKING,
             SWARM_CHAINING,
             SWARM_CHAINING1,
+            SWARM_DYNAMIC_CHAINING,
             SWARM_STOP,
             SWARM_NONE
         };
