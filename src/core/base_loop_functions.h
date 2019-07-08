@@ -15,6 +15,7 @@
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
 
+
 /*******************/
 class EnvironmentGenerator;
 
@@ -58,7 +59,7 @@ public:
     void place_robots();
 
     /* initialise the robot vector */
-    virtual void init_robots();
+    virtual void init_robots(TConfigurationNode &t_node);
     
     virtual void Init(TConfigurationNode &t_node);
     void init_fitfuns(TConfigurationNode &t_node);
@@ -74,6 +75,16 @@ public:
     {
         ++m_unCurrentTrial;
     }
+
+    /* add additional agents */
+    virtual void create_new_agents();
+
+    /* remove superfluous agents */
+    virtual void remove_agents(size_t too_much);
+
+    /* adjust the number of agents */
+    void adjust_number_agents();
+
     void reset_agent_positions();
     virtual void start_trial(argos::CSimulator& cSimulator);
     virtual void end_trial();
@@ -121,8 +132,11 @@ public:
     size_t m_unNumberTrials;
     size_t  seed;// seed part corresponding to the one in the config
     int m_unCurrentTrial; // will start with -1 for convenience
-    std::vector<std::vector<SInitSetup>> m_vecInitSetup;
+    std::vector<std::vector<SInitSetup>> m_vecInitSetup,m_vecInitSetupCylinders;
+
+    size_t m_unNumberCylinders;
     size_t m_unNumberRobots;
+    EnvironmentGenerator* generator = NULL;
     std::string output_folder;
 #ifdef RECORD_FIT
     std::ofstream fitness_writer;
@@ -130,4 +144,10 @@ public:
 
     /* robot vectors */
     std::vector<CThymioEntity *> m_pcvecRobot;
+
+    /* help to create robot vectors */
+    std::string robot_id;
+    size_t rab_data_size;
+    size_t rab_range;
+    size_t max_num_robots;
 };

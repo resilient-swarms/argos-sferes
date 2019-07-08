@@ -10,49 +10,64 @@
 
 #include <argos3/plugins/robots/thymio/simulator/thymio_measures.h>
 
-
-BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0),m_vecInitSetup(0)
+BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0), m_vecInitSetup(0)
 {
 }
 
-void BaseLoopFunctions::init_robots()
+void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
 {
-    m_pcvecRobot.clear();
-    CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
 
-    size_t robotindex = 0;
-    for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+    /*
+    * Process number of robots in swarm
+    */
+    size_t rab_data_size;
+    size_t rab_range;
+    try
     {
-        m_pcvecRobot.push_back(any_cast<CThymioEntity *>(it->second));
+        GetNodeAttribute(t_node, "robot_id", robot_id);
+        GetNodeAttribute(t_node, "rab_data_size", rab_data_size);
+        GetNodeAttribute(t_node, "rab_range", rab_range);
     }
-    if(m_unNumberRobots != m_pcvecRobot.size())// we need to make sure the number of robots distributed in the arena match what is specified by the user in the loop function.
+    catch (CARGoSException &ex)
     {
-        throw std::runtime_error("\n The number of robots distributed in the arena " +std::to_string(m_unNumberRobots) + " does not match what is specified by the user in the loop function " +std::to_string(m_pcvecRobot.size()));
+        std::cout<<"WARNING: no robot ranges specified; this is a problem when using environment generator"<<std::endl;
     }
-    
+
+    if (m_unNumberRobots > 0 )
+    {
+        CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
+        for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+        {
+            m_pcvecRobot.push_back(any_cast<CThymioEntity *>(it->second));
+        }
+        if (m_unNumberRobots != m_pcvecRobot.size()) // we need to make sure the number of robots distributed in the arena match what is specified by the user in the loop function.
+        {
+            throw std::runtime_error("\n The number of robots distributed in the arena " + std::to_string(m_unNumberRobots) + " does not match what is specified by the user in the loop function " + std::to_string(m_pcvecRobot.size()));
+        }
+    }
+  
+
 }
 
-CEmbodiedEntity* BaseLoopFunctions::get_embodied_entity(size_t robot)
+CEmbodiedEntity *BaseLoopFunctions::get_embodied_entity(size_t robot)
 {
     return &m_pcvecRobot[robot]->GetEmbodiedEntity();
 }
 
 /* get the controller  */
-BaseController* BaseLoopFunctions::get_controller(size_t robot)
+BaseController *BaseLoopFunctions::get_controller(size_t robot)
 {
-    return dynamic_cast<BaseController*>(&m_pcvecRobot[robot]->GetControllableEntity().GetController());
+    return dynamic_cast<BaseController *>(&m_pcvecRobot[robot]->GetControllableEntity().GetController());
 }
-
 
 void BaseLoopFunctions::place_robots()
 {
-    init_robots();
     // set RAB range
-    for (int i=0; i < m_unNumberRobots; ++i)
+    for (int i = 0; i < m_unNumberRobots; ++i)
     {
         // add the RAB range as a parameter to the controller class
         Real max_rab = m_pcvecRobot[i]->GetRABEquippedEntity().GetRange();
-        BaseController* ctrl = get_controller(i);
+        BaseController *ctrl = get_controller(i);
         ctrl->max_rab_range = max_rab;
     }
     curr_pos.resize(m_unNumberRobots);
@@ -66,13 +81,13 @@ void BaseLoopFunctions::place_robots()
     Real maxX = size.GetX() - 0.05f;
     Real minY = 0.05f;
     Real maxY = size.GetY() - 0.05;
+    m_vecInitSetup.clear();
     for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
     {
         m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
         size_t num_tries = 0;
         for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
         {
-            // TODO: Set bounds for positions from configuration file
             CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
 #ifdef PRINTING
             std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
@@ -83,10 +98,10 @@ void BaseLoopFunctions::place_robots()
                                         CRadians::ZERO);
 
             while (!get_embodied_entity(m_unRobot)->MoveTo( // move the body of the robot
-                               Position,                                     // to this position
-                               Orientation,                                  // with this orientation
-                               false                                        // this is not a check, leave the robot there
-                               ))
+                Position,                                   // to this position
+                Orientation,                                // with this orientation
+                false                                       // this is not a check, leave the robot there
+                ))
             {
                 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
                 //std::cout << "Position2 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
@@ -105,9 +120,9 @@ void BaseLoopFunctions::place_robots()
     }
 }
 
-
 void BaseLoopFunctions::Init(TConfigurationNode &t_node)
 {
+
     /*
     * Create the random number generator
     */
@@ -134,16 +149,16 @@ void BaseLoopFunctions::Init(TConfigurationNode &t_node)
     try
     {
         GetNodeAttribute(t_node, "robots", m_unNumberRobots);
-        
     }
     catch (CARGoSException &ex)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing number of robots", ex);
     }
+    init_robots(t_node);
     place_robots();
 
     init_fitfuns(t_node);
-        
+
     /* process outputfolder */
     try
     {
@@ -162,7 +177,6 @@ void BaseLoopFunctions::Init(TConfigurationNode &t_node)
 
 #endif
 }
-
 
 /* Process fitness function type  */
 void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
@@ -219,20 +233,68 @@ void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
     }
 }
+/* add additional agents */
+void BaseLoopFunctions::create_new_agents()
+{
+    size_t start = m_pcvecRobot.size();
+    for (size_t i = start ; i < m_unNumberRobots; ++i) // initialise the robots
+    {
+        CThymioEntity *robot = new CThymioEntity(robot_id + std::to_string(i),
+                                                 get_controller_id(),
+                                                 CVector3(),
+                                                 CQuaternion(),
+                                                 rab_range,
+                                                 rab_data_size);    
+        AddEntity(*robot);
+        m_pcvecRobot.push_back(robot);
+    }
+}
+
+/* remove superfluous agents */
+void BaseLoopFunctions::remove_agents(size_t too_much)
+{
+    for (size_t i=0; i < too_much; ++i)
+    {
+        RemoveEntity(*m_pcvecRobot.back());
+        m_pcvecRobot.pop_back();
+    }
+}
+
+/* adjust the number of agents */
+void BaseLoopFunctions::adjust_number_agents()
+{
+    // first calculate the difference
+    int difference = m_pcvecRobot.size() - m_unNumberRobots;
+
+    if(difference > 0)
+    {
+        remove_agents(difference);
+    }
+    else if(difference < 0)
+    {
+        create_new_agents();
+    }
+    else
+    {
+        return;
+    }
+    
+}
+
 
 
 void BaseLoopFunctions::reset_agent_positions()
 {
-    for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
-    {   
-        CEmbodiedEntity* entity = get_embodied_entity(m_unRobot);
-        CPhysicsModel* model;
 
-        
+    for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
+    {
+        CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
+        CPhysicsModel *model;
+
         bool moved = entity->MoveTo(
-                   m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
-                   m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
-                   false                                                    // this is not a check, leave the robot there
+            m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
+            m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
+            false                                                    // this is not a check, leave the robot there
         );
 
         // for (size_t i=0; i < 4; ++i)
@@ -248,8 +310,6 @@ void BaseLoopFunctions::reset_agent_positions()
         model = &entity->GetPhysicsModel("dyn2d_0");
         model->UpdateEntityStatus();
 
- 
-
         old_pos[m_unRobot] = entity->GetOriginAnchor().Position;
         curr_pos[m_unRobot] = old_pos[m_unRobot];
         CRadians zAngle = get_orientation(m_unRobot);
@@ -261,7 +321,7 @@ void BaseLoopFunctions::reset_agent_positions()
     // {
     //     try{
     //         CSimulator::GetInstance().GetPhysicsEngines()[i]->TransferEntities();
-        
+
     //     }
     //     catch (argos::CARGoSException e){
     //         continue;
@@ -275,9 +335,9 @@ void BaseLoopFunctions::Reset()
 
 void BaseLoopFunctions::PostStep()
 {
-    
+
     fitfun->after_robotloop(*this);
-    for (size_t robotindex=0; robotindex < m_unNumberRobots; ++robotindex)
+    for (size_t robotindex = 0; robotindex < m_unNumberRobots; ++robotindex)
     {
         old_pos[robotindex] = curr_pos[robotindex];
         old_theta[robotindex] = curr_theta[robotindex];
@@ -293,10 +353,6 @@ void BaseLoopFunctions::print_progress()
     int trial = m_unCurrentTrial;
     fitfun->print_progress(trial);
 }
-
-
-
-
 
 void BaseLoopFunctions::before_trials(argos::CSimulator &cSimulator)
 {
@@ -315,26 +371,20 @@ void BaseLoopFunctions::start_trial(argos::CSimulator &cSimulator)
     fitfun->before_trial(*this);
 }
 
-
-
-
-
 /* these methods are not be overridden */
-float BaseLoopFunctions::run_all_trials(argos::CSimulator& cSimulator)
+float BaseLoopFunctions::run_all_trials(argos::CSimulator &cSimulator)
 {
-    
+
     before_trials(cSimulator);
     /*
     * Run x trials and take the average performance as final value.
     */
-
 
     // /* generate a new environment if necessary */
     // if (generator != NULL)
     // {
     //     generator->generate(cSimulator);
     // }
-        
 
     for (size_t i = 0; i < m_unNumberTrials; ++i)
     {
@@ -351,7 +401,6 @@ float BaseLoopFunctions::run_all_trials(argos::CSimulator& cSimulator)
     return fFitness;
 }
 
-
 void BaseLoopFunctions::perform_trial(argos::CSimulator &cSimulator)
 {
     start_trial(cSimulator);
@@ -366,13 +415,6 @@ float BaseLoopFunctions::alltrials_fitness()
     return fitfun->after_trials();
 }
 
-
-
-
-
-
-
-
 /* helper functions */
 
 /*get the orientation of the robot */
@@ -380,11 +422,10 @@ CRadians BaseLoopFunctions::get_orientation(size_t robot_index)
 {
     CVector3 axis;
     CQuaternion quat = get_embodied_entity(robot_index)->GetOriginAnchor().Orientation;
-    CRadians zAngle, yAngle,xAngle;
-    quat.ToEulerAngles(zAngle,yAngle,xAngle);
+    CRadians zAngle, yAngle, xAngle;
+    quat.ToEulerAngles(zAngle, yAngle, xAngle);
     return zAngle;
 }
-
 
 /* linear speed normalised to [0,1], based on the actual movement rather than wheel speed */
 float BaseLoopFunctions::actual_linear_velocity_01(size_t robot_index)
@@ -396,13 +437,13 @@ float BaseLoopFunctions::actual_linear_velocity_01(size_t robot_index)
     else
     {
         // calculate velocity w.r.t. old orientation
-        CVector3 displacement =  curr_pos[robot_index] - old_pos[robot_index];
+        CVector3 displacement = curr_pos[robot_index] - old_pos[robot_index];
         float theta = old_theta[robot_index].GetValue();
-        float velocity = displacement.GetX()*std::cos(theta) + displacement.GetY() * std::sin(theta);
+        float velocity = displacement.GetX() * std::cos(theta) + displacement.GetY() * std::sin(theta);
         // convert max speed in cm to max_speed in meters
-        float max_speed = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed/100.0f;
-        velocity/=(tick_time * max_speed);//in [-1,1] now
-        velocity = 0.5f + 0.5f*velocity;// in [0,1] now
+        float max_speed = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed / 100.0f;
+        velocity /= (tick_time * max_speed); //in [-1,1] now
+        velocity = 0.5f + 0.5f * velocity;   // in [0,1] now
         return velocity;
     }
 }
@@ -418,15 +459,14 @@ float BaseLoopFunctions::actual_turn_velocity_01(size_t robot_index)
         // need to normalise by the max possible angle change; cf. https://www.argos-sim.info/forum/viewtopic.php?t=79
         // maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed = (A * B) / (2 * T)
         // --> maxA = 2*T*maxV/B
-        float B = Thymio_WHEEL_DISTANCE;// THYMIO's INTERWHEEL DISTANCE (m)
-        float maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed/100.0f;// max speed (m/s)
-        float angle_difference = argos::NormalizedDifference(curr_theta[robot_index],old_theta[robot_index]).GetValue();
-        float maxA = 2*tick_time*maxV/B;// this comes at 0.25 which agrees with the value when setting V_l=-Max and V_r=+Max
-        float turn_velocity = angle_difference/maxA;// in [-1,1]
-        turn_velocity =0.5 + 0.5*turn_velocity;
+        float B = Thymio_WHEEL_DISTANCE;                                                   // THYMIO's INTERWHEEL DISTANCE (m)
+        float maxV = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed / 100.0f; // max speed (m/s)
+        float angle_difference = argos::NormalizedDifference(curr_theta[robot_index], old_theta[robot_index]).GetValue();
+        float maxA = 2 * tick_time * maxV / B;         // this comes at 0.25 which agrees with the value when setting V_l=-Max and V_r=+Max
+        float turn_velocity = angle_difference / maxA; // in [-1,1]
+        turn_velocity = 0.5 + 0.5 * turn_velocity;
         return turn_velocity;
     }
-
 }
 /* linear velocity normalised to [-1,1]*/
 float BaseLoopFunctions::actual_linear_velocity_signed(size_t robot_index)
@@ -438,12 +478,12 @@ float BaseLoopFunctions::actual_linear_velocity_signed(size_t robot_index)
     else
     {
         // calculate velocity w.r.t. old orientation
-        CVector3 displacement =  curr_pos[robot_index] - old_pos[robot_index];
+        CVector3 displacement = curr_pos[robot_index] - old_pos[robot_index];
         float theta = old_theta[robot_index].GetValue();
-        float velocity = displacement.GetX()*std::cos(theta) + displacement.GetY() * std::sin(theta);
+        float velocity = displacement.GetX() * std::cos(theta) + displacement.GetY() * std::sin(theta);
         // convert max speed in cm to max_speed in meters
-        float max_speed = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed/100.0f;
-        velocity/=(tick_time * max_speed );//in [-1,1] now
+        float max_speed = get_controller(robot_index)->m_sWheelTurningParams.MaxSpeed / 100.0f;
+        velocity /= (tick_time * max_speed); //in [-1,1] now
         return velocity;
     }
 }
@@ -454,7 +494,7 @@ float BaseLoopFunctions::get_mass(CThymioEntity *robot)
     return 1.0f;
 }
 /* get the centre of mass of the swarm */
-argos::CVector3 BaseLoopFunctions::centre_of_mass(const std::vector<CVector3>& positions)
+argos::CVector3 BaseLoopFunctions::centre_of_mass(const std::vector<CVector3> &positions)
 {
     float M = 0.0;
     argos::CVector3 cm = argos::CVector3(0., 0., 0.);

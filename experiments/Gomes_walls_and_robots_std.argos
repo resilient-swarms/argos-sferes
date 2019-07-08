@@ -56,7 +56,6 @@
                   robots="2"
                   descriptortype="cvt_Gomes_sdbc_walls_and_robots_std"  
                   fitfuntype="Aggregation"
-                  bd_dims="3"
 		  output_folder="experiments"
         centroids_folder="experiments/centroids"
                     />

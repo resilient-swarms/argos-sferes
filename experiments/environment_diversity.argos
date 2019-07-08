@@ -52,14 +52,17 @@
   <loop_functions library="lib/libevolution_loopfunctions1D.so"
                   label="evolution_loopfunctions1D"
                   trials="5"
-                  robots="20"
+                  robots="10"
                   descriptortype="environment_diversity"  
-                  fitfuntype="Flocking"
-                  bd_dims="3"
+                  fitfuntype="Dispersion"
 		  output_folder="experiments"
-        centroids_folder="experiments"
-                    />
+        centroids_folder="experiments/centroids"
+        robot_id="thymio"
+     rab_data_size="4" rab_range="1" >
+    
 
+    
+    </loop_functions>
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
@@ -82,25 +85,10 @@
     <box id="wall_west" size="0.1,7,0.5" movable="false">
       <body position="0,3.5,0" orientation="0,0,0" />
     </box>
-
-
-    <!--
-       We distribute cylinders uniformly in position and with
-       constant rotation (rotating a cylinder around Z does not
-       matter)
-    -->
     <distribute>
-     <position method="uniform" min="0,0,0" max="7,7,0" />
-     <orientation method="constant" values="0,0,0" />
-     <entity quantity="0" max_trials="2000">
-       <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
-     </entity>
-    </distribute>
-
-    <distribute>
-      <position method="uniform" min="0,0,0" max="7,7,0" />
+      <position method="uniform" min="0.5,0.5,0" max="3.5,3.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="20" max_trials="1000">
+      <entity quantity="10" max_trials="1000">
         <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
           <controller config="tnn" />
         </Thymio>

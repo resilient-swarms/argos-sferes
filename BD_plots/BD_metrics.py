@@ -14,7 +14,7 @@ def global_performances(BD_directory, runs, archive_file_path, max_performance,c
     print("global performances: " + str(stats))
     return stats
 
-def _global_performance(BD_directory, run,archive_file_path,max_performance,conversion_func):
+def _global_performance(BD_directory, run,archive_file_path,max_performance,conversion_func=None):
     """
     For each run, the single highest- performing
     solution found by that algorithm anywhere in the search space
@@ -32,7 +32,10 @@ def _global_performance(BD_directory, run,archive_file_path,max_performance,conv
     :param experiment_file_path: relative path from the BD_directory to the archive file
     """
     path=get_archive_filepath(BD_directory, run, archive_file_path)
-    all_performances = [conversion_func(fitness) for fitness in get_bin_performances(path).values()]
+    if conversion_func is not None:
+        all_performances = [conversion_func(fitness) for fitness in get_bin_performances(path).values()]
+    else:
+        all_performances = [fitness for fitness in get_bin_performances(path).values()]
     return max(all_performances)/max_performance
 
 def global_reliabilities(BD_directory,runs,archive_file_path):
@@ -161,14 +164,25 @@ def convert_CoverageFitness(fitness,grid_size=0.1212,max_velocity=0.10, time_per
 
 def development_plots(runs,times,BD_directory,title_tag):
 
-    bd_type = ["history","cvt_mutualinfo","cvt_mutualinfoact","cvt_spirit"]  #legend label
+    # bd_type = ["history","cvt_mutualinfo","cvt_mutualinfoact","cvt_spirit"]  #legend label
+    #
+    # legend_labels=["handcrafted","mutualinfo","mutualinfoact","spirit"]  # labels for the legend
+    # colors=["C"+str(i) for i in range(len(bd_type))]  # colors for the lines
+    # # (numsides, style, angle)
+    # markers=[(3,1,0), (3,2,0),(4,1,0),(4,2,0)] # markers for the lines
+    # bd_shapes = [32**2, 1000,1000,1000]  # shape of the characterisation
+    # y_labels=["global_performance","global_reliability","precision","coverage"]
 
-    legend_labels=["handcrafted","mutualinfo","mutualinfoact","spirit"]  # labels for the legend
+    bd_type = ["Gomes_sdbc_walls_and_robots_std"]  #legend label
+
+    legend_labels=["SDBC"]  # labels for the legend
     colors=["C"+str(i) for i in range(len(bd_type))]  # colors for the lines
     # (numsides, style, angle)
-    markers=[(3,1,0), (3,2,0),(4,1,0),(4,2,0)] # markers for the lines
-    bd_shapes = [32**2, 1000,1000,1000]  # shape of the characterisation
+    markers=[(3,1,0)] # markers for the lines
+    bd_shapes = [5000]  # shape of the characterisation
     y_labels=["global_performance","global_reliability","precision","coverage"]
+
+
     boxes=[(.20,.20),(.20,.20),(0.20,0.20),(0.20,0.20)] # where to place the legend box
     y_bottom={ylabel:[[] for i in bd_type] for ylabel in y_labels}
     y_mid = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
@@ -178,7 +192,7 @@ def development_plots(runs,times,BD_directory,title_tag):
             archive_file="archive_" + str(time) + ".dat"
 
             global_perform = global_performances(BD_directory+"/"+bd_type[i], runs, archive_file , 1.0,
-                                                 conversion_func=convert_CoverageFitness)
+                                                 conversion_func=None)
             add_boxplotlike_data(global_perform, y_bottom, y_mid, y_top, y_label="global_performance",method_index=i)
             global_reliability = global_reliabilities(BD_directory+"/"+bd_type[i], runs, archive_file)
             add_boxplotlike_data(global_reliability, y_bottom, y_mid, y_top, y_label="global_reliability",method_index=i)
@@ -218,7 +232,12 @@ if __name__ == "__main__":
    # coverages((6, 10),HOME_DIR+"/argos-sferes/experiments/data/MeanSpeed/sdbc_walls_and_robots", runs, "archive_900.dat")
 
 
-    data_dir=HOME_DIR+"/Data/datanew"
+    data_dir=HOME_DIR+"/Data/dataNEW/datanew"
 
     #development_plots(runs=5,times=range(0,1100,100),BD_directory=data_dir+"/Coveragerange11",title_tag="range11")
-    development_plots(runs=range(1,6), times=range(0,2000, 100), BD_directory=data_dir + "/Coveragerange50",title_tag="range50")
+
+    fitfuns= ["DecayCoverage","DecayBorderCoverage","Aggregation","Dispersion","Flocking"]
+
+    for fitfun in fitfuns:
+        title=fitfun+"range11"
+        development_plots(runs=range(1,6), times=range(0,100, 10), BD_directory=data_dir + "/"+title,title_tag=fitfun)

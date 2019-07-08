@@ -521,10 +521,10 @@ void SDBC::add_closest_robot_dist(EvolutionLoopFunctions &cLoopFunctions)
 {
 	float mean_dist = 0.0f;
 	// we already have positions available in curr_pos
-	for (size_t i = 0; i < cLoopFunctions.curr_pos.size(); ++i)
+	for (size_t i = 0; i < cLoopFunctions.m_unNumberRobots; ++i)
 	{
 		float mindist = std::numeric_limits<float>::infinity();
-		for (size_t j = 0; j < cLoopFunctions.curr_pos.size(); ++j)
+		for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
 		{
 			if (j == i)
 			{
@@ -539,7 +539,7 @@ void SDBC::add_closest_robot_dist(EvolutionLoopFunctions &cLoopFunctions)
 		}
 		mean_dist += mindist;
 	}
-	mean_dist = mean_dist / ((float) cLoopFunctions.curr_pos.size());
+	mean_dist = mean_dist / ((float) cLoopFunctions.m_unNumberRobots);
 	mean_dist = normalise(mean_dist, "closest_robot");
 	temp_bd[bd_index].push_back(mean_dist);
 }
@@ -991,13 +991,7 @@ std::vector<float> CVT_Trajectory::after_trials(EvolutionLoopFunctions &cLoopFun
 EnvironmentDiversity::EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators)
 {
 	this->bd.resize(1);
-	/* note path is the path without the .argos prefix */
-	for (size_t i = 1; i <= num_generators; ++i)
-	{
-		env_generators.push_back(new ConfigurationBasedGenerator(path + std::to_string(i) + ".argos"));
-	}
-	// select a random generator
-	id = cLoopFunctions.m_pcRNG->Uniform(CRange<int>(0, env_generators.size() - 1));
+	cLoopFunctions.generator = new EnvironmentGenerator(cLoopFunctions.seed);
 }
 
 /* before all trials, prepare */
@@ -1008,6 +1002,6 @@ void EnvironmentDiversity::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 /*summarise BD at the end of trials*/
 std::vector<float> EnvironmentDiversity::after_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
-	std::vector<float> final_bd(1, (float)id / (float)env_generators.size());
+	std::vector<float> final_bd;//(1, (float)id / (float)env_generators.size());
 	return final_bd;
 }

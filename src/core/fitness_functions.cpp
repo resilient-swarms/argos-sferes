@@ -125,7 +125,7 @@ void Coverage::apply(BaseLoopFunctions &cLoopFunctions)
 /*after a single step of single agent */
 void Coverage::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
-    for (size_t robot_index = 0; robot_index < cLoopFunctions.curr_pos.size(); ++robot_index)
+    for (size_t robot_index = 0; robot_index < cLoopFunctions.m_unNumberRobots; ++robot_index)
     {
         coverageCalc->update(cLoopFunctions.curr_pos[robot_index]);
     }
@@ -179,7 +179,7 @@ void DecayCoverage::apply(BaseLoopFunctions &cLoopFunctions)
 /*after a single step of single agent */
 void DecayCoverage::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
-    for (size_t robot_index = 0; robot_index < cLoopFunctions.curr_pos.size(); ++robot_index)
+    for (size_t robot_index = 0; robot_index < cLoopFunctions.m_unNumberRobots; ++robot_index)
     {
         coverageCalc->update(cLoopFunctions.curr_pos[robot_index]);
     }
@@ -270,11 +270,11 @@ float Dispersion::avg_min_dist(BaseLoopFunctions &cLoopFunctions)
 {
 
     float avg_min_dist = 0.0f;
-    for (size_t i = 0; i < cLoopFunctions.curr_pos.size(); ++i)
+    for (size_t i = 0; i < cLoopFunctions.m_unNumberRobots; ++i)
     {
         float min_dist = std::numeric_limits<float>::infinity();
 
-        for (size_t j = 0; j < cLoopFunctions.curr_pos.size(); ++j)
+        for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
         {
             if (i == j)
                 continue;
@@ -286,7 +286,7 @@ float Dispersion::avg_min_dist(BaseLoopFunctions &cLoopFunctions)
         }
         avg_min_dist += min_dist;
     }
-    avg_min_dist /= (float)cLoopFunctions.curr_pos.size();
+    avg_min_dist /= (float)cLoopFunctions.m_unNumberRobots;
 #ifdef PRINTING
     std::cout << "avg min dist: " << avg_min_dist << std::endl;
 #endif

@@ -55,7 +55,6 @@
                   robots="5"
                   descriptortype="multiagent_spirit"  
                   fitfuntype="Aggregation"
-                  bd_dims="3"
 		  output_folder="experiments"
         centroids_folder="experiments/centroids"
                     />
@@ -132,9 +131,9 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
- <qt-opengl>
+ <!-- <qt-opengl>
         <user_functions label="robotid_vis" />
-    </qt-opengl>
+    </qt-opengl>  -->
   </visualization>
 
 </argos-configuration>

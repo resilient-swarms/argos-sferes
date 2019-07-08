@@ -237,8 +237,15 @@ public:
     /* Process perturbations */
     void init_perturbations();
 
+    /* remove superfluous agents */
+    virtual void remove_agents(size_t too_much);
+
+    /* add additional agents */
+    virtual void create_new_agents();
+
+
     /* Process robots */
-    virtual void init_robots();
+    virtual void init_robots(TConfigurationNode &t_node);
 
     /* next are functions that are done during loop */
 
@@ -339,7 +346,11 @@ FIT_MAP(FitObstacleMapElites){
             // }
             static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
             static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
-
+            /* before the trials start and Reset happens check whether some settings of the config must be changed */
+            if (cLoopFunctions.generator != NULL)
+            {   
+                cLoopFunctions.generator->generate(&cLoopFunctions);
+            }
             for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
                 cLoopFunctions._vecctrlrob[j] = ind.nn_cpy();
         #ifdef PRINTING
