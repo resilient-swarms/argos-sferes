@@ -13,10 +13,13 @@ mkdir -p $data
 declare -A descriptors
 declare -A voronoi
 
-descriptors["cvt_spirit"]=400
-voronoi["cvt_spirit"]="cvt"
-descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+#descriptors["cvt_spirit"]=400
+#voronoi["cvt_spirit"]="cvt"
+descriptors["multiagent_spirit"]=576
+voronoi["multiagent_spirit"]="cvt"
+
+#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 time["DecayCoverage"]=200
 time["DecayBorderCoverage"]=200
 time["Dispersion"]=100

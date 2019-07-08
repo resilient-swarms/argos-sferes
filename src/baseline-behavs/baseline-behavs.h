@@ -27,7 +27,9 @@
 #include "src_chain_behavior.h"
 #include "link_chain_behavior.h"
 #include "dest_chain_behavior.h"
-
+#include "src_chain_behavior1.h"
+#include "link_chain_behavior1.h"
+#include "dest_chain_behavior1.h"
 
 /****************************************/
 /****************************************/
@@ -66,6 +68,8 @@ public:
             SWARM_BORDERCOVERAGE,
             SWARM_FLOCKING,
             SWARM_CHAINING,
+            SWARM_CHAINING1,
+            SWARM_DYNAMIC_CHAINING,
             SWARM_STOP,
             SWARM_NONE
         };
@@ -217,11 +221,15 @@ public:
 
     bool src_robot, dest_robot;
 
-    // For chaining behaviours
+    // For chaining behaviours v1
     int  m_iParentRobotId;
     int  m_iChildRobotId;
     bool m_bBeaconSignalOn;
     int  m_iTimeLastRequest;
+
+    // For chaining behaviours v2
+    CVector3 src_pos, dest_pos, global_position;
+    CRadians global_orientation;
 
 private:
 

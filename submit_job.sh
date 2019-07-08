@@ -4,7 +4,7 @@
 #SBATCH --nodes=1                # Number of nodes requested
 #SBATCH --time=60:00:00          # walltime
 #SBATCH --mem=20G
-#SBATCH --job-name=behaviour_evol
+#SBATCH --job-name=multiagentspirit
 
 
 FILE=./bin/behaviour_evol${VORONOI}${BD}D

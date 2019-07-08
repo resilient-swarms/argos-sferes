@@ -147,6 +147,12 @@ if(BASELINE)
         src/baseline-behavs/link_chain_behavior.cpp
         src/baseline-behavs/dest_chain_behavior.h
         src/baseline-behavs/dest_chain_behavior.cpp
+        src/baseline-behavs/src_chain_behavior1.h
+        src/baseline-behavs/src_chain_behavior1.cpp
+        src/baseline-behavs/link_chain_behavior1.h
+        src/baseline-behavs/link_chain_behavior1.cpp
+        src/baseline-behavs/dest_chain_behavior1.h
+        src/baseline-behavs/dest_chain_behavior1.cpp
         src/baseline-behavs/flockingbehavior.h
         src/baseline-behavs/flockingbehavior.cpp
         src/baseline-behavs/circlebehavior.h

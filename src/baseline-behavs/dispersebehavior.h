@@ -19,6 +19,7 @@ class CDisperseBehavior : public CBehavior
 {
 public:
     CDisperseBehavior();
+    CDisperseBehavior(Real CommunicationRange);
 
     virtual bool TakeControl();
     virtual void Action(Real &fLeftWheelSpeed, Real &fRightWheelSpeed);
@@ -33,6 +34,7 @@ public:
 
 protected:
     CVector2       m_cDiffusionVector;
+    Real           m_fCommunicationRange;
 };
 
 

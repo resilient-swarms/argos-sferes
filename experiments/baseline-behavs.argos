@@ -8,7 +8,7 @@
     <system threads="0" />
     <experiment length="1200"
                 ticks_per_second="10"
-                random_seed="296484" />
+                random_seed="0" />
   </framework>
 
   <!-- *************** -->
@@ -29,7 +29,7 @@
         <differential_steering implementation="default" vel_noise_range="-0.1:0.1" dist_noise_range="-1.0:1.0" />
       </sensors>
       <params>
-      <experiment_run swarm_behavior="SWARM_AGGREGATION"
+      <experiment_run swarm_behavior="SWARM_DYNAMIC_CHAINING"
                       fault_behavior="FAULT_NONE"
                       id_faulty_robot="-1" />
         <wheel_turning max_speed="13.0" />
@@ -92,7 +92,7 @@
       <position method="uniform" min="0,0,0" max="7,7,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
       <entity quantity="20" max_trials="1000">
-        <Thymio id="thymio" rab_data_size="1000" rab_range="3">    <!-- data size in bytes; range in m -->
+        <Thymio id="thymio" rab_data_size="1000" rab_range="1">    <!-- data size in bytes; range in m -->
           <controller config="bb" />
         </Thymio>
       </entity>
@@ -122,8 +122,8 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-  <!--  <qt-opengl>
+    <qt-opengl>
         <user_functions label="robotid_vis" />
-    </qt-opengl> -->
+    </qt-opengl>
   </visualization>
 </argos-configuration>
