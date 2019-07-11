@@ -52,7 +52,6 @@
                   robots="1"
                   descriptortype="history"  
                   fitfuntype="Coverage"
-                  bd_dims="3"
 		          output_folder="experiments"
                     />
 

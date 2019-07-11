@@ -55,7 +55,6 @@
                   robots="ROBOTS"
                   descriptortype="DESCRIPTOR_TYPE"    
                   fitfuntype="FITFUN_TYPE"
-                  bd_dims="BD_DIMS"
                   output_folder="OUTPUTFOLDER"
                 centroids_folder="CENTROIDSFOLDER"
                     />

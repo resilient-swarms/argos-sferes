@@ -52,7 +52,6 @@
                   robots="1"
                   descriptortype="cvt_sdbc_all_std"  
                   fitfuntype="Coverage"
-                  bd_dims="3"
 		   output_folder="experiments/sdbc_all_std"
 centroids_folder="experiments/centroids"
                     />

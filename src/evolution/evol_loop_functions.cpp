@@ -5,6 +5,8 @@
 #include <src/core/fitness_functions.h>
 #include <src/evolution/descriptors.h>
 
+#include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
+
 /****************************************/
 /****************************************/
 
@@ -69,6 +71,7 @@ void EvolutionLoopFunctions::Init(TConfigurationNode &t_node)
     BaseLoopFunctions::Init(t_node);
     init_simulation(t_node);
     init_descriptors(t_node);
+
 }
 
 /* get the controller  */
@@ -155,15 +158,36 @@ void EvolutionLoopFunctions::init_simulation(TConfigurationNode &t_node)
     }
 #endif
 }
-void EvolutionLoopFunctions::init_robots()
+void EvolutionLoopFunctions::init_robots(TConfigurationNode &t_node)
 {
 
-    BaseLoopFunctions::init_robots();
+    BaseLoopFunctions::init_robots(t_node);
     m_pcvecController.clear();
     for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
         m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
     }
+}
+
+
+/* add additional agents */
+void EvolutionLoopFunctions::create_new_agents()
+{
+    BaseLoopFunctions::create_new_agents();
+    _vecctrlrob.resize(m_unNumberRobots);
+    for (size_t robotindex = 0; robotindex < m_unNumberRobots; ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+    {
+        m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
+        Real max_rab = m_pcvecRobot[robotindex]->GetRABEquippedEntity().GetRange();
+        m_pcvecController[robotindex]->max_rab_range = max_rab;
+    }
+}
+
+/* remove superfluous agents */
+void EvolutionLoopFunctions::remove_agents(size_t too_much)
+{
+    BaseLoopFunctions::remove_agents(too_much);
+    m_pcvecController.resize(m_unNumberRobots);
 }
 /****************************************/
 /****************************************/
