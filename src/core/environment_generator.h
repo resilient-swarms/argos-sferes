@@ -37,22 +37,25 @@ struct EnvironmentGenerator
 
 
   /* number of robots */
-  const std::vector<size_t> num_robots = {3,4,5,6,7};//5 options
+  const std::vector<size_t> num_robots = {5,10};//5 options
 
   /* arena size */
   //const std::vector<size_t> arena_size = {2,4,6};//3 options
 
   /* cylindric obstacles */
-  //const std::vector<size_t> num_cylinders = {0,2,4,8,16};//3 options
+  const std::vector<size_t> num_cylinders = {3,6};//3 options
+
+  /* wheel */
   // random number generator
   std::mt19937 rng;
   std::uniform_int_distribution<int> robot_dist;
   //const std::uniform_int_distribution<int> arena_dist(0,2);
-  //std::uniform_int_distribution<int> cylinder_dist(0,4);
+  std::uniform_int_distribution<int> cylinder_dist;
   EnvironmentGenerator(int seed)
   {
       rng.seed(seed);
-      robot_dist = std::uniform_int_distribution<int>(0,4);
+      robot_dist = std::uniform_int_distribution<int>(0,num_robots.size()-1);
+      cylinder_dist = std::uniform_int_distribution<int>(0,num_cylinders.size()-1);
   }
 
   void generate(BaseLoopFunctions* cLoopFunctions);

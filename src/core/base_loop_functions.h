@@ -14,6 +14,7 @@
 #include <argos3/core/utility/math/rng.h>
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
+#include <argos3/plugins/simulator/entities/cylinder_entity.h>
 
 
 /*******************/
@@ -49,6 +50,8 @@ public:
     /* embodied entity  */
     virtual CEmbodiedEntity* get_embodied_entity(size_t robot);
 
+    CEmbodiedEntity* get_embodied_cylinder(size_t robot);
+
     /* get RAB range */
     Real get_RAB_range(size_t robot);
 
@@ -58,11 +61,20 @@ public:
     /* place robots on initial positions */
     void place_robots();
 
+    /* place cylinders on initial positions */
+    void place_cylinders();
+
+    /* initialise data for custom environment generator */
+    void init_generator(TConfigurationNode &t_node);
     /* initialise the robot vector */
     virtual void init_robots(TConfigurationNode &t_node);
     
     virtual void Init(TConfigurationNode &t_node);
     void init_fitfuns(TConfigurationNode &t_node);
+
+    /* before the trials start and Reset happens check 
+    whether some settings of the config must be changed */
+    void generate();
 
     virtual void Reset();
 
@@ -85,7 +97,24 @@ public:
     /* adjust the number of agents */
     void adjust_number_agents();
 
+
+
+    /* add additional cylinders */
+    virtual void create_new_cylinders();
+
+    /* remove superfluous cylinders */
+    virtual void remove_cylinders(size_t too_much);
+
+    /* adjust the number of cylinders */
+    void adjust_number_cylinders();
+
+    /* put the agents on the initvecs */
     void reset_agent_positions();
+
+    /* put the cylinders on the initvecs */
+    void reset_cylinder_positions();
+
+
     virtual void start_trial(argos::CSimulator& cSimulator);
     virtual void end_trial();
     virtual void print_progress();
@@ -134,7 +163,7 @@ public:
     int m_unCurrentTrial; // will start with -1 for convenience
     std::vector<std::vector<SInitSetup>> m_vecInitSetup,m_vecInitSetupCylinders;
 
-    size_t m_unNumberCylinders;
+    size_t m_unNumberCylinders=0;//note: this may also be zero when using distribute exclusively
     size_t m_unNumberRobots;
     EnvironmentGenerator* generator = NULL;
     std::string output_folder;
@@ -144,6 +173,8 @@ public:
 
     /* robot vectors */
     std::vector<CThymioEntity *> m_pcvecRobot;
+    /* cylinder vectors */
+    std::vector<CCylinderEntity*> m_pcvecCylinder;
 
     /* help to create robot vectors */
     std::string robot_id;

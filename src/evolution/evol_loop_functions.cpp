@@ -187,7 +187,10 @@ void EvolutionLoopFunctions::create_new_agents()
 void EvolutionLoopFunctions::remove_agents(size_t too_much)
 {
     BaseLoopFunctions::remove_agents(too_much);
-    m_pcvecController.resize(m_unNumberRobots);
+    for (size_t robotindex = 0; robotindex < too_much; ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+    {
+        m_pcvecController.pop_back();
+    }
 }
 /****************************************/
 /****************************************/
@@ -215,12 +218,14 @@ void EvolutionLoopFunctions::PreStep()
         assert(_vecctrlrob[robotindex].get_outf().size() == 2);
         for (size_t j = 0; j < _vecctrlrob[robotindex].get_outf().size(); j++)
         {
-            assert(!std::isnan(_vecctrlrob[robotindex].get_outf()[j]));
+            // if(std::isnan(_vecctrlrob[robotindex].get_outf()[j]))  // happens when sensors not working properly
+            // {
+            //     std::cout<<"NAN"<<std::endl;
+            // }
             outf[j] = cController->m_sWheelTurningParams.MaxSpeed * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
         }
         cController->m_fLeftSpeed = outf[0];
         cController->m_fRightSpeed = outf[1];
-
         //TODO uncomment when doing perturbations
         /* if (cController->b_damagedrobot)
             cController->damage_actuators(); */
@@ -231,15 +236,6 @@ void EvolutionLoopFunctions::PreStep()
         std::cout << "current orientation" << curr_pos[robotindex] << std::endl;
         std::cout << "old orientation" << old_pos[robotindex] << std::endl;
 #endif
-        stop_eval = cThymio->GetEmbodiedEntity().IsCollidingWithSomething();
-        if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
-        {
-            argos::CSimulator::GetInstance().Terminate();
-#ifdef PRINTING
-                std::cout << "Terminate run permaturely" << std::endl;
-#endif
-            return;
-        }
         
 //         if (this->fitfun->quit_on_collision())
 //         {

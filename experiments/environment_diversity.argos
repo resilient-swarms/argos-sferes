@@ -8,7 +8,7 @@
     <system threads="0" />
     <experiment length="1200"
                 ticks_per_second="10"
-                random_seed="1" />
+                random_seed="2" />
   </framework>
 
 
@@ -49,16 +49,18 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libevolution_loopfunctions1D.so"
-                  label="evolution_loopfunctions1D"
-                  trials="5"
+  <loop_functions library="lib/libevolution_loopfunctions2D.so"
+                  label="evolution_loopfunctions2D"
+                  trials="1"
                   robots="10"
                   descriptortype="environment_diversity"  
                   fitfuntype="Dispersion"
 		  output_folder="experiments"
         centroids_folder="experiments/centroids"
         robot_id="thymio"
-     rab_data_size="4" rab_range="1" >
+     rab_data_size="4" rab_range="1"
+    cylinders="6"
+     >
     
 
     
@@ -85,6 +87,16 @@
     <box id="wall_west" size="0.1,7,0.5" movable="false">
       <body position="0,3.5,0" orientation="0,0,0" />
     </box>
+
+    <distribute>
+     <position method="uniform" min="0.5,0.5,0" max="6.5,63.5,0" />
+     <orientation method="constant" values="0,0,0" />
+     <entity quantity="6" max_trials="2000">
+       <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
+     </entity>
+    </distribute>
+
+
     <distribute>
       <position method="uniform" min="0.5,0.5,0" max="3.5,3.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
@@ -122,7 +134,7 @@
    <visualization>
  <qt-opengl>
         <user_functions label="robotid_vis" />
-    </qt-opengl>  
+    </qt-opengl>
   </visualization>
 
 </argos-configuration>

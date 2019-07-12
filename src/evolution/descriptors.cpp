@@ -1002,6 +1002,6 @@ void EnvironmentDiversity::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 /*summarise BD at the end of trials*/
 std::vector<float> EnvironmentDiversity::after_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
-	std::vector<float> final_bd;//(1, (float)id / (float)env_generators.size());
+	std::vector<float> final_bd({0.,0.0});//(1, (float)id / (float)env_generators.size());
 	return final_bd;
 }

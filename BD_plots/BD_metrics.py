@@ -23,6 +23,7 @@ def _global_performance(BD_directory, run,archive_file_path,max_performance,conv
     as is the case for all of our do- mains,
     it can be estimated by dividing by the highest performance found by any algorithm in any run. ( BUT avoid estimation if you can)
     This measure is the traditional, most common way to evaluate optimization algorithms.
+    This measure is the traditional, most common way to evaluate optimization algorithms.
     One can also measure whether any illumination algorithm also performs well on this measurement.
     Both the ideal optimization algorithm and the ideal illumination
     algorithm are expected to perform perfectly on this measure
@@ -173,13 +174,13 @@ def development_plots(runs,times,BD_directory,title_tag):
     # bd_shapes = [32**2, 1000,1000,1000]  # shape of the characterisation
     # y_labels=["global_performance","global_reliability","precision","coverage"]
 
-    bd_type = ["Gomes_sdbc_walls_and_robots_std"]  #legend label
+    bd_type = ["Gomes_sdbc_walls_and_robots_std","multiagent_spirit"]  #legend label
 
-    legend_labels=["SDBC"]  # labels for the legend
+    legend_labels=["SDBC","multiagent_spirit"]  # labels for the legend
     colors=["C"+str(i) for i in range(len(bd_type))]  # colors for the lines
     # (numsides, style, angle)
-    markers=[(3,1,0)] # markers for the lines
-    bd_shapes = [5000]  # shape of the characterisation
+    markers=[(3,1,0),(3,2,0)] # markers for the lines
+    bd_shapes = [5000,5000]  # shape of the characterisation
     y_labels=["global_performance","global_reliability","precision","coverage"]
 
 
@@ -204,7 +205,7 @@ def development_plots(runs,times,BD_directory,title_tag):
             add_boxplotlike_data(coverage, y_bottom, y_mid, y_top, y_label="coverage",method_index=i)
     j=0
     for label in y_labels:
-        createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=[0.0,1.0],
+        createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=[0.0,0.1],
                    save_filename=RESULTSFOLDER+"/"+title_tag+label+".pdf",legend_labels=legend_labels,
                    xlim=None,xscale="linear",yscale="linear",
                legendbox=boxes[j],annotations=[],xticks=[],yticks=[],task_markers=[],scatter=False,
@@ -240,4 +241,4 @@ if __name__ == "__main__":
 
     for fitfun in fitfuns:
         title=fitfun+"range11"
-        development_plots(runs=range(1,6), times=range(0,100, 10), BD_directory=data_dir + "/"+title,title_tag=fitfun)
+        development_plots(runs=range(1,6), times=range(0,150, 10), BD_directory=data_dir + "/"+title,title_tag=fitfun)

@@ -110,6 +110,8 @@ std::vector<point_t> Params::ea::centroids;
 
 
 
+
+
 #endif
 int main(int argc, char **argv)
 {

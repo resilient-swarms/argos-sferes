@@ -13,12 +13,10 @@
 BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0), m_vecInitSetup(0)
 {
 }
-
-void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
+void BaseLoopFunctions::init_generator(TConfigurationNode &t_node)
 {
-
     /*
-    * Process number of robots in swarm
+    * Process data used for the custom generator
     */
     size_t rab_data_size;
     size_t rab_range;
@@ -27,13 +25,17 @@ void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
         GetNodeAttribute(t_node, "robot_id", robot_id);
         GetNodeAttribute(t_node, "rab_data_size", rab_data_size);
         GetNodeAttribute(t_node, "rab_range", rab_range);
+        GetNodeAttribute(t_node, "cylinders", m_unNumberCylinders);
     }
     catch (CARGoSException &ex)
     {
-        std::cout<<"WARNING: no robot ranges specified; this is a problem when using environment generator"<<std::endl;
+        std::cout << "WARNING: no robot ranges specified; this is a problem when using environment generator" << std::endl;
     }
+}
+void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
+{
 
-    if (m_unNumberRobots > 0 )
+    if (m_unNumberRobots > 0)
     {
         CSpace::TMapPerType &m_cThymio = GetSpace().GetEntitiesByType("Thymio");
         for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
@@ -45,14 +47,31 @@ void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
             throw std::runtime_error("\n The number of robots distributed in the arena " + std::to_string(m_unNumberRobots) + " does not match what is specified by the user in the loop function " + std::to_string(m_pcvecRobot.size()));
         }
     }
-  
 
+    if (m_unNumberCylinders > 0)
+    {
+        CSpace::TMapPerType &cylinders = GetSpace().GetEntitiesByType("cylinder");
+        for (CSpace::TMapPerType::iterator it = cylinders.begin(); it != cylinders.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+        {
+            m_pcvecCylinder.push_back(any_cast<CCylinderEntity *>(it->second));
+        }
+        if (m_unNumberCylinders != m_pcvecCylinder.size()) // we need to make sure the number of robots distributed in the arena match what is specified by the user in the loop function.
+        {
+            throw std::runtime_error("\n The number of cylinders distributed in the arena " + std::to_string(m_unNumberRobots) + " does not match what is specified by the user in the loop function " + std::to_string(m_pcvecCylinder.size()));
+        }
+    }
 }
 
 CEmbodiedEntity *BaseLoopFunctions::get_embodied_entity(size_t robot)
 {
     return &m_pcvecRobot[robot]->GetEmbodiedEntity();
 }
+
+CEmbodiedEntity *BaseLoopFunctions::get_embodied_cylinder(size_t cylinder)
+{
+    return &m_pcvecCylinder[cylinder]->GetEmbodiedEntity();
+}
+
 
 /* get the controller  */
 BaseController *BaseLoopFunctions::get_controller(size_t robot)
@@ -105,6 +124,7 @@ void BaseLoopFunctions::place_robots()
             {
                 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
                 //std::cout << "Position2 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
+                
                 Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
                                             CRadians::ZERO,
                                             CRadians::ZERO);
@@ -116,9 +136,49 @@ void BaseLoopFunctions::place_robots()
             }
             m_vecInitSetup[m_unTrial][m_unRobot].Position = Position;
             m_vecInitSetup[m_unTrial][m_unRobot].Orientation = Orientation;
+            std::cout << Position << std::endl;
+            std::cout << Orientation << std::endl;
+        }
+
+
+
+        m_vecInitSetupCylinders.push_back(std::vector<SInitSetup>(m_unNumberCylinders));
+        for (size_t cylinder =0 ; cylinder < m_unNumberCylinders; ++cylinder)
+        {
+            CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
+#ifdef PRINTING
+            std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
+#endif
+            CQuaternion Orientation;
+            Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
+                                        CRadians::ZERO,
+                                        CRadians::ZERO);
+            CEmbodiedEntity *entity = get_embodied_cylinder(cylinder);
+            while (!entity->MoveTo( // move the body of the robot
+                Position,                                   // to this position
+                Orientation,                                // with this orientation
+                false                                       // this is not a check, leave the robot there
+                ))
+            {
+                Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
+                //std::cout << "Position2 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
+                Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
+                                            CRadians::ZERO,
+                                            CRadians::ZERO);
+                if (num_tries > 10000)
+                {
+                    throw std::runtime_error("failed to initialise robot positions; too many obstacles?");
+                }
+                ++num_tries;
+            }
+            m_vecInitSetupCylinders[m_unTrial][cylinder].Position = Position;
+            m_vecInitSetupCylinders[m_unTrial][cylinder].Orientation = Orientation;
+            std::cout << Position << std::endl;
+            std::cout << Orientation << std::endl;
         }
     }
 }
+
 
 void BaseLoopFunctions::Init(TConfigurationNode &t_node)
 {
@@ -154,9 +214,9 @@ void BaseLoopFunctions::Init(TConfigurationNode &t_node)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing number of robots", ex);
     }
+    init_generator(t_node);
     init_robots(t_node);
     place_robots();
-
     init_fitfuns(t_node);
 
     /* process outputfolder */
@@ -239,38 +299,80 @@ void BaseLoopFunctions::create_new_agents()
     size_t start = m_pcvecRobot.size();
     for (size_t i = start ; i < m_unNumberRobots; ++i) // initialise the robots
     {
-        CThymioEntity *robot = new CThymioEntity(robot_id + std::to_string(i),
-                                                 get_controller_id(),
-                                                 CVector3(),
-                                                 CQuaternion(),
-                                                 rab_range,
-                                                 rab_data_size);    
-        AddEntity(*robot);
-        m_pcvecRobot.push_back(robot);
+        m_pcvecRobot.push_back(new CThymioEntity("thymio"+std::to_string(i),
+                       get_controller_id()+std::to_string(i),
+                        m_vecInitSetupCylinders[m_unCurrentTrial][i].Position,    // to this position
+                      m_vecInitSetupCylinders[m_unCurrentTrial][i].Orientation,
+                       rab_range,
+                       rab_data_size));// TODO: construct properly
+        this->AddEntity(*m_pcvecRobot[i]);
+        CPhysicsModel *model = &m_pcvecRobot[i]->GetEmbodiedEntity().GetPhysicsModel("dyn2d_0");
+        model->UpdateEntityStatus();
+    }
+}
+
+/* add additional agents */
+void BaseLoopFunctions::create_new_cylinders()
+{
+    
+    CSpace::TMapPerType &cylinders = GetSpace().GetEntitiesByType("cylinder");
+    size_t start = cylinders.size();
+    CCylinderEntity *cyl = any_cast<CCylinderEntity*>(cylinders.begin()->second);
+    for (size_t i = start; i < m_unNumberCylinders; ++i) // initialise the robots
+    {
+        
+        CCylinderEntity* new_c = new CCylinderEntity("c" + std::to_string(i),
+                                            m_vecInitSetupCylinders[m_unCurrentTrial][i].Position,    // to this position
+                                            m_vecInitSetupCylinders[m_unCurrentTrial][i].Orientation,
+                                                cyl->GetEmbodiedEntity().IsMovable(),
+                                                cyl->GetRadius(),
+                                                cyl->GetHeight(),
+                                                cyl->GetMass());
+        // CPhysicsModel *model;
+        // model = &new_c->GetEmbodiedEntity().GetPhysicsModel("dyn2d_0");
+        // model->UpdateEntityStatus();
+        this->AddEntity(*new_c);
+        m_pcvecCylinder.push_back(new_c);
     }
 }
 
 /* remove superfluous agents */
 void BaseLoopFunctions::remove_agents(size_t too_much)
 {
-    for (size_t i=0; i < too_much; ++i)
+    for (size_t i = 0 ; i < too_much; ++i)
     {
-        RemoveEntity(*m_pcvecRobot.back());
+        m_pcvecRobot.back()->Destroy();
+        this->RemoveEntity(*m_pcvecRobot.back());
         m_pcvecRobot.pop_back();
     }
 }
 
+void BaseLoopFunctions::remove_cylinders(size_t too_much)
+{
+
+   
+    for (size_t i = 0; i < too_much; ++i)
+    {
+        this->RemoveEntity(*m_pcvecCylinder.back());
+        m_pcvecCylinder.pop_back();
+    }
+}
 /* adjust the number of agents */
 void BaseLoopFunctions::adjust_number_agents()
 {
     // first calculate the difference
     int difference = m_pcvecRobot.size() - m_unNumberRobots;
 
-    if(difference > 0)
+    curr_pos.resize(m_unNumberRobots);   // strictly not necessary as end indexes not reached
+    curr_theta.resize(m_unNumberRobots); //  but less confusing + avoid bugs
+    old_pos.resize(m_unNumberRobots);
+    old_theta.resize(m_unNumberRobots);
+
+    if (difference > 0)
     {
         remove_agents(difference);
     }
-    else if(difference < 0)
+    else if (difference < 0)
     {
         create_new_agents();
     }
@@ -278,10 +380,26 @@ void BaseLoopFunctions::adjust_number_agents()
     {
         return;
     }
-    
 }
 
-
+/* adjust the number of cylinders */
+void BaseLoopFunctions::adjust_number_cylinders()
+{
+    // first calculate the difference
+    int difference = m_pcvecCylinder.size() - m_unNumberCylinders;
+    if (difference > 0)
+    {
+        remove_cylinders(difference);
+    }
+    else if (difference < 0)
+    {
+        create_new_cylinders();
+    }
+    else
+    {
+        return;
+    }
+}
 
 void BaseLoopFunctions::reset_agent_positions()
 {
@@ -290,13 +408,18 @@ void BaseLoopFunctions::reset_agent_positions()
     {
         CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
         CPhysicsModel *model;
-
-        bool moved = entity->MoveTo(
+        
+        if ( !entity->MoveTo(
             m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
             m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
             false                                                    // this is not a check, leave the robot there
-        );
-
+        ))
+        {
+            throw std::runtime_error("cant put on correct position");
+        }
+        std::cout<<"agent "<<m_unRobot<<std::endl;
+        std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
+        std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation<<std::endl;
         // for (size_t i=0; i < 4; ++i)
         // {
         //     try{
@@ -328,9 +451,42 @@ void BaseLoopFunctions::reset_agent_positions()
     //     }
     // }
 }
+
+void BaseLoopFunctions::reset_cylinder_positions()
+{
+    for (size_t cylinder=0 ; cylinder < m_pcvecCylinder.size(); ++cylinder)
+    {
+       
+        CEmbodiedEntity *entity = get_embodied_cylinder(cylinder);
+        CPhysicsModel *model;
+
+        bool moved = entity->MoveTo(
+            m_vecInitSetupCylinders[m_unCurrentTrial][cylinder].Position,    // to this position
+            m_vecInitSetupCylinders[m_unCurrentTrial][cylinder].Orientation, // with this orientation
+            false                                                            // this is not a check, leave the robot there
+        );
+        std::cout<<"cylinder "<<cylinder<<std::endl;
+        std::cout<<m_vecInitSetup[m_unCurrentTrial][cylinder].Position<<std::endl;
+        std::cout<<m_vecInitSetup[m_unCurrentTrial][cylinder].Orientation<<std::endl;
+        model = &entity->GetPhysicsModel("dyn2d_0");
+        model->UpdateEntityStatus();
+    }
+}
+/* before the trials start and Reset happens check 
+    whether some settings of the config must be changed */
+void BaseLoopFunctions::generate()
+{
+    
+    if (generator != NULL)
+    {
+        generator->generate(this);
+    }
+}
+
 void BaseLoopFunctions::Reset()
 {
     reset_agent_positions();
+    reset_cylinder_positions();
 }
 
 void BaseLoopFunctions::PostStep()
