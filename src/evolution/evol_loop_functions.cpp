@@ -18,6 +18,7 @@
 EvolutionLoopFunctions::EvolutionLoopFunctions() : BaseLoopFunctions()
 
 {
+    outf.resize(ParamsDnn::dnn::nb_outputs);
 }
 
 /****************************************/

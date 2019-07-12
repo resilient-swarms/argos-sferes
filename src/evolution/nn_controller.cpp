@@ -27,7 +27,7 @@ std::vector<float> CThymioNNController::InputStep()
 void CThymioNNController::ControlStep()
 {
     //assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
-    std::vector<float> inputs = InputStep();
+    inputs = InputStep();
 
     //      _ctrlrob.step(inputs);
     nn.step(inputs);
