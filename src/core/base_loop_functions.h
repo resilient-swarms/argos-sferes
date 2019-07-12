@@ -5,7 +5,7 @@
 /* The NN controller */
 #include <tuple>
 #include <cmath>
-#include <src/evolution/nn_controller.h>
+#include <src/core/base_controller.h>
 
 
 #include <argos3/core/utility/math/angles.h>

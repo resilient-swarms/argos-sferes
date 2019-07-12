@@ -5,6 +5,8 @@
 #include <src/core/fitness_functions.h>
 #include <src/evolution/descriptors.h>
 
+#include <src/evolution/nn_controller.h>
+
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 
 /****************************************/
@@ -143,8 +145,6 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
 /* Process initialisation of robots, number of trials, and outputfolder  */
 void EvolutionLoopFunctions::init_simulation(TConfigurationNode &t_node)
 {
-
-    _vecctrlrob.resize(m_unNumberRobots);
 #ifdef CVT
     /* process outputfolder */
     try
@@ -174,7 +174,6 @@ void EvolutionLoopFunctions::init_robots(TConfigurationNode &t_node)
 void EvolutionLoopFunctions::create_new_agents()
 {
     BaseLoopFunctions::create_new_agents();
-    _vecctrlrob.resize(m_unNumberRobots);
     for (size_t robotindex = 0; robotindex < m_unNumberRobots; ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
         m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
@@ -201,41 +200,22 @@ void EvolutionLoopFunctions::remove_agents(size_t too_much)
 void EvolutionLoopFunctions::PreStep()
 {
 
-    for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
-    {
-        CThymioEntity *cThymio = m_pcvecRobot[robotindex];
-        CThymioNNController *cController = m_pcvecController[robotindex];
+//     for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+//     {
+//         CThymioEntity *cThymio = m_pcvecRobot[robotindex];
+//         CThymioNNController *cController = m_pcvecController[robotindex];
 
-        //assert(cController.m_pcProximity->GetReadings().size() + 1 == Params::dnn::nb_inputs); //proximity sensors + bias  given as input to nn
-        inputs = cController->InputStep();
-        
 
-        //      _ctrlrob.step(inputs);
-        _vecctrlrob[robotindex].step(inputs);
-        _vecctrlrob[robotindex].get_outf();
+//         //TODO uncomment when doing perturbations
+//         /* if (cController->b_damagedrobot)
+//             cController->damage_actuators(); */
 
-        outf.resize(_vecctrlrob[robotindex].get_outf().size());
-        assert(_vecctrlrob[robotindex].get_outf().size() == 2);
-        for (size_t j = 0; j < _vecctrlrob[robotindex].get_outf().size(); j++)
-        {
-            // if(std::isnan(_vecctrlrob[robotindex].get_outf()[j]))  // happens when sensors not working properly
-            // {
-            //     std::cout<<"NAN"<<std::endl;
-            // }
-            outf[j] = cController->m_sWheelTurningParams.MaxSpeed * _vecctrlrob[robotindex].get_outf()[j]; // to put nn values in the interval [-10;10] instead of [-1;1]
-        }
-        cController->m_fLeftSpeed = outf[0];
-        cController->m_fRightSpeed = outf[1];
-        //TODO uncomment when doing perturbations
-        /* if (cController->b_damagedrobot)
-            cController->damage_actuators(); */
-
-#ifdef PRINTING
-        std::cout << "current position" << curr_pos[robotindex] << std::endl;
-        std::cout << "old position" << old_pos[robotindex] << std::endl;
-        std::cout << "current orientation" << curr_pos[robotindex] << std::endl;
-        std::cout << "old orientation" << old_pos[robotindex] << std::endl;
-#endif
+// #ifdef PRINTING
+//         std::cout << "current position" << curr_pos[robotindex] << std::endl;
+//         std::cout << "old position" << old_pos[robotindex] << std::endl;
+//         std::cout << "current orientation" << curr_pos[robotindex] << std::endl;
+//         std::cout << "old orientation" << old_pos[robotindex] << std::endl;
+// #endif
         
 //         if (this->fitfun->quit_on_collision())
 //         {
@@ -248,7 +228,7 @@ void EvolutionLoopFunctions::PreStep()
 // #endif
 //             }
 //         }
-    }
+    // }
 }
 void EvolutionLoopFunctions::PostStep()
 {
@@ -259,7 +239,9 @@ void EvolutionLoopFunctions::PostStep()
         curr_theta[robotindex] = get_orientation(robotindex);
         
         curr_pos[robotindex] = cThymio->GetEmbodiedEntity().GetOriginAnchor().Position;
-
+        outf[0] = m_pcvecController[robotindex]->m_fLeftSpeed;
+        outf[1] = m_pcvecController[robotindex]->m_fRightSpeed;
+        inputs = m_pcvecController[robotindex]->inputs;
         this->descriptor->set_input_descriptor(robotindex, *this);
         this->descriptor->set_output_descriptor(robotindex, *this);
     }
@@ -285,7 +267,7 @@ void EvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)
     //_ctrlrob.init(); // a copied nn object needs to be init before use
 
     for (size_t j = 0; j < m_unNumberRobots; ++j)
-        _vecctrlrob[j].init(); // a copied nn object needs to be init before use
+       m_pcvecController[j]->nn.init(); // a copied nn object needs to be init before use
 }
 void EvolutionLoopFunctions::end_trial()
 {

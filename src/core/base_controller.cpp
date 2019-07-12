@@ -1,4 +1,4 @@
-#include <src/evolution/nn_controller.h>
+#include <src/core/base_controller.h>
 
 /****************************************/
 /****************************************/

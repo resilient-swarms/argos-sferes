@@ -1,5 +1,5 @@
-#ifndef NN_CONTROLLER
-#define NN_CONTROLLER
+#ifndef BASE_CONTROLLER
+#define BASE_CONTROLLER
 
 /*
  * Include some necessary headers.

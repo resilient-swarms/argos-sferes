@@ -256,6 +256,7 @@ else(NOT BASELINE)
 
     if(ARGOS_COMPILE_QTOPENGL)
         add_library(evolution_loopfunctions${tag} SHARED
+            src/evolution/params.h
             src/evolution/evol_loop_functions.h
             src/evolution/evol_loop_functions.cpp
             src/core/robotid_vis.h
@@ -275,6 +276,7 @@ else(NOT BASELINE)
 
     # Descend into the controllers directory
     add_library(nn_controller SHARED
+        src/evolution/params.h
         src/evolution/nn_controller.h
         src/evolution/nn_controller.cpp)
     
