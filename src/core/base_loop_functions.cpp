@@ -87,7 +87,7 @@ void BaseLoopFunctions::place_robots()
         // add the RAB range as a parameter to the controller class
         Real max_rab = m_pcvecRobot[i]->GetRABEquippedEntity().GetRange();
         BaseController *ctrl = get_controller(i);
-        ctrl->max_rab_range = max_rab;
+        ctrl->max_rab_range = max_rab*100.0;//convert to cm
     }
     curr_pos.resize(m_unNumberRobots);
     curr_theta.resize(m_unNumberRobots);

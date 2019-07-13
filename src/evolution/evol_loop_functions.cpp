@@ -179,7 +179,7 @@ void EvolutionLoopFunctions::create_new_agents()
     {
         m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
         Real max_rab = m_pcvecRobot[robotindex]->GetRABEquippedEntity().GetRange();
-        m_pcvecController[robotindex]->max_rab_range = max_rab;
+        m_pcvecController[robotindex]->max_rab_range = max_rab*100.0;//convert to cm
     }
 }
 
