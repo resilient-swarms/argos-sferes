@@ -21,24 +21,6 @@
 
 /****************************************/
 /****************************************/
-// void set_fitfile(int argc, char **argv, boost::program_options::variables_map& vm, BaseLoopFunctions* cLoopFunctions)
-// {
-//     if(vm.count("fitfile"))
-//     {
-        
-// #ifdef RECORD_FIT
-//     std::string fitnessfile = vm["fitfile"].as<std::string>();
-//     // std::ios::app is the open mode "append" meaning
-//     // new data will be written to the end of the file.
-//     cLoopFunctions->fitness_writer.open(fitnessfile, std::ios::app);
-// #else
-//     throw std::runtime_error("you are trying to record fitness file, but are not using RECORD_FIT");
-// #endif
-//     del argv[2];
-//     argc -= 1
-//     }
-// }
-
 
 #ifdef CVT
 
@@ -115,7 +97,24 @@ std::vector<point_t> Params::ea::centroids;
 #endif
 int main(int argc, char **argv)
 {
-    //std::cout<<"tag="+std::string(TAG)<<std::endl;
+
+#ifndef NO_PARALLEL
+    /* Redirect LOG and LOGERR to dedicated files to prevent clutter on the screen */
+    std::ofstream cLOGFile(std::string("ARGoS_LOG_" + ToString(::getpid())).c_str(), std::ios::out);
+    LOG.DisableColoredOutput();
+    LOG.GetStream().rdbuf(cLOGFile.rdbuf());
+    std::ofstream cLOGERRFile(std::string("ARGoS_LOGERR_" + ToString(::getpid())).c_str(), std::ios::out);
+    LOGERR.DisableColoredOutput();
+    LOGERR.GetStream().rdbuf(cLOGERRFile.rdbuf());
+    if ( argc > 2 )
+    {
+        LOG << "starting logging job "<< argv[2] << std::endl;// make sure we now which job it is
+        LOGERR << "starting logging job "<< argv[2] << std::endl;// make sure we now which job it is
+    }
+     
+#endif
+
+
     /*
      * Initialize ARGoS
      */

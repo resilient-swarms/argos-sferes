@@ -306,8 +306,8 @@ void BaseLoopFunctions::create_new_agents()
                        rab_range,
                        rab_data_size));// TODO: construct properly
         this->AddEntity(*m_pcvecRobot[i]);
-        CPhysicsModel *model = &m_pcvecRobot[i]->GetEmbodiedEntity().GetPhysicsModel("dyn2d_0");
-        model->UpdateEntityStatus();
+        //CPhysicsModel *model = &m_pcvecRobot[i]->GetEmbodiedEntity().GetPhysicsModel("dyn2d_0");
+        //model->UpdateEntityStatus();
     }
 }
 
@@ -409,16 +409,18 @@ void BaseLoopFunctions::reset_agent_positions()
         CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
 
         CPhysicsModel *model;
-        model = &entity->GetPhysicsModel("dyn2d_0");
-        model->UpdateEntityStatus();
+        //model = &entity->GetPhysicsModel("dyn2d_0");
+        //model->UpdateEntityStatus();
         if ( !entity->MoveTo(
             m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
             m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
             false                                                    // this is not a check, leave the robot there
         ))
         {
+#ifndef NDEBUG 
             std::cout<< m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
             throw std::runtime_error("cant put on correct position");
+#endif
         }
         // std::cout<<"agent "<<m_unRobot<<std::endl;
         // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
@@ -461,8 +463,8 @@ void BaseLoopFunctions::reset_cylinder_positions()
        
         CEmbodiedEntity *entity = get_embodied_cylinder(cylinder);
         CPhysicsModel *model;
-        model = &entity->GetPhysicsModel("dyn2d_0");
-        model->UpdateEntityStatus();
+        //model = &entity->GetPhysicsModel("dyn2d_0");
+        //model->UpdateEntityStatus();
         bool moved = entity->MoveTo(
             m_vecInitSetupCylinders[m_unCurrentTrial][cylinder].Position,    // to this position
             m_vecInitSetupCylinders[m_unCurrentTrial][cylinder].Orientation, // with this orientation
@@ -524,7 +526,9 @@ void BaseLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 
     /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
     cSimulator.Reset();
-
+#ifndef NO_PARALLEL
+    finish_parallel();
+#endif
     /* take into account the new settings in the fitness functions */
     fitfun->before_trial(*this);
 }
@@ -567,6 +571,10 @@ void BaseLoopFunctions::perform_trial(argos::CSimulator &cSimulator)
     cSimulator.Execute();
 
     end_trial();
+
+#ifndef NO_PARALLEL
+    finish_parallel();
+#endif
 }
 float BaseLoopFunctions::alltrials_fitness()
 {

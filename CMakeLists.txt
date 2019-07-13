@@ -35,7 +35,7 @@ set(BOOST_INCLUDEDIR "/usr/include/boost/") # hint location to search for boost 
 set(BOOST_LIBRARYDIR "/usr/lib/x86_64-linux-gnu/") # hint location to search for boost libs
 #find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph mpi python thread REQUIRED)
 #find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph thread REQUIRED)
-find_package(Boost COMPONENTS serialization graph program_options filesystem  REQUIRED)
+find_package(Boost 1.65 COMPONENTS serialization graph program_options filesystem  REQUIRED)
 # system unit_test_framework thread REQUIRED)
 if(Boost_FOUND)
     link_directories(${Boost_LIBRARY_DIRS})
@@ -47,26 +47,20 @@ else(NOT Boost_FOUND)
 endif()
 
 
-option(IRIDIS "using IRIDIS or not" OFF)
 
-if(IRIDIS)
-	include_directories($ENV{TBB_INCLUDE_DIRS})  # /local/software/intel-tbb/2018.1/include
-	link_directories($ENV{TBB_LIBRARIES})   # /local/software/intel-tbb/2018.1/lib
-	set(TBB_LIBRARIES $ENV{TBB_LIBRARIES}/libtbb.so $ENV{TBB_LIBRARIES}/libtbb.so $ENV{TBB_LIBRARIES}/libtbbmalloc.so $ENV{TBB_LIBRARIES}/libtbbmalloc_proxy.so)
-
-else(NOT IRIDIS)
 	#Find TBB libs -- script from https://github.com/justusc/FindTBB
 	find_package(TBB COMPONENTS tbbmalloc tbbmalloc_proxy) 
 	if(TBB_FOUND)
-     		 message("TBB headers found in: " ${TBB_INCLUDE_DIRS})
+                message("TBB headers found in: " ${TBB_INCLUDE_DIRS})
     		message("TBB libs: " ${TBB_LIBRARIES})
+                message("Parallelization is to be disabled if using argos visualization")
 	else(NOT TBB_FOUND)
 		message("Unable to find TBB. Will not be able to run sferes eval::Parallel")
 		add_definitions( -DNO_PARALLEL )
 		set(TBB_INCLUDE_DIRS "")
 		set(TBB_LIBRARIES "")
 	endif()
-endif()
+
 
 # Eigen3
 SET(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
@@ -78,7 +72,7 @@ ELSE()
 ENDIF()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-#add_definitions( -DNDEBUG ) # non-debug mode
+add_definitions( -DNDEBUG ) # non-debug mode
 add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
 # Check whether all the necessary libs have been installed to compile the
@@ -122,7 +116,7 @@ if(BASELINE)
     add_definitions(-DBASELINEBEHAVS)
     
     set(CONTROL "baseline-behavs")
-    add_library(baseline-behavs SHARED
+     add_library(baseline-behavs SHARED
         src/baseline-behavs/baseline-behavs.h
         src/baseline-behavs/baseline-behavs.cpp
         src/baseline-behavs/behavior.h
@@ -248,8 +242,8 @@ else(NOT BASELINE)
         set(tag BO${CVT_USE}${BD}D)
     else(NOT BO)
         message("Bayesian Optimisation is NOT defined")
-        message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
-        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
+	message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
     endif()
     
     add_definitions(-DTAG="${tag}")
@@ -270,13 +264,10 @@ else(NOT BASELINE)
     add_library(descriptors${tag} SHARED
         src/evolution/descriptors.h
         src/evolution/descriptors.cpp
-
-
     )
 
     # Descend into the controllers directory
     add_library(nn_controller SHARED
-        src/evolution/params.h
         src/evolution/nn_controller.h
         src/evolution/nn_controller.cpp)
     
@@ -320,7 +311,7 @@ add_library(base_loopfunctions SHARED
     src/core/environment_generator.h
     src/core/environment_generator.cpp
 
-    )
+)
 
 add_library(base_controller SHARED
     src/core/base_controller.h
@@ -401,11 +392,3 @@ else(NOT BASELINE)
         ${Boost_LIBRARIES}
         ${TBB_LIBRARIES})
 endif()
-   
-
-
-
-
-
-
-  

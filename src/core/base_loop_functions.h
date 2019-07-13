@@ -88,6 +88,12 @@ public:
         ++m_unCurrentTrial;
     }
 
+    inline void finish_parallel()
+    {
+        argos::LOG.Flush();
+        argos::LOGERR.Flush();
+    }
+
     /* add additional agents */
     virtual void create_new_agents();
 
