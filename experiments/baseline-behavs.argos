@@ -6,8 +6,8 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="1200"
-                ticks_per_second="10"
+    <experiment length="500"
+                ticks_per_second="5"
                 random_seed="0" />
   </framework>
 
@@ -29,10 +29,10 @@
         <differential_steering implementation="default" vel_noise_range="-0.1:0.1" dist_noise_range="-1.0:1.0" />
       </sensors>
       <params>
-      <experiment_run swarm_behavior="SWARM_DYNAMIC_CHAINING"
+      <experiment_run swarm_behavior="SWARM_DISPERSION"
                       fault_behavior="FAULT_NONE"
                       id_faulty_robot="-1" />
-        <wheel_turning max_speed="13.0" />
+        <wheel_turning max_speed="10.0" />
       </params>
     </baseline-behavs>
 
@@ -45,8 +45,8 @@
   <loop_functions library="lib/libbaseline-behavs-loopfunc.so"
                   label="baseline-behavs-loop-functions"
                   trials="5"
-                  robots="20"
-                  fitfuntype="Aggregation"
+                  robots="10"
+                  fitfuntype="Dispersion"
                   output_folder="experiments">
     <params />
   </loop_functions>
@@ -55,23 +55,23 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="7.0, 7.0, 2" center="3.5,3.5,1">
+  <arena size="4.0, 4.0, 1" center="2.0,2.0,0.5">
 
     <floor id="floor"
            source="loop_functions"
            pixels_per_meter="50" />
 
-    <box id="wall_north" size="7.0,0.1,0.5" movable="false">
-      <body position="3.5,7,0" orientation="0,0,0" />
+   <box id="wall_north" size="4.0,0.1,0.5" movable="false">
+      <body position="2,4.0,0" orientation="0,0,0" />
     </box>
-    <box id="wall_south" size="7.0,0.1,0.5" movable="false">
-      <body position="3.5,0,0" orientation="0,0,0" />
+    <box id="wall_south" size="4.0,0.1,0.5" movable="false">
+      <body position="2,0,0" orientation="0,0,0" />
     </box>
-    <box id="wall_east" size="0.1,7,0.5" movable="false">
-      <body position="7,3.5,0" orientation="0,0,0" />
+    <box id="wall_east" size="0.1,4.0,0.5" movable="false">
+      <body position="4.0,2,0" orientation="0,0,0" />
     </box>
-    <box id="wall_west" size="0.1,7,0.5" movable="false">
-      <body position="0,3.5,0" orientation="0,0,0" />
+    <box id="wall_west" size="0.1,4.0,0.5" movable="false">
+      <body position="0,2,0" orientation="0,0,0" />
     </box>
 
 
@@ -81,7 +81,7 @@
        matter)
     -->
     <distribute>
-     <position method="uniform" min="0,0,0" max="7,7,0" />
+     <position method="uniform" min="0.5,0.5,0" max="3.5,3.5,0" />
      <orientation method="constant" values="0,0,0" />
      <entity quantity="0" max_trials="2000">
        <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
@@ -89,15 +89,16 @@
     </distribute>
 
     <distribute>
-      <position method="uniform" min="0,0,0" max="7,7,0" />
+      <position method="uniform" min="0.5,0.5,0" max="3.5,3.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="20" max_trials="1000">
-        <Thymio id="thymio" rab_data_size="1000" rab_range="1">    <!-- data size in bytes; range in m -->
+      <entity quantity="10" max_trials="1000">
+        <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
           <controller config="bb" />
         </Thymio>
       </entity>
-</distribute>
+    </distribute>
 </arena>
+
 
 
  

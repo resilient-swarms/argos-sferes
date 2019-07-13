@@ -200,36 +200,7 @@ void EvolutionLoopFunctions::remove_agents(size_t too_much)
 
 void EvolutionLoopFunctions::PreStep()
 {
-
-//     for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
-//     {
-//         CThymioEntity *cThymio = m_pcvecRobot[robotindex];
-//         CThymioNNController *cController = m_pcvecController[robotindex];
-
-
-//         //TODO uncomment when doing perturbations
-//         /* if (cController->b_damagedrobot)
-//             cController->damage_actuators(); */
-
-// #ifdef PRINTING
-//         std::cout << "current position" << curr_pos[robotindex] << std::endl;
-//         std::cout << "old position" << old_pos[robotindex] << std::endl;
-//         std::cout << "current orientation" << curr_pos[robotindex] << std::endl;
-//         std::cout << "old orientation" << old_pos[robotindex] << std::endl;
-// #endif
-        
-//         if (this->fitfun->quit_on_collision())
-//         {
-//             stop_eval = cThymio->GetEmbodiedEntity().IsCollidingWithSomething();
-//             if (stop_eval) // set stop_eval to true if you want to stop the evaluation (e.g., robot collides or robot is stuck)
-//             {
-//                 argos::CSimulator::GetInstance().Terminate();
-// #ifdef PRINTING
-//                 std::cout << "Terminate run permaturely" << std::endl;
-// #endif
-//             }
-//         }
-    // }
+    // nothing here for now
 }
 void EvolutionLoopFunctions::PostStep()
 {

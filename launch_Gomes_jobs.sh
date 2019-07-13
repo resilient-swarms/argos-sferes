@@ -15,19 +15,19 @@ declare -A voronoi
 
 #descriptors["cvt_spirit"]=400
 #voronoi["cvt_spirit"]="cvt"
-descriptors["multiagent_spirit"]=576
-voronoi["multiagent_spirit"]="cvt"
+#descriptors["multiagent_spirit"]=576
+#voronoi["multiagent_spirit"]="cvt"
 
-#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
-time["DecayCoverage"]=200
-time["DecayBorderCoverage"]=200
-time["Dispersion"]=100
-time["Aggregation"]=150
-time["Flocking"]=200
+descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+#time["DecayCoverage"]=200
+#time["DecayBorderCoverage"]=200
+time["Dispersion"]=400
+time["Aggregation"]=400
+#time["Flocking"]=200
 
 
-for FitfunType in DecayCoverage DecayBorderCoverage Dispersion Aggregation Flocking ; do  # add Flocking later
+for FitfunType in Dispersion Aggregation ; do  # add Flocking later
     echo 'Fitfun'${FitfunType}
     SimTime=${time[${FitfunType}]}
     echo "simtime"${SimTime}
@@ -54,7 +54,7 @@ for FitfunType in DecayCoverage DecayBorderCoverage Dispersion Aggregation Flock
 	    mkdir -p $Outfolder
            sed -e "s|THREADS|0|" \
 		-e "s|TRIALS|50|" \
-                -e "s|ROBOTS|5|"                    \
+                -e "s|ROBOTS|10|"                    \
                 -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
 		-e "s|SEED|${Replicates}|"                    \
                 -e "s|FITFUN_TYPE|${FitfunType}|"                   \

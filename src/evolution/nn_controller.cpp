@@ -36,6 +36,7 @@ void CThymioNNController::ControlStep()
     assert(nn.get_outf().size() == 2);
     m_fLeftSpeed = m_sWheelTurningParams.MaxSpeed * nn.get_outf()[0];
     m_fRightSpeed = m_sWheelTurningParams.MaxSpeed * nn.get_outf()[1];
+    BaseController::ControlStep();// needed to actually move
 }
 
 REGISTER_CONTROLLER(CThymioNNController, "nn_controller")
