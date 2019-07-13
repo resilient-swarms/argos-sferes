@@ -136,8 +136,8 @@ void BaseLoopFunctions::place_robots()
             }
             m_vecInitSetup[m_unTrial][m_unRobot].Position = Position;
             m_vecInitSetup[m_unTrial][m_unRobot].Orientation = Orientation;
-            std::cout << Position << std::endl;
-            std::cout << Orientation << std::endl;
+            // std::cout << Position << std::endl;
+            // std::cout << Orientation << std::endl;
         }
 
 
@@ -173,8 +173,8 @@ void BaseLoopFunctions::place_robots()
             }
             m_vecInitSetupCylinders[m_unTrial][cylinder].Position = Position;
             m_vecInitSetupCylinders[m_unTrial][cylinder].Orientation = Orientation;
-            std::cout << Position << std::endl;
-            std::cout << Orientation << std::endl;
+            // std::cout << Position << std::endl;
+            // std::cout << Orientation << std::endl;
         }
     }
 }
@@ -407,19 +407,22 @@ void BaseLoopFunctions::reset_agent_positions()
     for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
     {
         CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
+
         CPhysicsModel *model;
-        
+        model = &entity->GetPhysicsModel("dyn2d_0");
+        model->UpdateEntityStatus();
         if ( !entity->MoveTo(
             m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
             m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
             false                                                    // this is not a check, leave the robot there
         ))
         {
+            std::cout<< m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
             throw std::runtime_error("cant put on correct position");
         }
-        std::cout<<"agent "<<m_unRobot<<std::endl;
-        std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
-        std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation<<std::endl;
+        // std::cout<<"agent "<<m_unRobot<<std::endl;
+        // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
+        // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation<<std::endl;
         // for (size_t i=0; i < 4; ++i)
         // {
         //     try{
@@ -430,8 +433,7 @@ void BaseLoopFunctions::reset_agent_positions()
         //         continue;
         //     }
         // }
-        model = &entity->GetPhysicsModel("dyn2d_0");
-        model->UpdateEntityStatus();
+        
 
         old_pos[m_unRobot] = entity->GetOriginAnchor().Position;
         curr_pos[m_unRobot] = old_pos[m_unRobot];
@@ -459,17 +461,17 @@ void BaseLoopFunctions::reset_cylinder_positions()
        
         CEmbodiedEntity *entity = get_embodied_cylinder(cylinder);
         CPhysicsModel *model;
-
+        model = &entity->GetPhysicsModel("dyn2d_0");
+        model->UpdateEntityStatus();
         bool moved = entity->MoveTo(
             m_vecInitSetupCylinders[m_unCurrentTrial][cylinder].Position,    // to this position
             m_vecInitSetupCylinders[m_unCurrentTrial][cylinder].Orientation, // with this orientation
             false                                                            // this is not a check, leave the robot there
         );
-        std::cout<<"cylinder "<<cylinder<<std::endl;
-        std::cout<<m_vecInitSetup[m_unCurrentTrial][cylinder].Position<<std::endl;
-        std::cout<<m_vecInitSetup[m_unCurrentTrial][cylinder].Orientation<<std::endl;
-        model = &entity->GetPhysicsModel("dyn2d_0");
-        model->UpdateEntityStatus();
+        // std::cout<<"cylinder "<<cylinder<<std::endl;
+        // std::cout<<m_vecInitSetup[m_unCurrentTrial][cylinder].Position<<std::endl;
+        // std::cout<<m_vecInitSetup[m_unCurrentTrial][cylinder].Orientation<<std::endl;
+
     }
 }
 /* before the trials start and Reset happens check 

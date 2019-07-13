@@ -54,7 +54,7 @@ for FitfunType in Dispersion Aggregation ; do  # add Flocking later
 	    mkdir -p $Outfolder
            sed -e "s|THREADS|0|" \
 		-e "s|TRIALS|50|" \
-                -e "s|ROBOTS|10|"                    \
+                -e "s|ROBOTS|5|"                    \
                 -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
 		-e "s|SEED|${Replicates}|"                    \
                 -e "s|FITFUN_TYPE|${FitfunType}|"                   \
