@@ -106,11 +106,8 @@ int main(int argc, char **argv)
     std::ofstream cLOGERRFile(std::string("ARGoS_LOGERR_" + ToString(::getpid())).c_str(), std::ios::out);
     LOGERR.DisableColoredOutput();
     LOGERR.GetStream().rdbuf(cLOGERRFile.rdbuf());
-    if ( argc > 2 )
-    {
-        LOG << "starting logging job "<< argv[2] << std::endl;// make sure we now which job it is
-        LOGERR << "starting logging job "<< argv[2] << std::endl;// make sure we now which job it is
-    }
+    LOG << "starting  "<<argv[1] << std::endl;// make sure we now which job it is
+    LOGERR << "starting "<< argv[1] << std::endl;// make sure we now which job it is
      
 #endif
 
@@ -154,7 +151,7 @@ int main(int argc, char **argv)
         //typedef FitObstacle<Params> fit_t;
         typedef FitObstacleMapElites<Params> fit_t;
         typedef phen::Dnn<robots_nn::gen_t, fit_t, ParamsDnn> phen_t;
-        typedef eval::Eval<Params> eval_t; //eval::Parallel gives cryptic seg fault for nn. Unrelated but make sure visualization is disabled when parallelizing
+        typedef eval::Parallel<Params> eval_t; //eval::Parallel gives cryptic seg fault for nn. Unrelated but make sure visualization is disabled when parallelizing
         //typedef boost::fusion::vector<sferes::stat::ParetoFront<phen_t, Params> >  stat_t;
 
         

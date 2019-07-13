@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#SBATCH --ntasks-per-node=1    # Tasks per node
+#SBATCH --ntasks-per-node=4   # Tasks per node
 #SBATCH --nodes=1                # Number of nodes requested
-#SBATCH --time=60:00:00          # walltime
-#SBATCH --mem=20G
-#SBATCH --job-name=multiagentspirit
+#SBATCH --time=00:05:00         # walltime
+#SBATCH --mem-per-cpu=20G
+#SBATCH --job-name=no_parallel
 
 
 FILE=./bin/behaviour_evol${VORONOI}${BD}D

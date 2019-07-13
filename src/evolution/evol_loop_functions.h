@@ -9,7 +9,13 @@
 /****************************************/
 /* Sferes related headers */
 
+#ifndef NO_PARALLEL
+   #include <unistd.h>
+   #include <signal.h>
+   #include <sys/wait.h>
+   #include <sys/mman.h>
 
+#endif 
 //#include <src/evolution/base_classes.h>
 
 #include <src/evolution/nn_controller.h>
@@ -220,6 +226,8 @@ FIT_MAP(FitObstacleMapElites){
 
 
 #else
+	LOG.Flush();//flush beforehand (generation file text may have been written)
+	LOGERR.Flush();
         /** Pointer to the shared memory area */
         Real* m_pfSharedMem;
         size_t unShareMemSize = (BEHAV_DIM + 1) * sizeof(Real);
@@ -257,7 +265,7 @@ FIT_MAP(FitObstacleMapElites){
             static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
             static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
 
-            cLoopFunctions.generate();
+            //cLoopFunctions.generate();
             for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
                 cLoopFunctions.m_pcvecController[j]->nn = ind.nn_cpy();
 
@@ -282,7 +290,7 @@ FIT_MAP(FitObstacleMapElites){
             //std::cout << "Child " << getpid() << " has set fitness to " << m_pfSharedMem[0] << std::endl;
 	    //::raise(SIGCHLD);
 	     argos::CSimulator::GetInstance().Destroy();
-   	     argos::LOG.Flush();
+   	    argos::LOG.Flush();
    	     argos::LOGERR.Flush();
             exit(2);
         }
@@ -315,7 +323,7 @@ FIT_MAP(FitObstacleMapElites){
                 behavioural_descriptor.push_back(m_pfSharedMem[i+1]);
 
             this->set_desc(behavioural_descriptor);
-	        LOG.Flush();
+	     LOG.Flush();
             LOGERR.Flush();
 	    //wait(NULL);
 	    //sleep(1);

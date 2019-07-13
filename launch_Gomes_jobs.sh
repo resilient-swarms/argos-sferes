@@ -22,8 +22,8 @@ descriptors["Gomes_sdbc_walls_and_robots_std"]=10
 voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 #time["DecayCoverage"]=200
 #time["DecayBorderCoverage"]=200
-time["Dispersion"]=400
-time["Aggregation"]=400
+time["Dispersion"]=50
+time["Aggregation"]=50
 #time["Flocking"]=200
 
 
@@ -43,7 +43,7 @@ for FitfunType in Dispersion Aggregation ; do  # add Flocking later
 	echo "tag is ${tag}"
 	mkdir -p $data/${FitfunType}/${DescriptorType}
 
-	for Replicates in $(seq 1 5); do
+	for Replicates in $(seq 1 1); do
                        
             # Take template.argos and make an .argos file for this experiment
             SUFFIX=${Replicates}

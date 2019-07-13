@@ -489,6 +489,7 @@ void BaseLoopFunctions::generate()
 
 void BaseLoopFunctions::Reset()
 {
+
     reset_agent_positions();
     reset_cylinder_positions();
 }
@@ -551,6 +552,9 @@ float BaseLoopFunctions::run_all_trials(argos::CSimulator &cSimulator)
     for (size_t i = 0; i < m_unNumberTrials; ++i)
     {
         perform_trial(cSimulator);
+#ifndef NO_PARALLEL
+    finish_parallel();
+#endif
 
 #ifdef PRINTING
 
