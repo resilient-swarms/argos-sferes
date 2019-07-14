@@ -264,7 +264,14 @@ FIT_MAP(FitObstacleMapElites){
 
             static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
             static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
-
+            /* Redirect LOG and LOGERR to dedicated files to prevent clutter on the screen */
+            std::ofstream cLOGFile(std::string("ARGoS_LOG_" + ToString(::getpid())).c_str(), std::ios::out);
+            LOG.DisableColoredOutput();
+            LOG.GetStream().rdbuf(cLOGFile.rdbuf());
+            std::ofstream cLOGERRFile(std::string("ARGoS_LOGERR_" + ToString(::getpid())).c_str(), std::ios::out);
+            LOGERR.DisableColoredOutput();
+            LOGERR.GetStream().rdbuf(cLOGERRFile.rdbuf());
+            
             //cLoopFunctions.generate();
             for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
                 cLoopFunctions.m_pcvecController[j]->nn = ind.nn_cpy();

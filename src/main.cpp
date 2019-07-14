@@ -97,21 +97,6 @@ std::vector<point_t> Params::ea::centroids;
 #endif
 int main(int argc, char **argv)
 {
-
-#ifndef NO_PARALLEL
-    /* Redirect LOG and LOGERR to dedicated files to prevent clutter on the screen */
-    std::ofstream cLOGFile(std::string("ARGoS_LOG_" + ToString(::getpid())).c_str(), std::ios::out);
-    LOG.DisableColoredOutput();
-    LOG.GetStream().rdbuf(cLOGFile.rdbuf());
-    std::ofstream cLOGERRFile(std::string("ARGoS_LOGERR_" + ToString(::getpid())).c_str(), std::ios::out);
-    LOGERR.DisableColoredOutput();
-    LOGERR.GetStream().rdbuf(cLOGERRFile.rdbuf());
-    LOG << "starting  "<<argv[1] << std::endl;// make sure we now which job it is
-    LOGERR << "starting "<< argv[1] << std::endl;// make sure we now which job it is
-     
-#endif
-
-
     /*
      * Initialize ARGoS
      */

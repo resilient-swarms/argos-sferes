@@ -53,7 +53,7 @@
   <loop_functions library="lib/libevolution_loopfunctionscvt10D.so"
                   label="evolution_loopfunctionscvt10D"
                   trials="5"
-                  robots="10"
+                  robots="5"
                   descriptortype="cvt_Gomes_sdbc_walls_and_robots_std"  
                   fitfuntype="Aggregation"
 		  output_folder="experiments"
@@ -100,7 +100,7 @@
     <distribute>
       <position method="uniform" min="0.5,0.5,0" max="3.5,3.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="10" max_trials="1000">
+      <entity quantity="5" max_trials="1000">
         <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
           <controller config="tnn" />
         </Thymio>
