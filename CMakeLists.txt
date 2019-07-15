@@ -105,8 +105,13 @@ option(BD "behaviour description size" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
 option(PERTURB "Perturbations" OFF)
 option(BO "Bayesian Optimisation" OFF)
+option(ARGOS_PAR "Bayesian Optimisation" ON)
 
 
+if (ARGOS_PAR)
+    add_definitions(-DARGOS_PARALLEL) 
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lc -lrt") # use something similar if using file descriptors
+endif()
 
 
 # process baseline option and others, to define controller, loopfunction and executable
