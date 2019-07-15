@@ -172,10 +172,16 @@ FIT_MAP(FitObstacleMapElites){
         // It runs argos sim
         //
         // **********************************
+        inline void set_fitness(float fFitness)
+        {
+            this->_objs.resize(1);
+            this->_objs[0] = fFitness;
+            this->_value = fFitness;
+        }
         template <typename Indiv>
         void eval(Indiv &ind)
         {
-            this->_objs.resize(1);
+            
 
             ind.nn().simplify();
             //ind.nn().init();
@@ -198,9 +204,7 @@ FIT_MAP(FitObstacleMapElites){
             ind.nn().write(ofs);
         #endif
             float fFitness = cLoopFunctions.run_all_trials(cSimulator);
-
-            this->_objs[0] = fFitness;
-            this->_value = fFitness;
+            set_fitness(fFitness);
         #ifdef RECORD_FIT
             cLoopFunctions.fitness_writer << fFitness << std::endl;
         #endif

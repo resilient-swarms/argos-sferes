@@ -319,8 +319,7 @@ namespace sferes {
           while (::waitid(P_PID, pid, &siginfo, WEXITED) > 0){
           }// wait until the child finishes
           //argos::LOG << "parent finished waiting " << pid << std::endl;
-          _pop[i]->fit().resize_obj(1);// give the fitmap the correct size
-          _pop[i]->fit().set_obj(0,m_pcSharedMem->getFitness(i));
+          _pop[i]->fit().set_fitness(m_pcSharedMem->getFitness(i));
           bd = m_pcSharedMem->getDescriptor(i);
           _pop[i]->fit().set_desc(bd);
           // argos::LOG << "parent fitness " << i << " " <<_pop[i]->fit().obj(0) << std::endl;
