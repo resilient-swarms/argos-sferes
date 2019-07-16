@@ -136,9 +136,9 @@ struct Params
         // number of initial random points
         SFERES_CONST size_t init_size = 200; //1000;
         // size of a batch
-        SFERES_CONST size_t size = 200; //1000;
-        SFERES_CONST size_t nb_gen = 1000;
-        SFERES_CONST size_t dump_period = 2;// computations are expensive so 2 generations is a lot
+        SFERES_CONST size_t size = 200;//1000;
+        SFERES_CONST size_t nb_gen = 10000;
+        SFERES_CONST size_t dump_period = 5;// computations are expensive so 2 generations is a lot
     };
 };
 

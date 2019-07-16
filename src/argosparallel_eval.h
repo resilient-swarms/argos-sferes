@@ -75,8 +75,7 @@ namespace sferes {
        * @param un_genome_size The size of the genome of an individual.
        * @param un_pop_size The size of the population.
        */
-      CSharedMem(size_t pop_size, size_t descriptor_size) :
-        m_unPopSize(pop_size),
+      CSharedMem(size_t descriptor_size) :
         m_unDescriptorSize(descriptor_size)
       {
           init_shared_mem();
@@ -85,7 +84,7 @@ namespace sferes {
       }
       void init_shared_mem()
       {
-        size_t unShareMemSize = m_unPopSize * get_block_size() * sizeof(float);
+        size_t unShareMemSize = get_block_size() * sizeof(float);//m_unPopSize * 
         /* Get pointer to shared memory area */
         // Memory buffer will be readable and writable:
         int protection = PROT_READ | PROT_WRITE;
@@ -128,7 +127,9 @@ namespace sferes {
       /**
        * Class destructor.
        */
-      ~CSharedMem();
+      ~CSharedMem(){
+        munmap(m_pfSharedMem, get_block_size() * sizeof(float));
+      }
 
 
       /* get the memory block size */
@@ -141,17 +142,17 @@ namespace sferes {
        * Returns the score of an individual.
        * @param un_individual The individual.
        */
-      inline float getFitness(size_t un_individual)
+      inline float getFitness()
       {
-          return m_pfSharedMem[un_individual * get_block_size()];
+          return m_pfSharedMem[0];
       }
         /**
        * Returns the descriptor of an individual.
        * @param un_individual The individual.
        */
-      inline std::vector<float> getDescriptor(size_t un_individual)
+      inline std::vector<float> getDescriptor()
       {
-          float* descriptor = &m_pfSharedMem[un_individual * get_block_size() + 1];// pointer to the descriptor
+          float* descriptor = &m_pfSharedMem[1];// pointer to the descriptor
           std::vector<float> bd;
           for(int i=0; i < BEHAV_DIM; ++i)
           {
@@ -164,11 +165,10 @@ namespace sferes {
        * @param un_individual The individual.
        * @param f_score The score.
        */
-      inline void setFitness(size_t un_individual,
-                    float f_score)
+      inline void setFitness(float f_score)
       {
         /* fitness is copied to the 0'th index of each block */
-        ::memcpy(m_pfSharedMem + un_individual * get_block_size(),
+        ::memcpy(m_pfSharedMem + 0,
             &f_score,
             sizeof(float));
       }
@@ -178,13 +178,12 @@ namespace sferes {
        * @param un_individual The individual.
        * @param desc The descriptor
        */
-      inline void setDescriptor(size_t un_individual,
-                    std::vector<float> desc)
+      inline void setDescriptor(std::vector<float> desc)
       {
         /* descriptor is copied to the 1:m_unDescriptorSize'th index of each block */
         for (int i=0; i < desc.size(); ++i)
         {
-          ::memcpy(m_pfSharedMem + un_individual * get_block_size() + (i+1),
+          ::memcpy(m_pfSharedMem + (i+1),
           &desc[i],
           sizeof(float));
         }
@@ -196,8 +195,8 @@ namespace sferes {
       /** Descriptor size */
       size_t m_unDescriptorSize;
       
-      /** Population size */
-      size_t m_unPopSize;
+      // /** Population size */
+      // size_t m_unPopSize;
 
       /** File descriptor for shared memory area */
       //int m_nSharedMemFD;
@@ -221,7 +220,7 @@ namespace sferes {
      /* argos config */
      std::string m_strARGoSConf;
      /** The shared memory manager */
-      CSharedMem* m_pcSharedMem;
+      std::vector<CSharedMem*> m_pcSharedMem;
       ~_parallel_evaluate() { }
       _parallel_evaluate(pop_t& pop, const fit_t& fit) : 
        _pop(pop),
@@ -238,16 +237,21 @@ namespace sferes {
         create_processes();
       }
       /* SIGTERM handler for slave processes */
-      inline void SlaveHandleSIGTERM(int) {
-        argos::CSimulator::GetInstance().Destroy();
-        argos::LOG.Flush();
-        argos::LOGERR.Flush();
-        CleanUp();
-      }
-      inline void CleanUp()
-      {
-        delete m_pcSharedMem;
-      }
+      // inline void SlaveHandleSIGTERM(int) {
+      //   argos::CSimulator::GetInstance().Destroy();
+      //   argos::LOG.Flush();
+      //   argos::LOGERR.Flush();
+      //   CleanUp();
+      // }
+      // inline void CleanUp()
+      // {
+      //   for(UInt32 i = 0; i < m_unPopSize; ++i) {
+      //     ::kill(SlavePIDs[i], SIGTERM);
+      //   }
+        
+      // }
+
+   
       void LaunchSlave(size_t slave_id) {
            
             
@@ -282,8 +286,8 @@ namespace sferes {
 
           assert(!std::isnan(_pop[slave_id]->fit().objs()[0]));// ASSUMES SINGLE OBJECTIVE
           // write fitness and descriptors to shared memory
-          m_pcSharedMem->setFitness(slave_id, _pop[slave_id]->fit().objs()[0]);// ASSUME SINGLE OBJECTIVE
-          m_pcSharedMem->setDescriptor(slave_id, _pop[slave_id]->fit().desc());
+          m_pcSharedMem[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]);// ASSUME SINGLE OBJECTIVE
+          m_pcSharedMem[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
 
           // argos::LOG << "child fitness " << slave_id << " " <<_pop[slave_id]->fit().obj(0) << std::endl;
           // argos::LOG <<"child: descriptor for individual "<< slave_id << std::endl;
@@ -292,17 +296,17 @@ namespace sferes {
           //   argos::LOG << "   "<<_pop[slave_id]->fit().desc()[j] << std::endl;
           // }
           // argos::LOG.Flush();
-          cSimulator.Destroy();
           exit(EXIT_SUCCESS);
       }
       /* create the different child processes */
       void create_processes()
       {
        
-        /* Create shared memory manager */
-        m_pcSharedMem = new CSharedMem(_pop.size(),BEHAV_DIM);
+        
         /* Create slave processes */
         for(size_t i = 0; i < _pop.size(); ++i) {
+            /* Create shared memory manager */
+            m_pcSharedMem.push_back(new CSharedMem(BEHAV_DIM));
             /* initialise the fitmap */
              _pop[i]->fit() = _fit;
              
@@ -320,9 +324,10 @@ namespace sferes {
           while (::waitid(P_PID, pid, &siginfo, WEXITED) > 0){
           }// wait until the child finishes
           //argos::LOG << "parent finished waiting " << pid << std::endl;
-          _pop[i]->fit().set_fitness(m_pcSharedMem->getFitness(i));
-          bd = m_pcSharedMem->getDescriptor(i);
+          _pop[i]->fit().set_fitness(m_pcSharedMem[i]->getFitness());
+          bd = m_pcSharedMem[i]->getDescriptor();
           _pop[i]->fit().set_desc(bd);
+          
           // argos::LOG << "parent fitness " << i << " " <<_pop[i]->fit().obj(0) << std::endl;
           // argos::LOG <<"parent: descriptor for individual "<< i << std::endl;
           // for (size_t j=0; j < _pop[i]->fit().desc().size()  ;++j)
@@ -331,7 +336,8 @@ namespace sferes {
           // }
         }
         
-        SlavePIDs.clear();
+        m_pcSharedMem.clear();// destroys all the shared memory (don't do it one by one because based on pointers)
+        SlavePIDs.clear();// PIDs no longer exist
         // argos::LOG << "finished all processes "<< std::endl;
       }
     };
