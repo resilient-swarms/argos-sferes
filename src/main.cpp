@@ -113,6 +113,8 @@ int main(int argc, char **argv)
     argos::LOG << "starting "<< argv[1] << std::endl;// tell which job it is
     argos::LOGERR << "starting "<< argv[1] << std::endl;// tell which job it is
     sferes::eval::m_strARGoSConf = argv[1];
+    sferes::eval::num_processes = 40;// 40 the number of cores in iridis; set to popsize if you want one process per individual
+    sferes::eval::num_individuals_per_process = Params::pop::size/sferes::eval::num_processes;
 #endif
         /*
      * Initialize ARGoS

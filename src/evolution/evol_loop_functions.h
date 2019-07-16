@@ -182,7 +182,7 @@ FIT_MAP(FitObstacleMapElites){
         void eval(Indiv &ind)
         {
             
-
+            std::clock_t start = std::clock();
             ind.nn().simplify();
             //ind.nn().init();
             /* The CSimulator class of ARGoS is a singleton. Therefore, to
@@ -214,6 +214,14 @@ FIT_MAP(FitObstacleMapElites){
         #ifdef PRINTING
             printf("\n\n fFitness = %f", fFitness);
         #endif
+	
+
+    	/* Your algorithm here */
+
+    	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+
+    	 argos::LOG <<"evaluation time: "<< duration <<'\n';
+         argos::LOG.Flush();
     } // *** end of eval ***
 };
 }
