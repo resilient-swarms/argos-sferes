@@ -281,10 +281,11 @@ float SDBC::get_max_avgdist(EvolutionLoopFunctions* cLoopFunctions)
 	/* approximate equation obtained by recursively adding agents at maximum distance to the previous */
 	CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
 	float maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
-	float robot_correction = std::sqrt(cLoopFunctions->m_unNumberRobots/2.0f);
+	float robot_correction =  std::sqrt(cLoopFunctions->m_unNumberRobots/2.0f);
 	// 2 robots --> maxdist; 4 robots --> maxdist/sqrt(2); 8 robots --> maxdist/2 (seems to work in drawings)
 	maxdist = maxdist/robot_correction;// NOTE: if number of robots changes during the trial, need to use entity group's max_size (elsewhere too)
-	return maxdist;
+	float maxSide=std::max(max.GetX(),max.GetY());
+	return std::max(maxdist,maxSide);// maxSide is the minimum possible ( and seems to be Mase's choice for maximum)
 }
 /* walls robots min and max distance */
 std::pair<float,float> SDBC::get_wallsrobots_range(EvolutionLoopFunctions* cLoopFunctions)

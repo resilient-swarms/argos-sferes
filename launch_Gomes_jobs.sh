@@ -22,12 +22,12 @@ descriptors["Gomes_sdbc_walls_and_robots_std"]=10
 voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 #time["DecayCoverage"]=200
 #time["DecayBorderCoverage"]=200
-time["Dispersion"]=50
-time["Aggregation"]=50
+time["Dispersion"]=400
+time["Aggregation"]=400
 #time["Flocking"]=200
 
 
-for FitfunType in Dispersion Aggregation ; do  # add Flocking later
+for FitfunType in Aggregation ; do  # add Flocking later
     echo 'Fitfun'${FitfunType}
     SimTime=${time[${FitfunType}]}
     echo "simtime"${SimTime}
@@ -43,7 +43,7 @@ for FitfunType in Dispersion Aggregation ; do  # add Flocking later
 	echo "tag is ${tag}"
 	mkdir -p $data/${FitfunType}/${DescriptorType}
 
-	for Replicates in $(seq 1 1); do
+	for Replicates in $(seq 1 5); do
                        
             # Take template.argos and make an .argos file for this experiment
             SUFFIX=${Replicates}
@@ -54,7 +54,7 @@ for FitfunType in Dispersion Aggregation ; do  # add Flocking later
 	    mkdir -p $Outfolder
            sed -e "s|THREADS|0|" \
 		-e "s|TRIALS|50|" \
-                -e "s|ROBOTS|5|"                    \
+                -e "s|ROBOTS|10|"                    \
                 -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
 		-e "s|SEED|${Replicates}|"                    \
                 -e "s|FITFUN_TYPE|${FitfunType}|"                   \
