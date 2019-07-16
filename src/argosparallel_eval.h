@@ -292,6 +292,7 @@ namespace sferes {
           //   argos::LOG << "   "<<_pop[slave_id]->fit().desc()[j] << std::endl;
           // }
           // argos::LOG.Flush();
+          cSimulator.Destroy();
           exit(EXIT_SUCCESS);
       }
       /* create the different child processes */

@@ -190,17 +190,17 @@ struct Entity_Group
   {
   }
   /* get the number of entities in the group */
-  size_t get_absolute_size()
+  inline size_t get_absolute_size()
   {
     return entities.size();
   }
   /* get normalised size of entities in the group (useful as a feature)  */
-  float get_size()
+  inline float get_size()
   {
     return ((float)get_absolute_size() - (float)min_size) / ((float)max_size - (float)min_size);
   }
 
-  float mean_state_vec(size_t feature_index)
+  inline float mean_state_vec(size_t feature_index)
   {
     float mean_state = 0;
     for (auto &entity : entities)
@@ -211,7 +211,7 @@ struct Entity_Group
     mean_state /= (float)entities.size();
     return mean_state;
   }
-  float sd_state_vec(size_t feature_index, float mean_state)
+  inline float sd_state_vec(size_t feature_index, float mean_state)
   {
     float sd = 0;
     for (auto &entity : entities)
@@ -222,12 +222,12 @@ struct Entity_Group
     return std::pow(sd, 0.5);
   }
 
-  void add_entity(Entity e)
+  inline void add_entity(Entity e)
   {
     entities.push_back(e);
   }
 
-  Entity &operator[](size_t idx) { return entities[idx]; }
+  inline Entity &operator[](size_t idx) { return entities[idx]; }
 };
 
 class SDBC : public Descriptor

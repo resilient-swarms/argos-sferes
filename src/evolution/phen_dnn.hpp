@@ -69,23 +69,23 @@ SFERES_INDIV(Dnn, Indiv)
         this->_gen.init();
     }
 
-    void show(std::ostream& os)
+    inline void show(std::ostream& os)
     {
         this->gen().write(os);
     }
 
     typedef typename Gen::nn_t nn_t;
 
-    nn_t& nn()
+    inline nn_t& nn()
     {
         return this->gen();
     }
-    const nn_t& nn() const
+    const inline nn_t& nn() const
     {
         return this->gen();
     }
 
-    nn_t nn_cpy()
+    inline nn_t nn_cpy()
     {
         return this->gen();
     }
