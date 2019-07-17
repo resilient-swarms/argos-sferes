@@ -27,7 +27,7 @@ time["Aggregation"]=400
 #time["Flocking"]=200
 
 
-for FitfunType in Aggregation ; do  # add Flocking later
+for FitfunType in Dispersion ; do  # add Flocking later
     echo 'Fitfun'${FitfunType}
     SimTime=${time[${FitfunType}]}
     echo "simtime"${SimTime}

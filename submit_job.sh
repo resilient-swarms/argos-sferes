@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --ntasks-per-node=1   # Tasks per node
+#SBATCH --exclusive   #Tasks per node
 #SBATCH --nodes=1                # Number of nodes requested
-#SBATCH --time=00:05:00         # walltime
-#SBATCH --mem-per-cpu=20G
+#SBATCH --time=60:00:00         # walltime
+#SBATCH --mem-per-cpu=10G  # actually no need to specify when nodes > 20
 #SBATCH --job-name=no_parallel
 
 
