@@ -610,15 +610,25 @@ public:
 
 
 
-class EnvironmentDiversity : public Descriptor
-{
-public:
-  std::vector<EnvironmentGenerator*> env_generators;
-  size_t id; // the  id of the current generator
-  EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators);
+// class EnvironmentDiversity : public Descriptor
+// {
+// public:
+//   std::vector<EnvironmentGenerator*> env_generators;
+//   size_t id; // the  id of the current generator
+//   EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators);
 
-  /* before all trials, prepare */
-  void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+//   /* before all trials, prepare */
+//   void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+//   /*summarise BD at the end of trials*/
+//   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+// };
+
+class StaticDescriptor : public Descriptor
+{
+  /* descriptor known at time the constructor is called */
+public:
+  std::vector<float> final_bd;
+  StaticDescriptor(std::vector<float> final_bd);
   /*summarise BD at the end of trials*/
   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
 };

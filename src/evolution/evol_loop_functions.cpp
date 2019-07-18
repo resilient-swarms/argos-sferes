@@ -128,7 +128,7 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         }
         else if (s == "environment_diversity")
         {
-            this->descriptor = new EnvironmentDiversity(*this, "experiments/generator", 2);
+            // do nothing; wait for initialisation in argosparallelenviron_eval.h
         }
         else
         {
@@ -142,7 +142,6 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         THROW_ARGOSEXCEPTION_NESTED("Error initializing behaviour descriptor", ex);
     }
 }
-
 /* Process initialisation of robots, number of trials, and outputfolder  */
 void EvolutionLoopFunctions::init_simulation(TConfigurationNode &t_node)
 {

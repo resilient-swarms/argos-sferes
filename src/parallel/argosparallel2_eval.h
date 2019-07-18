@@ -31,9 +31,8 @@
 //|
 //| The fact that you are presently reading this means that you have
 //| had knowledge of the CeCILL license and that you accept its terms.
-
-#ifndef EVAL_PARALLEL_HPP_
-#define EVAL_PARALLEL_HPP_
+#ifndef EVAL_PARALLEL2_HPP
+#define EVAL_PARALLEL2_HPP
 
 #include <sferes/parallel.hpp>
 #include <cmath>
@@ -60,7 +59,6 @@ namespace sferes
 {
 namespace eval
 {
-static std::string m_strARGoSConf;
 static size_t num_processes;
 static size_t num_individuals_per_process;
 /* File name for shared memory area (use for communicating genome) */
@@ -261,26 +259,6 @@ struct _parallel_evaluate
     /* Install handler for SIGTERM */
     //::signal(SIGTERM, SlaveHandleSIGTERM);
 
-    /* The CSimulator class of ARGoS is a singleton. Therefore, to
-            * manipulate an ARGoS experiment, it is enough to get its instance */
-    argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
-    try
-    {
-      // /* Set the .argos configuration file
-      //  * This is a relative path which assumed that you launch the executable
-      //  * from argos3-examples (as said also in the README) */
-      // cSimulator.SetExperimentFileName(m_strARGoSConf);
-      // /* Load it to configure ARGoS */
-      // cSimulator.LoadExperiment();
-      argos::LOG.Flush();
-      argos::LOGERR.Flush();
-    }
-    catch (argos::CARGoSException &ex)
-    {
-      argos::LOGERR << ex.what() << std::endl;
-      ::raise(SIGTERM);
-    }
-
     // initialise the fitness function and the genotype
     /* initialise the fitmap */
     _pop[slave_id]->fit() = _fit;
@@ -370,5 +348,6 @@ this->_nb_evals += (end - begin);
 
 } // namespace sferes
 }
+
 
 #endif

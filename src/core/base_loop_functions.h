@@ -18,7 +18,7 @@
 
 
 /*******************/
-class EnvironmentGenerator;
+//class EnvironmentGenerator;
 
 class FitFun;
 
@@ -65,7 +65,7 @@ public:
     void place_cylinders();
 
     /* initialise data for custom environment generator */
-    void init_generator(TConfigurationNode &t_node);
+    //void init_generator(TConfigurationNode &t_node);
     /* initialise the robot vector */
     virtual void init_robots(TConfigurationNode &t_node);
     
@@ -161,7 +161,6 @@ public:
     std::vector<float> outf;
     std::vector<float> inputs;
     FitFun *fitfun;
-    // EnvironmentGenerator* generator = NULL;
     std::vector<CVector3> curr_pos, old_pos;
     std::vector<CRadians> curr_theta, old_theta;
     size_t m_unNumberTrials;
@@ -171,7 +170,7 @@ public:
 
     size_t m_unNumberCylinders=0;//note: this may also be zero when using distribute exclusively
     size_t m_unNumberRobots;
-    EnvironmentGenerator* generator = NULL;
+    //EnvironmentGenerator* generator = NULL;
     std::string output_folder;
 #ifdef RECORD_FIT
     std::ofstream fitness_writer;

@@ -13,25 +13,25 @@
 BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0), m_vecInitSetup(0)
 {
 }
-void BaseLoopFunctions::init_generator(TConfigurationNode &t_node)
-{
-    /*
-    * Process data used for the custom generator
-    */
-    size_t rab_data_size;
-    size_t rab_range;
-    try
-    {
-        GetNodeAttribute(t_node, "robot_id", robot_id);
-        GetNodeAttribute(t_node, "rab_data_size", rab_data_size);
-        GetNodeAttribute(t_node, "rab_range", rab_range);
-        GetNodeAttribute(t_node, "cylinders", m_unNumberCylinders);
-    }
-    catch (CARGoSException &ex)
-    {
-        std::cout << "WARNING: no robot ranges specified; this is a problem when using environment generator" << std::endl;
-    }
-}
+// void BaseLoopFunctions::init_generator(TConfigurationNode &t_node)
+// {
+//     /*
+//     * Process data used for the custom generator
+//     */
+//     size_t rab_data_size;
+//     size_t rab_range;
+//     try
+//     {
+//         GetNodeAttribute(t_node, "robot_id", robot_id);
+//         GetNodeAttribute(t_node, "rab_data_size", rab_data_size);
+//         GetNodeAttribute(t_node, "rab_range", rab_range);
+//         GetNodeAttribute(t_node, "cylinders", m_unNumberCylinders);
+//     }
+//     catch (CARGoSException &ex)
+//     {
+//         std::cout << "WARNING: no robot ranges specified; this is a problem when using environment generator" << std::endl;
+//     }
+// }
 void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
 {
 
@@ -214,7 +214,7 @@ void BaseLoopFunctions::Init(TConfigurationNode &t_node)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing number of robots", ex);
     }
-    init_generator(t_node);
+    //init_generator(t_node);
     init_robots(t_node);
     place_robots();
     init_fitfuns(t_node);
@@ -478,15 +478,14 @@ void BaseLoopFunctions::reset_cylinder_positions()
 }
 /* before the trials start and Reset happens check 
     whether some settings of the config must be changed */
-void BaseLoopFunctions::generate()
-{
+// void BaseLoopFunctions::generate()
+// {
     
-    if (generator != NULL)
-    {
-        generator->generate(this);
-    }
-}
-
+//     if (generator != NULL)
+//     {
+//         generator->generate(this);
+//     }
+//}
 void BaseLoopFunctions::Reset()
 {
 

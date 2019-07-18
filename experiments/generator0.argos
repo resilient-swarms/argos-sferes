@@ -8,7 +8,7 @@
     <system threads="0" />
     <experiment length="10"
                 ticks_per_second="5"
-                random_seed="2" 
+                random_seed="1"
 />
   </framework>
 
@@ -54,7 +54,7 @@
                   label="evolution_loopfunctions1D"
                   trials="50"
                   robots="10"
-                  descriptortype="environment_diversity"  
+                  descriptortype="environment_diversity"
                   fitfuntype="Aggregation"
 		  output_folder="experiments"
         centroids_folder="experiments/centroids"

@@ -138,7 +138,7 @@ struct Params
         // size of a batch
         SFERES_CONST size_t size = 40;//1000;
         SFERES_CONST size_t nb_gen = 10000;
-        SFERES_CONST size_t dump_period = 10;// computations are expensive so 2 generations is a lot
+        SFERES_CONST size_t dump_period = 50;
     };
 };
 
@@ -154,4 +154,7 @@ typedef Connection<weight_t> connection_t;
 typedef sferes::gen::Dnn<neuron_t, connection_t, ParamsDnn> gen_t;
 typedef typename gen_t::nn_t nn_t; // not sure if typename should be here?
 } // namespace robots_nn
+
+
+
 

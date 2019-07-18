@@ -84,8 +84,11 @@ public:
 
     /* config initialisation functions */
 
+
     /* Process behavioural descriptor type  */
     void init_descriptors(TConfigurationNode &t_node);
+    /* create static descriptor; no modifications needed */
+    //void new_static_descriptor(std::vector<float> bd);
     /* Process initialisation of robots, number of trials, and outputfolder  */
     void init_simulation(TConfigurationNode &t_node);
 
@@ -181,8 +184,8 @@ FIT_MAP(FitObstacleMapElites){
         template <typename Indiv>
         void eval(Indiv &ind)
         {
-            
-            std::clock_t start = std::clock();
+            /* if you want timer */
+            //std::clock_t start = std::clock();
             ind.nn().simplify();
             //ind.nn().init();
             /* The CSimulator class of ARGoS is a singleton. Therefore, to
@@ -195,8 +198,6 @@ FIT_MAP(FitObstacleMapElites){
            
             static argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
             static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
-
-            cLoopFunctions.generate();
             for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
                 cLoopFunctions.m_pcvecController[j]->nn = ind.nn_cpy();
         #ifdef PRINTING
@@ -216,12 +217,11 @@ FIT_MAP(FitObstacleMapElites){
         #endif
 	
 
-    	/* Your algorithm here */
+    	/* stop timer */
+    	//double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
-    	double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-
-    	 argos::LOG <<"evaluation time: "<< duration <<'\n';
-         argos::LOG.Flush();
+    	 // argos::LOG <<"evaluation time: "<< duration <<'\n';
+         // argos::LOG.Flush();
     } // *** end of eval ***
 };
 }

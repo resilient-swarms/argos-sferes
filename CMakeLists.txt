@@ -106,13 +106,12 @@ option(BD "behaviour description size" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
 option(PERTURB "Perturbations" OFF)
 option(BO "Bayesian Optimisation" OFF)
-option(ARGOS_PAR "Bayesian Optimisation" ON)
+option(ARGOS_PAR "Parallelisation" OFF)
 
 
-if (ARGOS_PAR)
-    add_definitions(-DARGOS_PARALLEL) 
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lc -lrt") # use something similar if using file descriptors
-endif()
+    
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lc -lrt") # use something similar if using file descriptors
+
 
 
 # process baseline option and others, to define controller, loopfunction and executable
@@ -174,7 +173,8 @@ if(BASELINE)
         target_link_libraries(baseline-behavs-loopfunc argos3plugin_simulator_qtopengl)
     endif(ARGOS_COMPILE_QTOPENGL)
 
-    set(EXECUTABLE baseline_behaviour)  
+    set(EXECUTABLE baseline_behaviour) 
+    set(EXEC_FILE baselinebehavs.cpp) 
 else(NOT BASELINE)
     message("will use evolution")
     message("Using ${BD}D behavioural characterisation")
@@ -246,10 +246,27 @@ else(NOT BASELINE)
         # For the argos simulator called by ite-swarms Eval function
         add_definitions(-DBAYESIAN_OPT)
         set(tag BO${CVT_USE}${BD}D)
+        set(EXECUTABLE ${tag})
+        set(EXEC_FILE BO.cpp)
     else(NOT BO)
         message("Bayesian Optimisation is NOT defined")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
-	message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
+	    message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
+        if(${ARGOS_PAR} EQUAL 1)
+            message("using parallel (1)")
+            add_definitions(-DARGOS_PARALLEL) 
+            set(EXECUTABLE behaviour_evol${tag})
+            set(EXEC_FILE behaviour_evol.cpp)
+        elseif(${ARGOS_PAR} EQUAL 2)
+            message("using parallel environments (2)")
+            add_definitions(-DARGOS_PARALLELENVIR) 
+            set(EXECUTABLE envir_evol${tag})
+            set(EXEC_FILE envir_evol.cpp)
+        else()
+            message("using serial (0)")
+            set(EXECUTABLE behaviour_evol${tag})
+            set(EXEC_FILE behaviour_evol.cpp)
+        endif()
     endif()
     
     add_definitions(-DTAG="${tag}")
@@ -278,8 +295,8 @@ else(NOT BASELINE)
         src/evolution/nn_controller.cpp)
     
     set(LOOPFUN evolution_loopfunctions${tag})
-
-    set(EXECUTABLE behaviour_evol${tag})
+    
+    
 endif()
 
 
@@ -336,10 +353,9 @@ add_library(communication SHARED
     src/core/sensingandcommunication.h
     src/core/sensingandcommunication.cpp)
 
-
 # add executable
 
-add_executable(${EXECUTABLE} src/main.cpp)
+add_executable(${EXECUTABLE} src/${EXEC_FILE})
 
 # link the controller
 target_link_libraries(${CONTROL}
@@ -386,6 +402,7 @@ if(BASELINE)
         ${TBB_LIBRARIES})
 else(NOT BASELINE)
    target_link_libraries(${EXECUTABLE}
+        argosparallel
         ${LOOPFUN}
         base_loopfunctions
         ${CONTROL}

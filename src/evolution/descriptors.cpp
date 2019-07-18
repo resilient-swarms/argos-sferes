@@ -989,20 +989,32 @@ std::vector<float> CVT_Trajectory::after_trials(EvolutionLoopFunctions &cLoopFun
 	return final_bd;
 }
 
-EnvironmentDiversity::EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators)
+// EnvironmentDiversity::EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators)
+// {
+// 	this->bd.resize(1);
+// 	cLoopFunctions.generator = new EnvironmentGenerator(cLoopFunctions.seed);
+// }
+
+// /* before all trials, prepare */
+// void EnvironmentDiversity::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+// {
+	
+// }
+// /*summarise BD at the end of trials*/
+// std::vector<float> EnvironmentDiversity::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+// {
+// 	std::vector<float> final_bd({0.,0.0});//(1, (float)id / (float)env_generators.size());
+// 	return final_bd;
+// }
+
+
+StaticDescriptor::StaticDescriptor(std::vector<float> bd)
 {
-	this->bd.resize(1);
-	cLoopFunctions.generator = new EnvironmentGenerator(cLoopFunctions.seed);
+	final_bd = bd;
 }
 
-/* before all trials, prepare */
-void EnvironmentDiversity::before_trials(EvolutionLoopFunctions &cLoopFunctions)
-{
-	
-}
 /*summarise BD at the end of trials*/
-std::vector<float> EnvironmentDiversity::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+std::vector<float> StaticDescriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
-	std::vector<float> final_bd({0.,0.0});//(1, (float)id / (float)env_generators.size());
 	return final_bd;
 }
