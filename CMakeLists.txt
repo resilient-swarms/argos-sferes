@@ -402,7 +402,6 @@ if(BASELINE)
         ${TBB_LIBRARIES})
 else(NOT BASELINE)
    target_link_libraries(${EXECUTABLE}
-        argosparallel
         ${LOOPFUN}
         base_loopfunctions
         ${CONTROL}
