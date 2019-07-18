@@ -23,7 +23,8 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
     git clone https://github.com/sferes2/sferes2.git 
 
 
-4. A. As nn2, map_elites and cvt_map_elites code are in header files, they don't need to be compiled -- so no need to add them to modules.conf
+4. 
+A. As nn2, map_elites and cvt_map_elites code are in header files, they don't need to be compiled -- so no need to add them to modules.conf
 
     cd sferes2/modules
 
@@ -32,39 +33,43 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
     git clone https://github.com/sferes2/nn2.git
     
     git clone https://github.com/resilient-swarms/cvt_map_elites.git 
+   
+B. clone limbo for bayesian optimisation:
 
-5. Go back to the argos-sferes directory
-
-    cd ../..
-
-    mkdir build && cd build
-
-    cmake ..
+    cd ~/argos-sferes
     
-    make
+    git clone https://github.com/resibots/limbo.git
     
-6. To compile  a variety of descriptors with varying dimensions, you can use the command
-   
-   bash make_all_simulation.sh
-   
-7. To compile baseline behaviours, do
-    cmake -DRECORD_FITNESS=ON -DBASELINE=ON ..
 
-8. To compile all descriptors for Bayesian Optimisation, use
+5. Compilation:
+(a) To compile serial evolution experiments:
    
-   bash make_all_BO.sh
+    bash make_all_simulation.sh
+
+(b) To compile parallel evolution experiments:
+    
+    bash make_all_parallel.sh
+
+(c) To compile evolution experiments with parallel environments:
+
+    bash make_all_envirparallel.sh
+
+(d) To compile Bayesian optimisation:
+
+    bash make_all_BO.sh
+
+(e) To compile baseline behaviours:
+
+    bash make_baseline.sh
 
 
 Instruction for running
 -------------
 
-Edit the ARGoS experiment configuration file for your own experiment setup
-
-    emacs argos-sferes/experiments/obsavoid_evol.argos
 
 
 
-Preliminary multi-agent experiments can be run using 
+Multi-agent experiments can be run using 
    
    ./bin/behaviour_evolcvt10D experiments/Gomes_walls_and_robots_std.argos
 
@@ -74,6 +79,12 @@ Preliminary multi-agent experiments can be run using
 and:
 
    ./bin/baseline_behaviour experiments/baseline-behavs.argos
+
+Multiple environments can be run with 
+
+    ./bin/envir_evolcvt10D experiments/generator
+
+Note that the argument will be automatically supplied with a number and a .argos tag during the run.
 
 
 
@@ -95,4 +106,4 @@ To try out an evolved solution
 
 To try out an evolved solution with Bayesian Optimisation, e.g. for individual 18:
 
-     ./bin/behaviour_evolBO2D experiments/history_BO.argos fitness18 --load <path to generation file>/gen_<number> -o <output file> -n 18
+     ./bin/BO2D experiments/history_BO.argos fitness18 --load <path to generation file>/gen_<number> -o <output file> -n 18
