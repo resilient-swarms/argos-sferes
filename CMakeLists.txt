@@ -354,6 +354,8 @@ add_library(communication SHARED
     src/core/sensingandcommunication.cpp)
 
 # add executable
+#include_directories(${PROJECT_SOURCE_DIR}/C-ATTL3/C-ATTL3 /usr/include/eigen3 usr/include/eigen3/unsupported)
+#add_executable(network_training src/network_training.cpp)
 
 add_executable(${EXECUTABLE} src/${EXEC_FILE})
 

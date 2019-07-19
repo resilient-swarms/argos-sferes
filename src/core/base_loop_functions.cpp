@@ -13,25 +13,7 @@
 BaseLoopFunctions::BaseLoopFunctions() : m_unCurrentTrial(0), m_vecInitSetup(0)
 {
 }
-// void BaseLoopFunctions::init_generator(TConfigurationNode &t_node)
-// {
-//     /*
-//     * Process data used for the custom generator
-//     */
-//     size_t rab_data_size;
-//     size_t rab_range;
-//     try
-//     {
-//         GetNodeAttribute(t_node, "robot_id", robot_id);
-//         GetNodeAttribute(t_node, "rab_data_size", rab_data_size);
-//         GetNodeAttribute(t_node, "rab_range", rab_range);
-//         GetNodeAttribute(t_node, "cylinders", m_unNumberCylinders);
-//     }
-//     catch (CARGoSException &ex)
-//     {
-//         std::cout << "WARNING: no robot ranges specified; this is a problem when using environment generator" << std::endl;
-//     }
-// }
+
 void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
 {
 
@@ -95,7 +77,7 @@ void BaseLoopFunctions::place_robots()
     old_theta.resize(m_unNumberRobots);
 
     //m_vecInitSetup.clear();
-    CVector3 size = GetSpace().GetArenaSize();
+    CVector3 size = get_arenasize();
     Real minX = 0.05f; // the 0.05m offset accounts for the wall thickness
     Real maxX = size.GetX() - 0.05f;
     Real minY = 0.05f;
@@ -417,10 +399,11 @@ void BaseLoopFunctions::reset_agent_positions()
             false                                                    // this is not a check, leave the robot there
         ))
         {
-#ifndef NDEBUG 
-            std::cout<< m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
-            throw std::runtime_error("cant put on correct position");
-#endif
+            // std::cout << "trial" << m_unCurrentTrial << std::endl;
+            // std::cout << "robot" << m_unRobot << std::endl;
+            // std::cout<<"entity pos "<<entity->GetOriginAnchor().Position << std::endl;
+            // std::cout<<"trial pos " <<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
+
         }
         // std::cout<<"agent "<<m_unRobot<<std::endl;
         // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
@@ -526,9 +509,7 @@ void BaseLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 
     /* Reset the experiment. This internally calls also cLoopFunctions::Reset(). */
     cSimulator.Reset();
-#ifndef NO_PARALLEL
-    finish_parallel();
-#endif
+
     /* take into account the new settings in the fitness functions */
     fitfun->before_trial(*this);
 }
@@ -542,18 +523,9 @@ float BaseLoopFunctions::run_all_trials(argos::CSimulator &cSimulator)
     * Run x trials and take the average performance as final value.
     */
 
-    // /* generate a new environment if necessary */
-    // if (generator != NULL)
-    // {
-    //     generator->generate(cSimulator);
-    // }
-
     for (size_t i = 0; i < m_unNumberTrials; ++i)
     {
         perform_trial(cSimulator);
-#ifndef NO_PARALLEL
-    finish_parallel();
-#endif
 
 #ifdef PRINTING
 
@@ -574,10 +546,6 @@ void BaseLoopFunctions::perform_trial(argos::CSimulator &cSimulator)
     cSimulator.Execute();
 
     end_trial();
-
-#ifndef NO_PARALLEL
-    finish_parallel();
-#endif
 }
 float BaseLoopFunctions::alltrials_fitness()
 {

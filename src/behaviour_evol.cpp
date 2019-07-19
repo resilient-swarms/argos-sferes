@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 {
 #if ARGOS_PARALLEL
     /* note: needs to be in a cpp */
-        /* Initialize ARGoS */
+    /* Initialize ARGoS */
     /* Redirect LOG and argos::LOGERR to dedicated files to prevent clutter on the screen */
     std::ofstream cLOGFile(std::string("ARGoS_LOG_" + argos::ToString(getpid())).c_str(), std::ios::out);
     argos::LOG.DisableColoredOutput();

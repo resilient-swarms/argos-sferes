@@ -203,9 +203,15 @@ void EvolutionLoopFunctions::PreStep()
 }
 void EvolutionLoopFunctions::PostStep()
 {
+   
     for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
         CThymioEntity *cThymio = m_pcvecRobot[robotindex];
+        if (cThymio->GetEmbodiedEntity().IsCollidingWithSomething())
+        {
+            argos::CSimulator::GetInstance().Terminate();
+            return;
+        }
         // update the position and orientation
         curr_theta[robotindex] = get_orientation(robotindex);
         
@@ -311,7 +317,7 @@ size_t EvolutionLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
 size_t EvolutionLoopFunctions::get_CM_bin(size_t num_bins, size_t num_SD_bins)
 {   
 
-    CVector3 arena = GetSpace().GetArenaSize();
+    CVector3 arena = get_arenasize();
     CVector3 grid = arena /num_bins;
     argos::CVector3 cm = centre_of_mass(old_pos);
     /* split CM into bins */

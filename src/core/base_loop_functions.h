@@ -15,6 +15,7 @@
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/plugins/simulator/entities/cylinder_entity.h>
+#include <argos3/core/simulator/space/space.h>
 
 
 /*******************/
@@ -88,10 +89,26 @@ public:
         ++m_unCurrentTrial;
     }
 
-    inline void finish_parallel()
+    CVector3 get_arenasize()
     {
-        argos::LOG.Flush();
-        argos::LOGERR.Flush();
+        CSpace::TMapPerTypePerId& entity_map = GetSpace().GetEntityMapPerTypePerId();
+		CVector3 wall_N = any_cast<CBoxEntity *>(entity_map["box"]["wall_north"])->GetEmbodiedEntity().GetOriginAnchor().Position;
+		CVector3 wall_S =  any_cast<CBoxEntity *>(entity_map["box"]["wall_south"])->GetEmbodiedEntity().GetOriginAnchor().Position;
+		CVector3 wall_W = any_cast<CBoxEntity *>(entity_map["box"]["wall_west"])->GetEmbodiedEntity().GetOriginAnchor().Position;
+		CVector3 wall_E = any_cast<CBoxEntity *>(entity_map["box"]["wall_east"])->GetEmbodiedEntity().GetOriginAnchor().Position;
+
+
+        Real y = wall_N.GetY() - wall_S.GetY();
+        Real x = wall_E.GetX() - wall_W.GetX();
+        CVector3 size = CVector3(x,y,(Real) 0.0);
+        return size;
+    }
+
+    inline CVector3 get_arenacenter()
+    {
+        CVector3 centre = GetSpace().GetArenaCenter();
+
+        return CVector3(centre.GetX(),centre.GetY(),(Real) 0.0);
     }
 
     /* add additional agents */

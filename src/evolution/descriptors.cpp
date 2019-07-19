@@ -74,22 +74,21 @@ void AverageDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 	}
 }
 
-IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(CLoopFunctions *cLoopFunctions)
+IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(EvolutionLoopFunctions *cLoopFunctions)
 {
 
 	//define member variables
-	center = cLoopFunctions->GetSpace().GetArenaCenter();
+	center = cLoopFunctions->get_arenacenter();
 
 	// initialise grid (for calculating coverage and uniformity)
-	argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
+	argos::CVector3 max = cLoopFunctions->get_arenasize();
 	argos::CVector3 min = center - 0.5 * max;
 	max_deviation = StatFuns::get_minkowski_distance(max, center);
-	EvolutionLoopFunctions *lf = static_cast<EvolutionLoopFunctions *>(cLoopFunctions);
-	if (lf->m_unNumberRobots != 1)
+	if (cLoopFunctions->m_unNumberRobots != 1)
 	{
 		throw std::runtime_error("number of robots should be equal to 1 when choosing IntuitiveHistoryDescriptor");
 	}
-	coverageCalc = CoverageCalc(lf);
+	coverageCalc = CoverageCalc(cLoopFunctions);
 }
 
 /*reset BD at the start of a trial*/
@@ -165,7 +164,7 @@ SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Desc
 		// get the average of the closest robot distance in the given uniform robot positioning
 
 		float min = 0;// minimal_robot_distance(cLoopFunctions);
-		float max = get_max_avgdist(cLoopFunctions);
+		float max = get_uniform_closestdist(cLoopFunctions);
 		// range for the closest robot feature
 		maxrange.insert(std::pair<std::string,std::pair<float,float>>("closest_robot",std::pair<float,float>(min,max)));
 	}
@@ -242,44 +241,35 @@ float SDBC::minimal_robot_distance(EvolutionLoopFunctions* cLoopFunctions)
 
     return StatFuns::get_minkowski_distance(bounding_box.MaxCorner,bounding_box.MinCorner);// at least one robot body
 }
-// /* uniform closest distance as proxy to the maximal avg closest distance */
-// float SDBC::get_uniform_closestdist(EvolutionLoopFunctions* cLoopFunctions)
-// {
-// 	float avg_mindist=0.0f;
-// 	size_t num_calcs=0;
-// 	for(size_t trial=0; trial < cLoopFunctions->m_unNumberTrials; ++trial)
-// 	{
-
-		
-// 		for (size_t i = 0; i < cLoopFunctions->m_unNumberRobots  ; ++i)
-// 		{
-// 			float mindist = std::numeric_limits<float>::infinity();
-// 			for (size_t j = 0; j < cLoopFunctions->m_unNumberRobots; ++j)
-// 			{
-// 				if (j == i)
-// 				{
-// 					continue;
-// 				}
-// 				// get the distance
-// 				float dist = StatFuns::get_minkowski_distance(cLoopFunctions->m_vecInitSetup[trial][i].Position, cLoopFunctions->m_vecInitSetup[trial][j].Position);
-// 				if (dist < mindist)
-// 				{
-// 					mindist = dist;
-// 				}
-// 			}
-// 			avg_mindist += mindist;
-// 			++num_calcs;
-// 		}
-		
-// 	}
-// 	avg_mindist = avg_mindist/(float) num_calcs;
-// 	return avg_mindist;
-// }
+/* uniform closest distance as proxy to the maximal avg closest distance */
+float SDBC::get_uniform_closestdist(EvolutionLoopFunctions* cLoopFunctions)
+{
+	/* approximate equation obtained by recursively adding agents at maximum distance to the previous */
+	CVector3 max = cLoopFunctions->get_arenasize();
+	float maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
+	// 4 robots --> maxSide; 5+ robots --> maxdist/2; 9+ robots: maxSide/2 (seems to work in drawings)
+	float maxSide=std::max(max.GetX(),max.GetY());
+	if (cLoopFunctions->m_unNumberRobots > 9)
+	{
+		return maxSide/2.0f;
+	}
+	else if (cLoopFunctions->m_unNumberRobots>= 5)
+	{
+		return maxdist/2;
+	}
+	else if (cLoopFunctions->m_unNumberRobots == 4)
+	{
+		return maxSide;
+	}
+	else{
+		return maxdist;
+	}
+}
 /* Divide the max arena distance by the number of robots to get max average robotdist */
 float SDBC::get_max_avgdist(EvolutionLoopFunctions* cLoopFunctions)
 {
 	/* approximate equation obtained by recursively adding agents at maximum distance to the previous */
-	CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
+	CVector3 max = cLoopFunctions->get_arenasize();
 	float maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
 	float robot_correction =  std::sqrt(cLoopFunctions->m_unNumberRobots/2.0f);
 	// 2 robots --> maxdist; 4 robots --> maxdist/sqrt(2); 8 robots --> maxdist/2 (seems to work in drawings)
@@ -292,7 +282,9 @@ std::pair<float,float> SDBC::get_wallsrobots_range(EvolutionLoopFunctions* cLoop
 {
 	// the range depends on the arena; since many robots can be close to each other without affecting this metric
 	// here approximate this by filling the XY-grid and calculating the distance, then taking max and min
-	CVector3 maxArena = cLoopFunctions->GetSpace().GetArenaSize();
+	// simulating one agent is sufficient this way because maximal distance and minimal distance to walls can be at one point only
+	// and agents can easily join together
+	CVector3 maxArena = cLoopFunctions->get_arenasize();
 	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0)->GetBoundingBox();
 
     float xdim = bounding_box.MaxCorner.GetX() - bounding_box.MinCorner.GetX();
@@ -965,7 +957,7 @@ CVT_Trajectory::CVT_Trajectory(EvolutionLoopFunctions &cLoopFunctions, size_t nu
 	num_chunks = behav_dim / (2 * cLoopFunctions.m_unNumberTrials);
 
 	periodicity = num_steps / (num_chunks);
-	argos::CVector3 max = cLoopFunctions.GetSpace().GetArenaSize();
+	argos::CVector3 max = cLoopFunctions.get_arenasize();
 	maxX = max.GetX();
 	maxY = max.GetY();
 }

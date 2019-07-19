@@ -8,7 +8,7 @@
     <system threads="0" />
     <experiment length="10"
                 ticks_per_second="5"
-                random_seed="3" 
+                random_seed="1" 
 />
   </framework>
 
@@ -64,7 +64,7 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="4.0, 4.0, 1" center="2.0,2.0,0.5">
+  <arena size="6.0, 6.0, 1" center="2.0,2.0,0.5">
 
     <floor id="floor"
            source="loop_functions"
@@ -84,20 +84,7 @@
     </box>
 
 
-    <!--
-       We distribute cylinders uniformly in position and with
-       constant rotation (rotating a cylinder around Z does not
-       matter)
-    -->
-    <distribute>
-     <position method="uniform" min="0.5,0.5,0" max="3.5,3.5,0" />
-     <orientation method="constant" values="0,0,0" />
-     <entity quantity="0" max_trials="2000">
-       <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
-     </entity>
-    </distribute>
-
-    <distribute>
+        <distribute>
       <position method="uniform" min="0.5,0.5,0" max="3.5,3.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
       <entity quantity="10" max_trials="1000">
@@ -105,7 +92,8 @@
           <controller config="tnn" />
         </Thymio>
       </entity>
-    </distribute>
+</distribute>
+
 </arena>
 
 
@@ -128,5 +116,4 @@
   <!-- ****************** -->
   <!-- * Visualization * -->
   <!-- ****************** -->
-
 </argos-configuration>

@@ -197,7 +197,7 @@ float DecayCoverage::after_trials()
 
 Aggregation::Aggregation(BaseLoopFunctions *cLoopFunctions) : FitFun()
 {
-    argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
+    argos::CVector3 max = cLoopFunctions->get_arenasize();
     maxdist = StatFuns::get_minkowski_distance(CVector3(max.GetX(), max.GetY(), 0.0f), argos::CVector3::ZERO);
     num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock(); // one update for the entire swarm // one update for the entire swarm
 }
@@ -233,7 +233,7 @@ float Aggregation::after_trials()
 
 Dispersion::Dispersion(BaseLoopFunctions *cLoopFunctions)
 {
-    argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
+    argos::CVector3 max = cLoopFunctions->get_arenasize();
     maxdist = StatFuns::get_minkowski_distance(CVector3(max.GetX(), max.GetY(), 0.0f), argos::CVector3::ZERO);
     num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock(); // one update for the entire swarm
 

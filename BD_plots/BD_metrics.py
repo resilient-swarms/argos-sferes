@@ -7,6 +7,10 @@ from Utils.Plots.plots import createPlot
 import sys,os
 HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
+
+
+
+
 def global_performances(BD_directory, runs, archive_file_path, max_performance,conversion_func):
     stats = []
     for run in runs:
@@ -39,6 +43,39 @@ def _global_performance(BD_directory, run,archive_file_path,max_performance,conv
         all_performances = [fitness for fitness in get_bin_performances(path).values()]
     return max(all_performances)/max_performance
 
+
+def avg_performances(BD_directory, runs, archive_file_path, max_performance,conversion_func):
+    stats = []
+    for run in runs:
+        stats.append(_avg_performance(BD_directory, run, archive_file_path, max_performance,conversion_func))
+    print("avg performances: " + str(stats))
+    return stats
+
+def _avg_performance(BD_directory, run,archive_file_path,max_performance,conversion_func=None):
+    """
+    For each run, the single highest- performing
+    solution found by that algorithm anywhere in the search space
+    divided by the highest performance possi- ble in that domain.
+    If it is not known what the maximum theoretical performance is,
+    as is the case for all of our do- mains,
+    it can be estimated by dividing by the highest performance found by any algorithm in any run. ( BUT avoid estimation if you can)
+    This measure is the traditional, most common way to evaluate optimization algorithms.
+    This measure is the traditional, most common way to evaluate optimization algorithms.
+    One can also measure whether any illumination algorithm also performs well on this measurement.
+    Both the ideal optimization algorithm and the ideal illumination
+    algorithm are expected to perform perfectly on this measure
+
+    :param BD_directory: directory in which all the runs of a BD are located,
+            e.g. ~/Desktop/history_obstacles
+    :param experiment_file_path: relative path from the BD_directory to the archive file
+    """
+    path=get_archive_filepath(BD_directory, run, archive_file_path)
+    if conversion_func is not None:
+        mean_performances = [conversion_func(fitness) for fitness in get_bin_performances(path).values()]
+    else:
+        mean_performances = [fitness for fitness in get_bin_performances(path).values()]
+    return np.mean(mean_performances)/max_performance
+
 def global_reliabilities(BD_directory,runs,archive_file_path):
     #bins=get_bins(bd_shape)
 
@@ -48,6 +85,7 @@ def global_reliabilities(BD_directory,runs,archive_file_path):
         stats.append(_global_reliability(combined_archive,BD_directory, run, archive_file_path))
     print("global reliabilities: "+str(stats))
     return stats
+
 def _global_reliability(combined_archive,BD_directory, run, archive_file_path):
 
     """
@@ -133,6 +171,25 @@ def _coverage(bd_shape,BD_directory, run, archive_file_path):
     max_num_filled=get_bins(bd_shape)
     return float(num_filled)/float(max_num_filled)
 
+def absolutecoverages(bd_shape,BD_directory, runs, archive_file_path):
+    stats = []
+    for run in runs:
+        stats.append(_absolutecoverage(bd_shape,BD_directory, run, archive_file_path))
+    print("global coverages"+str(stats))
+    return stats
+
+def _absolutecoverage(bd_shape,BD_directory, run, archive_file_path):
+    """
+    Measures how many cells of the feature space a run of an algorithm
+    is able to fill
+    :return:
+    """
+
+    path = get_archive_filepath(BD_directory, run, archive_file_path)
+    all_non_empty_performances = get_bin_performances(path)
+    num_filled=len(all_non_empty_performances)
+    return float(num_filled)
+
 
 
 
@@ -161,7 +218,23 @@ def convert_CoverageFitness(fitness,grid_size=0.1212,max_velocity=0.10, time_per
     visited_cells = np.ceil(total_cells*fitness)  #e.g. 160 cells, then fitness=0.1  means 16 cells visited
     return visited_cells/max_cells_per_trial  # coverage now means visited cells compared to the maximum possible
 
+def print_best_individuals(BD_dir,outfile, number):
+    solutions, indexes = get_best_individuals(BD_dir, range(1,6), "/archive_1600.dat",number,criterion="fitness")
+    with open(outfile+"fitness.txt", 'w') as f:
+        i=0
+        for key,value in solutions.items():
+            f.write("%s %s %.3f \n "%(indexes[i], str(key),value[0]))
+            i+=1
+        f.flush()
 
+
+
+    solutions, indexes = get_best_individuals(BD_dir, range(1, 6), "/archive_1600.dat", number, criterion="diversity")
+    with open(outfile + "diversity.txt", 'w') as f:
+        i = 0
+        for array in solutions:
+            f.write("%s %s %.3f \n" % (indexes[i], array[0:-1], array[-1]))
+            i += 1
 
 def development_plots(runs,times,BD_directory,title_tag):
 
@@ -174,23 +247,34 @@ def development_plots(runs,times,BD_directory,title_tag):
     # bd_shapes = [32**2, 1000,1000,1000]  # shape of the characterisation
     # y_labels=["global_performance","global_reliability","precision","coverage"]
 
-    bd_type = ["Gomes_sdbc_walls_and_robots_std","multiagent_spirit"]  #legend label
-
-    legend_labels=["SDBC","multiagent_spirit"]  # labels for the legend
+    bd_type = ["Gomes_sdbc_walls_and_robots_std"]  #legend label
+    legend_labels=["SDBC"]  # labels for the legend
     colors=["C"+str(i) for i in range(len(bd_type))]  # colors for the lines
     # (numsides, style, angle)
     markers=[(3,1,0),(3,2,0)] # markers for the lines
     bd_shapes = [5000,5000]  # shape of the characterisation
-    y_labels=["global_performance","global_reliability","precision","coverage"]
+    y_labels=["absolute_coverage","average_performance","global_performance","global_reliability","precision","coverage"]
 
 
-    boxes=[(.20,.20),(.20,.20),(0.20,0.20),(0.20,0.20)] # where to place the legend box
+    boxes=[(.20,.20),(.20,.20),(.20,.20),(.20,.20),(0.20,0.20),(0.20,0.20)] # where to place the legend box
     y_bottom={ylabel:[[] for i in bd_type] for ylabel in y_labels}
     y_mid = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
     y_top = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
+
+
     for i in range(len(bd_type)):
         for time in times:
             archive_file="archive_" + str(time) + ".dat"
+
+
+            abs_coverage=absolutecoverages(bd_shapes[i], BD_directory+"/"+bd_type[i], runs, archive_file)
+            add_boxplotlike_data(abs_coverage, y_bottom, y_mid, y_top, y_label="absolute_coverage",method_index=i)
+
+
+            avg_perform = avg_performances(BD_directory+"/"+bd_type[i], runs, archive_file , 1.0,
+                                                 conversion_func=None)
+            add_boxplotlike_data(avg_perform, y_bottom, y_mid, y_top, y_label="average_performance",method_index=i)
+
 
             global_perform = global_performances(BD_directory+"/"+bd_type[i], runs, archive_file , 1.0,
                                                  conversion_func=None)
@@ -205,7 +289,8 @@ def development_plots(runs,times,BD_directory,title_tag):
             add_boxplotlike_data(coverage, y_bottom, y_mid, y_top, y_label="coverage",method_index=i)
     j=0
     for label in y_labels:
-        createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=[0.0,0.1],
+        ylim=[0,100] if label == "absolute_coverage"   else [0.0,1.0]
+        createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=ylim,
                    save_filename=RESULTSFOLDER+"/"+title_tag+label+".pdf",legend_labels=legend_labels,
                    xlim=None,xscale="linear",yscale="linear",
                legendbox=boxes[j],annotations=[],xticks=[],yticks=[],task_markers=[],scatter=False,
@@ -233,12 +318,17 @@ if __name__ == "__main__":
    # coverages((6, 10),HOME_DIR+"/argos-sferes/experiments/data/MeanSpeed/sdbc_walls_and_robots", runs, "archive_900.dat")
 
 
-    data_dir=HOME_DIR+"/Data/dataNEW/datanew"
+    data_dir=HOME_DIR+"/DataFinal/datanew"
+
+    print_best_individuals(BD_dir="/home/david/DataFinal/datanew/Aggregationrange11/Gomes_sdbc_walls_and_robots_std",
+                           outfile="best_solutions_Aggr", number=10)
+    print_best_individuals(BD_dir="/home/david/DataFinal/datanew/Dispersionrange11/Gomes_sdbc_walls_and_robots_std",
+                           outfile="best_solutions_Disp", number=10)
 
     #development_plots(runs=5,times=range(0,1100,100),BD_directory=data_dir+"/Coveragerange11",title_tag="range11")
 
-    fitfuns= ["DecayCoverage","DecayBorderCoverage","Aggregation","Dispersion","Flocking"]
+    fitfuns= ["Aggregation","Dispersion"]#["DecayCoverage","DecayBorderCoverage","Aggregation","Dispersion","Flocking"]
 
     for fitfun in fitfuns:
         title=fitfun+"range11"
-        development_plots(runs=range(1,6), times=range(0,150, 10), BD_directory=data_dir + "/"+title,title_tag=fitfun)
+        development_plots(runs=range(1,6), times=range(0,1650, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun)

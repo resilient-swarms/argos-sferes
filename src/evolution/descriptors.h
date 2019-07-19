@@ -78,7 +78,7 @@ class IntuitiveHistoryDescriptor : public Descriptor
     *  after all trials, gather statistics of the observed history
     */
 public:
-  IntuitiveHistoryDescriptor(CLoopFunctions *cLoopFunctions);
+  IntuitiveHistoryDescriptor(EvolutionLoopFunctions *cLoopFunctions);
   CoverageCalc coverageCalc;
 
   argos::CVector3 center;
@@ -252,7 +252,7 @@ public:
   /* minimal robot distance */
   float minimal_robot_distance(EvolutionLoopFunctions* cLoopFunctions);
   /* uniform closest distance as proxy to the maximal avg closest distance */
-  //float get_uniform_closestdist(EvolutionLoopFunctions* cLoopFunctions);
+  float get_uniform_closestdist(EvolutionLoopFunctions* cLoopFunctions);
   /* Divide the max arena distance by the number of robots to get max average robotdist */
   float get_max_avgdist(EvolutionLoopFunctions* cLoopFunctions);
 

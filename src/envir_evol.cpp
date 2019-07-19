@@ -87,7 +87,7 @@ void sferes::eval::_argos_parallel_envir<phen_t>::LaunchSlave(size_t slave_id)
 int main(int argc, char **argv)
 {
     sferes::eval::jobname = argv[1];
-        /*
+    /*
      * Initialize ARGoS
      */
     /* The CSimulator class of ARGoS is a singleton. Therefore, to

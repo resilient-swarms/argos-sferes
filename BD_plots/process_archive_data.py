@@ -43,6 +43,40 @@ def get_individuals(path,as_string=True):
         individuals.append(b)
     return individuals
 
+def get_best_individuals(BD_directory, runs, archive_file_path,number, criterion="fitness"):
+
+
+    if criterion=="fitness":
+        individuals, indexes = get_combined_archive(BD_directory, runs, archive_file_path, by_bin=True,
+                                                    include_val=True, include_ind=True)
+        return get_best_fitness_individuals(individuals,number),indexes
+    else:
+        individuals, indexes = get_combined_archive(BD_directory, runs, archive_file_path, by_bin=False,
+                                                    include_val=True, include_ind=True)
+        return get_best_diversity_individuals(individuals,indexes)
+
+def get_best_fitness_individuals(individuals,number):
+    keys = sorted(individuals, key=individuals.get, reverse=True)[:number]
+    new_dict = {key: individuals[key] for key in keys}
+    return new_dict
+
+def get_best_diversity_individuals(behavs,indivs):
+
+    l = []
+    inds = []
+    dim = len(behavs[0] - 1)
+    new_dict = {}
+    for i in range(dim):
+        descriptor = [behav[i] for behav in behavs]
+        # get the highest value of this descriptor
+        j = np.argmax(descriptor)
+        l.append(behavs[j])
+        inds.append(indivs[j])
+        # get the lowest value of this descriptor
+        k = np.argmin(descriptor)
+        l.append(behavs[k])
+        inds.append(indivs[k])
+    return l,inds
 def run_individuals(command, path):
 
     individuals = get_individuals(path)
@@ -54,29 +88,45 @@ def run_individuals(command, path):
 
 
 
-def get_bin_performances(path,as_string=True):
+
+def get_bin_performances(path,as_string=True, add_indiv=False):
     parsed_file_list=read_spacedelimited(path)
     bin_performance_dict={}
+    individuals=[]
     for item in parsed_file_list:
+        ind = item[0]
         b=tuple(item[1:-1])
         if as_string:
             b=str(b)
         performance=float(item[-1])
         bin_performance_dict[b]=performance
-    return bin_performance_dict
+        individuals.append(ind)
+
+    if add_indiv:
+        return bin_performance_dict
+    else:
+        return bin_performance_dict, individuals
 
 def get_archive_filepath(BD_directory,run, archive_file_path):
     return BD_directory + "/results" + str(run) + "/" + archive_file_path
 
 
-def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,include_val=True):
+def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,include_val=True,include_ind=False):
     if by_bin:
         combined_archive={}
     else:
         combined_archive=[]
+    if include_ind:
+        individuals = []
     for run in runs:
         filepath=get_archive_filepath(BD_directory, run, archive_file_path)
-        bin_performance_dict=get_bin_performances(filepath,as_string=by_bin)
+        if include_ind:
+
+            bin_performance_dict,indiv=get_bin_performances(filepath,as_string=by_bin)
+            for ind in indiv:
+                individuals.append(ind)
+        else:
+            bin_performance_dict = get_bin_performances(filepath, as_string=by_bin)
         for key, value in bin_performance_dict.items():
             if by_bin:
                 if key in combined_archive:
@@ -89,6 +139,9 @@ def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,includ
                 else:
                     a = np.array(key, dtype=float)
                 combined_archive.append(a)
+
+    if include_ind:
+        return combined_archive, individuals
     return combined_archive
 
 

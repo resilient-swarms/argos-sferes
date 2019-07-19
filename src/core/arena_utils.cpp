@@ -69,7 +69,7 @@ void CoverageCalc::get_num_cells(BaseLoopFunctions &cLoopFunctions)
         // size_t additional_taken = std::floor(area / (grid_step*grid_step));
         // size+=additional_taken;
 	}
-    argos::CVector3 max = cLoopFunctions.GetSpace().GetArenaSize();
+    argos::CVector3 max = cLoopFunctions.get_arenasize();
     float total_size = (max.GetX() * max.GetY()) / (grid_step*grid_step);
     num_cells = std::ceil(total_size - obstacle_cells);
 }
@@ -155,7 +155,7 @@ BorderCoverageCalc::BorderCoverageCalc(BaseLoopFunctions *cLoopFunctions) : Cove
 void BorderCoverageCalc::get_num_cells(BaseLoopFunctions &cLoopFunctions)
 {
     // note: simplifying assumption that obstacles are not placed on the border
-    argos::CVector3 max = cLoopFunctions.GetSpace().GetArenaSize();
+    argos::CVector3 max = cLoopFunctions.get_arenasize();
     size_t num_x_bins = (int) std::ceil(max.GetX()/grid_step);
     size_t num_y_bins = (int) std::ceil(max.GetX()/grid_step);
     max_bin_x = num_x_bins - 1;
