@@ -304,31 +304,18 @@ if __name__ == "__main__":
     
     runs=5
 
-    #global_performances(HOME_DIR+"/Desktop/history_obstacles", runs, "archive_900.dat",1.0)
-    #global_performances(HOME_DIR+"/argos-sferes/experiments/data/MeanSpeed/sdbc_walls_and_robots", runs, "archive_900.dat", 1.0)
 
+    data_dir=HOME_DIR+"/DataFinal/dataFINAL"
 
-    #global_reliabilities(HOME_DIR+"/Desktop/history_obstacles", runs, "archive_900.dat")
-    #global_reliabilities(HOME_DIR+"/argos-sferes/experiments/data/MeanSpeed/sdbc_walls_and_robots", runs, "archive_900.dat")
-    
-    #precisions(HOME_DIR+"/Desktop/history_obstacles", runs, "archive_900.dat")
-   # precisions(HOME_DIR+"/argos-sferes/experiments/data/MeanSpeed/sdbc_walls_and_robots", runs, "archive_900.dat")
-
-    #coverages((3,10),HOME_DIR+"/Desktop/history_obstacles", runs, "archive_900.dat")
-   # coverages((6, 10),HOME_DIR+"/argos-sferes/experiments/data/MeanSpeed/sdbc_walls_and_robots", runs, "archive_900.dat")
-
-
-    data_dir=HOME_DIR+"/DataFinal/datanew"
-
-    print_best_individuals(BD_dir="/home/david/DataFinal/datanew/Aggregationrange11/Gomes_sdbc_walls_and_robots_std",
+    print_best_individuals(BD_dir="/home/david/DataFinal/dataFINAL/Aggregationrange11/Gomes_sdbc_walls_and_robots_std",
                            outfile="best_solutions_Aggr", number=10)
-    print_best_individuals(BD_dir="/home/david/DataFinal/datanew/Dispersionrange11/Gomes_sdbc_walls_and_robots_std",
+    print_best_individuals(BD_dir="/home/david/DataFinal/dataFINAL/Dispersionrange11/Gomes_sdbc_walls_and_robots_std",
                            outfile="best_solutions_Disp", number=10)
 
-    #development_plots(runs=5,times=range(0,1100,100),BD_directory=data_dir+"/Coveragerange11",title_tag="range11")
 
-    fitfuns= ["Aggregation","Dispersion"]#["DecayCoverage","DecayBorderCoverage","Aggregation","Dispersion","Flocking"]
+
+    fitfuns= ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
 
     for fitfun in fitfuns:
         title=fitfun+"range11"
-        development_plots(runs=range(1,6), times=range(0,1650, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun)
+        development_plots(runs=range(1,6), times=range(0,3600, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun)

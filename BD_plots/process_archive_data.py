@@ -102,7 +102,7 @@ def get_bin_performances(path,as_string=True, add_indiv=False):
         bin_performance_dict[b]=performance
         individuals.append(ind)
 
-    if add_indiv:
+    if not add_indiv:
         return bin_performance_dict
     else:
         return bin_performance_dict, individuals
@@ -122,7 +122,7 @@ def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,includ
         filepath=get_archive_filepath(BD_directory, run, archive_file_path)
         if include_ind:
 
-            bin_performance_dict,indiv=get_bin_performances(filepath,as_string=by_bin)
+            bin_performance_dict,indiv=get_bin_performances(filepath,as_string=by_bin, add_indiv=True)
             for ind in indiv:
                 individuals.append(ind)
         else:
