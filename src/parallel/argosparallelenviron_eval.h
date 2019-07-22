@@ -107,9 +107,7 @@ struct _argos_parallel_envir
     {
       siginfo_t siginfo;
       pid_t pid = SlavePIDs[i];
-      while (::waitid(P_PID, pid, &siginfo, WEXITED) > 0)
-      {
-      } // wait until the child finishes
+      ::waitid(P_PID, pid, &siginfo, WEXITED);// wait until the child finishes
       //argos::LOG << "parent finished waiting " << pid << std::endl;
       _pop[i]->fit().set_fitness(m_pcSharedMem[i]->getFitness());
       bd = m_pcSharedMem[i]->getDescriptor();

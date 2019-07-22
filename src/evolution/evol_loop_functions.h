@@ -67,8 +67,6 @@ public:
         return position;
     }
 
-private:
-
 public:
 #ifdef CVT
     std::string centroids_folder;
@@ -217,12 +215,12 @@ FIT_MAP(FitObstacleMapElites){
         #endif
 	
 
-    	/* stop timer */
-    	//double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+            /* stop timer */
+            //double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
 
-    	 // argos::LOG <<"evaluation time: "<< duration <<'\n';
-         // argos::LOG.Flush();
-    } // *** end of eval ***
+            // argos::LOG <<"evaluation time: "<< duration <<'\n';
+            // argos::LOG.Flush();
+        } // *** end of eval ***
 };
 }
 
