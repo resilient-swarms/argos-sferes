@@ -3,12 +3,78 @@
 import numpy as np
 from process_archive_data import *
 from Utils.Plots.plots import createPlot
+from dimensionality_plot import *
 # behavioural metrics defined in Mouret, J., & Clune, J. (2015). Illuminating search spaces by mapping elites. 1–15.
 import sys,os
+import lzma
 HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
 
 
+def phenotype_perturbation_plot(data_path, runs, archive_file_path, bd_labels):
+    """
+    scatterplot of the phenotypes of solutions after perturb. as a function of the drop in fitness by the perturb.
+    :return:
+    """
+    # get all datapoints' corresponding categories
+    categories = phenotype_categories(data_path, runs, archive_file_path, bd_labels, components=2)
+
+
+
+def NCD_perturbation_plot():
+    """
+    scatterplot of NCD(solution_before, solution_after) as a function of the drop in fitness by the perturb.
+    :return:
+    """
+    raise Exception("needs implementation")
+
+
+def gather_NCD():
+
+    raise Exception("needs implementation")
+
+
+def NCD(file1,file2):
+    x = open(file1, 'rb').read()  # file 1
+    y = open(file2, 'rb').read()  # file 2
+    x_y = x + y  # concatenation
+
+    x_c = lzma.compress(x)
+    y_c = lzma.compress(y)
+    x_y_c = lzma.compress(x_y)
+
+    enum = len(x_y_c) - min(len(x_c), len(y_c))
+    denom = max(len(x_c), len(y_c))
+    return  enum / denom
+
+
+def bin_single_point(datapoint,minima, bins,bin_sizes):
+    category = 0
+    cum_prod = 1
+    for i in range(len(minima)):  # for each dimension set the binning
+        x = minima[i] + bin_sizes[i]
+        for j in range(bins):
+            if datapoint[i] <= x :
+                category+=j*cum_prod
+                break
+            x += bin_sizes[i]
+        cum_prod*=bins
+
+    return category
+def phenotype_categories(data_path, runs, archive_file_path,bd_labels,components=2,bins=3):
+    bd = np.array(get_combined_archive(data_path, runs, archive_file_path,by_bin=False,include_val=False))
+    df = pd.DataFrame(bd, columns=bd_labels)
+    pca = PCA(n_components=components)
+    pca_result = pca.fit_transform(df[bd_labels].values)
+    minima = np.min(pca_result,axis=0) # get the minimum for each dimension
+    maxima = np.max(pca_result,axis=0) # get the maximum for each dimension
+    bin_sizes = (maxima - minima) / float(bins)
+
+    pheno_cat = []
+    for datapoint in pca_result:
+        pheno_cat.append(bin_single_point(datapoint, minima, bins, bin_sizes))
+
+    return pheno_cat
 
 
 def global_performances(BD_directory, runs, archive_file_path, max_performance,conversion_func):
@@ -307,10 +373,8 @@ if __name__ == "__main__":
 
     data_dir=HOME_DIR+"/DataFinal/dataFINAL"
 
-    print_best_individuals(BD_dir="/home/david/DataFinal/dataFINAL/Aggregationrange11/Gomes_sdbc_walls_and_robots_std",
-                           outfile="best_solutions_Aggr", number=10)
-    print_best_individuals(BD_dir="/home/david/DataFinal/dataFINAL/Dispersionrange11/Gomes_sdbc_walls_and_robots_std",
-                           outfile="best_solutions_Disp", number=10)
+
+
 
 
 
@@ -318,4 +382,7 @@ if __name__ == "__main__":
 
     for fitfun in fitfuns:
         title=fitfun+"range11"
+        print_best_individuals(
+            BD_dir="/home/david/DataFinal/dataFINAL/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
+            outfile="best_solutions_"+fitfun, number=10)
         development_plots(runs=range(1,6), times=range(0,3600, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun)

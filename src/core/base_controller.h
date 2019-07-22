@@ -52,27 +52,33 @@ public:
     FAULT_NONE = 0,
 
     /*faults whose effects cause one of the following four general failures */
-    FAULT_STRAIGHTLINE,
-    FAULT_RANDOMWALK,
-    FAULT_CIRCLE,
-    FAULT_STOP,
+    // FAULT_STRAIGHTLINE,
+    // FAULT_RANDOMWALK,
+    // FAULT_CIRCLE,
+    // FAULT_STOP,
+
+    /* random fault will be injected */
+    FAULT_RANDOM,
 
     /* Implementing the faults themselves. The resulting behaviors will now depend on the normal behavior implementation. */
     FAULT_PROXIMITYSENSORS_SETMIN,
     FAULT_PROXIMITYSENSORS_SETMAX,
     FAULT_PROXIMITYSENSORS_SETRANDOM,
-    FAULT_PROXIMITYSENSORS_SETOFFSET,
+    // FAULT_PROXIMITYSENSORS_SETOFFSET,
 
-    FAULT_RABSENSOR_SETOFFSET,
-    FAULT_RABSENSOR_MISSINGRECEIVERS,
+    // FAULT_RABSENSOR_SETOFFSET,
+    // FAULT_RABSENSOR_MISSINGRECEIVERS,
+    FAULT_RABSENSOR_HALFRANGE,
+    FAULT_RABPACKETLOSS,
+    FAULT_RABACTUATOR,
 
     FAULT_ACTUATOR_LWHEEL_SETHALF,
     FAULT_ACTUATOR_RWHEEL_SETHALF,
     FAULT_ACTUATOR_BWHEELS_SETHALF,
 
-    FAULT_SOFTWARE,
+    // FAULT_SOFTWARE,
 
-    FAULT_POWER_FAILURE
+    // FAULT_POWER_FAILURE
   } FBehavior;
 
   struct SWheelTurningParams

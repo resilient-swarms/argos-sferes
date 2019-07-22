@@ -146,22 +146,34 @@ void BaseController::process_faultbehaviour(std::string errorbehav)
     // else if  (errorbehav.compare("FAULT_STOP") == 0)
     //     FBehavior = FAULT_STOP;
 
-
+    // random fault
+    else if (errorbehav.compare("FAULT_RANDOM") == 0)
+    {
+        FBehavior = FAULT_RANDOM;
+    }
+    // proximity sensor faults
     else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETMIN") == 0)
         FBehavior = FAULT_PROXIMITYSENSORS_SETMIN;
     else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETMAX") == 0)
         FBehavior = FAULT_PROXIMITYSENSORS_SETMAX;
     else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETRANDOM") == 0)
         FBehavior = FAULT_PROXIMITYSENSORS_SETRANDOM;
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETOFFSET") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETOFFSET;
+    // else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETOFFSET") == 0)
+    //     FBehavior = FAULT_PROXIMITYSENSORS_SETOFFSET;
 
 
-    else if  (errorbehav.compare("FAULT_RABSENSOR_SETOFFSET") == 0)
-        FBehavior = FAULT_RABSENSOR_SETOFFSET;
-    else if  (errorbehav.compare("FAULT_RABSENSOR_MISSINGRECEIVERS") == 0)
-        FBehavior = FAULT_RABSENSOR_MISSINGRECEIVERS;
-
+    // RAB sensor faults
+    // else if  (errorbehav.compare("FAULT_RABSENSOR_SETOFFSET") == 0)
+    //     FBehavior = FAULT_RABSENSOR_SETOFFSET;
+    // else if  (errorbehav.compare("FAULT_RABSENSOR_MISSINGRECEIVERS") == 0)
+    //     FBehavior = FAULT_RABSENSOR_MISSINGRECEIVERS;
+    else if  (errorbehav.compare("FAULT_RABSENSOR_HALFRANGE") == 0) // affected robots half the range RAB sensors
+        FBehavior = FAULT_RABSENSOR_HALFRANGE;
+    else if (errorbehav.compare("FAULT_RABPACKETLOSS") == 0)  // all the robots cannot receive any RAB info
+        FBehavior = FAULT_RABPACKETLOSS;
+    //RAB actuator faults
+    else if  (errorbehav.compare("FAULT_RABACTUATOR") == 0)
+        FBehavior = FAULT_RABACTUATOR;
 
     else if  (errorbehav.compare("FAULT_ACTUATOR_LWHEEL_SETHALF") == 0)
         FBehavior = FAULT_ACTUATOR_LWHEEL_SETHALF;
@@ -170,11 +182,11 @@ void BaseController::process_faultbehaviour(std::string errorbehav)
     else if  (errorbehav.compare("FAULT_ACTUATOR_BWHEELS_SETHALF") == 0)
         FBehavior = FAULT_ACTUATOR_BWHEELS_SETHALF;
 
-    else if  (errorbehav.compare("FAULT_SOFTWARE") == 0)
-        FBehavior = FAULT_SOFTWARE;
+    // else if  (errorbehav.compare("FAULT_SOFTWARE") == 0)
+    //     FBehavior = FAULT_SOFTWARE;
 
-    else if  (errorbehav.compare("FAULT_POWER_FAILURE") == 0)
-        FBehavior = FAULT_POWER_FAILURE;
+    // else if  (errorbehav.compare("FAULT_POWER_FAILURE") == 0)
+    //     FBehavior = FAULT_POWER_FAILURE;
 
     else
     {
