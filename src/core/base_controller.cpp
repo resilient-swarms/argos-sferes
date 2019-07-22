@@ -163,10 +163,10 @@ void BaseController::process_faultbehaviour(std::string errorbehav)
 
 
     // RAB sensor faults
-    // else if  (errorbehav.compare("FAULT_RABSENSOR_SETOFFSET") == 0)
-    //     FBehavior = FAULT_RABSENSOR_SETOFFSET;
-    // else if  (errorbehav.compare("FAULT_RABSENSOR_MISSINGRECEIVERS") == 0)
-    //     FBehavior = FAULT_RABSENSOR_MISSINGRECEIVERS;
+    else if  (errorbehav.compare("FAULT_RABSENSOR_SETOFFSET") == 0)
+        FBehavior = FAULT_RABSENSOR_SETOFFSET;
+    else if  (errorbehav.compare("FAULT_RABSENSOR_MISSINGRECEIVERS") == 0)
+        FBehavior = FAULT_RABSENSOR_MISSINGRECEIVERS;
     else if  (errorbehav.compare("FAULT_RABSENSOR_HALFRANGE") == 0) // affected robots half the range RAB sensors
         FBehavior = FAULT_RABSENSOR_HALFRANGE;
     else if (errorbehav.compare("FAULT_RABPACKETLOSS") == 0)  // all the robots cannot receive any RAB info
