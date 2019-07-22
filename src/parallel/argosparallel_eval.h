@@ -103,7 +103,13 @@ public:
     m_pfSharedMem = reinterpret_cast<float *>(::mmap(NULL, unShareMemSize, protection, visibility, -1, 0));
     if (m_pfSharedMem == MAP_FAILED)
     {
-      ::perror("shared memory");
+      ::perror("shared memory, vector float");
+      exit(1);
+    }
+    died = reinterpret_cast<bool *>(::mmap(NULL, sizeof(bool), protection, visibility, -1, 0));
+    if (died == MAP_FAILED)
+    {
+      ::perror("shared memory, bool");
       exit(1);
     }
   }
@@ -169,6 +175,11 @@ public:
     }
     return bd;
   }
+
+  inline bool getDeath()
+  {
+    return died[0];
+  }
   /**
        * Sets the score of an individual.
        * @param un_individual The individual.
@@ -198,6 +209,15 @@ public:
     }
   }
 
+
+  inline void setDeath(bool dead)
+  {
+    /* death is copied to the final index of each block */
+    ::memcpy(died + 0,
+             &dead,
+             sizeof(bool));
+  }
+
 private:
   /** Descriptor size */
   size_t m_unDescriptorSize;
@@ -210,6 +230,7 @@ private:
 
   /** Pointer to the shared memory area */
   float *m_pfSharedMem;
+  bool* died;
 };
 template <typename Phen>
 struct _argos_parallel
@@ -277,13 +298,15 @@ struct _argos_parallel
     // write fitness and descriptors to shared memory
     m_pcSharedMem[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]); // ASSUME SINGLE OBJECTIVE
     m_pcSharedMem[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
-
-    // argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
-    // argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
-    // for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
-    // {
-    //   argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
-    // }
+    m_pcSharedMem[slave_id]->setDeath(_pop[slave_id]->fit().dead());
+    argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
+    argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
+     
+    for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
+    {
+      argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
+    }
+    argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
 
     quit();
   }
@@ -317,13 +340,14 @@ struct _argos_parallel
       _pop[i]->fit().set_fitness(m_pcSharedMem[i]->getFitness());
       bd = m_pcSharedMem[i]->getDescriptor();
       _pop[i]->fit().set_desc(bd);
-
-      // argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
-      // argos::LOG << "parent: descriptor for individual " << i << std::endl;
-      // for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
-      // {
-      //   argos::LOG << "   " << _pop[i]->fit().desc()[j] << std::endl;
-      // }
+      _pop[i]->fit().set_dead(m_pcSharedMem[i]->getDeath());
+      argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
+      argos::LOG << "parent: descriptor for individual " << i << std::endl;
+      for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
+      {
+        argos::LOG << "   " << _pop[i]->fit().desc()[j] << std::endl;
+      }
+      argos::LOG << "parent: death " << _pop[i]->fit().dead() << std::endl;
     }
     argos::LOG.Flush();
     argos::LOGERR.Flush();

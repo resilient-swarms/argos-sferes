@@ -210,6 +210,7 @@ void EvolutionLoopFunctions::PostStep()
         if (cThymio->GetEmbodiedEntity().IsCollidingWithSomething())
         {
             argos::CSimulator::GetInstance().Terminate();
+            stop_eval = true;
             return;
         }
         // update the position and orientation
@@ -254,6 +255,10 @@ void EvolutionLoopFunctions::end_trial()
 
 std::vector<float> EvolutionLoopFunctions::alltrials_descriptor()
 {
+    if (stop_eval)
+    {
+        return std::vector<float>(BEHAV_DIM);
+    }
     return descriptor->after_trials(*this);
 }
 

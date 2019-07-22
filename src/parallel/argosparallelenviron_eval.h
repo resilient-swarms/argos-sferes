@@ -112,13 +112,14 @@ struct _argos_parallel_envir
       _pop[i]->fit().set_fitness(m_pcSharedMem[i]->getFitness());
       bd = m_pcSharedMem[i]->getDescriptor();
       _pop[i]->fit().set_desc(bd);
-
-      //argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
-      //argos::LOG << "parent: descriptor for individual " << i << std::endl;
+      _pop[i]->fit().set_dead(m_pcSharedMem[i]->getDeath());
+      // argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
+      // argos::LOG << "parent: descriptor for individual " << i << std::endl;
       // for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
       // {
       //   argos::LOG << "   " << _pop[i]->fit().desc()[j] << std::endl;
       // }
+      // argos::LOG << "parent: death " << _pop[i]->fit().dead() << std::endl;
     }
     argos::LOG.Flush();
     argos::LOGERR.Flush();

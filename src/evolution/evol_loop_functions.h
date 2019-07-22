@@ -161,10 +161,10 @@ FIT_MAP(FitObstacleMapElites){
 
     public :
         FitObstacleMapElites(){}
-
+        bool died = false;
         inline bool dead()
         {
-            return false;
+            return died;
         }
 
         // *************** _eval ************
@@ -175,9 +175,15 @@ FIT_MAP(FitObstacleMapElites){
         // **********************************
         inline void set_fitness(float fFitness)
         {
+            if (died)
+                fFitness = 0.0f;
             this->_objs.resize(1);
             this->_objs[0] = fFitness;
             this->_value = fFitness;
+        }
+        inline void set_dead(bool dead)
+        {
+            this->died = dead;
         }
         template <typename Indiv>
         void eval(Indiv &ind)
@@ -203,6 +209,7 @@ FIT_MAP(FitObstacleMapElites){
             ind.nn().write(ofs);
         #endif
             float fFitness = cLoopFunctions.run_all_trials(cSimulator);
+            set_dead(cLoopFunctions.stop_eval);
             set_fitness(fFitness);
         #ifdef RECORD_FIT
             cLoopFunctions.fitness_writer << fFitness << std::endl;

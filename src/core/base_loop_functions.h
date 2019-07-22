@@ -172,7 +172,7 @@ public:
 
 
 public:
-
+    bool stop_eval;
     CRandom::CRNG *m_pcRNG;
     float tick_time;
     std::vector<float> outf;

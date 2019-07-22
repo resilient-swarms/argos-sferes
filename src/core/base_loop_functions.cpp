@@ -526,7 +526,10 @@ float BaseLoopFunctions::run_all_trials(argos::CSimulator &cSimulator)
     for (size_t i = 0; i < m_unNumberTrials; ++i)
     {
         perform_trial(cSimulator);
-
+        if(stop_eval)
+        {
+            return 0.0f;
+        }
 #ifdef PRINTING
 
         print_progress();
