@@ -284,8 +284,8 @@ def convert_CoverageFitness(fitness,grid_size=0.1212,max_velocity=0.10, time_per
     visited_cells = np.ceil(total_cells*fitness)  #e.g. 160 cells, then fitness=0.1  means 16 cells visited
     return visited_cells/max_cells_per_trial  # coverage now means visited cells compared to the maximum possible
 
-def print_best_individuals(BD_dir,outfile, number):
-    solutions, indexes = get_best_individuals(BD_dir, range(1,6), "/archive_1600.dat",number,criterion="fitness")
+def print_best_individuals(BD_dir,outfile, number,generation):
+    solutions, indexes = get_best_individuals(BD_dir, range(1,6), "/archive_"+str(generation)+".dat",number,criterion="fitness")
     with open(outfile+"fitness.txt", 'w') as f:
         i=0
         for key,value in solutions.items():
@@ -295,7 +295,7 @@ def print_best_individuals(BD_dir,outfile, number):
 
 
 
-    solutions, indexes = get_best_individuals(BD_dir, range(1, 6), "/archive_1600.dat", number, criterion="diversity")
+    solutions, indexes = get_best_individuals(BD_dir, range(1, 6), "/archive_"+str(generation)+".dat", number, criterion="diversity")
     with open(outfile + "diversity.txt", 'w') as f:
         i = 0
         for array in solutions:
@@ -371,18 +371,30 @@ if __name__ == "__main__":
     runs=5
 
 
-    data_dir=HOME_DIR+"/DataFinal/dataFINAL"
 
 
 
 
 
 
-    fitfuns= ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
+
+    fitfuns= ["Aggregation","Dispersion"]
 
     for fitfun in fitfuns:
+        data_dir = HOME_DIR + "/DataFinal/datanew"
         title=fitfun+"range11"
         print_best_individuals(
             BD_dir="/home/david/DataFinal/dataFINAL/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
-            outfile="best_solutions_"+fitfun, number=10)
-        development_plots(runs=range(1,6), times=range(0,3600, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun)
+            outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
+        development_plots(runs=range(1,6), times=range(0,1250, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun+"NOCORRECT")
+
+
+
+
+    for fitfun in fitfuns:
+        data_dir = HOME_DIR + "/DataFinal/coll"
+        title=fitfun+"range11"
+        print_best_individuals(
+            BD_dir="/home/david/DataFinal/coll/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
+            outfile="best_solutions_"+fitfun+"COLLISIONSTOP", number=10, generation=1200)
+        development_plots(runs=range(1,6), times=range(0,1250, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun+"COLLISIONSTOP",)
