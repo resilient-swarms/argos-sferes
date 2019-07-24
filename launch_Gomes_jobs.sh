@@ -6,7 +6,7 @@ set_latest () {
 }
 source activate py3.7 # just for the cvt initialisation 
 
-data=experiments/datanew
+data=experiments/dataCOLLISIONSTOP
 
 # Create a data diretory
 mkdir -p $data
@@ -20,14 +20,14 @@ declare -A voronoi
 
 descriptors["Gomes_sdbc_walls_and_robots_std"]=10
 voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
-#time["DecayCoverage"]=200
-#time["DecayBorderCoverage"]=200
+time["DecayCoverage"]=400
+time["DecayBorderCoverage"]=400
 time["Dispersion"]=400
 time["Aggregation"]=400
-#time["Flocking"]=200
+time["Flocking"]=400
 
 
-for FitfunType in Dispersion ; do  # add Flocking later
+for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking ; do  # add Flocking later
     echo 'Fitfun'${FitfunType}
     SimTime=${time[${FitfunType}]}
     echo "simtime"${SimTime}
@@ -88,8 +88,10 @@ for FitfunType in Dispersion ; do  # add Flocking later
 	   set_latest ${Outfolder}/gen_*
 
 	  #Comment below line if you start experiments (no previous generation files)
-	  #RESUME_GENERATION=${latest} 
-	   if [ ! -z "${RESUME_GENERATION}"  ]; then
+	  RESUME_GENERATION=${latest} 
+	   if [[ "${RESUME_GENERATION}" = "${Outfolder}/gen_*" ]]; then
+		echo "no previous generation file found"
+           else
 		echo "found last generation file: "${RESUME_GENERATION}
 	   	export GENERATION_FILE=${RESUME_GENERATION}
 	   fi

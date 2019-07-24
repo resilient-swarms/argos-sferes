@@ -108,7 +108,7 @@ option(PERTURB "Perturbations" OFF)
 option(BO "Bayesian Optimisation" OFF)
 option(ARGOS_PAR "Parallelisation" OFF)
 
-#add_definitions(-DCOLLISION_STOP)  
+add_definitions(-DCOLLISION_STOP)  
 
 
     
@@ -313,7 +313,7 @@ endif()
 #find_package(GLog REQUIRED)
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -luuid -lboost_system -lglog")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -luuid -lboost_system -lglog")
 
 
 #find_package(Caffe)  # check  ~/.cmake/packages/Caffe
