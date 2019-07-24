@@ -207,12 +207,14 @@ void EvolutionLoopFunctions::PostStep()
     for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
         CThymioEntity *cThymio = m_pcvecRobot[robotindex];
+#ifdef COLLISION_STOP
         if (cThymio->GetEmbodiedEntity().IsCollidingWithSomething())
         {
             argos::CSimulator::GetInstance().Terminate();
             stop_eval = true;
             return;
         }
+#endif
         // update the position and orientation
         curr_theta[robotindex] = get_orientation(robotindex);
         
@@ -234,8 +236,9 @@ void EvolutionLoopFunctions::before_trials(argos::CSimulator &cSimulator)
 }
 void EvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 {
-
+#ifdef COLLISION_STOP
     stop_eval = false;
+#endif
     descriptor->start_trial();
 
     BaseLoopFunctions::start_trial(cSimulator);
@@ -255,10 +258,12 @@ void EvolutionLoopFunctions::end_trial()
 
 std::vector<float> EvolutionLoopFunctions::alltrials_descriptor()
 {
+#ifdef COLLISION_STOP
     if (stop_eval)
     {
         return std::vector<float>(BEHAV_DIM);
     }
+#endif
     return descriptor->after_trials(*this);
 }
 

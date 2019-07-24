@@ -526,10 +526,12 @@ float BaseLoopFunctions::run_all_trials(argos::CSimulator &cSimulator)
     for (size_t i = 0; i < m_unNumberTrials; ++i)
     {
         perform_trial(cSimulator);
+#ifdef COLLISION_STOP
         if(stop_eval)
         {
             return 0.0f;
         }
+#endif
 #ifdef PRINTING
 
         print_progress();

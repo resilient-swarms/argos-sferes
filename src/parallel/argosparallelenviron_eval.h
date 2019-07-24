@@ -37,7 +37,6 @@ namespace eval
 static char* jobname;
 std::mt19937 _generator;
 std::uniform_int_distribution<> _distribution{0,NUM_ENVIRS-1};//will assume 5000 bins (like in CVT)
-
 template <typename Phen>
 struct _argos_parallel_envir 
 {
@@ -51,8 +50,7 @@ struct _argos_parallel_envir
 
   /** PIDs of the slave processes */
   std::vector<pid_t> SlavePIDs;
-  /** The shared memory manager */
-  std::vector<CSharedMem *> m_pcSharedMem;
+
   ~_argos_parallel_envir(){};
   _argos_parallel_envir(pop_t &pop, const fit_t &fit) : _pop(pop),
                                                      _fit(fit),
@@ -89,8 +87,7 @@ struct _argos_parallel_envir
     /* Create slave processes */
     for (size_t i = 0; i < _pop.size(); ++i)
     {
-      /* Create shared memory manager */
-      m_pcSharedMem.push_back(new CSharedMem(BEHAV_DIM));
+
       /* initialise the fitmap */
       _pop[i]->fit() = _fit;
 
@@ -109,10 +106,10 @@ struct _argos_parallel_envir
       pid_t pid = SlavePIDs[i];
       ::waitid(P_PID, pid, &siginfo, WEXITED);// wait until the child finishes
       //argos::LOG << "parent finished waiting " << pid << std::endl;
-      _pop[i]->fit().set_fitness(m_pcSharedMem[i]->getFitness());
-      bd = m_pcSharedMem[i]->getDescriptor();
+      _pop[i]->fit().set_fitness(shared_memory[i]->getFitness());
+      bd = shared_memory[i]->getDescriptor();
       _pop[i]->fit().set_desc(bd);
-      _pop[i]->fit().set_dead(m_pcSharedMem[i]->getDeath());
+      _pop[i]->fit().set_dead(shared_memory[i]->getDeath());
       // argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
       // argos::LOG << "parent: descriptor for individual " << i << std::endl;
       // for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
@@ -123,7 +120,6 @@ struct _argos_parallel_envir
     }
     argos::LOG.Flush();
     argos::LOGERR.Flush();
-    m_pcSharedMem.clear(); // destroys all the shared memory (don't do it one by one because based on pointers)
     SlavePIDs.clear();     // PIDs no longer exist
     //argos::LOG << "finished all processes "<< std::endl;
   }

@@ -66,17 +66,17 @@ void sferes::eval::_argos_parallel_envir<phen_t>::LaunchSlave(size_t slave_id)
 
     assert(!std::isnan(_pop[slave_id]->fit().objs()[0])); // ASSUMES SINGLE OBJECTIVE
     // write fitness and descriptors to shared memory
-    m_pcSharedMem[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0],_pop[slave_id]->fit().dead); // ASSUME SINGLE OBJECTIVE
-    m_pcSharedMem[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
-    m_pcSharedMem[slave_id]->setDeath(_pop[slave_id]->fit().dead());
-    // argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
-    // argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
+    shared_memory[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]); // ASSUME SINGLE OBJECTIVE
+    shared_memory[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
+    shared_memory[slave_id]->setDeath(_pop[slave_id]->fit().dead());
+    argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
+    argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
      
-    // for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
-    // {
-    //   argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
-    // }
-    // argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
+    for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
+    {
+      argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
+    }
+    argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
     argos::LOG.Flush();
     argos::LOGERR.Flush();
     cSimulator.Destroy();// difference to the usual argosparallel
@@ -96,9 +96,12 @@ int main(int argc, char **argv)
     * manipulate an ARGoS experiment, it is enough to get its instance */
     argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
     // note: at this point LOG seems to be NULL until you actually perform Init; the parent therefore should not be redirected
-
     /*  deal with argos simulator later */
+
+
+    init_shared_mem();
     configure_and_run_ea<parallelenvir_ea_t>(argc,argv);
+
     /*
     * Dispose of ARGoS stuff
     */

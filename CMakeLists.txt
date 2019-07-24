@@ -108,6 +108,8 @@ option(PERTURB "Perturbations" OFF)
 option(BO "Bayesian Optimisation" OFF)
 option(ARGOS_PAR "Parallelisation" OFF)
 
+#add_definitions(-DCOLLISION_STOP)  
+
 
     
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lc -lrt") # use something similar if using file descriptors
@@ -306,9 +308,9 @@ endif()
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lcaffe " ) 
 #include_directories(${CAFFE_INCLUDE_DIRS})
 
-add_definitions("-DCPU_ONLY=1") # added this one manually
-add_definitions("-DUSE_OPENCV=1") # added this one manually
-find_package(GLog REQUIRED)
+#add_definitions("-DCPU_ONLY=1") # added this one manually
+#add_definitions("-DUSE_OPENCV=1") # added this one manual#ly
+#find_package(GLog REQUIRED)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -luuid -lboost_system -lglog")
@@ -329,32 +331,32 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -luuid -lboost_system -lglog")
 
 
 
-unset(Caffe_FOUND)
+#unset(Caffe_FOUND)
 
 ###Set the variable Caffe_DIR as the root of your caffe directory
-set(Caffe_DIR ~/caffe/build)
+#set(Caffe_DIR ~/caffe/build)
 
-find_path(Caffe_INCLUDE_DIRS NAMES caffe/caffe.hpp caffe/common.hpp caffe/net.hpp caffe/proto/caffe.pb.h caffe/util/io.hpp caffe/vision_layers.hpp
-HINTS
-${Caffe_DIR}/include)
+#find_path(Caffe_INCLUDE_DIRS NAMES caffe/caffe.hpp caffe/common.hpp caffe/net.hpp caffe/proto/caffe.pb.h caffe/util/io.hpp caffe/vision_layers.hpp
+#HINTS
+#${Caffe_DIR}/include)
 
-find_library(Caffe_LIBRARIES NAMES caffe
-HINTS
-${Caffe_DIR}/lib)
+#find_library(Caffe_LIBRARIES NAMES caffe
+#HINTS
+#${Caffe_DIR}/lib)
 
-message("lib_dirs:${Caffe_LIBRARIES}")
+#message("lib_dirs:${Caffe_LIBRARIES}")
 
-if(Caffe_LIBRARIES AND Caffe_INCLUDE_DIRS)
-set(Caffe_FOUND 1)
-endif()
-include_directories(${Caffe_INCLUDE_DIRS})
-add_library(caffenets SHARED
-            src/caffe_nets/caffe_net.h
-            src/caffe_nets/caffe_net.cpp)
-set(EXECUTABLE caffenetexec)
-set(EXEC_FILE caffe_nets/caffe_net.cpp)
+#if(Caffe_LIBRARIES AND Caffe_INCLUDE_DIRS)
+#set(Caffe_FOUND 1)
+#endif()
+#include_directories(${Caffe_INCLUDE_DIRS})
+#add_library(caffenets SHARED
+#            src/caffe_nets/caffe_net.h
+#            src/caffe_nets/caffe_net.cpp)
+#set(EXECUTABLE caffenetexec)
+#set(EXEC_FILE caffe_nets/caffe_net.cpp)
 
-find_package(Caffe) #mainly to avoid OpenCV error
+#find_package(Caffe) #mainly to avoid OpenCV error
 
 # general options
 
@@ -423,7 +425,7 @@ target_link_libraries(${CONTROL}
     ${LUA_LIBRARIES}
     ${Boost_LIBRARIES}
     ${TBB_LIBRARIES}
-    ${Caffe_LIBRARIES}
+    #${Caffe_LIBRARIES}
 )
 
 # link the loop functions
@@ -442,7 +444,7 @@ target_link_libraries(${LOOPFUN}
     ${LUA_LIBRARIES}
     ${Boost_LIBRARIES}
     ${TBB_LIBRARIES}
-    ${Caffe_LIBRARIES}
+    #${Caffe_LIBRARIES}
 )
 
 # link the executable based on BASELINE setting (only difference so far is descriptor)
@@ -458,8 +460,8 @@ if(BASELINE)
         ${LUA_LIBRARIES}
         ${Boost_LIBRARIES}
         ${TBB_LIBRARIES}
-        ${CAFFE_LIBRARIES}
-        ${GLOG_LIBRARIES}
+        #${CAFFE_LIBRARIES}
+        #${GLOG_LIBRARIES}
 )
 else(NOT BASELINE)
    target_link_libraries(${EXECUTABLE}
@@ -474,7 +476,7 @@ else(NOT BASELINE)
         ${LUA_LIBRARIES}
         ${Boost_LIBRARIES}
         ${TBB_LIBRARIES}
-        ${Caffe_LIBRARIES}
-        ${GLOG_LIBRARIES}
+        #${Caffe_LIBRARIES}
+        #${GLOG_LIBRARIES}
 )
 endif()

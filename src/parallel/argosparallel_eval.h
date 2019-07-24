@@ -232,6 +232,9 @@ private:
   float *m_pfSharedMem;
   bool* died;
 };
+/** The shared memory manager */
+static std::vector<CSharedMem *> shared_memory;
+
 template <typename Phen>
 struct _argos_parallel
 {
@@ -245,8 +248,7 @@ struct _argos_parallel
 
   /** PIDs of the slave processes */
   std::vector<pid_t> SlavePIDs;
-  /** The shared memory manager */
-  std::vector<CSharedMem *> m_pcSharedMem;
+  
   ~_argos_parallel(){};
   _argos_parallel(pop_t &pop, const fit_t &fit) : _pop(pop),
                                                      _fit(fit),
@@ -296,17 +298,17 @@ struct _argos_parallel
 
     assert(!std::isnan(_pop[slave_id]->fit().objs()[0])); // ASSUMES SINGLE OBJECTIVE
     // write fitness and descriptors to shared memory
-    m_pcSharedMem[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]); // ASSUME SINGLE OBJECTIVE
-    m_pcSharedMem[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
-    m_pcSharedMem[slave_id]->setDeath(_pop[slave_id]->fit().dead());
-    argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
-    argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
+    shared_memory[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]); // ASSUME SINGLE OBJECTIVE
+    shared_memory[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
+    shared_memory[slave_id]->setDeath(_pop[slave_id]->fit().dead());
+    // argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
+    // argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
      
-    for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
-    {
-      argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
-    }
-    argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
+    // for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
+    // {
+    //   argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
+    // }
+    // argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
 
     quit();
   }
@@ -317,8 +319,6 @@ struct _argos_parallel
     /* Create slave processes */
     for (size_t i = 0; i < _pop.size(); ++i)
     {
-      /* Create shared memory manager */
-      m_pcSharedMem.push_back(new CSharedMem(BEHAV_DIM));
       /* initialise the fitmap */
       _pop[i]->fit() = _fit;
 
@@ -337,21 +337,20 @@ struct _argos_parallel
       pid_t pid = SlavePIDs[i];
       ::waitid(P_PID, pid, &siginfo, WEXITED); // wait until the child finishes
       // argos::LOG << "parent finished waiting " << pid << std::endl;
-      _pop[i]->fit().set_fitness(m_pcSharedMem[i]->getFitness());
-      bd = m_pcSharedMem[i]->getDescriptor();
+      _pop[i]->fit().set_fitness(shared_memory[i]->getFitness());
+      bd = shared_memory[i]->getDescriptor();
       _pop[i]->fit().set_desc(bd);
-      _pop[i]->fit().set_dead(m_pcSharedMem[i]->getDeath());
-      argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
-      argos::LOG << "parent: descriptor for individual " << i << std::endl;
-      for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
-      {
-        argos::LOG << "   " << _pop[i]->fit().desc()[j] << std::endl;
-      }
-      argos::LOG << "parent: death " << _pop[i]->fit().dead() << std::endl;
+      _pop[i]->fit().set_dead(shared_memory[i]->getDeath());
+      // argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
+      // argos::LOG << "parent: descriptor for individual " << i << std::endl;
+      // for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
+      // {
+      //   argos::LOG << "   " << _pop[i]->fit().desc()[j] << std::endl;
+      // }
+      // argos::LOG << "parent: death " << _pop[i]->fit().dead() << std::endl;
     }
     argos::LOG.Flush();
     argos::LOGERR.Flush();
-    m_pcSharedMem.clear(); // destroys all the shared memory (don't do it one by one because based on pointers)
     SlavePIDs.clear();     // PIDs no longer exist
     //argos::LOG << "finished all processes "<< std::endl;
   }

@@ -46,6 +46,7 @@ int main(int argc, char **argv)
     Params::ea::centroids = load_centroids(cLoopFunctions.centroids_folder + "/centroids_" + std::to_string(Params::ea::number_of_clusters) + "_" + std::to_string(Params::ea::number_of_dimensions) + ".dat");
 #endif
 #ifdef ARGOS_PARALLEL
+    init_shared_mem();
     configure_and_run_ea<parallel_ea_t>(argc,argv);
 #else
     configure_and_run_ea<serial_ea_t>(argc,argv);

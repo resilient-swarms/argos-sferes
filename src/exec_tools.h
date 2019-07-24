@@ -5,7 +5,7 @@
 #include <argos3/core/simulator/loop_functions.h>
 
 #include <src/evolution/evol_loop_functions.h>
-#include <src/parallel/argosparallelenviron_eval.h> 
+#include <src/parallel/argosparallelenviron_eval.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -84,13 +84,12 @@ std::vector<point_t> Params::ea::centroids;
 
 #endif
 
-
 typedef FitObstacleMapElites<Params> fit_t;
 typedef phen::Dnn<robots_nn::gen_t, fit_t, ParamsDnn> phen_t;
 //MODIFIER
 typedef modif::Dummy<> modifier_t;
 
-template<typename eval_t>
+template <typename eval_t>
 struct T
 {
 
@@ -104,15 +103,26 @@ struct T
         stat_t;
     typedef ea::MapElites<phen_t, eval_t, stat_t, modifier_t, Params> ea_t;
 #endif
-
 };
 typedef T<eval::Eval<Params>>::ea_t serial_ea_t;
 typedef T<eval::ArgosParallel<Params>>::ea_t parallel_ea_t;
 typedef T<eval::ArgosParallelEnvir<Params>>::ea_t parallelenvir_ea_t;
 
-template<typename ea_t>
-void configure_and_run_ea(int argc, char** argv)
+template <typename ea_t>
+void configure_and_run_ea(int argc, char **argv)
 {
     ea_t ea;
     run_ea(argc, argv, ea);
+}
+
+
+void init_shared_mem()
+{
+    // times 2 because two individuals generated per reproduction
+    size_t num_blocks = 2 * std::max(Params::pop::init_size,Params::pop::size);
+    sferes::eval::shared_memory.clear();
+    for (size_t i = 0; i < num_blocks; ++i)
+    {
+        sferes::eval::shared_memory.push_back(new sferes::eval::CSharedMem(BEHAV_DIM));
+    }
 }
