@@ -300,6 +300,62 @@ else(NOT BASELINE)
 endif()
 
 
+#set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ~/caffe)
+
+#set(Caffe_LIBRARIES "/home/david/caffe/build/install/lib/libcaffe.so")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lcaffe " ) 
+#include_directories(${CAFFE_INCLUDE_DIRS})
+
+add_definitions("-DCPU_ONLY=1") # added this one manually
+add_definitions("-DUSE_OPENCV=1") # added this one manually
+find_package(GLog REQUIRED)
+
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -luuid -lboost_system -lglog")
+
+
+#find_package(Caffe)  # check  ~/.cmake/packages/Caffe
+
+#message(STATUS "Caffe_DEFINITIONS")
+#message(STATUS ${Caffe_DEFINITIONS})
+
+#message(STATUS "Caffe_INCLUDE_DIRS")
+#message(STATUS ${Caffe_INCLUDE_DIRS})  #added this one manually
+
+#message(STATUS "Caffe_LIBRARIES")
+#message(STATUS ${Caffe_LIBRARIES})
+
+#include_directories($ENV{CAFFE_INCLUDE_DIRS})
+
+
+
+unset(Caffe_FOUND)
+
+###Set the variable Caffe_DIR as the root of your caffe directory
+set(Caffe_DIR ~/caffe/build)
+
+find_path(Caffe_INCLUDE_DIRS NAMES caffe/caffe.hpp caffe/common.hpp caffe/net.hpp caffe/proto/caffe.pb.h caffe/util/io.hpp caffe/vision_layers.hpp
+HINTS
+${Caffe_DIR}/include)
+
+find_library(Caffe_LIBRARIES NAMES caffe
+HINTS
+${Caffe_DIR}/lib)
+
+message("lib_dirs:${Caffe_LIBRARIES}")
+
+if(Caffe_LIBRARIES AND Caffe_INCLUDE_DIRS)
+set(Caffe_FOUND 1)
+endif()
+include_directories(${Caffe_INCLUDE_DIRS})
+add_library(caffenets SHARED
+            src/caffe_nets/caffe_net.h
+            src/caffe_nets/caffe_net.cpp)
+set(EXECUTABLE caffenetexec)
+set(EXEC_FILE caffe_nets/caffe_net.cpp)
+
+find_package(Caffe) #mainly to avoid OpenCV error
+
 # general options
 
 if(RECORD_FITNESS)
@@ -353,10 +409,6 @@ add_library(communication SHARED
     src/core/sensingandcommunication.h
     src/core/sensingandcommunication.cpp)
 
-# add executable
-#include_directories(${PROJECT_SOURCE_DIR}/C-ATTL3/C-ATTL3 /usr/include/eigen3 usr/include/eigen3/unsupported)
-#add_executable(network_training src/network_training.cpp)
-
 add_executable(${EXECUTABLE} src/${EXEC_FILE})
 
 # link the controller
@@ -370,7 +422,9 @@ target_link_libraries(${CONTROL}
     #argos3plugin_simulator_sensors
     ${LUA_LIBRARIES}
     ${Boost_LIBRARIES}
-    ${TBB_LIBRARIES})
+    ${TBB_LIBRARIES}
+    ${Caffe_LIBRARIES}
+)
 
 # link the loop functions
 target_link_libraries(${LOOPFUN}
@@ -387,7 +441,9 @@ target_link_libraries(${LOOPFUN}
     #argos3plugin_simulator_sensors
     ${LUA_LIBRARIES}
     ${Boost_LIBRARIES}
-    ${TBB_LIBRARIES})
+    ${TBB_LIBRARIES}
+    ${Caffe_LIBRARIES}
+)
 
 # link the executable based on BASELINE setting (only difference so far is descriptor)
 if(BASELINE)      
@@ -401,7 +457,10 @@ if(BASELINE)
         argos3core_simulator
         ${LUA_LIBRARIES}
         ${Boost_LIBRARIES}
-        ${TBB_LIBRARIES})
+        ${TBB_LIBRARIES}
+        ${CAFFE_LIBRARIES}
+        ${GLOG_LIBRARIES}
+)
 else(NOT BASELINE)
    target_link_libraries(${EXECUTABLE}
         ${LOOPFUN}
@@ -414,5 +473,8 @@ else(NOT BASELINE)
         argos3core_simulator
         ${LUA_LIBRARIES}
         ${Boost_LIBRARIES}
-        ${TBB_LIBRARIES})
+        ${TBB_LIBRARIES}
+        ${Caffe_LIBRARIES}
+        ${GLOG_LIBRARIES}
+)
 endif()

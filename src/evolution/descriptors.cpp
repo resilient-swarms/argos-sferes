@@ -146,6 +146,18 @@ float Entity::distance(const Entity& e1, const Entity& e2)
 	return StatFuns::get_minkowski_distance(e1.position, e2.position);
 }
 
+
+
+
+
+
+
+/******************************************************************/
+
+
+
+
+
 SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Descriptor()
 {
 	
@@ -620,6 +632,9 @@ void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 	}
 }
 
+
+/************************************************************************/
+
 CVT_MutualInfo::CVT_MutualInfo()
 {
 	freqs.resize(num_sensors);
@@ -840,6 +855,11 @@ void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, EvolutionLoopF
 	num_updates++;
 }
 
+
+
+/*************************************************************************/
+
+
 CVT_Spirit::CVT_Spirit()
 {
 	freqs.resize(num_joint_sensory_bins);
@@ -916,6 +936,8 @@ std::vector<float> CVT_Spirit::after_trials(EvolutionLoopFunctions &cLoopFunctio
 }
 
 
+/*************************************************************************/
+
 MultiAgent_Spirit::MultiAgent_Spirit()
 {
 	/* most of the code remains the same as CVT_Spirit except the meaning of the bins and the number 
@@ -947,6 +969,15 @@ void MultiAgent_Spirit::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 // {
 // 	bd.resize(behav_dim);
 // }
+
+
+
+
+
+/************************************************************************/
+
+
+
 
 void CVT_Trajectory::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
@@ -981,6 +1012,7 @@ std::vector<float> CVT_Trajectory::after_trials(EvolutionLoopFunctions &cLoopFun
 	return final_bd;
 }
 
+/***********************************************************************/
 // EnvironmentDiversity::EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators)
 // {
 // 	this->bd.resize(1);
@@ -1000,6 +1032,10 @@ std::vector<float> CVT_Trajectory::after_trials(EvolutionLoopFunctions &cLoopFun
 // }
 
 
+/***********************************************************************/
+
+
+
 StaticDescriptor::StaticDescriptor(std::vector<float> bd)
 {
 	final_bd = bd;
@@ -1010,3 +1046,83 @@ std::vector<float> StaticDescriptor::after_trials(EvolutionLoopFunctions &cLoopF
 {
 	return final_bd;
 }
+
+
+/*******************************************************************************/
+
+
+
+
+// class TransitionDescriptor : public Descriptor
+// {
+//   typedef std::vector<std::vector<float>> DataType;
+
+//   TransitionDescriptor();
+
+// }
+
+
+// /*after the looping over robots*/
+// void TransitionDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+// {
+// }
+
+// /*end the trial*/
+// void TransitionDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+// {
+// }
+
+// /* normalise frequencies */
+// std::vector<float> TransitionDescriptor::get_bd()
+// {
+// 	std::vector<float> final_bd;
+// 	for (size_t i = 0; i < num_joint_sensory_bins; ++i)
+// 	{
+// 		float total_observations = StatFuns::sum(freqs[i]);
+// 		// use laplace smoothing instead of treating total_observations > 0 radically different than total_observations=0
+// 		for (int j = 0; j < num_joint_actuator_bins; ++j)
+// 		{
+// 			//final_bd.push_back(StatFuns::laplace_smoothing(freqs[i][j], total_observations, alpha_smooth, num_joint_actuator_bins));
+// 			if (total_observations == 0)
+// 			{
+// 				final_bd.push_back(1.0 / (float)num_joint_actuator_bins);
+// 			}
+// 			else
+// 			{
+// 				final_bd.push_back(freqs[i][j] / total_observations);
+// 			}
+// #ifdef PRINTING
+
+// 			std::cout << "prob_{" << i << "," << j << "}=" << final_bd.back() << std::endl;
+// #endif
+// 		}
+// 	}
+// 	return final_bd;
+// }
+
+
+// TransitionDescriptor::InputType& convert_stateaction()
+// {
+// 	cLoopFunctions.inputs;
+// 	cLoopFunctions.outf;
+// 	// process them to useful format
+// }
+
+
+// /*after getting outputs, can update the descriptor if needed*/
+// void TransitionDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+// {
+// 	InputType& x = convert_stateaction();
+// 	add_input(x);
+// 	++num_updates;
+// }
+
+// /*summarise BD at the end of trials*/
+// std::vector<float> TransitionDescriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+// {
+// 	// fit network
+
+// 	// get parameters
+// 	std::vector<float> final_bd = fit_and_get_params();
+// 	return final_bd;
+// }

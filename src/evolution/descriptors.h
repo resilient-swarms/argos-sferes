@@ -632,3 +632,24 @@ public:
   /*summarise BD at the end of trials*/
   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
 };
+
+
+// class TransitionDescriptor : public Descriptor
+// {
+//   typedef std::vector<std::vector<float>> InputType;
+
+//   typedef std::vector<InputType> data;
+  
+//   TransitionDescriptor();
+
+//   InputType& convert_stateaction() const;
+
+//   inline void add_input(InputType& input)
+//   {
+//     //data[num_updates]=input;
+//   }
+
+//   /*summarise BD at the end of trials*/
+//   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+
+// }
