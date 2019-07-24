@@ -10,6 +10,24 @@
 #include <src/evolution/descriptors.h>
 #include <src/exec_tools.h>
 
+/******************************************************/
+
+
+
+struct EnvirParams
+{
+    struct ea
+    {
+        SFERES_CONST double epsilon = Params::ea::epsilon;
+        SFERES_CONST size_t behav_dim = 6;
+        SFERES_ARRAY(size_t, behav_shape, 5, 4, 3, 5, 4, 4);
+    };
+    using Params::parameters;
+    using Params::evo_float;
+    using Params::pop;
+};
+
+
 /****************************************/
 /****************************************/
 template<>
@@ -41,7 +59,7 @@ void sferes::eval::_argos_parallel_envir<phen_t>::LaunchSlave(size_t slave_id)
             // /* Set the .argos configuration file
             //  * This is a relative path which assumed that you launch the executable
             //  * from argos3-examples (as said also in the README) */
-            cSimulator.SetExperimentFileName(jobname+std::to_string(envir_no)+".argos");
+            cSimulator.SetExperimentFileName(jobname+"_"std::to_string(envir_no)+".argos");
             // /* Load it to configure ARGoS */
             cSimulator.LoadExperiment();
             
@@ -69,14 +87,14 @@ void sferes::eval::_argos_parallel_envir<phen_t>::LaunchSlave(size_t slave_id)
     shared_memory[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]); // ASSUME SINGLE OBJECTIVE
     shared_memory[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
     shared_memory[slave_id]->setDeath(_pop[slave_id]->fit().dead());
-    argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
-    argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
+    // argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
+    // argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
      
-    for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
-    {
-      argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
-    }
-    argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
+    // for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
+    // {
+    //   argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
+    // }
+    // argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
     argos::LOG.Flush();
     argos::LOGERR.Flush();
     cSimulator.Destroy();// difference to the usual argosparallel
