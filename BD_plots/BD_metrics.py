@@ -384,7 +384,7 @@ if __name__ == "__main__":
         data_dir = HOME_DIR + "/DataFinal/datanew"
         title=fitfun+"range11"
         print_best_individuals(
-            BD_dir="/home/david/DataFinal/dataFINAL/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
+            BD_dir="/home/david/DataFinal/datanew/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
             outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
         development_plots(runs=range(1,6), times=range(0,1250, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun+"NOCORRECT")
 
