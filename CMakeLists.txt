@@ -108,7 +108,7 @@ option(PERTURB "Perturbations" OFF)
 option(BO "Bayesian Optimisation" OFF)
 option(ARGOS_PAR "Parallelisation" OFF)
 
-add_definitions(-DCOLLISION_STOP)  
+#add_definitions(-DCOLLISION_STOP)  
 
 
     

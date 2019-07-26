@@ -210,6 +210,7 @@ void EvolutionLoopFunctions::PostStep()
 #ifdef COLLISION_STOP
         if (cThymio->GetEmbodiedEntity().IsCollidingWithSomething())
         {
+	    std::cout<<"collision stop"<<std::endl;
             argos::CSimulator::GetInstance().Terminate();
             stop_eval = true;
             return;

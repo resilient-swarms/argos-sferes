@@ -6,7 +6,7 @@ set_latest () {
 }
 source activate py3.7 # just for the cvt initialisation 
 
-data=experiments/dataCOLLISIONSTOP
+data=experiments/datanew
 
 # Create a data diretory
 mkdir -p $data

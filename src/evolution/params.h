@@ -134,11 +134,11 @@ struct Params
     struct pop
     {
         // number of initial random points
-        SFERES_CONST size_t init_size = 40; //1000;
+        SFERES_CONST size_t init_size = 1000; //1000;
         // size of a batch
         SFERES_CONST size_t size = 40;//1000;
         SFERES_CONST size_t nb_gen = 10000;
-        SFERES_CONST size_t dump_period = 50;
+        SFERES_CONST size_t dump_period = 100;
     };
 };
 
@@ -153,8 +153,4 @@ typedef Neuron<pf_t, af_t> neuron_t;
 typedef Connection<weight_t> connection_t;
 typedef sferes::gen::Dnn<neuron_t, connection_t, ParamsDnn> gen_t;
 typedef typename gen_t::nn_t nn_t; // not sure if typename should be here?
-} // namespace robots_nn
-
-
-
-
+} // namespace robots_
