@@ -302,64 +302,6 @@ else(NOT BASELINE)
 endif()
 
 
-#set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ~/caffe)
-
-#set(Caffe_LIBRARIES "/home/david/caffe/build/install/lib/libcaffe.so")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lcaffe " ) 
-#include_directories(${CAFFE_INCLUDE_DIRS})
-
-add_definitions("-DCPU_ONLY=1") # added this one manually
-#add_definitions("-DUSE_OPENCV=1") # added this one manually
-find_package(GLog REQUIRED)
-
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -luuid -lboost_system -lglog")
-
-
-#find_package(Caffe)  # check  ~/.cmake/packages/Caffe
-
-#message(STATUS "Caffe_DEFINITIONS")
-#message(STATUS ${Caffe_DEFINITIONS})
-
-#message(STATUS "Caffe_INCLUDE_DIRS")
-#message(STATUS ${Caffe_INCLUDE_DIRS})  #added this one manually
-
-#message(STATUS "Caffe_LIBRARIES")
-#message(STATUS ${Caffe_LIBRARIES})
-
-#include_directories($ENV{CAFFE_INCLUDE_DIRS})
-
-
-
-unset(Caffe_FOUND)
-
-###Set the variable Caffe_DIR as the root of your caffe directory
-set(Caffe_DIR ~/caffe/build)
-
-find_path(Caffe_INCLUDE_DIRS NAMES caffe/caffe.hpp caffe/common.hpp caffe/net.hpp caffe/proto/caffe.pb.h caffe/util/io.hpp caffe/vision_layers.hpp
-HINTS
-${Caffe_DIR}/include)
-
-find_library(Caffe_LIBRARIES NAMES caffe
-HINTS
-${Caffe_DIR}/lib)
-
-message("lib_dirs:${Caffe_LIBRARIES}")
-
-if(Caffe_LIBRARIES AND Caffe_INCLUDE_DIRS)
-set(Caffe_FOUND 1)
-endif()
-include_directories(${Caffe_INCLUDE_DIRS})
-add_library(caffenets SHARED
-            src/caffe_nets/caffe_net.h
-            src/caffe_nets/caffe_net.cpp)
-
-#find_package(Caffe) #if you want  to avoid OpenCV error
-
-
-# uncomment if you just want to check neural network           
-#set(EXECUTABLE caffenetexec)
-#set(EXEC_FILE caffe_nets/caffe_net.cpp)
 
 
 
