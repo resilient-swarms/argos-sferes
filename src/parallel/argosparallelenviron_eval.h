@@ -27,16 +27,29 @@
 #include <random>
 #include <src/parallel/argosparallel_eval.h>
 
-#define NUM_ENVIRS 2
+
 
 
 namespace sferes
 {
 namespace eval
 { 
-static char* jobname;
-std::mt19937 _generator;
-std::uniform_int_distribution<> _distribution{0,NUM_ENVIRS-1};//will assume 5000 bins (like in CVT)
+static std::string jobname;
+
+class EnvirGenerator {
+public:
+    EnvirGenerator(){};
+    EnvirGenerator(std::mt19937::result_type seed) : eng(seed) {}
+    inline int generate(int options)
+    { 
+      return std::uniform_int_distribution<int>{1, options}(eng);
+    }
+private:        
+    std::mt19937 eng{std::random_device{}()};
+};
+
+
+
 template <typename Phen>
 struct _argos_parallel_envir 
 {

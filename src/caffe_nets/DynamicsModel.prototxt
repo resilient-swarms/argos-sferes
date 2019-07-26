@@ -1,0 +1,69 @@
+name: "MLP"
+
+layer {
+  name: "data"
+  type: "Input"
+  top: "data"
+  input_param { shape: { dim: 20000 dim: 1 dim: 1  dim: 17 } }  # batch size, channels (e.g. RBG), x, y=15 sensors + 2 actuators
+}
+
+layer {
+  name: "target"
+  type: "Input"
+  top: "target"
+  input_param { shape: { dim: 20000 dim: 1 dim: 1  dim: 15 } }  # batch size, channels (e.g. RBG), x, y=15 sensors
+}
+layer {
+  name: "fc1"
+  type: "InnerProduct"
+  # learning rate and decay multipliers for the weights
+  param { lr_mult: 1 decay_mult: 1 }
+  # learning rate and decay multipliers for the biases
+  param { lr_mult: 2 decay_mult: 0 }
+  inner_product_param {
+    num_output: 10
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+  bottom: "data"
+  top: "fc1"
+}
+layer {
+  name: "relu1"
+  type: "ReLU"
+  bottom: "fc1"
+  top: "fc1"
+}
+
+
+layer {
+  name: "out"
+  type: "InnerProduct"
+  bottom: "fc1"
+  top: "out"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 15
+  }
+}
+
+layer {
+  name: "loss"
+  type: "EuclideanLoss"
+  bottom: "out"
+  bottom: "target"
+  top: "loss"
+}

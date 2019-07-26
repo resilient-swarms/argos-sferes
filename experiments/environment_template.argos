@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <system threads="THREADS" />
+    <experiment length="EXPERIMENT_LENGTH"
+                ticks_per_second="5"
+                random_seed="SEED" />
+  </framework>
+
+
+
+
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+
+        <nn_controller id="tnn"
+                           library="lib/libnn_controller.so"                
+                    >
+      <actuators>
+        <differential_steering implementation="default" />
+        <thymio_led implementation="default" medium="leds"/>
+       <range_and_bearing implementation="default"/> 
+      </actuators>
+      <sensors>
+        <Thymio_proximity implementation="default" show_rays="false" range="SENSOR_RANGE" noise_level="NOISE_LEVEL" />
+	    <Thymio_ground implementation="rot_z_only" show_rays="false"/>
+     <range_and_bearing implementation="medium" medium="rab" show_rays="true"/>
+        <differential_steering implementation="default" />
+      </sensors>
+      <params>
+      <wheel_turning max_speed="MAX_SPEED" />
+      <experiment_run swarm_behavior="/"
+			fault_behavior="FAULT_NONE" 
+	                id_faulty_robot="-1" />
+        
+      </params>      
+    </nn_controller>
+
+  </controllers>
+
+
+  <!-- ****************** -->
+  <!-- * Loop functions * -->
+  <!-- ****************** -->
+  <loop_functions library="lib/libevolution_loopfunctionsBEHAVIOUR_TAG.so"
+                  label="evolution_loopfunctionsBEHAVIOUR_TAG"
+                  trials="TRIALS"
+                  robots="ROBOTS"
+                  descriptortype="DESCRIPTOR_TYPE"    
+                  fitfuntype="FITFUN_TYPE"
+                  output_folder="OUTPUTFOLDER"
+                centroids_folder="CENTROIDSFOLDER"
+                    />
+
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="ARENA,ARENA,1" center="CENTER,CENTER,0.5">
+
+    <floor id="floor"
+           source="loop_functions"
+           pixels_per_meter="50" />
+
+   <box id="wall_north" size="FULL_WALL,0.1,0.5" movable="false">
+      <body position="HALF_WALL,FULL_WALL,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_south" size="FULL_WALL,0.1,0.5" movable="false">
+      <body position="HALF_WALL,0,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_east" size="0.1,FULL_WALL,0.5" movable="false">
+      <body position="FULL_WALL,HALF_WALL,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_west" size="0.1,FULL_WALL,0.5" movable="false">
+      <body position="0,HALF_WALL,0" orientation="0,0,0" />
+    </box>
+        
+        <distribute>
+     <position method="uniform" min="0.5,0.5,0" max="WALL_OFF,WALL_OFF,0" />
+     <orientation method="constant" values="0,0,0" />
+     <entity quantity="NUM_CYLINDERS" max_trials="2000">
+       <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
+     </entity>
+    </distribute>
+
+        <distribute>
+      <position method="uniform" min="0.5,0.5,0" max="WALL_OFF,WALL_OFF,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="ROBOTS" max_trials="1000">
+        <Thymio id="thymio" rab_data_size="4" rab_range="RAB_RANGE">    <!-- data size in bytes; range in m -->
+          <controller config="tnn" />
+        </Thymio>
+      </entity>
+</distribute>
+
+</arena>
+
+
+
+
+
+
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+ <physics_engines>
+<dynamics2d id="dyn2d_0" iterations="5"/>
+  </physics_engines>
+
+
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <range_and_bearing id="rab"  grid_size="RAB_GRID,RAB_GRID,1" />  <!-- 2 cells of 2R -->
+   <led id="leds" />
+  </media>
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+
+</argos-configuration>

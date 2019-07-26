@@ -27,6 +27,8 @@ time["Aggregation"]=400
 time["Flocking"]=400
 
 
+
+
 for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking ; do  # add Flocking later
     echo 'Fitfun'${FitfunType}
     SimTime=${time[${FitfunType}]}

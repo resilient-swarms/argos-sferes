@@ -13,12 +13,14 @@
 
 #include <src/core/arena_utils.h>
 #include <src/core/environment_generator.h>
+#include <src/caffe_nets/caffe_net.h>
 /****************************************/
 /****************************************/
 /****************************************/
 
 class EvolutionLoopFunctions;
 class RunningStat;
+
 
 class Descriptor
 {
@@ -98,24 +100,22 @@ public:
 
 struct RobotAttributeSetter
 {
-  float maxX,maxY;
-  RobotAttributeSetter(EvolutionLoopFunctions* cLoopFunctions)
+  float maxX, maxY;
+  RobotAttributeSetter(EvolutionLoopFunctions *cLoopFunctions)
   {
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
-	  maxX = max.GetX();
-	  maxY = max.GetY();
+    maxX = max.GetX();
+    maxY = max.GetY();
   }
 
-  virtual std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)=0;
-
+  virtual std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions) = 0;
 };
 struct NormalAttributeSetter : public RobotAttributeSetter
 {
-  NormalAttributeSetter(EvolutionLoopFunctions* cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
+  NormalAttributeSetter(EvolutionLoopFunctions *cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
   {
-
   }
-  virtual  std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+  virtual std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
   {
     // here just set the attributes of robot at index; let end
     CVector3 pos = cLoopFunctions.curr_pos[robot_index];
@@ -136,23 +136,22 @@ struct NormalAttributeSetter : public RobotAttributeSetter
 
 struct SpeedAttributeSetter : public RobotAttributeSetter
 {
-  SpeedAttributeSetter(EvolutionLoopFunctions* cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
+  SpeedAttributeSetter(EvolutionLoopFunctions *cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
   {
-
   }
-  virtual  std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+  virtual std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
   {
     float v_lin = cLoopFunctions.actual_linear_velocity_01(robot_index);
-    float v_turn= cLoopFunctions.actual_turn_velocity_01(robot_index);
+    float v_turn = cLoopFunctions.actual_turn_velocity_01(robot_index);
 
     std::vector<float> new_vec = {v_lin, v_turn};
 #ifdef PRINTING
     std::cout << "v_lin, v_turn =" << v_lin << "," << v_turn << std::endl;
-    if (!StatFuns::in_range(v_lin,0.0f,1.0f))
+    if (!StatFuns::in_range(v_lin, 0.0f, 1.0f))
     {
       throw std::runtime_error("v_lin not in [0,1]");
     }
-    if (!StatFuns::in_range(v_turn,0.0f,1.0f))
+    if (!StatFuns::in_range(v_turn, 0.0f, 1.0f))
     {
       throw std::runtime_error("v_turn not in [0,1]");
     }
@@ -167,7 +166,7 @@ struct Entity
   CVector3 position;
   Entity() {}
   float &operator[](size_t idx) { return attributes[idx]; }
-  static float distance(const Entity& e1, const Entity& e2);
+  static float distance(const Entity &e1, const Entity &e2);
   void set_attributes(const std::vector<float> new_vec, CVector3 pos)
   {
     attributes = new_vec;
@@ -237,36 +236,30 @@ class SDBC : public Descriptor
     */
 public:
   bool include_std, include_closest_robot;
-  RobotAttributeSetter* attribute_setter;
+  RobotAttributeSetter *attribute_setter;
   size_t bd_index, num_groups, num_features;
   float maxX, maxY;
-  std::map<std::string, std::pair<float,float>> maxrange;
+  std::map<std::string, std::pair<float, float>> maxrange;
   std::map<std::string, Entity_Group> entity_groups;
   std::vector<std::string> within_comparison_groups, between_comparison_groups; //
-  std::vector<std::string> variable_groups; 
-  
-  std::vector<std::vector<float>>  temp_bd;// accumulate the features over time
+  std::vector<std::string> variable_groups;
+
+  std::vector<std::vector<float>> temp_bd; // accumulate the features over time
   SDBC(EvolutionLoopFunctions *cLoopFunctions, std::string init_type);
-  
 
   /* minimal robot distance */
-  float minimal_robot_distance(EvolutionLoopFunctions* cLoopFunctions);
+  float minimal_robot_distance(EvolutionLoopFunctions *cLoopFunctions);
   /* uniform closest distance as proxy to the maximal avg closest distance */
-  float get_uniform_closestdist(EvolutionLoopFunctions* cLoopFunctions);
+  float get_uniform_closestdist(EvolutionLoopFunctions *cLoopFunctions);
   /* Divide the max arena distance by the number of robots to get max average robotdist */
-  float get_max_avgdist(EvolutionLoopFunctions* cLoopFunctions);
+  float get_max_avgdist(EvolutionLoopFunctions *cLoopFunctions);
 
   /* walls robots min and max distance */
-  std::pair<float,float> get_wallsrobots_range(EvolutionLoopFunctions* cLoopFunctions);
-  
-  
-  
+  std::pair<float, float> get_wallsrobots_range(EvolutionLoopFunctions *cLoopFunctions);
+
   void init_walls(CLoopFunctions *cLoopFunctions);
-  void init_robots(size_t num_features,CLoopFunctions *cLoopFunctions);
+  void init_robots(size_t num_features, CLoopFunctions *cLoopFunctions);
   void init_cylindric_obstacles(CLoopFunctions *cLoopFunctions);
-
-
-
 
   /* normalise to get full range across [0,1] */
   float normalise(float number, std::string key);
@@ -438,7 +431,6 @@ class CVT_Spirit : public Descriptor
   /* most of the code remains the same as CVT_Spirit except the meaning of the bins and the number 
   number of bins */
 public:
-  
   CVT_Spirit();
 
   /* smoothing factor */
@@ -483,7 +475,6 @@ public:
 class MultiAgent_Spirit : public CVT_Spirit
 {
 public:
-
   MultiAgent_Spirit();
 
   /*after getting outputs, can update the descriptor if needed*/
@@ -491,9 +482,7 @@ public:
 
   /*after the looping over robots*/
   virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
-
 };
-
 
 class CompressionDescriptor : public Descriptor
 {
@@ -608,8 +597,6 @@ public:
 //     virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
 // };
 
-
-
 // class EnvironmentDiversity : public Descriptor
 // {
 // public:
@@ -633,23 +620,80 @@ public:
   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
 };
 
+template <typename SolverType>
+class TransitionDescriptor : public Descriptor
+{
+private:
+  std::vector<std::vector<float>> input_data_per_robot;
 
-// class TransitionDescriptor : public Descriptor
-// {
-//   typedef std::vector<std::vector<float>> InputType;
+  std::vector<std::vector<float>> target_data_per_robot;
 
-//   typedef std::vector<InputType> data;
+  std::vector<std::vector<float>> input_data;
+
+  std::vector<std::vector<float>> target_data;
+
+  const size_t periodicity = 100;// average across this many time steps
+  const float min_param = -0.1;
+  const float max_param = 0.1;
+public:
+  CaffeNet<SolverType> dynamics_model;
+
+  TransitionDescriptor(size_t max_num_updates, const std::string &solverparam_file)
+  {
+    input_data.resize(max_num_updates);
+    target_data.resize(max_num_updates-1);
+    dynamics_model = CaffeNet<SolverType>(solverparam_file);
+  }
+
+  /* clear data */
+  void clear_data()
+  {
+    
+  }
+
+
+  /*after the looping over robots*/
+  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+  {
+  }
+
+  /*end the trial*/
+  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions)
+  {
+  }
+
+  /*after getting outputs, can update the descriptor if needed*/
+  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+  {
+    std::vector<float> copy = cLoopFunctions.inputs;
+    // add the input as the previous target
+    if(num_updates > 0)
+    {
+      target_data[num_updates - 1] = copy;
+    }
+    copy.insert(copy.end(), cLoopFunctions.outf.begin(), cLoopFunctions.outf.end());
+    input_data[num_updates]=copy;
+    ++num_updates;
+  }
+
+  /*summarise BD at the end of trials*/
+  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions)
+  {
+    
+    /*fit the network */
+    dynamics_model.Solve(input_data,target_data);
+     
+    /* and get its parameters*/
+    std::vector<float> final_bd = dynamics_model.get_trainable_params();
+
+    /* normalise it to [0,1] */
+    StatFuns::normalise_01(final_bd,min_param,max_param);
+
+    
+
+    return final_bd;
+  }
+
+ 
   
-//   TransitionDescriptor();
-
-//   InputType& convert_stateaction() const;
-
-//   inline void add_input(InputType& input)
-//   {
-//     //data[num_updates]=input;
-//   }
-
-//   /*summarise BD at the end of trials*/
-//   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
-
-// }
+};

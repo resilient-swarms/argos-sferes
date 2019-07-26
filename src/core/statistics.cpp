@@ -265,6 +265,19 @@ void StatFuns::normalise(std::vector<float> &probabilities,float C)
     #endif
 }
 
+void StatFuns::normalise_01(std::vector<float> &results,const float min, const float max)
+{
+
+    for(float &res: results)
+    {
+        res = (res - min)/(max - min);
+        res = clip(res,0.0f,1.0f);
+        #ifdef PRINTING
+            std::cout<<res<<" ";
+        #endif
+    }
+}
+
 float StatFuns::laplace_smoothing(float count, float C, float alpha, size_t num_options)
 {
     float num = count + alpha;
