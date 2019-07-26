@@ -1,6 +1,6 @@
 
-// #ifndef STATISTICS
-// #define STATISTICS
+#ifndef STATISTICS
+#define STATISTICS
 
 
 
@@ -9,11 +9,30 @@
 #include <algorithm>
 #include <cmath>
 #include <boost/math/constants/constants.hpp>
+#include <iostream>
 
 #define BOOST_PI boost::math::constants::pi<float>()
 
 #define EPS std::numeric_limits<float>::epsilon()
 #define M_2PI 2.0*BOOST_PI
+
+template<class T>
+std::string print_vec(const std::vector<T>& v){
+    typename std::vector<T>::iterator it;
+    std::string s = "{ ";
+    for(auto it = v.begin(); it != v.end(); ++it){
+                 s= s + std::to_string(*it) + ",";
+    }
+    s = s + " } ";
+    return s;
+}
+
+template <typename T>
+void append(std::vector<T>& a, const std::vector<T>& b)
+{
+    a.reserve(a.size() + b.size());
+    a.insert(a.end(), b.begin(), b.end());
+}
 
 template <typename T>
 void element_wise_addition(std::vector<T> &result, const std::vector<T> &other)
@@ -112,7 +131,10 @@ class StatFuns
     static float IQR(std::vector<float> results, bool sorted = false);
     static float sum(const std::vector<float>& results);
     static std::vector<float> divide(std::vector<float> results,float C);
+    /* normalisation of probabilities */
     static void normalise(std::vector<float> &results,float C);
+    /* normalisation to [0,1] (clip if exceeded); from a custom min and max*/
+    static void normalise_01(std::vector<float> &results,const float min, const float max);
     static float laplace_smoothing(float count, float C, float alpha, size_t num_options);
 
     /* get the minkowski-distance between two 3D vectors ; k is the parameter that determines e.g. manhattan vs Euclid vs 3D movements 
@@ -155,4 +177,4 @@ class StatFuns
     // float StatFuns::NCD(NcdDataObject object1,std::vector<NcdDataObject> objectsVector, bool averageValues);
 };
 
-// #endif
+#endif

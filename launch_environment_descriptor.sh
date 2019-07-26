@@ -132,7 +132,7 @@ for FitfunType in Aggregation ; do  # add Flocking later
 							                -e "s|CENTER,CENTER|${Center},${Center}|" \
 							                -e "s|FULL_WALL|${Wall}|"\
 							                -e "s|HALF_WALL|${HalfWall}|"\
-							                -e "s|WALL_OFF,WALL_OFF|${WallOff}|"\
+							                -e "s|WALL_OFF,WALL_OFF|${WallOff},${WallOff}|"\
 							                -e "s|NUM_CYLINDERS|${Cylinder}|"\
 							                -e "s|RAB_RANGE|${RabRange}|"\
 							                -e "s|RAB_GRID,RAB_GRID|${RabGrid},${RabGrid}|"\

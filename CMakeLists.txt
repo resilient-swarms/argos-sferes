@@ -309,7 +309,7 @@ endif()
 #include_directories(${CAFFE_INCLUDE_DIRS})
 
 add_definitions("-DCPU_ONLY=1") # added this one manually
-add_definitions("-DUSE_OPENCV=1") # added this one manually
+#add_definitions("-DUSE_OPENCV=1") # added this one manually
 find_package(GLog REQUIRED)
 
 
@@ -353,10 +353,15 @@ include_directories(${Caffe_INCLUDE_DIRS})
 add_library(caffenets SHARED
             src/caffe_nets/caffe_net.h
             src/caffe_nets/caffe_net.cpp)
-set(EXECUTABLE caffenetexec)
-set(EXEC_FILE caffe_nets/caffe_net.cpp)
 
-#find_package(Caffe) #mainly to avoid OpenCV error
+#find_package(Caffe) #if you want  to avoid OpenCV error
+
+
+# uncomment if you just want to check neural network           
+#set(EXECUTABLE caffenetexec)
+#set(EXEC_FILE caffe_nets/caffe_net.cpp)
+
+
 
 # general options
 

@@ -1,0 +1,17 @@
+net: "/home/david/argos-sferes/src/caffe_nets/MLP.prototxt"
+                        #total data is 50*2000
+                        # 750*100  data points for the training
+                        # no validation set needed as we only use 2 epochs
+base_lr: 0.001
+lr_policy: "fixed"       # we only go trhough data twice, no need to reduce learning rate
+#gamma: 0.1
+#stepsize: 10000
+display: 100
+max_iter: 2000           # datapoints*iterations
+weight_decay: 0.0005
+#snapshot: 200000          # no snapshots during training
+snapshot_after_train: true # no need to save the model weights after training; can get them manually
+snapshot_prefix: "/home/david/argos-sferes/src/caffe_nets/models/MLP"
+momentum: 0.95
+solver_mode: CPU         # solver mode: CPU or GPU
+type: "Nesterov"

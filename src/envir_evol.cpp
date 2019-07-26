@@ -14,7 +14,7 @@
 
 
 
-struct EnvirParams
+struct EnvirParams : Params
 {
     struct ea
     {
@@ -25,7 +25,12 @@ struct EnvirParams
     using Params::parameters;
     using Params::evo_float;
     using Params::pop;
+
+    static std::vector<int> options;
 };
+
+std::vector<int> EnvirParams::options= {5, 4, 3, 5, 4, 4};
+typedef T<EnvirParams, eval::ArgosParallelEnvir<EnvirParams>>::ea_t parallelenvir_ea_t;
 
 
 /****************************************/
@@ -51,20 +56,31 @@ void sferes::eval::_argos_parallel_envir<phen_t>::LaunchSlave(size_t slave_id)
     argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
     try
     {
-            _generator.seed((unsigned) time(NULL) * getpid());// create a random generator based on process id
-            
-            size_t envir_no = _distribution(_generator);
+            EnvirGenerator g = EnvirGenerator(time(NULL) * getpid());
+            jobname = jobname+"_";
+            int option;
+            /* describe the environment */
+            std::vector<float> bd;
+            for (int i=0; i < EnvirParams::options.size() - 1; ++i)
+            {
+                option = g.generate(EnvirParams::options[i]);
+                jobname = jobname+std::to_string(option)+",";
+                bd.push_back((float) option / (float) EnvirParams::options[i]);
 
+            }
+            option = g.generate(EnvirParams::options.back());
+            bd.push_back((float) option / (float) EnvirParams::options.back());
+            jobname = jobname + std::to_string(option) + ".argos";
+            argos::LOG<<"loading "<<jobname <<std::endl;
             //redirect(jobname,getppid());
             // /* Set the .argos configuration file
             //  * This is a relative path which assumed that you launch the executable
             //  * from argos3-examples (as said also in the README) */
-            cSimulator.SetExperimentFileName(jobname+"_"std::to_string(envir_no)+".argos");
+            cSimulator.SetExperimentFileName(jobname);
             // /* Load it to configure ARGoS */
             cSimulator.LoadExperiment();
             
-            /* describe the environment */
-            std::vector<float> bd = {(float) envir_no / (float) NUM_ENVIRS};
+            
             static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
             cLoopFunctions.descriptor = new StaticDescriptor(bd);
            
