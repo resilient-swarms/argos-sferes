@@ -35,7 +35,7 @@ namespace sferes
 namespace eval
 { 
 static std::string jobname;
-
+static std::string redirect_dir;
 class EnvirGenerator {
 public:
     EnvirGenerator(){};

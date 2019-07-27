@@ -35,17 +35,21 @@ typedef T<EnvirParams, eval::ArgosParallelEnvir<EnvirParams>>::ea_t parallelenvi
 
 /****************************************/
 /****************************************/
+namespace sferes
+{
+namespace eval
+{
 template<>
-void sferes::eval::_argos_parallel_envir<phen_t>::LaunchSlave(size_t slave_id)
+void _argos_parallel_envir<phen_t>::LaunchSlave(size_t slave_id)
 {
     /* note: needs to be in a cpp */
     /* Initialize ARGoS */
     /* Redirect LOG and argos::LOGERR to dedicated files to prevent clutter on the screen */
     /* append to the back of the file */
-    std::ofstream cLOGFile(std::string("ARGoS_LOG_" + argos::ToString(getppid())+ "_" + std::to_string(slave_id)).c_str(), std::ios::app);
+    std::ofstream cLOGFile(std::string(redirect_dir+"/LOG_" + argos::ToString(getppid())+ "_" + std::to_string(slave_id)).c_str(), std::ios::app);
     argos::LOG.DisableColoredOutput();
     argos::LOG.GetStream().rdbuf(cLOGFile.rdbuf());
-    std::ofstream cLOGERRFile(std::string("ARGoS_LOGERR_" + argos::ToString(getppid())+ "_" + std::to_string(slave_id)).c_str(), std::ios::app);
+    std::ofstream cLOGERRFile(std::string(redirect_dir+"/LOGERR_" + argos::ToString(getppid())+ "_" + std::to_string(slave_id)).c_str(), std::ios::app);
     argos::LOGERR.DisableColoredOutput();
     argos::LOGERR.GetStream().rdbuf(cLOGERRFile.rdbuf());
 
@@ -117,12 +121,17 @@ void sferes::eval::_argos_parallel_envir<phen_t>::LaunchSlave(size_t slave_id)
     exit(EXIT_SUCCESS);
     
 }
+}
+}
 
 
 
 int main(int argc, char **argv)
 {
     sferes::eval::jobname = argv[1];
+    sferes::eval::redirect_dir = argv[2];
+    std::cout<<"configurations "<<sferes::eval::jobname<<std::endl;
+    std::cout<<"redirecting argos log to "<<sferes::eval::redirect_dir<<std::endl;
     /*
      * Initialize ARGoS
      */

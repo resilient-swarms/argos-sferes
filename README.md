@@ -82,7 +82,7 @@ and:
 
 Multiple environments can be run with 
 
-    ./bin/envir_evolcvt10D experiments/generator
+    ./bin/envir_evolcvt10D experiments/generator experiments/redirect
 
 Note that the argument will be automatically supplied with a number and a .argos tag during the run.
 

@@ -4,7 +4,7 @@
 #SBATCH --nodes=1                # Number of nodes requested
 #SBATCH --time=60:00:00         # walltime
 #SBATCH --mem-per-cpu=10G  # actually no need to specify when nodes > 20
-#SBATCH --job-name=no_parallel
+#SBATCH --job-name=parallel
 
 
 FILE=./bin/behaviour_evol${VORONOI}${BD}D

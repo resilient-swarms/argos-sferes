@@ -13,14 +13,15 @@
 
 #include <src/core/arena_utils.h>
 #include <src/core/environment_generator.h>
+#ifdef CAFFE_NETS
 #include <src/caffe_nets/caffe_net.h>
+#endif
 /****************************************/
 /****************************************/
 /****************************************/
 
 class EvolutionLoopFunctions;
 class RunningStat;
-
 
 class Descriptor
 {
@@ -619,7 +620,7 @@ public:
   /*summarise BD at the end of trials*/
   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
 };
-
+#ifdef CAFFE_NETS
 template <typename SolverType>
 class TransitionDescriptor : public Descriptor
 {
@@ -632,25 +633,24 @@ private:
 
   std::vector<std::vector<float>> target_data;
 
-  const size_t periodicity = 100;// average across this many time steps
+  const size_t periodicity = 100; // average across this many time steps
   const float min_param = -0.1;
   const float max_param = 0.1;
+
 public:
   CaffeNet<SolverType> dynamics_model;
 
   TransitionDescriptor(size_t max_num_updates, const std::string &solverparam_file)
   {
     input_data.resize(max_num_updates);
-    target_data.resize(max_num_updates-1);
+    target_data.resize(max_num_updates - 1);
     dynamics_model = CaffeNet<SolverType>(solverparam_file);
   }
 
   /* clear data */
   void clear_data()
   {
-    
   }
-
 
   /*after the looping over robots*/
   virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
@@ -667,33 +667,30 @@ public:
   {
     std::vector<float> copy = cLoopFunctions.inputs;
     // add the input as the previous target
-    if(num_updates > 0)
+    if (num_updates > 0)
     {
       target_data[num_updates - 1] = copy;
     }
     copy.insert(copy.end(), cLoopFunctions.outf.begin(), cLoopFunctions.outf.end());
-    input_data[num_updates]=copy;
+    input_data[num_updates] = copy;
     ++num_updates;
   }
 
   /*summarise BD at the end of trials*/
   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions)
   {
-    
+
     /*fit the network */
-    dynamics_model.Solve(input_data,target_data);
-     
+    dynamics_model.Solve(input_data, target_data);
+
     /* and get its parameters*/
     std::vector<float> final_bd = dynamics_model.get_trainable_params();
 
     /* normalise it to [0,1] */
-    StatFuns::normalise_01(final_bd,min_param,max_param);
-
-    
+    StatFuns::normalise_01(final_bd, min_param, max_param);
 
     return final_bd;
   }
-
- 
-  
 };
+
+#endif

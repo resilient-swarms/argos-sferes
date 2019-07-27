@@ -8,8 +8,9 @@
 #include <src/evolution/nn_controller.h>
 
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
-
-#include "caffe/sgd_solvers.hpp"
+#ifdef CAFFE_NETS
+    #include "caffe/sgd_solvers.hpp"
+#endif 
 
 /****************************************/
 /****************************************/
@@ -128,6 +129,7 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new MultiAgent_Spirit();
         }
+#ifdef CAFFE_NETS       
         else if (s == "cvt_dynamics_nesterov")
         {
             size_t max_num_updates = m_unNumberTrials*(argos::CSimulator::GetInstance().GetMaxSimulationClock() - 1);
@@ -135,6 +137,7 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
             std::string solverparam_file = "src/caffe_nets/DynamicsModel_solver.prototxt";
             this->descriptor = new TransitionDescriptor<caffe::NesterovSolver<float>>(max_num_updates, solverparam_file);
         }
+#endif
         else if (s == "environment_diversity")
         {
             // do nothing; wait for initialisation in argosparallelenviron_eval.h
