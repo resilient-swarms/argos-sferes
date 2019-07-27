@@ -5,133 +5,57 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/loop_functions.h>
 
-
 #include <src/evolution/evol_loop_functions.h>
 #include <src/evolution/descriptors.h>
 #include <src/exec_tools.h>
 
 /******************************************************/
 
-
-
-struct EnvirParams : Params
+struct EnvirParams : EAParams
 {
     struct ea
     {
-        SFERES_CONST double epsilon = Params::ea::epsilon;
+        SFERES_CONST double epsilon = EAParams::ea::epsilon;
         SFERES_CONST size_t behav_dim = 6;
         SFERES_ARRAY(size_t, behav_shape, 5, 4, 3, 5, 4, 4);
     };
-    using Params::parameters;
-    using Params::evo_float;
-    using Params::pop;
+    using EAParams::evo_float;
+    using EAParams::parameters;
+    using EAParams::pop;
 
     static std::vector<int> options;
 };
 
-std::vector<int> EnvirParams::options= {5, 4, 3, 5, 4, 4};
+struct EnvirTaskAgnostParams : EAParams
+{
+    struct ea
+    {
+        SFERES_CONST double epsilon = EAParams::ea::epsilon;
+        SFERES_CONST size_t behav_dim = 7;
+        SFERES_ARRAY(size_t, behav_shape, 3, 3, 3, 4, 3, 3, 5);
+    };
+    using EAParams::evo_float;
+    using EAParams::parameters;
+    using EAParams::pop;
+
+    static std::vector<int> options;
+};
+
+std::vector<int> EnvirParams::options = {5, 4, 3, 5, 4, 4};
+std::vector<int> EnvirTaskAgnostParams::options = {3, 3, 3, 4, 3, 3, 5};
 typedef T<EnvirParams, eval::ArgosParallelEnvir<EnvirParams>>::ea_t parallelenvir_ea_t;
-
+typedef T<EnvirTaskAgnostParams, eval::ArgosParallelEnvir<EnvirTaskAgnostParams>>::ea_t parallelenvirtaskagnost_ea_t;
 
 /****************************************/
 /****************************************/
-namespace sferes
-{
-namespace eval
-{
-template<>
-void _argos_parallel_envir<phen_t>::LaunchSlave(size_t slave_id)
-{
-    /* note: needs to be in a cpp */
-    /* Initialize ARGoS */
-    /* Redirect LOG and argos::LOGERR to dedicated files to prevent clutter on the screen */
-    /* append to the back of the file */
-    std::ofstream cLOGFile(std::string(redirect_dir+"/LOG_" + argos::ToString(getppid())+ "_" + std::to_string(slave_id)).c_str(), std::ios::app);
-    argos::LOG.DisableColoredOutput();
-    argos::LOG.GetStream().rdbuf(cLOGFile.rdbuf());
-    std::ofstream cLOGERRFile(std::string(redirect_dir+"/LOGERR_" + argos::ToString(getppid())+ "_" + std::to_string(slave_id)).c_str(), std::ios::app);
-    argos::LOGERR.DisableColoredOutput();
-    argos::LOGERR.GetStream().rdbuf(cLOGERRFile.rdbuf());
-
-
-
-    /* The CSimulator class of ARGoS is a singleton. Therefore, to
-    * manipulate an ARGoS experiment, it is enough to get its instance */
-    argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
-    try
-    {
-            EnvirGenerator g = EnvirGenerator(time(NULL) * getpid());
-            jobname = jobname+"_";
-            int option;
-            /* describe the environment */
-            std::vector<float> bd;
-            for (int i=0; i < EnvirParams::options.size() - 1; ++i)
-            {
-                option = g.generate(EnvirParams::options[i]);
-                jobname = jobname+std::to_string(option)+",";
-                bd.push_back((float) option / (float) EnvirParams::options[i]);
-
-            }
-            option = g.generate(EnvirParams::options.back());
-            bd.push_back((float) option / (float) EnvirParams::options.back());
-            jobname = jobname + std::to_string(option) + ".argos";
-            argos::LOG<<"loading "<<jobname <<std::endl;
-            //redirect(jobname,getppid());
-            // /* Set the .argos configuration file
-            //  * This is a relative path which assumed that you launch the executable
-            //  * from argos3-examples (as said also in the README) */
-            cSimulator.SetExperimentFileName(jobname);
-            // /* Load it to configure ARGoS */
-            cSimulator.LoadExperiment();
-            
-            
-            static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
-            cLoopFunctions.descriptor = new StaticDescriptor(bd);
-           
-    }
-    catch (argos::CARGoSException &ex)
-    {
-        argos::LOGERR << ex.what() << std::endl;
-        argos::LOGERR.Flush();
-        ::raise(SIGKILL);
-    }
-    //argos::LOG << "child starting " << std::endl;
-     // initialise the fitness function and the genotype
-    _pop[slave_id]->develop();
-    assert(i < _pop.size());
-    // evaluate the individual
-    _pop[slave_id]->fit().eval(*_pop[slave_id]);
-
-    assert(!std::isnan(_pop[slave_id]->fit().objs()[0])); // ASSUMES SINGLE OBJECTIVE
-    // write fitness and descriptors to shared memory
-    shared_memory[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]); // ASSUME SINGLE OBJECTIVE
-    shared_memory[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
-    shared_memory[slave_id]->setDeath(_pop[slave_id]->fit().dead());
-    // argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
-    // argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
-     
-    // for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
-    // {
-    //   argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
-    // }
-    // argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
-    argos::LOG.Flush();
-    argos::LOGERR.Flush();
-    cSimulator.Destroy();// difference to the usual argosparallel
-    exit(EXIT_SUCCESS);
-    
-}
-}
-}
-
 
 
 int main(int argc, char **argv)
 {
     sferes::eval::jobname = argv[1];
     sferes::eval::redirect_dir = argv[2];
-    std::cout<<"configurations "<<sferes::eval::jobname<<std::endl;
-    std::cout<<"redirecting argos log to "<<sferes::eval::redirect_dir<<std::endl;
+    std::cout << "configurations " << sferes::eval::jobname << std::endl;
+    std::cout << "redirecting argos log to " << sferes::eval::redirect_dir << std::endl;
     /*
      * Initialize ARGoS
      */
@@ -141,9 +65,19 @@ int main(int argc, char **argv)
     // note: at this point LOG seems to be NULL until you actually perform Init; the parent therefore should not be redirected
     /*  deal with argos simulator later */
 
-
-    init_shared_mem();
-    configure_and_run_ea<parallelenvir_ea_t>(argc,argv);
+    
+    if (strcmp(argv[3],"task_agnost")==0)
+    {
+        std::cout << "starting task agnostic envir_evolution" << std::endl;
+        init_shared_mem<EnvirTaskAgnostParams>();
+        configure_and_run_ea<parallelenvirtaskagnost_ea_t>(argc, argv);
+    }
+    else
+    {
+        std::cout << "starting taskspecific envir_evolution: argv[3] was " << argv[3] << std::endl;
+        init_shared_mem<EnvirParams>();
+        configure_and_run_ea<parallelenvir_ea_t>(argc, argv);
+    }
 
     /*
     * Dispose of ARGoS stuff

@@ -14,7 +14,7 @@ else
     echo "$FILE does not exist"
     exit 1;
 fi
-jobtocome="${FILE} ${CONFIG} ${REDIRECT} -d ${OUTPUTDIR}"
+jobtocome="${FILE} ${CONFIG} ${REDIRECT} ${TASK_TYPE} -d ${OUTPUTDIR}"  
 if [ ! -z  "${GENERATION_FILE}" ]; then
    echo "Generation file already exists; plan to resume"
    jobtocome="${jobtocome} --resume ${GENERATION_FILE}"

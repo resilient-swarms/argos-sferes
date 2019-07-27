@@ -50,7 +50,7 @@ private:
 
 
 
-template <typename Phen>
+template <typename Phen,typename Param_t>
 struct _argos_parallel_envir 
 {
   typedef std::vector<boost::shared_ptr<Phen>> pop_t;
@@ -92,7 +92,6 @@ struct _argos_parallel_envir
 
   // }
 
-  void LaunchSlave(size_t slave_id);
   /* create the different child processes */
   void create_processes()
   {
@@ -136,6 +135,85 @@ struct _argos_parallel_envir
     SlavePIDs.clear();     // PIDs no longer exist
     //argos::LOG << "finished all processes "<< std::endl;
   }
+
+
+  void LaunchSlave(size_t slave_id)
+  {
+      /* note: needs to be in a cpp ?*/
+      /* Initialize ARGoS */
+      /* Redirect LOG and argos::LOGERR to dedicated files to prevent clutter on the screen */
+      /* append to the back of the file */
+      std::ofstream cLOGFile(std::string(redirect_dir + "/LOG_" + argos::ToString(getppid()) + "_" + std::to_string(slave_id)).c_str(), std::ios::app);
+      argos::LOG.DisableColoredOutput();
+      argos::LOG.GetStream().rdbuf(cLOGFile.rdbuf());
+      std::ofstream cLOGERRFile(std::string(redirect_dir + "/LOGERR_" + argos::ToString(getppid()) + "_" + std::to_string(slave_id)).c_str(), std::ios::app);
+      argos::LOGERR.DisableColoredOutput();
+      argos::LOGERR.GetStream().rdbuf(cLOGERRFile.rdbuf());
+
+      /* The CSimulator class of ARGoS is a singleton. Therefore, to
+      * manipulate an ARGoS experiment, it is enough to get its instance */
+      argos::CSimulator &cSimulator = argos::CSimulator::GetInstance();
+      try
+      {
+          EnvirGenerator g = EnvirGenerator(time(NULL) * getpid());
+          jobname = jobname + "_";
+          int option;
+          /* describe the environment */
+          std::vector<float> bd;
+          for (int i = 0; i < Param_t::options.size() - 1; ++i)
+          {
+              option = g.generate(Param_t::options[i]);
+              jobname = jobname + std::to_string(option) + ",";
+              bd.push_back((float)(option - 1) / (float)Param_t::options[i]);//place them in the bottom of the bin e.g[0,5) [0.5,1)
+              // cf. behav_pos[i] = round(p[i] * behav_shape[i]); l.192-193 map_elites.hpp
+          }
+          option = g.generate(Param_t::options.back());
+          bd.push_back((float)option / (float)Param_t::options.back());
+          jobname = jobname + std::to_string(option) + ".argos";
+          argos::LOG << "loading " << jobname << std::endl;
+          //redirect(jobname,getppid());
+          // /* Set the .argos configuration file
+          //  * This is a relative path which assumed that you launch the executable
+          //  * from argos3-examples (as said also in the README) */
+          cSimulator.SetExperimentFileName(jobname);
+          // /* Load it to configure ARGoS */
+          cSimulator.LoadExperiment();
+
+          static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
+          cLoopFunctions.descriptor = new StaticDescriptor(bd);
+      }
+      catch (argos::CARGoSException &ex)
+      {
+          argos::LOGERR << ex.what() << std::endl;
+          argos::LOGERR.Flush();
+          ::raise(SIGKILL);
+      }
+      //argos::LOG << "child starting " << std::endl;
+      // initialise the fitness function and the genotype
+      _pop[slave_id]->develop();
+      assert(i < _pop.size());
+      // evaluate the individual
+      _pop[slave_id]->fit().eval(*_pop[slave_id]);
+
+      assert(!std::isnan(_pop[slave_id]->fit().objs()[0])); // ASSUMES SINGLE OBJECTIVE
+      // write fitness and descriptors to shared memory
+      shared_memory[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]); // ASSUME SINGLE OBJECTIVE
+      shared_memory[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
+      shared_memory[slave_id]->setDeath(_pop[slave_id]->fit().dead());
+      // argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
+      //argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
+
+      // for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
+      // {
+      //   argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
+      // }
+      // argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
+      argos::LOG.Flush();
+      argos::LOGERR.Flush();
+      cSimulator.Destroy(); // difference to the usual argosparallel
+      exit(EXIT_SUCCESS);
+    }
+
 };
 
 SFERES_EVAL(ArgosParallelEnvir, Eval){
@@ -148,7 +226,7 @@ SFERES_EVAL(ArgosParallelEnvir, Eval){
           assert(begin < pop.size());
           assert(end <= pop.size());
 
-          _argos_parallel_envir<Phen>(pop, fit_proto);
+          _argos_parallel_envir<Phen,Params>(pop, fit_proto);
 
           this->_nb_evals += (end - begin);
       } // namespace eval

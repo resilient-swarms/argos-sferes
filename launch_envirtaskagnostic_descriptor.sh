@@ -25,7 +25,7 @@ declare -A voronoi
 #descriptors["multiagent_spirit"]=576
 #voronoi["multiagent_spirit"]="cvt"
 
-descriptors["environment_diversity"]=6
+descriptors["environment_diversity"]=7
 voronoi["environment_diversity"]=""
 time["DecayCoverage"]=400
 time["DecayBorderCoverage"]=400
@@ -33,9 +33,8 @@ time["Dispersion"]=400
 time["Aggregation"]=400
 time["Flocking"]=400
 
-export TASK_TYPE="task_specific"
-
-for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking ; do  # add Flocking later
+export TASK_TYPE="task_agnost"
+FitfunType="TaskAgnost"
     echo 'Fitfun'${FitfunType}
     SimTime=${time[${FitfunType}]}
     echo "simtime"${SimTime}
@@ -85,11 +84,11 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 		
 		if [[ "${DO_CONFIG}"="true" ]] ; then   
 				count1=0
-				for MaxSpeed in 5 7.5 10 12.5 15 ; do
+				for MaxSpeed in 5  10  15.; do
 					count1=$((count1+1))
 					count2=0
 				
-					for Robots in 5 10 15 20; do
+					for Robots in 5 10 20; do
 						count2=$((count2+1))
 						count3=0
 
@@ -103,44 +102,49 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 							Center=${H}
 							WallOff=$(calc ${Wall}-0.5)
 
-							for Cylinder in 0 1 2 4 8; do
+							for Cylinder in 0 2 4 8; do
 								count4=$((count4+1))
 								count5=0
 
-								for RabRange in 0.25 0.50 1.0 2.0; do
+								for RabRange in 0.25 1.0 2.0; do
 									count5=$((count5+1))
 									count6=0
 									TwoR=$(calc 2*${RabRange})
 									RabGrid=$(ceiling_divide ${Wall} ${TwoR})  #  divide arena spanned by walls into cells of 2R
 									# take ceiling in case not divisible (e.g., wall=5 and 2R=4, take 2 grid cells per dimension)
-									for ProxiRange in 0.05 0.11 0.20 0.40; do   # 4800 combinations in total
+									
+                                    for ProxiRange in 0.05 0.11 0.40; do   
 										count6=$((count6+1))
-										ConfigTag="${count1},${count2},${count3},${count4},${count5},${count6}"
-										#echo ${ConfigTag}
-										mkdir -p $Outfolder
-										sed -e "s|THREADS|0|" \
-												-e "s|TRIALS|50|" \
-												-e "s|ROBOTS|${Robots}|"                    \
-												-e "s|EXPERIMENT_LENGTH|${SimTime}|" \
-												-e "s|SEED|${Replicates}|"                    \
-												-e "s|FITFUN_TYPE|${FitfunType}|"                   \
-												-e "s|DESCRIPTOR_TYPE|${DescriptorType}|"                  \
-												-e "s|OUTPUTFOLDER|${Outfolder}|" \
-												-e "s|SENSOR_RANGE|${ProxiRange}|" \
-												-e "s|CENTROIDSFOLDER|experiments/centroids| " \
-												-e "s|NOISE_LEVEL|0.05|"    \
-												-e "s|BEHAVIOUR_TAG|${tag}|" \
-												-e "s|MAX_SPEED|${MaxSpeed}|"\
-												-e "s|ARENA,ARENA|${Arena},${Arena}|"\
-												-e "s|CENTER,CENTER|${Center},${Center}|" \
-												-e "s|FULL_WALL|${Wall}|"\
-												-e "s|HALF_WALL|${HalfWall}|"\
-												-e "s|WALL_OFF,WALL_OFF|${WallOff},${WallOff}|"\
-												-e "s|NUM_CYLINDERS|${Cylinder}|"\
-												-e "s|RAB_RANGE|${RabRange}|"\
-												-e "s|RAB_GRID,RAB_GRID|${RabGrid},${RabGrid}|"\
-										experiments/environment_template.argos \
-												> ${ConfigFile}_${ConfigTag}.argos
+                                        count7=0
+                                        for RealFitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking ; do   
+                                            count7=$((count7+1))
+                                            ConfigTag="${count1},${count2},${count3},${count4},${count5},${count6},${count7}"
+                                            #echo ${ConfigTag}
+                                            mkdir -p $Outfolder
+                                            sed -e "s|THREADS|0|" \
+                                                    -e "s|TRIALS|50|" \
+                                                    -e "s|ROBOTS|${Robots}|"                    \
+                                                    -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
+                                                    -e "s|SEED|${Replicates}|"                    \
+                                                    -e "s|FITFUN_TYPE|${RealFitfunType}|"                   \
+                                                    -e "s|DESCRIPTOR_TYPE|${DescriptorType}|"                  \
+                                                    -e "s|OUTPUTFOLDER|${Outfolder}|" \
+                                                    -e "s|SENSOR_RANGE|${ProxiRange}|" \
+                                                    -e "s|CENTROIDSFOLDER|experiments/centroids| " \
+                                                    -e "s|NOISE_LEVEL|0.05|"    \
+                                                    -e "s|BEHAVIOUR_TAG|${tag}|" \
+                                                    -e "s|MAX_SPEED|${MaxSpeed}|"\
+                                                    -e "s|ARENA,ARENA|${Arena},${Arena}|"\
+                                                    -e "s|CENTER,CENTER|${Center},${Center}|" \
+                                                    -e "s|FULL_WALL|${Wall}|"\
+                                                    -e "s|HALF_WALL|${HalfWall}|"\
+                                                    -e "s|WALL_OFF,WALL_OFF|${WallOff},${WallOff}|"\
+                                                    -e "s|NUM_CYLINDERS|${Cylinder}|"\
+                                                    -e "s|RAB_RANGE|${RabRange}|"\
+                                                    -e "s|RAB_GRID,RAB_GRID|${RabGrid},${RabGrid}|"\
+                                            experiments/environment_template.argos \
+                                                    > ${ConfigFile}_${ConfigTag}.argos
+                                        done
 									done
 								done
 							done
@@ -150,8 +154,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			fi
 
 		echo "submitting job"
-		sbatch submit_envir_job.sh
+		bash submit_envir_job.sh 
 		done
 	done
-done
 

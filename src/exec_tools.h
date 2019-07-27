@@ -12,7 +12,7 @@
 
 #ifdef CVT
 
-typedef Params::ea::point_t point_t;
+typedef EAParams::ea::point_t point_t;
 
 std::vector<point_t> load_centroids(const std::string &centroids_filename)
 {
@@ -40,10 +40,10 @@ std::vector<point_t> load_centroids(const std::string &centroids_filename)
 
     fin.close();
 
-    if (lines.size() != Params::ea::number_of_clusters)
+    if (lines.size() != EAParams::ea::number_of_clusters)
     {
         std::cerr << "Error: The number of clusters "
-                  << Params::ea::number_of_clusters
+                  << EAParams::ea::number_of_clusters
                   << " is not equal to the number of loaded elements "
                   << lines.size() << ".\n";
         exit(1);
@@ -60,10 +60,10 @@ std::vector<point_t> load_centroids(const std::string &centroids_filename)
         while (stringStream >> temp)
             cols.push_back(temp);
 
-        if (cols.size() != Params::ea::number_of_dimensions)
+        if (cols.size() != EAParams::ea::number_of_dimensions)
         {
             std::cerr << "Error: The number of dimensions "
-                      << Params::ea::number_of_dimensions
+                      << EAParams::ea::number_of_dimensions
                       << " is not equal to the dimensionality (" << cols.size()
                       << ") of loaded element with index " << i << ".\n";
             exit(1);
@@ -80,11 +80,11 @@ std::vector<point_t> load_centroids(const std::string &centroids_filename)
 
     return centroids;
 }
-std::vector<point_t> Params::ea::centroids;
+std::vector<point_t> EAParams::ea::centroids;
 
 #endif
 
-typedef FitObstacleMapElites<Params> fit_t;
+typedef FitObstacleMapElites<EAParams> fit_t;
 typedef phen::Dnn<robots_nn::gen_t, fit_t, ParamsDnn> phen_t;
 //MODIFIER
 typedef modif::Dummy<> modifier_t;
@@ -104,8 +104,8 @@ struct T
     typedef ea::MapElites<phen_t, eval_t, stat_t, modifier_t, Params_t> ea_t;
 #endif
 };
-typedef T<Params,eval::Eval<Params>>::ea_t serial_ea_t;
-typedef T<Params,eval::ArgosParallel<Params>>::ea_t parallel_ea_t;
+typedef T<EAParams,eval::Eval<EAParams>>::ea_t serial_ea_t;
+typedef T<EAParams,eval::ArgosParallel<EAParams>>::ea_t parallel_ea_t;
 
 
 template <typename ea_t>
@@ -116,10 +116,11 @@ void configure_and_run_ea(int argc, char **argv)
 }
 
 
+template<typename Param_t>
 void init_shared_mem()
 {
     // times 2 because two individuals generated per reproduction
-    size_t num_blocks = 2 * std::max(Params::pop::init_size,Params::pop::size);
+    size_t num_blocks = 2 * std::max(Param_t::pop::init_size,Param_t::pop::size);
     sferes::eval::shared_memory.clear();
     for (size_t i = 0; i < num_blocks; ++i)
     {

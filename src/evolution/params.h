@@ -82,7 +82,7 @@ struct ParamsDnn
         static constexpr float eta_c = 10.0f;
     };
 };
-struct Params
+struct EAParams
 {
 #ifdef CVT
     struct ea
@@ -107,8 +107,10 @@ struct Params
         SFERES_ARRAY(size_t, behav_shape, 10, 10, 10);
 #elif BEHAV_DIM == 6
         SFERES_ARRAY(size_t, behav_shape, 4, 4, 4, 4, 4, 4);
+#elif BEHAV_DIM == 7
+        SFERES_ARRAY(size_t, behav_shape, 3, 3, 3, 3, 3, 3, 3);
 #else
-#error "Unsupported BEHAV_DIM setting (choose 2,3, or 6)"
+#error "Unsupported BEHAV_DIM setting (choose 2,3,6 or 7)"
 #endif
     };
 #endif
