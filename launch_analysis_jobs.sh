@@ -5,8 +5,9 @@
  
 
 
-data=~/DataFinal/datanew
-export FINALGEN=1000
+data=$1
+export FINALGEN_ARCHIVE=1000 # never forget zero-padding for generation file, not for archive file
+export FINALGEN_GENFILE=01000
 # Create a data diretory
 mkdir -p $data
 declare -A descriptors
@@ -32,8 +33,8 @@ command="bin/analysis"   # note: cvt and 10D does not really matter since we are
 descriptors["Gomes_sdbc_walls_and_robots_std"]=10
 voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
-descriptors["environment_diversity"]=6
-voronoi["environment_diversity"]=""
+#descriptors["environment_diversity"]=6
+#voronoi["environment_diversity"]=""
 
 
 time["DecayCoverage"]=400
@@ -60,7 +61,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 	echo "has ${BD_DIMS} dimensions"
 	echo "tag is ${tag}"
 
-	for Replicates in $(seq 1 5); do
+	for Replicates in $(seq 1 1); do
           # Take template.argos and make an .argos file for this experiment
             SUFFIX=${Replicates}
 
@@ -78,7 +79,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
            echo "config ${ConfigFile}"
 	    	touch ${ConfigFile} 
         	sed -e "s|THREADS|0|" \
-				-e "s|TRIALS|3|" \
+				-e "s|TRIALS|50|" \
                 -e "s|ROBOTS|10|"                    \
                 -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
 				-e "s|SEED|${Replicates}|"                    \
@@ -107,7 +108,10 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			export ARCHIVEDIR=${ArchiveDir}
 
 			echo "submitting job"
-			bash submit_test.sh 
+			 bash zero_padding_data.sh ${ArchiveDir} # make sure everything is zero-padded
+	                 
+
+			sbatch submit_test.sh 
         done
 	done
     done

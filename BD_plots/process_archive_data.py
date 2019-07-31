@@ -77,11 +77,10 @@ def get_best_diversity_individuals(behavs,indivs):
         inds.append(indivs[k])
     return l,inds
 def compress_and_remove(outputfolder, file):
-    os.system("cd "+ outputfolder + " && tar cvf " +file +" | gzip -9 - > "+file+".tar.gz  && rm "+file)
+    os.system("cd "+ outputfolder + " && GZIP=-9 tar cvzf "+file+".tar.gz "+file+"  && rm "+file)
 def run_individuals(command, path, outputfolder):
 
-    individuals = get_individuals(path)
-    os.system("export GZIP = -9")  # compress properly
+    individuals = get_individuals(path)    
     for individual in individuals:
         new_command = command + " -n "+individual
         print(" performing command :"+str(new_command))
