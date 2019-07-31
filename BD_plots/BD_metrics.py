@@ -11,6 +11,10 @@ HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
 
 
+def scatter_plot(x,y,colors,area,filename):
+    plt.scatter(x, y, s=area, c=colors, alpha=0.5)
+    plt.savefig(filename)
+
 def phenotype_perturbation_plot(data_path, runs, archive_file_path, bd_labels):
     """
     scatterplot of the phenotypes of solutions after perturb. as a function of the drop in fitness by the perturb.
@@ -19,23 +23,26 @@ def phenotype_perturbation_plot(data_path, runs, archive_file_path, bd_labels):
     # get all datapoints' corresponding categories
     categories = phenotype_categories(data_path, runs, archive_file_path, bd_labels, components=2)
 
+def get_delta_P(non_perturbed_path,perturbed_path, conversion_func):
+    np_performances = np.array([conversion_func(fitness) for fitness in get_bin_performances(non_perturbed_path).values()])
+    p_performances = np.array([conversion_func(fitness) for fitness in get_bin_performances(perturbed_path).values()])
+    return p_performances - np_performances
 
 
-def NCD_perturbation_plot():
-    """
-    scatterplot of NCD(solution_before, solution_after) as a function of the drop in fitness by the perturb.
-    :return:
-    """
-    raise Exception("needs implementation")
+def NCD_perturbation_plot(archive_path):
+    pass
 
-
-def gather_NCD():
+def gather_NCDs():
     """
     use existing state/observation-action trajectory files and calculate pair-wise NCDs for all individuals within the sa;e run
     the average is returned
     :return:
     """
-
+    individuals = get_individuals(archive_path)
+    result = []
+    for p1 in range(len(individuals)):
+        for p2 in range(p1 + 1, len(individuals)):
+            result.append()
 
 def NCD(file1,file2):
     x = open(file1, 'rb').read()  # file 1
@@ -375,7 +382,7 @@ if __name__ == "__main__":
     
     runs=5
 
-
+    scatter_plot()
 
 
 

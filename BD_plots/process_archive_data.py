@@ -78,18 +78,26 @@ def get_best_diversity_individuals(behavs,indivs):
     return l,inds
 def compress_and_remove(outputfolder, file):
     os.system("cd "+ outputfolder + " && tar cvf " +file +" | gzip -9 - > "+file+".tar.gz  && rm "+file)
-def run_individuals(command, path, outputfolder):
+
+def run_individual(command, individual):
+    new_command = command + " -n " + individual
+    print(" performing command :" + str(new_command))
+    os.system(new_command)
+
+    # prevent file too big files
+    # for analysis_suffix in ["sa_history", "xy_history"]:
+    #     compress_and_remove(outputfolder, analysis_suffix + str(individual))
+def run_individuals(command, path):
+    # Parallelizing using Pool.map()
+    import multiprocessing as mp
 
     individuals = get_individuals(path)
-    os.system("export GZIP = -9")  # compress properly
-    for individual in individuals:
-        new_command = command + " -n "+individual
-        print(" performing command :"+str(new_command))
-        os.system(new_command)
+    pool = mp.Pool(mp.cpu_count())
 
-        # prevent file too big files
-        for analysis_suffix in ["sa_history","xy_history"]:
-            compress_and_remove(outputfolder, analysis_suffix+str(individual))
+    pool.starmap(run_individual,[(command,i) for i in individuals])
+
+    pool.close()
+
 
 
 def get_bin_performances(path,as_string=True, add_indiv=False):
@@ -184,4 +192,4 @@ def get_bins(bd_shape):
 
 
 if __name__ == "__main__":
-    run_individuals(args.c, args.p, args.o)
+    run_individuals(args.c, args.p)
