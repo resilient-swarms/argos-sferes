@@ -13,12 +13,18 @@
 /****************************************/
 
 
-Descriptor* init_analysis_descriptor(EvolutionLoopFunctions& cLoopFunctions, size_t individual_index,std::string filename)
+Descriptor* init_analysis_descriptor(EvolutionLoopFunctions& cLoopFunctions, size_t individual_index,std::string filename,char* best)
 {
     std::map<std::string,Descriptor*> slaves;
-    slaves["sdbc"] = new SDBC(&cLoopFunctions, "cvt_Gomes_sdbc_walls_and_robots_std",10);
-    slaves["sa_history"] = new SubjectiveHistoryDescriptor(cLoopFunctions.output_folder + "/sa_history"+std::to_string(individual_index));
-    slaves["xy_history"] = new ObjectiveHistoryDescriptor(cLoopFunctions.output_folder +  "/xy_history"+std::to_string(individual_index));
+    if (!strcmp(best,"best"))  // remember, strcmp returns 0 if they are equal
+    {
+        // record state-action history information for the best individual
+        slaves["sa_history"] = new SubjectiveHistoryDescriptor(cLoopFunctions.output_folder + "/sa_history"+std::to_string(individual_index));
+        slaves["xy_history"] = new ObjectiveHistoryDescriptor(cLoopFunctions.output_folder +  "/xy_history"+std::to_string(individual_index));
+    }
+    else{
+        slaves["sdbc"] = new SDBC(&cLoopFunctions, "cvt_Gomes_sdbc_walls_and_robots_std",10);
+    }
     return new AnalysisDescriptor(individual_index, filename, slaves);
 }
 
@@ -75,7 +81,9 @@ int main(int argc, char **argv)
     static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
     /* process arguments*/
     size_t individual_index = std::atoi((*(individual_it+1)).c_str()); 
-    cLoopFunctions.descriptor = init_analysis_descriptor(cLoopFunctions,individual_index,std::string(cLoopFunctions.output_folder)+std::string("/analysis_"));
+    cLoopFunctions.descriptor = init_analysis_descriptor(cLoopFunctions,individual_index,
+                    std::string(cLoopFunctions.output_folder)+std::string("/analysis_"),
+                    argv[2]);
 
     configure_and_run_ea<serial_ea_t>(argc,argv);
    

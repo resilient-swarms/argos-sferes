@@ -17,6 +17,7 @@ parser = argparse.ArgumentParser(description='Process arguments.')
 parser.add_argument('-c', type=str,help='command to perform (required)')
 parser.add_argument('-p', type=str, help="archive path where the individuals are located" )
 parser.add_argument('-o', type=str, help="outputfolder" )
+parser.add_argument('-b', type=str, help="best or not")
 args = parser.parse_args()
 
 
@@ -93,10 +94,36 @@ def run_individuals(command, path):
 
     individuals = get_individuals(path)
     pool = mp.Pool(mp.cpu_count())
-
     pool.starmap(run_individual,[(command,i) for i in individuals])
 
     pool.close()
+    # individuals = get_individuals(path)
+    # for i in individuals:
+    #     run_individual(command,i)
+
+def run_best_individual(command, outputfolder):
+    print("looking for "+outputfolder + "/analysis_sdbc.dat")
+    maxind = get_best_individual(outputfolder + "/analysis_sdbc.dat")
+    print("start run best individual: "+str(maxind))
+    run_individual(command, maxind)
+
+
+
+def get_best_individual(path, as_string=True, add_indiv=False):
+        best_performance=-float("inf")
+        maxind=np.nan
+        parsed_file_list = read_spacedelimited(path)
+        for item in parsed_file_list:
+            ind = item[0]
+            b = tuple(item[1:-1])
+            if as_string:
+                b = str(b)
+            performance = float(item[-1])
+            if performance > best_performance:
+                maxind=ind
+                best_performance = performance
+
+        return maxind
 
 
 
@@ -192,4 +219,7 @@ def get_bins(bd_shape):
 
 
 if __name__ == "__main__":
-    run_individuals(args.c, args.p)
+    if args.b == "best":
+        run_best_individual(args.c, args.o)
+    else:
+        run_individuals(args.c, args.p)
