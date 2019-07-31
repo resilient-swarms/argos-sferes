@@ -47,7 +47,6 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 		echo "doing ${DescriptorType} now"
 		echo "has ${BD_DIMS} dimensions"
 		echo "tag is ${tag}"
-		mkdir -p $data/${FitfunType}/${DescriptorType}
 
 		for Replicates in $(seq 1 5); do
 			

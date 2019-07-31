@@ -52,7 +52,7 @@
   <!-- ****************** -->
   <loop_functions library="lib/libevolution_loopfunctionscvt10D.so"
                   label="evolution_loopfunctionscvt10D"
-                  trials="50"
+                  trials="1"
                   robots="10"
                   descriptortype="cvt_Gomes_sdbc_walls_and_robots_std"  
                   fitfuntype="Aggregation"

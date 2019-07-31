@@ -43,7 +43,6 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 	echo "doing ${DescriptorType} now"
 	echo "has ${BD_DIMS} dimensions"
 	echo "tag is ${tag}"
-	mkdir -p $data/${FitfunType}/${DescriptorType}
 
 	for Replicates in $(seq 1 5); do
                        
@@ -54,19 +53,19 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 	    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 	
 	    mkdir -p $Outfolder
-           sed -e "s|THREADS|0|" \
-		-e "s|TRIALS|50|" \
+           sed 	-e "s|THREADS|0|" \
+				-e "s|TRIALS|50|" \
                 -e "s|ROBOTS|10|"                    \
                 -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
-		-e "s|SEED|${Replicates}|"                    \
+				-e "s|SEED|${Replicates}|"                    \
                 -e "s|FITFUN_TYPE|${FitfunType}|"                   \
                 -e "s|DESCRIPTOR_TYPE|${DescriptorType}|"                  \
                 -e "s|OUTPUTFOLDER|${Outfolder}|" \
-		-e "s|SENSOR_RANGE|${SensorRange}|" \
-		-e "s|CENTROIDSFOLDER|experiments/centroids| " \
-		-e "s|NOISE_LEVEL|0.05|"    \
+				-e "s|SENSOR_RANGE|${SensorRange}|" \
+				-e "s|CENTROIDSFOLDER|experiments/centroids| " \
+				-e "s|NOISE_LEVEL|0.05|"    \
                 -e "s|BEHAVIOUR_TAG|${tag}|" \
-		experiments/Gomes_experiment_template.argos \
+				experiments/Gomes_experiment_template.argos \
                 > ${ConfigFile}
              if [ ! -z "${CVT}"  ]; then
         	echo ${CVT}

@@ -104,7 +104,7 @@ option(RECORD_FITNESS "print some variables" OFF)
 option(DEFINE_PRINT "print some variables" OFF)
 option(BD "behaviour description size" OFF)
 option(CVT_USAGE "Centroidal Voronoi Tessellation MAP-Elites" OFF)
-option(PERTURB "Perturbations" OFF)
+option(ANALYSIS "Perturbations" OFF)
 option(BO "Bayesian Optimisation" OFF)
 option(ARGOS_PAR "Parallelisation" OFF)
 option(CAFFE "caffe neural networks" OFF)
@@ -253,7 +253,7 @@ else(NOT BASELINE)
         set(EXEC_FILE BO.cpp)
     else(NOT BO)
         message("Bayesian Optimisation is NOT defined")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
+        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
 	    message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
         if(${ARGOS_PAR} EQUAL 1)
             message("using parallel (1)")
@@ -362,9 +362,11 @@ if(CAFFE)
     #find_package(Caffe) #if you want  to avoid OpenCV error
 
 
+    add_definitions(-DTAG="${tag}")
+
     # uncomment if you just want to check neural network           
-    #set(EXECUTABLE caffenetexec)
-    #set(EXEC_FILE caffe_nets/caffe_net.cpp)
+    set(EXECUTABLE caffenetexec)
+    set(EXEC_FILE caffe_nets/caffe_net.cpp)
 
     set(AdditionalLibs  ${Caffe_LIBRARIES} ${GLOG_LIBRARIES})
 endif()
@@ -388,6 +390,18 @@ if(DEFINE_PRINT)
     add_definitions(-DPRINTING)    
 else(NOT DEFINE_PRINT)
     message("print is NOT defined")
+endif()
+
+if(ANALYSIS)
+    message("will perform analysis; changing executable to 'analysis'")
+    message("make sure you are using 'analysis' descriptor")
+    add_definitions(-DANALYSIS)  
+    set(EXECUTABLE analysis${tag})
+    set(EXEC_FILE analysis.cpp)  
+
+    message("loop functions is ${LOOPFUN}")
+    # this one is used as a default, we don't need the evolution anyway
+    # assumes you have compiled cvt10D
 endif()
 
 

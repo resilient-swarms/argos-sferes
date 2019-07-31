@@ -150,6 +150,12 @@ public:
     size_t get_num_sensors() const;
 
 
+
+    /* analyse an individual */
+    void analyse(float fFitness);
+
+
+
 };
 
 namespace sferes
@@ -214,7 +220,15 @@ FIT_MAP(FitObstacleMapElites){
         #ifdef RECORD_FIT
             cLoopFunctions.fitness_writer << fFitness << std::endl;
         #endif
+            
+
+        #ifdef ANALYSIS
+            cLoopFunctions.analyse(fFitness);
+            return;
+        #endif
+
             std::vector<float> behavioural_descriptor = cLoopFunctions.alltrials_descriptor();
+        
             this->set_desc(behavioural_descriptor);
 
         #ifdef PRINTING

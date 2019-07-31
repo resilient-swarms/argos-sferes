@@ -30,8 +30,11 @@ def NCD_perturbation_plot():
 
 
 def gather_NCD():
-
-    raise Exception("needs implementation")
+    """
+    use existing state/observation-action trajectory files and calculate pair-wise NCDs for all individuals within the sa;e run
+    the average is returned
+    :return:
+    """
 
 
 def NCD(file1,file2):
@@ -62,8 +65,10 @@ def bin_single_point(datapoint,minima, bins,bin_sizes):
 
     return category
 def phenotype_categories(data_path, runs, archive_file_path,bd_labels,components=2,bins=3):
-    bd = np.array(get_combined_archive(data_path, runs, archive_file_path,by_bin=False,include_val=False))
-    df = pd.DataFrame(bd, columns=bd_labels)
+    #bd = np.array(get_combined_archive(data_path, runs, archive_file_path,by_bin=False,include_val=False))
+    raise Exception("need to impleement phenotype")
+    phenotype = []
+    df = pd.DataFrame(phenotype, columns=bd_labels)
     pca = PCA(n_components=components)
     pca_result = pca.fit_transform(df[bd_labels].values)
     minima = np.min(pca_result,axis=0) # get the minimum for each dimension
@@ -313,8 +318,8 @@ def development_plots(runs,times,BD_directory,title_tag):
     # bd_shapes = [32**2, 1000,1000,1000]  # shape of the characterisation
     # y_labels=["global_performance","global_reliability","precision","coverage"]
 
-    bd_type = ["Gomes_sdbc_walls_and_robots_std"]  #legend label
-    legend_labels=["SDBC"]  # labels for the legend
+    bd_type = ["Gomes_sdbc_walls_and_robots_std","environment_diversity"]  #legend label
+    legend_labels=["SDBC","QED"]  # labels for the legend
     colors=["C"+str(i) for i in range(len(bd_type))]  # colors for the lines
     # (numsides, style, angle)
     markers=[(3,1,0),(3,2,0)] # markers for the lines
@@ -355,7 +360,7 @@ def development_plots(runs,times,BD_directory,title_tag):
             add_boxplotlike_data(coverage, y_bottom, y_mid, y_top, y_label="coverage",method_index=i)
     j=0
     for label in y_labels:
-        ylim=[0,100] if label == "absolute_coverage"   else [0.0,1.0]
+        ylim=[0,5000] if label == "absolute_coverage"   else [0.0,1.0]
         createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=ylim,
                    save_filename=RESULTSFOLDER+"/"+title_tag+label+".pdf",legend_labels=legend_labels,
                    xlim=None,xscale="linear",yscale="linear",
@@ -378,7 +383,7 @@ if __name__ == "__main__":
 
 
 
-    fitfuns= ["Aggregation","Dispersion"]
+    fitfuns= ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
 
     for fitfun in fitfuns:
         data_dir = HOME_DIR + "/DataFinal/datanew"
@@ -386,15 +391,15 @@ if __name__ == "__main__":
         print_best_individuals(
             BD_dir="/home/david/DataFinal/datanew/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
             outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
-        development_plots(runs=range(1,6), times=range(0,1250, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun+"NOCORRECT")
+        development_plots(runs=range(1,6), times=range(0,1100, 100), BD_directory=data_dir + "/"+title,title_tag=fitfun+"NOCORRECT")
 
 
 
 
-    for fitfun in fitfuns:
-        data_dir = HOME_DIR + "/DataFinal/coll"
-        title=fitfun+"range11"
-        print_best_individuals(
-            BD_dir="/home/david/DataFinal/coll/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
-            outfile="best_solutions_"+fitfun+"COLLISIONSTOP", number=10, generation=1200)
-        development_plots(runs=range(1,6), times=range(0,1250, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun+"COLLISIONSTOP",)
+    # for fitfun in fitfuns:
+    #     data_dir = HOME_DIR + "/DataFinal/coll"
+    #     title=fitfun+"range11"
+    #     print_best_individuals(
+    #         BD_dir="/home/david/DataFinal/coll/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
+    #         outfile="best_solutions_"+fitfun+"COLLISIONSTOP", number=10, generation=1200)
+    #     development_plots(runs=range(1,6), times=range(0,1250, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun+"COLLISIONSTOP",)

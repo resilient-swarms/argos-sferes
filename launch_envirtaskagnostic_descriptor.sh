@@ -46,7 +46,6 @@ FitfunType="TaskAgnost"
 		echo "doing ${DescriptorType} now"
 		echo "has ${BD_DIMS} dimensions"
 		echo "tag is ${tag}"
-		mkdir -p $data/${FitfunType}/${DescriptorType}
 
 		for Replicates in $(seq 1 5); do
 			
@@ -154,7 +153,7 @@ FitfunType="TaskAgnost"
 			fi
 
 		echo "submitting job"
-		bash submit_envir_job.sh 
+		sbatch submit_envir_job.sh 
 		done
 	done
 

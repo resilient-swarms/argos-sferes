@@ -142,6 +142,10 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             // do nothing; wait for initialisation in argosparallelenviron_eval.h
         }
+        else if(s == "analysis")
+        {
+            // wait for manual initialisation in analysis.cpp
+        }
         else
         {
             throw std::runtime_error("descriptortype " + s + " not found");
@@ -400,6 +404,13 @@ size_t EvolutionLoopFunctions::get_swarmmovement_bin(size_t num_bins, size_t num
     multiplier *= (float) num_SD_bins;
     bin+=multiplier*StatFuns::get_bin(SD_dy,0.0f,max_sd, num_SD_bins);
     return bin;
+}
+
+
+void EvolutionLoopFunctions::analyse(float fFitness)
+{
+    AnalysisDescriptor* descrip = dynamic_cast<AnalysisDescriptor*>(descriptor);
+    descrip->analyse_individual(*this,fFitness);
 }
 
 /****************************************/

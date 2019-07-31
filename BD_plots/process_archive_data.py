@@ -14,10 +14,9 @@ HOME_DIR = os.environ["HOME"]
 
 
 parser = argparse.ArgumentParser(description='Process arguments.')
-parser.add_argument('-c', type=str,
-                    help='command to perform (required)')
+parser.add_argument('-c', type=str,help='command to perform (required)')
 parser.add_argument('-p', type=str, help="archive path where the individuals are located" )
-
+parser.add_argument('-o', type=str, help="outputfolder" )
 args = parser.parse_args()
 
 
@@ -77,16 +76,20 @@ def get_best_diversity_individuals(behavs,indivs):
         l.append(behavs[k])
         inds.append(indivs[k])
     return l,inds
-def run_individuals(command, path):
+def compress_and_remove(outputfolder, file):
+    os.system("cd "+ outputfolder + " && tar cvf " +file +" | gzip -9 - > "+file+".tar.gz  && rm "+file)
+def run_individuals(command, path, outputfolder):
 
     individuals = get_individuals(path)
+    os.system("export GZIP = -9")  # compress properly
     for individual in individuals:
         new_command = command + " -n "+individual
         print(" performing command :"+str(new_command))
         os.system(new_command)
 
-
-
+        # prevent file too big files
+        for analysis_suffix in ["sa_history","xy_history"]:
+            compress_and_remove(outputfolder, analysis_suffix+str(individual))
 
 
 def get_bin_performances(path,as_string=True, add_indiv=False):
@@ -181,6 +184,4 @@ def get_bins(bd_shape):
 
 
 if __name__ == "__main__":
-    #bins=get_bins(2, 3)
-    #p=get_archives_performances(HOME_DIR+"/argos-sferes/experiments/data/MeanSpeed/history",5,"archive_900.dat")
-    run_individuals(args.c, args.p)
+    run_individuals(args.c, args.p, args.o)

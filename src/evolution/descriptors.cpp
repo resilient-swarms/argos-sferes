@@ -8,7 +8,27 @@
 #define SENSOR_ACTIVATION_THRESHOLD 0.5
 
 
-Descriptor::Descriptor()
+
+void write_individual(std::vector<float> bd, float fitness, size_t individual, std::string filename)
+{
+	std::ofstream ofs;
+	ofs.open(filename.c_str(), std::ios::app);
+	
+	ofs << individual << "    ";
+	size_t offset = 0;
+	for (size_t dim = 0; dim < bd.size(); ++dim)
+		ofs << bd[dim] << " ";
+	ofs << " " << fitness << " ";
+	ofs << std::endl;
+	ofs.flush();
+	ofs.close();
+}
+
+
+/***********************************************/
+
+
+Descriptor::Descriptor(size_t dims) : behav_dim(dims)
 {
 	geometric_median = false;
 	bd.resize(behav_dim);
@@ -49,6 +69,10 @@ std::vector<float> Descriptor::after_trials(EvolutionLoopFunctions &cLoopFunctio
 
 	return final_bd;
 }
+
+
+
+/**********************************************************************/
 
 void AverageDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
@@ -141,30 +165,19 @@ void IntuitiveHistoryDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunction
 	coverageCalc.after_trial();
 }
 
-float Entity::distance(const Entity& e1, const Entity& e2)
+float Entity::distance(const Entity &e1, const Entity &e2)
 {
 	return StatFuns::get_minkowski_distance(e1.position, e2.position);
 }
 
-
-
-
-
-
-
 /******************************************************************/
 
-
-
-
-
-SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Descriptor()
+SDBC::SDBC(EvolutionLoopFunctions *cLoopFunctions, std::string init_type, size_t bd) : Descriptor(bd)
 {
-	
+
 	include_std = init_type.find("std") != std::string::npos ? true : false; // will calculate standard deviations as well
 
 	size_t num_attr;
-	
 
 	if (init_type.find("Gomes") != std::string::npos)
 	{
@@ -175,10 +188,10 @@ SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Desc
 
 		// get the average of the closest robot distance in the given uniform robot positioning
 
-		float min = 0;// minimal_robot_distance(cLoopFunctions);
+		float min = 0; // minimal_robot_distance(cLoopFunctions);
 		float max = get_uniform_closestdist(cLoopFunctions);
 		// range for the closest robot feature
-		maxrange.insert(std::pair<std::string,std::pair<float,float>>("closest_robot",std::pair<float,float>(min,max)));
+		maxrange.insert(std::pair<std::string, std::pair<float, float>>("closest_robot", std::pair<float, float>(min, max)));
 	}
 	else
 	{
@@ -198,9 +211,8 @@ SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Desc
 		init_walls(cLoopFunctions);
 		init_robots(num_attr, cLoopFunctions);
 
-
 		// range for the boxesrobots feature
-		maxrange.insert(std::pair<std::string,std::pair<float,float>>("boxesrobots",get_wallsrobots_range(cLoopFunctions)));
+		maxrange.insert(std::pair<std::string, std::pair<float, float>>("boxesrobots", get_wallsrobots_range(cLoopFunctions)));
 	}
 	else if (init_type.find("sdbc_robots") != std::string::npos)
 	{
@@ -211,14 +223,13 @@ SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Desc
 		throw std::runtime_error("init type " + init_type + "not found");
 	}
 
-
-
 	if (include_std)
 	{
 		num_features = behav_dim / 2;
 		temp_bd.resize(num_features);
 	}
-	else{
+	else
+	{
 		temp_bd.resize(behav_dim);
 	}
 	num_groups = entity_groups.size();
@@ -231,7 +242,7 @@ SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Desc
 			// range for the robots feature (within robot comparison)
 			float min = 0; //minimal_robot_distance(cLoopFunctions);
 			float max = get_max_avgdist(cLoopFunctions);
-			maxrange.insert(std::pair<std::string,std::pair<float,float>>("robots",std::pair<float,float>(min,max)));
+			maxrange.insert(std::pair<std::string, std::pair<float, float>>("robots", std::pair<float, float>(min, max)));
 		}
 
 		between_comparison_groups.push_back(kv.first); // between-group distance computations
@@ -245,52 +256,52 @@ SDBC::SDBC(EvolutionLoopFunctions* cLoopFunctions, std::string init_type) : Desc
 	//maxdist = StatFuns::get_minkowski_distance(CVector3(attribute_setter->maxX, attribute_setter->maxY, 0), CVector3::ZERO);
 }
 
-
 /* minimial robot distance */
-float SDBC::minimal_robot_distance(EvolutionLoopFunctions* cLoopFunctions)
+float SDBC::minimal_robot_distance(EvolutionLoopFunctions *cLoopFunctions)
 {
 	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0)->GetBoundingBox();
 
-    return StatFuns::get_minkowski_distance(bounding_box.MaxCorner,bounding_box.MinCorner);// at least one robot body
+	return StatFuns::get_minkowski_distance(bounding_box.MaxCorner, bounding_box.MinCorner); // at least one robot body
 }
 /* uniform closest distance as proxy to the maximal avg closest distance */
-float SDBC::get_uniform_closestdist(EvolutionLoopFunctions* cLoopFunctions)
+float SDBC::get_uniform_closestdist(EvolutionLoopFunctions *cLoopFunctions)
 {
 	/* approximate equation obtained by recursively adding agents at maximum distance to the previous */
 	CVector3 max = cLoopFunctions->get_arenasize();
-	float maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
+	float maxdist = StatFuns::get_minkowski_distance(max, CVector3::ZERO);
 	// 4 robots --> maxSide; 5+ robots --> maxdist/2; 9+ robots: maxSide/2 (seems to work in drawings)
-	float maxSide=std::max(max.GetX(),max.GetY());
+	float maxSide = std::max(max.GetX(), max.GetY());
 	if (cLoopFunctions->m_unNumberRobots > 9)
 	{
-		return maxSide/2.0f;
+		return maxSide / 2.0f;
 	}
-	else if (cLoopFunctions->m_unNumberRobots>= 5)
+	else if (cLoopFunctions->m_unNumberRobots >= 5)
 	{
-		return maxdist/2;
+		return maxdist / 2;
 	}
 	else if (cLoopFunctions->m_unNumberRobots == 4)
 	{
 		return maxSide;
 	}
-	else{
+	else
+	{
 		return maxdist;
 	}
 }
 /* Divide the max arena distance by the number of robots to get max average robotdist */
-float SDBC::get_max_avgdist(EvolutionLoopFunctions* cLoopFunctions)
+float SDBC::get_max_avgdist(EvolutionLoopFunctions *cLoopFunctions)
 {
 	/* approximate equation obtained by recursively adding agents at maximum distance to the previous */
 	CVector3 max = cLoopFunctions->get_arenasize();
-	float maxdist = StatFuns::get_minkowski_distance(max,CVector3::ZERO);
-	float robot_correction =  std::sqrt(cLoopFunctions->m_unNumberRobots/2.0f);
+	float maxdist = StatFuns::get_minkowski_distance(max, CVector3::ZERO);
+	float robot_correction = std::sqrt(cLoopFunctions->m_unNumberRobots / 2.0f);
 	// 2 robots --> maxdist; 4 robots --> maxdist/sqrt(2); 8 robots --> maxdist/2 (seems to work in drawings)
-	maxdist = maxdist/robot_correction;// NOTE: if number of robots changes during the trial, need to use entity group's max_size (elsewhere too)
-	float maxSide=std::max(max.GetX(),max.GetY());
-	return std::max(maxdist,maxSide);// maxSide is the minimum possible ( and seems to be Mase's choice for maximum)
+	maxdist = maxdist / robot_correction; // NOTE: if number of robots changes during the trial, need to use entity group's max_size (elsewhere too)
+	float maxSide = std::max(max.GetX(), max.GetY());
+	return std::max(maxdist, maxSide); // maxSide is the minimum possible ( and seems to be Mase's choice for maximum)
 }
 /* walls robots min and max distance */
-std::pair<float,float> SDBC::get_wallsrobots_range(EvolutionLoopFunctions* cLoopFunctions)
+std::pair<float, float> SDBC::get_wallsrobots_range(EvolutionLoopFunctions *cLoopFunctions)
 {
 	// the range depends on the arena; since many robots can be close to each other without affecting this metric
 	// here approximate this by filling the XY-grid and calculating the distance, then taking max and min
@@ -299,28 +310,27 @@ std::pair<float,float> SDBC::get_wallsrobots_range(EvolutionLoopFunctions* cLoop
 	CVector3 maxArena = cLoopFunctions->get_arenasize();
 	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0)->GetBoundingBox();
 
-    float xdim = bounding_box.MaxCorner.GetX() - bounding_box.MinCorner.GetX();
-    float ydim = bounding_box.MaxCorner.GetY() - bounding_box.MinCorner.GetY();
-	float dim = std::max(xdim,ydim);//robot body unit
+	float xdim = bounding_box.MaxCorner.GetX() - bounding_box.MinCorner.GetX();
+	float ydim = bounding_box.MaxCorner.GetY() - bounding_box.MinCorner.GetY();
+	float dim = std::max(xdim, ydim); //robot body unit
 
 	float max = 0;
 	float min = std::numeric_limits<float>::infinity();
 
-
 	Entity_Group walls = entity_groups["boxes"];
-	// define grid based 
-	for (float x=dim; x <= maxArena.GetX() - dim; x+=dim)
+	// define grid based
+	for (float x = dim; x <= maxArena.GetX() - dim; x += dim)
 	{
-		for (float y=dim; y <= maxArena.GetY() - dim; y+=dim)
+		for (float y = dim; y <= maxArena.GetY() - dim; y += dim)
 		{
-			CVector3 pos = CVector3(x,y,0.0f);
+			CVector3 pos = CVector3(x, y, 0.0f);
 			float avg_dist = 0.0f;
-			for (size_t i=0; i < walls.get_absolute_size(); ++i)
+			for (size_t i = 0; i < walls.get_absolute_size(); ++i)
 			{
-				float dist = StatFuns::get_minkowski_distance(pos,walls[i].position);
+				float dist = StatFuns::get_minkowski_distance(pos, walls[i].position);
 				avg_dist += dist;
 			}
-			avg_dist/=(float)walls.get_absolute_size();
+			avg_dist /= (float)walls.get_absolute_size();
 			if (avg_dist > max)
 			{
 				max = avg_dist;
@@ -331,7 +341,7 @@ std::pair<float,float> SDBC::get_wallsrobots_range(EvolutionLoopFunctions* cLoop
 			}
 		}
 	}
-	return std::pair<float,float>(min,max);
+	return std::pair<float, float>(min, max);
 }
 void SDBC::init_cylindric_obstacles(CLoopFunctions *cLoopFunctions)
 {
@@ -435,7 +445,7 @@ void SDBC::add_group_meanstates()
 void SDBC::add_within_group_dispersion()
 {
 	float sum;
-	for (std::string& key : within_comparison_groups)
+	for (std::string &key : within_comparison_groups)
 	{
 
 		Entity_Group &group = entity_groups[key];
@@ -455,28 +465,26 @@ void SDBC::add_within_group_dispersion()
 		else
 		{
 			sum = 0.0f;
-			float num_calcs=0.0f;
+			float num_calcs = 0.0f;
 			for (int i = 0; i < group.get_absolute_size(); ++i)
 			{
 				for (int j = 1; j < group.get_absolute_size(); ++j)
 				{
 					sum += Entity::distance(group[i], group[j]);
-					num_calcs+=1.0f;
+					num_calcs += 1.0f;
 				}
-				
 			}
 			sum = sum / num_calcs;
 			sum = normalise(sum, key);
 			this->temp_bd[bd_index].push_back(sum);
 			++bd_index;
 		}
-		
 	}
 }
 /* normalise to get full range across [0,1] */
 float SDBC::normalise(float number, std::string key)
 {
-	std::pair<float,float> range =  maxrange[key];
+	std::pair<float, float> range = maxrange[key];
 	return (number - std::get<0>(range)) / (std::get<1>(range) - std::get<0>(range));
 }
 /* avg pair-wise distance between groups, the final BD dimensions*/
@@ -502,21 +510,20 @@ void SDBC::add_between_group_dispersion()
 			else
 			{
 				sum = 0.0f;
-				float num_calcs=0.0f;
-				for (Entity& e1 : group.entities)
+				float num_calcs = 0.0f;
+				for (Entity &e1 : group.entities)
 				{
-					for (Entity& e2 : group2.entities)
+					for (Entity &e2 : group2.entities)
 					{
 						sum += Entity::distance(e1, e2);
 						++num_calcs;
 					}
 				}
 				sum = sum / num_calcs; // divide by product of group sizes; add for now, we will average the number of times
-				sum = normalise(sum, key+key2);
+				sum = normalise(sum, key + key2);
 				temp_bd[bd_index].push_back(sum);
 				++bd_index;
 			}
-
 		}
 	}
 }
@@ -544,7 +551,7 @@ void SDBC::add_closest_robot_dist(EvolutionLoopFunctions &cLoopFunctions)
 		}
 		mean_dist += mindist;
 	}
-	mean_dist = mean_dist / ((float) cLoopFunctions.m_unNumberRobots);
+	mean_dist = mean_dist / ((float)cLoopFunctions.m_unNumberRobots);
 	mean_dist = normalise(mean_dist, "closest_robot");
 	temp_bd[bd_index].push_back(mean_dist);
 }
@@ -575,13 +582,13 @@ void SDBC::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLo
 /*after the looping over robots*/
 void SDBC::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 {
-	add_group_sizes();// in case group sizes are variable, group size is descriptor
-	add_group_meanstates();// for each group calculate mean state (if it has features)
-	add_between_group_dispersion();// calculate distances between groups
-	add_within_group_dispersion();// calculate distances within groups
+	add_group_sizes();				// in case group sizes are variable, group size is descriptor
+	add_group_meanstates();			// for each group calculate mean state (if it has features)
+	add_between_group_dispersion(); // calculate distances between groups
+	add_within_group_dispersion();  // calculate distances within groups
 	if (include_closest_robot)
 	{
-		add_closest_robot_dist(cLoopFunctions);// calculate closest robot distance
+		add_closest_robot_dist(cLoopFunctions); // calculate closest robot distance
 	}
 	bd_index = 0;
 	++num_updates;
@@ -611,13 +618,13 @@ void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 		{
 			if (i % 2 == 0)
 			{
-				bd[i][current_trial]=StatFuns::mean(this->temp_bd[i/2]);// already normalised
+				bd[i][current_trial] = StatFuns::mean(this->temp_bd[i / 2]); // already normalised
 			}
 			else
 			{
 				// https://en.wikipedia.org/wiki/Standard_deviation: For a set of N > 4 data spanning a range of values R, an upper bound on the standard deviation s is given by s = 0.6R
 				// with R=1 then s = 0.6 maximally --> multiply by 1/0.6 = 1.666666666667
-				bd[i][current_trial] = 1.666666666666666666666*StatFuns::standard_dev(this->temp_bd[i / 2]);
+				bd[i][current_trial] = 1.666666666666666666666 * StatFuns::standard_dev(this->temp_bd[i / 2]);
 			}
 		}
 		else
@@ -631,7 +638,6 @@ void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 		};
 	}
 }
-
 
 /************************************************************************/
 
@@ -855,15 +861,11 @@ void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, EvolutionLoopF
 	num_updates++;
 }
 
-
-
 /*************************************************************************/
-
 
 CVT_Spirit::CVT_Spirit()
 {
 	freqs.resize(num_joint_sensory_bins);
-	
 }
 
 /* prepare for trials*/
@@ -935,7 +937,6 @@ std::vector<float> CVT_Spirit::after_trials(EvolutionLoopFunctions &cLoopFunctio
 	return final_bd;
 }
 
-
 /*************************************************************************/
 
 MultiAgent_Spirit::MultiAgent_Spirit()
@@ -945,10 +946,10 @@ MultiAgent_Spirit::MultiAgent_Spirit()
 	/*
 
 	/* number of joint sensory bins */
-    num_joint_sensory_bins = 36;// here 9 (3*3) bins for mean CM of position + 4 (2*2) bins for SD of position
+	num_joint_sensory_bins = 36; // here 9 (3*3) bins for mean CM of position + 4 (2*2) bins for SD of position
 
 	/* number of joint actuator bins simply */
-    num_joint_actuator_bins = 16; // here  2*2 for mean displacement 2*2 for SD displacement
+	num_joint_actuator_bins = 16; // here  2*2 for mean displacement 2*2 for SD displacement
 
 	freqs.resize(num_joint_sensory_bins);
 }
@@ -961,8 +962,8 @@ void MultiAgent_Spirit::set_output_descriptor(size_t robot_index, EvolutionLoopF
 /*after getting outputs, can update the descriptor if needed*/
 void MultiAgent_Spirit::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 {
-	size_t sens_bin = cLoopFunctions.get_CM_bin(3,2);
-	size_t act_bin = cLoopFunctions.get_swarmmovement_bin(2,2);
+	size_t sens_bin = cLoopFunctions.get_CM_bin(3, 2);
+	size_t act_bin = cLoopFunctions.get_swarmmovement_bin(2, 2);
 	++freqs[sens_bin][act_bin];
 }
 // NonMarkovianStochasticPolicyInduction::NonMarkovianStochasticPolicyInduction()
@@ -970,14 +971,7 @@ void MultiAgent_Spirit::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 // 	bd.resize(behav_dim);
 // }
 
-
-
-
-
 /************************************************************************/
-
-
-
 
 void CVT_Trajectory::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
@@ -1022,7 +1016,7 @@ std::vector<float> CVT_Trajectory::after_trials(EvolutionLoopFunctions &cLoopFun
 // /* before all trials, prepare */
 // void EnvironmentDiversity::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 // {
-	
+
 // }
 // /*summarise BD at the end of trials*/
 // std::vector<float> EnvironmentDiversity::after_trials(EvolutionLoopFunctions &cLoopFunctions)
@@ -1031,10 +1025,7 @@ std::vector<float> CVT_Trajectory::after_trials(EvolutionLoopFunctions &cLoopFun
 // 	return final_bd;
 // }
 
-
 /***********************************************************************/
-
-
 
 StaticDescriptor::StaticDescriptor(std::vector<float> bd)
 {
@@ -1047,9 +1038,167 @@ std::vector<float> StaticDescriptor::after_trials(EvolutionLoopFunctions &cLoopF
 	return final_bd;
 }
 
+/*******************************************************************************/
+
+/* descriptor not used for evolution but for recording state-action trajectories*/
+SubjectiveHistoryDescriptor::SubjectiveHistoryDescriptor(const std::string &filename)
+{
+	// std::ios::out will write a new file
+	file_writer.open(filename, std::ios::out); //
+}
+
+/* prepare for trials*/
+void SubjectiveHistoryDescriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+{
+}
+/*reset BD at the start of a trial*/
+void SubjectiveHistoryDescriptor::start_trial()
+{
+	file_writer << std::fixed << "T" << current_trial << ":\n";
+}
+/*after getting inputs, can update the descriptor if needed*/
+void SubjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+{
+	for (size_t i = 0; i < cLoopFunctions.inputs.size(); ++i)
+	{
+		file_writer << std::fixed << std::setprecision(2) << cLoopFunctions.inputs[i] << ",";
+	}
+}
+
+/*after getting outputs, can update the descriptor if needed*/
+void SubjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+{
+	for (size_t i = 0; i < cLoopFunctions.outf.size() - 1; ++i)
+	{
+		file_writer << std::setprecision(2) << cLoopFunctions.outf[i] << ",";
+	}
+	file_writer << std::setprecision(2) << cLoopFunctions.outf.back() << "# ";
+}
+/*after the looping over robots*/
+void SubjectiveHistoryDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+{
+	file_writer << "\n";
+}
+
+
+/*summarise BD at the end of trials*/
+std::vector<float> SubjectiveHistoryDescriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+{
+	file_writer.close();
+	return std::vector<float>(0);
+}
 
 /*******************************************************************************/
 
+/* descriptor not used for evolution but for recording state-action trajectories*/
+ObjectiveHistoryDescriptor::ObjectiveHistoryDescriptor(const std::string &filename)
+{
+	// std::ios::out will write a new file
+	file_writer.open(filename, std::ios::out); //
+}
 
+/* prepare for trials*/
+void ObjectiveHistoryDescriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+{
+}
+/*reset BD at the start of a trial*/
+void ObjectiveHistoryDescriptor::start_trial()
+{
+	file_writer << std::fixed << "T" << current_trial << ":\n";
+}
+/*after getting inputs, can update the descriptor if needed*/
+void ObjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+{
+	CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[robot_index]);
+	file_writer << std::fixed << std::setprecision(2) << pos.GetX() << "," << pos.GetY();
+	file_writer << "# ";
+}
 
+/*after getting outputs, can update the descriptor if needed*/
+void ObjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+{
+}
+/*after the looping over robots*/
+void ObjectiveHistoryDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+{
+	file_writer << "\n";
+}
+/*summarise BD at the end of trials*/
+std::vector<float> ObjectiveHistoryDescriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+{
+	file_writer.close();
+	return std::vector<float>(0);
+}
 
+/*******************************************************************************/
+
+AnalysisDescriptor::AnalysisDescriptor(size_t individ, std::string file_n,std::map<std::string, Descriptor *> slaves) : 
+slave_descriptors(slaves),
+individual(individ),
+file_name(file_n)
+{
+}
+
+/* prepare for trials*/
+void AnalysisDescriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+{
+	for (auto const &x : slave_descriptors)
+	{
+		x.second->before_trials(cLoopFunctions);
+	}
+}
+/*reset BD at the start of a trial*/
+void AnalysisDescriptor::start_trial()
+{
+	for (auto const &x : slave_descriptors)
+	{
+		x.second->start_trial();
+	}
+}
+/*after getting inputs, can update the descriptor if needed*/
+void AnalysisDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+{
+	for (auto const &x : slave_descriptors)
+	{
+		x.second->set_input_descriptor(robot_index, cLoopFunctions);
+	}
+}
+
+/*after getting outputs, can update the descriptor if needed*/
+void AnalysisDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+{
+	for (auto const &x : slave_descriptors)
+	{
+		x.second->set_output_descriptor(robot_index, cLoopFunctions);
+	}
+}
+/*after the looping over robots*/
+void AnalysisDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+{
+	for (auto const &x : slave_descriptors)
+	{
+		x.second->after_robotloop(cLoopFunctions);
+	}
+}
+
+/*summarise BD at the end of trials*/
+void AnalysisDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+{
+	for (auto const &x : slave_descriptors)
+	{
+		x.second->end_trial(cLoopFunctions);
+	}
+}
+/* get the descriptor by its id-string and then print it to file*/
+void AnalysisDescriptor::analyse_individual(EvolutionLoopFunctions &cLoopFunctions, float fFitness)
+{
+	for (auto const &desc : slave_descriptors)
+	{
+		std::vector<float> bd = desc.second->after_trials(cLoopFunctions);
+		if (!bd.empty())
+		{
+			write_individual(bd, fFitness, individual, file_name+desc.first+".dat");
+		}
+		
+	}
+}

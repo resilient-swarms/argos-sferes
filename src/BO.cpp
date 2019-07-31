@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef CVT
-    Params::ea::centroids = load_centroids(cLoopFunctions.centroids_folder + "/centroids_" + std::to_string(Params::ea::number_of_clusters) + "_" + std::to_string(Params::ea::number_of_dimensions) + ".dat");
+    EAParams::ea::centroids = load_centroids(cLoopFunctions.centroids_folder + "/centroids_" + std::to_string(EAParams::ea::number_of_clusters) + "_" + std::to_string(EAParams::ea::number_of_dimensions) + ".dat");
 #endif
     
     configure_and_run_ea<serial_ea_t>(argc,argv);

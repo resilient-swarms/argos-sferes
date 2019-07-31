@@ -1,7 +1,7 @@
 
 
-// #ifndef DESCRIPTORS
-// #define DESCRIPTORS
+#ifndef DESCRIPTORS
+#define DESCRIPTORS
 /* ARGoS related headers */
 /* The NN controller */
 #include <tuple>
@@ -23,13 +23,20 @@
 class EvolutionLoopFunctions;
 class RunningStat;
 
+
+/* write behavioural descriptor to a file similar to map_elites */
+static void write_individual(std::vector<float> bd, float fitness, size_t individual, std::string filename);
+
 class Descriptor
 {
 public:
-  Descriptor();
+  Descriptor(size_t num_bd=BEHAV_DIM);
   bool geometric_median;
   size_t num_updates, current_trial;
-  static const size_t behav_dim = BEHAV_DIM;
+  size_t behav_dim;
+
+  
+
 
   /* final value of bd*/
   std::vector<std::vector<float>> bd;
@@ -246,7 +253,7 @@ public:
   std::vector<std::string> variable_groups;
 
   std::vector<std::vector<float>> temp_bd; // accumulate the features over time
-  SDBC(EvolutionLoopFunctions *cLoopFunctions, std::string init_type);
+  SDBC(EvolutionLoopFunctions *cLoopFunctions, std::string init_type, size_t bd=BEHAV_DIM);
 
   /* minimal robot distance */
   float minimal_robot_distance(EvolutionLoopFunctions *cLoopFunctions);
@@ -620,6 +627,8 @@ public:
   /*summarise BD at the end of trials*/
   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
 };
+
+
 #ifdef CAFFE_NETS
 template <typename SolverType>
 class TransitionDescriptor : public Descriptor
@@ -692,5 +701,92 @@ public:
     return final_bd;
   }
 };
+
+#endif
+
+class SubjectiveHistoryDescriptor : public Descriptor
+{
+  public:
+  std::ofstream file_writer;
+
+  /* descriptor not used for evolution but for recording state-action history*/
+  SubjectiveHistoryDescriptor(const std::string& filename);
+
+  /* prepare for trials*/
+  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  /*reset BD at the start of a trial*/
+  virtual void start_trial();
+  /*after getting inputs, can update the descriptor if needed*/
+  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+
+  /*after getting outputs, can update the descriptor if needed*/
+  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  /*after the looping over robots*/
+  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+
+  /*summarise BD at the end of trials*/
+  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+};
+
+class ObjectiveHistoryDescriptor : public Descriptor
+{
+  public:
+  std::ofstream file_writer;
+
+  /* descriptor not used for evolution but for recording state-action history*/
+  ObjectiveHistoryDescriptor(const std::string& filename);
+
+  /* prepare for trials*/
+  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  /*reset BD at the start of a trial*/
+  virtual void start_trial();
+  /*after getting inputs, can update the descriptor if needed*/
+  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+
+  /*after getting outputs, can update the descriptor if needed*/
+  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  /*after the looping over robots*/
+  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+
+  /*summarise BD at the end of trials*/
+  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+};
+
+class AnalysisDescriptor : public Descriptor
+{
+  /* handy type of descriptor which allows to record many different descriptors
+   */
+public:
+  /* map that contains the slave desccriptors */
+  std::map<std::string,Descriptor*> slave_descriptors;
+  size_t individual;
+  std::string file_name;
+  AnalysisDescriptor(size_t individ, std::string file_n,std::map<std::string,Descriptor*> slaves);
+
+
+
+  /* prepare for trials*/
+  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  /*reset BD at the start of a trial*/
+  virtual void start_trial();
+  /*after getting inputs, can update the descriptor if needed*/
+  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+
+  /*after getting outputs, can update the descriptor if needed*/
+  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  /*after the looping over robots*/
+  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+
+  /*summarise BD at the end of trials*/
+  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+
+  /* get the descriptor by its id-string and then print it to file prefixed by filename, suffixed by the descriptor name*/
+  void analyse_individual(EvolutionLoopFunctions &cLoopFunctions, float fFitness);
+
+
+
+};
+
+
 
 #endif
