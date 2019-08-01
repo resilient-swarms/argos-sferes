@@ -80,6 +80,8 @@ def get_best_diversity_individuals(behavs,indivs):
 def compress_and_remove(outputfolder, file):
     os.system("cd "+ outputfolder + " && tar cvf " +file +" | gzip -9 - > "+file+".tar.gz  && rm "+file)
 
+
+
 def run_individual(command, individual):
     new_command = command + " -n " + individual
     print(" performing command :" + str(new_command))
@@ -107,9 +109,16 @@ def run_best_individual(command, outputfolder):
     print("start run best individual: "+str(maxind))
     run_individual(command, maxind)
 
+def compress_histories(outputfolder):
+    print("looking for " + outputfolder + "/analysis_sdbc.dat")
+    maxind = get_best_individual(outputfolder + "/analysis_sdbc.dat")
+    print("start compress best individual history: " + str(maxind))
+
+    compress_and_remove(outputfolder,outputfolder+"/sa_history"+str(maxind))
+    compress_and_remove(outputfolder, outputfolder + "/xy_history" + str(maxind))
 
 
-def get_best_individual(path, as_string=True, add_indiv=False):
+def get_best_individual(path, as_string=True, add_performance=False):
         best_performance=-float("inf")
         maxind=np.nan
         parsed_file_list = read_spacedelimited(path)
@@ -122,7 +131,8 @@ def get_best_individual(path, as_string=True, add_indiv=False):
             if performance > best_performance:
                 maxind=ind
                 best_performance = performance
-
+        if add_performance:
+            return maxind, best_performance
         return maxind
 
 
@@ -221,5 +231,7 @@ def get_bins(bd_shape):
 if __name__ == "__main__":
     if args.b == "best":
         run_best_individual(args.c, args.o)
+    elif args.b == "compress":
+        compress_histories(args.o)
     else:
         run_individuals(args.c, args.p)

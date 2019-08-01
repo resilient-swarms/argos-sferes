@@ -30,11 +30,11 @@ declare -A voronoi
 command="bin/analysis"   # note: cvt and 10D does not really matter since we are not evolving
 
 
-descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
-#descriptors["environment_diversity"]=6
-#voronoi["environment_diversity"]=""
+descriptors["environment_diversity"]=6
+voronoi["environment_diversity"]=""
 
 
 time["DecayCoverage"]=400
@@ -111,7 +111,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			 bash zero_padding_data.sh ${ArchiveDir} # make sure everything is zero-padded
 	                 
 
-			sbatch submit_test.sh 
+			sbatch submit_test.sh $2  # process the second argument; "compress" if just need compression else empty
         done
 	done
     done

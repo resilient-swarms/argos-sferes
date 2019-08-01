@@ -15,7 +15,7 @@ def scatter_plot(x,y,colors,area,filename):
     plt.scatter(x, y, s=area, c=colors, alpha=0.5)
     plt.savefig(filename)
 
-def phenotype_perturbation_plot(data_path, runs, archive_file_path, bd_labels):
+def descriptor_perturbation_plot(data_path, runs, archive_file_path, bd_labels):
     """
     scatterplot of the phenotypes of solutions after perturb. as a function of the drop in fitness by the perturb.
     :return:
@@ -23,26 +23,55 @@ def phenotype_perturbation_plot(data_path, runs, archive_file_path, bd_labels):
     # get all datapoints' corresponding categories
     categories = phenotype_categories(data_path, runs, archive_file_path, bd_labels, components=2)
 
-def get_delta_P(non_perturbed_path,perturbed_path, conversion_func):
-    np_performances = np.array([conversion_func(fitness) for fitness in get_bin_performances(non_perturbed_path).values()])
-    p_performances = np.array([conversion_func(fitness) for fitness in get_bin_performances(perturbed_path).values()])
-    return p_performances - np_performances
+def get_delta_P(non_perturbed_path,perturbed_path):
+    _index, np_performance = get_best_individual(non_perturbed_path,add_performance=True)
+    _index, p_performance = get_best_individual(perturbed_path,add_performance=True)
+    return p_performance - np_performance
 
 
 def NCD_perturbation_plot(archive_path):
     pass
 
-def gather_NCDs():
+def get_help_data(directory,history_type,runs):
+    max_performance = -float("inf")
+    max_run = None
+    max_indiv = None
+    for run in runs:
+        file = directory+str(run)+"/analysis_sdbc.dat"
+        best_indiv, performance = get_best_individual(file,add_performance=True)
+        if performance > max_performance:
+            max_performance = performance
+            max_run = run
+            max_indiv = best_indiv
+    history_file = directory + str(max_run) + "/" + history_type + "_history" + str(max_indiv)
+    return history_file, max_performance
+
+
+def gather_NCDs(BD_DIRECTORY,faults, runs, history_type="sa"):
     """
     use existing state/observation-action trajectory files and calculate pair-wise NCDs for all individuals within the sa;e run
     the average is returned
     :return:
     """
-    individuals = get_individuals(archive_path)
-    result = []
-    for p1 in range(len(individuals)):
-        for p2 in range(p1 + 1, len(individuals)):
-            result.append()
+    assert faults[0]=="FAULT_NONE"
+
+    directories=[ BD_DIRECTORY+"/"+faults[f] + "/results" for f in range(len(faults)) ]
+    ncds = []
+    delta_ps=[]
+    history_comp, performance_comp = get_help_data(directories[0],history_type,runs)
+
+    for i in range(1,len(directories)):
+        history_file, performance = get_help_data(directories[i], history_type)
+
+        # get ncd
+        ncd = NCD(history_comp,history_file)
+        ncds.append(ncd)
+
+        # get delta_p
+        delta_p = performance - performance_comp
+        delta_ps.append(delta_p)
+
+    return ncds, delta_ps
 
 def NCD(file1,file2):
     x = open(file1, 'rb').read()  # file 1
@@ -89,6 +118,14 @@ def phenotype_categories(data_path, runs, archive_file_path,bd_labels,components
     return pheno_cat
 
 
+
+def get_all_performances(path,conversion_func=None):
+    if conversion_func is not None:
+        all_performances = [conversion_func(fitness) for fitness in get_bin_performances(path).values()]
+    else:
+        all_performances = [fitness for fitness in get_bin_performances(path).values()]
+    return all_performances
+
 def global_performances(BD_directory, runs, archive_file_path, max_performance,conversion_func):
     stats = []
     for run in runs:
@@ -115,10 +152,7 @@ def _global_performance(BD_directory, run,archive_file_path,max_performance,conv
     :param experiment_file_path: relative path from the BD_directory to the archive file
     """
     path=get_archive_filepath(BD_directory, run, archive_file_path)
-    if conversion_func is not None:
-        all_performances = [conversion_func(fitness) for fitness in get_bin_performances(path).values()]
-    else:
-        all_performances = [fitness for fitness in get_bin_performances(path).values()]
+    all_performances = get_all_performances(path,conversion_func)
     return max(all_performances)/max_performance
 
 
@@ -148,11 +182,8 @@ def _avg_performance(BD_directory, run,archive_file_path,max_performance,convers
     :param experiment_file_path: relative path from the BD_directory to the archive file
     """
     path=get_archive_filepath(BD_directory, run, archive_file_path)
-    if conversion_func is not None:
-        mean_performances = [conversion_func(fitness) for fitness in get_bin_performances(path).values()]
-    else:
-        mean_performances = [fitness for fitness in get_bin_performances(path).values()]
-    return np.mean(mean_performances)/max_performance
+    all_performances=get_all_performances(path,conversion_func)
+    return np.mean(all_performances)/max_performance
 
 def global_reliabilities(BD_directory,runs,archive_file_path):
     #bins=get_bins(bd_shape)
@@ -382,7 +413,6 @@ if __name__ == "__main__":
     
     runs=5
 
-    scatter_plot()
 
 
 
@@ -409,4 +439,4 @@ if __name__ == "__main__":
     #     print_best_individuals(
     #         BD_dir="/home/david/DataFinal/coll/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
     #         outfile="best_solutions_"+fitfun+"COLLISIONSTOP", number=10, generation=1200)
-    #     development_plots(runs=range(1,6), times=range(0,1250, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun+"COLLISIONSTOP",)
+    #     development_plots(runs=range(1,6), times=range(0,1250, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun+"COLLISIONSTOP",):q

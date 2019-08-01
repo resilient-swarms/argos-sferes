@@ -11,6 +11,16 @@ generationfile="${ARCHIVEDIR}/gen_${FINALGEN_GENFILE}"
 archivefile="${ARCHIVEDIR}/archive_${FINALGEN_ARCHIVE}.dat"
 
 
+
+if [ "$1" = "compress" ]; then
+    # now get the history of the best solution
+    echo "Getting the best:\nStarting the following command: "${jobtocome}" "
+    echo 
+    echo "Looking for individuals at: "${archivefile}
+    python BD_plots/process_archive_data.py -o "${OUTPUTDIR}" -b "compress"
+    exit 1
+fi 
+
 # first get all the fitness and descriptor values
 jobtocome="${COMMAND} ${CONFIG} all -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
 echo "Starting the following command: "${jobtocome}" for all individuals"
@@ -20,7 +30,7 @@ echo
 python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all"
 
 # now get the history of the best solution
-echo "Getting the best:\nStarting the following command: "${jobtocome}" for all individuals"
+echo "Getting the best:\nStarting the following command: "${jobtocome}""
 echo 
 echo "Looking for individuals at: "${archivefile}
 jobtocome="${COMMAND} ${CONFIG} best -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
