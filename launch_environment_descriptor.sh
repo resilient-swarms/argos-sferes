@@ -59,7 +59,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			fi 
 		# Take template.argos and make an .argos file for this experiment
 		SUFFIX=${Replicates}
-		ConfigFolder=${data}/${FitfunType}range${SensorRange}/${DescriptorType}
+		ConfigFolder=${data}/${FitfunType}range11/${DescriptorType}
 		Outfolder=${ConfigFolder}/results${SUFFIX}
 		ConfigFile=${ConfigFolder}/exp_${SUFFIX}  # no .argos tag here, will add filenumber and .argos later         
 
@@ -96,11 +96,15 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 							count3=$((count3+1))
 							count4=0
 							# from the wall size, calc the center, arena, halfwall, and the wall_off
+							WallThickness=1.0
 							HalfWall=$(calc ${Wall}/2)  #
-							H=${HalfWall}
-							Arena=$(calc 3*${H}) #e.g. 1m-wall-2m-center-2m-wall-1m
-							Center=${H}
-							WallOff=$(calc ${Wall}-0.5)
+							Arena=$(calc ${Wall}+2*${WallThickness}) # wall + 2m to account for 2*1m wall
+							Center=${HalfWall}
+							WallOff=$(calc ${Wall}-0.5) # just for init robots
+
+							
+
+							FullWall=$(calc ${Wall}+${WallThickness}/2.0)
 
 							for Cylinder in 0 1 2 4 8; do
 								count4=$((count4+1))
@@ -131,8 +135,9 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 												-e "s|BEHAVIOUR_TAG|${tag}|" \
 												-e "s|MAX_SPEED|${MaxSpeed}|"\
 												-e "s|ARENA,ARENA|${Arena},${Arena}|"\
+												-e "s|ARENA,|${Arena},|"\
 												-e "s|CENTER,CENTER|${Center},${Center}|" \
-												-e "s|FULL_WALL|${Wall}|"\
+												-e "s|FULL_WALL|${FullWall}|"\
 												-e "s|HALF_WALL|${HalfWall}|"\
 												-e "s|WALL_OFF,WALL_OFF|${WallOff},${WallOff}|"\
 												-e "s|NUM_CYLINDERS|${Cylinder}|"\

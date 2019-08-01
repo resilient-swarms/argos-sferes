@@ -78,7 +78,7 @@ void BaseLoopFunctions::place_robots()
 
     //m_vecInitSetup.clear();
     CVector3 size = get_arenasize();
-    Real minX = 0.50f; // the 0.05m offset accounts for the wall thickness
+    Real minX = 0.50f; 
     Real maxX = size.GetX() - 0.50f;
     Real minY = 0.50f;
     Real maxY = size.GetY() - 0.50;
@@ -399,10 +399,10 @@ void BaseLoopFunctions::reset_agent_positions()
             false                                                    // this is not a check, leave the robot there
         ))
         {
-            // std::cout << "trial" << m_unCurrentTrial << std::endl;
-            // std::cout << "robot" << m_unRobot << std::endl;
-            // std::cout<<"entity pos "<<entity->GetOriginAnchor().Position << std::endl;
-            // std::cout<<"trial pos " <<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
+            std::cout << "trial" << m_unCurrentTrial << std::endl;
+            std::cout << "robot" << m_unRobot << std::endl;
+            std::cout<<"entity pos "<<entity->GetOriginAnchor().Position << std::endl;
+            std::cout<<"trial pos " <<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
 
         }
         // std::cout<<"agent "<<m_unRobot<<std::endl;

@@ -375,8 +375,7 @@ void SDBC::init_walls(CLoopFunctions *cLoopFunctions)
 			// id does not name it wall
 			continue;
 		}
-		CVector3 position = cBody.GetEmbodiedEntity().GetOriginAnchor().Position;
-
+		CVector3 position = dynamic_cast<BaseLoopFunctions*>(cLoopFunctions)->get_wall_pos(cBody.GetId());
 		Entity e = Entity();
 		e.position = CVector3(position);
 		boxes.push_back(e);

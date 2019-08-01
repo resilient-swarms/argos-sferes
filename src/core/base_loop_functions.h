@@ -17,6 +17,7 @@
 #include <argos3/plugins/simulator/entities/cylinder_entity.h>
 #include <argos3/core/simulator/space/space.h>
 
+#define WALL_THICKNESS 1.0  // note: configs should always take a 1 meter thickness of the walls
 
 /*******************/
 //class EnvironmentGenerator;
@@ -88,14 +89,43 @@ public:
     {
         ++m_unCurrentTrial;
     }
-
-    CVector3 get_arenasize()
+    /* get wall outer position, assuming centered evenly in arena */
+    CVector3 get_wall_pos(std::string type)
     {
         CSpace::TMapPerTypePerId& entity_map = GetSpace().GetEntityMapPerTypePerId();
-		CVector3 wall_N = any_cast<CBoxEntity *>(entity_map["box"]["wall_north"])->GetEmbodiedEntity().GetOriginAnchor().Position;
-		CVector3 wall_S =  any_cast<CBoxEntity *>(entity_map["box"]["wall_south"])->GetEmbodiedEntity().GetOriginAnchor().Position;
-		CVector3 wall_W = any_cast<CBoxEntity *>(entity_map["box"]["wall_west"])->GetEmbodiedEntity().GetOriginAnchor().Position;
-		CVector3 wall_E = any_cast<CBoxEntity *>(entity_map["box"]["wall_east"])->GetEmbodiedEntity().GetOriginAnchor().Position;
+        CVector3 pos = any_cast<CBoxEntity *>(entity_map["box"][type])->GetEmbodiedEntity().GetOriginAnchor().Position;
+        if (type=="wall_north")
+        {
+            // remove WALL_THICKNESS/2 from the Y component
+            pos.SetY(pos.GetY() - WALL_THICKNESS/2.0f);
+        }
+        else if (type=="wall_south")
+        {
+             // add WALL_THICKNESS/2 to the Y component
+            pos.SetY(pos.GetY()+ WALL_THICKNESS/2.0f);
+        }
+        else if (type=="wall_east")
+        {
+            // remove WALL_THICKNESS/2 from the X component
+            pos.SetX(pos.GetX() - WALL_THICKNESS/2.0f);
+        }
+        else if (type=="wall_west")
+        {
+             // add WALL_THICKNESS/2 to the X component
+            pos.SetX(pos.GetX()+ WALL_THICKNESS/2.0f);
+        }
+        else{
+            throw std::runtime_error("walltype not supported");
+        }
+        return pos;
+    }
+    CVector3 get_arenasize()
+    {
+        
+		CVector3 wall_N = get_wall_pos("wall_north");
+		CVector3 wall_S = get_wall_pos("wall_south");
+		CVector3 wall_W = get_wall_pos("wall_west");;
+		CVector3 wall_E = get_wall_pos("wall_east");
 
 
         Real y = wall_N.GetY() - wall_S.GetY();

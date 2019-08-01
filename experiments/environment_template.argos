@@ -68,17 +68,17 @@
            source="loop_functions"
            pixels_per_meter="50" />
 
-   <box id="wall_north" size="FULL_WALL,0.1,0.5" movable="false">
+   <box id="wall_north" size="ARENA,1.0,0.5" movable="false">
       <body position="HALF_WALL,FULL_WALL,0" orientation="0,0,0" />
     </box>
-    <box id="wall_south" size="FULL_WALL,0.1,0.5" movable="false">
-      <body position="HALF_WALL,0,0" orientation="0,0,0" />
+    <box id="wall_south" size="ARENA,1.0,0.5" movable="false">
+      <body position="HALF_WALL,-0.5,0" orientation="0,0,0" />
     </box>
-    <box id="wall_east" size="0.1,FULL_WALL,0.5" movable="false">
+    <box id="wall_east" size="1.0,ARENA,0.5" movable="false">
       <body position="FULL_WALL,HALF_WALL,0" orientation="0,0,0" />
     </box>
-    <box id="wall_west" size="0.1,FULL_WALL,0.5" movable="false">
-      <body position="0,HALF_WALL,0" orientation="0,0,0" />
+    <box id="wall_west" size="1.0,ARENA,0.5" movable="false">
+      <body position="-0.5,HALF_WALL,0" orientation="0,0,0" />
     </box>
         
         <distribute>

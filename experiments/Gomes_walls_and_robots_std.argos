@@ -52,7 +52,7 @@
   <!-- ****************** -->
   <loop_functions library="lib/libevolution_loopfunctionscvt10D.so"
                   label="evolution_loopfunctionscvt10D"
-                  trials="1"
+                  trials="3"
                   robots="10"
                   descriptortype="cvt_Gomes_sdbc_walls_and_robots_std"  
                   fitfuntype="Aggregation"
@@ -70,17 +70,17 @@
            source="loop_functions"
            pixels_per_meter="50" />
 
-   <box id="wall_north" size="4.0,0.1,0.5" movable="false">
-      <body position="2,4.0,0" orientation="0,0,0" />
+   <box id="wall_north" size="6,1.0,0.5" movable="false">
+      <body position="2,4.5,0" orientation="0,0,0" />
     </box>
-    <box id="wall_south" size="4.0,0.1,0.5" movable="false">
-      <body position="2,0,0" orientation="0,0,0" />
+    <box id="wall_south" size="6,1.0,0.5" movable="false">
+      <body position="2,-0.5,0" orientation="0,0,0" />
     </box>
-    <box id="wall_east" size="0.1,4.0,0.5" movable="false">
-      <body position="4.0,2,0" orientation="0,0,0" />
+    <box id="wall_east" size="1.0,6,0.5" movable="false">
+      <body position="4.5,2,0" orientation="0,0,0" />
     </box>
-    <box id="wall_west" size="0.1,4.0,0.5" movable="false">
-      <body position="0,2,0" orientation="0,0,0" />
+    <box id="wall_west" size="1.0,6,0.5" movable="false">
+      <body position="-0.5,2,0" orientation="0,0,0" />
     </box>
 
 
@@ -95,7 +95,6 @@
 </distribute>
 
 </arena>
-
 
 
   <!-- ******************* -->
@@ -115,5 +114,7 @@
 
   <!-- ****************** -->
   <!-- * Visualization * -->
+
+
   <!-- ****************** -->
 </argos-configuration>
