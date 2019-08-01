@@ -399,10 +399,10 @@ void BaseLoopFunctions::reset_agent_positions()
             false                                                    // this is not a check, leave the robot there
         ))
         {
-            std::cout << "trial" << m_unCurrentTrial << std::endl;
-            std::cout << "robot" << m_unRobot << std::endl;
-            std::cout<<"entity pos "<<entity->GetOriginAnchor().Position << std::endl;
-            std::cout<<"trial pos " <<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
+            // std::cout << "trial" << m_unCurrentTrial << std::endl;
+            // std::cout << "robot" << m_unRobot << std::endl;
+            // std::cout<<"entity pos "<<entity->GetOriginAnchor().Position << std::endl;
+            // std::cout<<"trial pos " <<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
 
         }
         // std::cout<<"agent "<<m_unRobot<<std::endl;
