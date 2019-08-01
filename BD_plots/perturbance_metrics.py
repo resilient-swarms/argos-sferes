@@ -1,6 +1,5 @@
 import numpy as np
 from BD_plots.process_archive_data import *
-from Utils.Plots.plots import createPlot
 
 from matplotlib import pyplot as plt
 

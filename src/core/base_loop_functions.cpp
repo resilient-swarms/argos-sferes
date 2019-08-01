@@ -78,10 +78,10 @@ void BaseLoopFunctions::place_robots()
 
     //m_vecInitSetup.clear();
     CVector3 size = get_arenasize();
-    Real minX = 0.05f; // the 0.05m offset accounts for the wall thickness
-    Real maxX = size.GetX() - 0.05f;
-    Real minY = 0.05f;
-    Real maxY = size.GetY() - 0.05;
+    Real minX = 0.50f; // the 0.05m offset accounts for the wall thickness
+    Real maxX = size.GetX() - 0.50f;
+    Real minY = 0.50f;
+    Real maxY = size.GetY() - 0.50;
     m_vecInitSetup.clear();
     for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
     {
