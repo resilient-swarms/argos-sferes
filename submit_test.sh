@@ -12,12 +12,13 @@ archivefile="${ARCHIVEDIR}/archive_${FINALGEN_ARCHIVE}.dat"
 
 
 
-if [ "$1" = "compress" ]; then
+if [ "$1" = "best" ]; then
     # now get the history of the best solution
-    echo "Getting the best:\nStarting the following command: "${jobtocome}" "
+    echo "Getting the best:\nStarting the following command: "${jobtocome}""
     echo 
     echo "Looking for individuals at: "${archivefile}
-    python BD_plots/process_archive_data.py -o "${OUTPUTDIR}" -b "compress"
+    jobtocome="${COMMAND} ${CONFIG} best -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
+    python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "best"
     exit 1
 fi 
 
@@ -29,9 +30,4 @@ echo "Looking for individuals at: "${archivefile}
 echo
 python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all"
 
-# now get the history of the best solution
-echo "Getting the best:\nStarting the following command: "${jobtocome}""
-echo 
-echo "Looking for individuals at: "${archivefile}
-jobtocome="${COMMAND} ${CONFIG} best -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
-python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "best"
+

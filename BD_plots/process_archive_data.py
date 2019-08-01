@@ -78,7 +78,7 @@ def get_best_diversity_individuals(behavs,indivs):
         inds.append(indivs[k])
     return l,inds
 def compress_and_remove(outputfolder, file):
-    os.system("cd "+ outputfolder + " && tar cvf " +file +" | gzip -9 - > "+file+".tar.gz  && rm "+file)
+    os.system("cd "+ outputfolder + " && GZIP=-9 tar cvzf "+file+".tar.gz " +file +" && rm "+file)
 
 
 
@@ -108,6 +108,8 @@ def run_best_individual(command, outputfolder):
     maxind = get_best_individual(outputfolder + "/analysis_sdbc.dat")
     print("start run best individual: "+str(maxind))
     run_individual(command, maxind)
+    for analysis_suffix in ["sa_history", "xy_history"]:
+        compress_and_remove(outputfolder, analysis_suffix + str(maxind))
 
 def compress_histories(outputfolder):
     print("looking for " + outputfolder + "/analysis_sdbc.dat")
