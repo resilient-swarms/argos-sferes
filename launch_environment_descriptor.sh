@@ -154,7 +154,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			fi
 
 		echo "submitting job"
-		bash submit_envir_job.sh
+	        sbatch submit_envir_job.sh
 		done
 	done
 done
