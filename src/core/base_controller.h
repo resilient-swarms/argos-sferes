@@ -125,7 +125,9 @@ public:
 
     /* whether or not the robot is damaged */
     bool b_damagedrobot;
-
+    /* damage probability */
+    float damage_probability=0.0f;
+    
     /* whether or not to only use proximity sensors */
     bool only_proximity;
 

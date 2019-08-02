@@ -38,8 +38,8 @@
       <params>
       <wheel_turning max_speed="10" />
       <experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_NONE" 
-	                id_faulty_robot="-1" />
+						fault_behavior="FAULT_ACTUATOR_LWHEEL_SETHALF" 
+	                id_faulty_robot="50%" />
         
       </params>      
     </nn_controller>

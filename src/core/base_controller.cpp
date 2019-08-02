@@ -100,8 +100,23 @@ void BaseController::Init(TConfigurationNode &t_node)
     /* Wheel turning */
     m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
 
-    if(this->GetId().compare("thymio"+id_FaultyRobotInSwarm) == 0)
+    if(this->GetId().compare("thymio"+id_FaultyRobotInSwarm) == 0)  //process by ID
+    {
         b_damagedrobot = true;
+        std::cout<<"robot "<<id_FaultyRobotInSwarm<<"is damaged";
+    }
+    // else if(id_FaultyRobotInSwarm.back()=='%')   // process by proportion; assuming homogenous robots, can just do the first N robots
+    // {
+    //     id_FaultyRobotInSwarm.pop_back();
+    //     damage_probability = 0.01f * std::stoi(id_FaultyRobotInSwarm);// e.g. 99% 
+    //     // damage the first number_damaged robots
+    //     std::cout<<"will damage robots randomly, with probability "<< damage_probability<<std::endl;
+        
+    // }
+    else{
+        // nothing: proceed as usual undamaged
+        std::cout<<"no damage "<<damage_probability<<std::endl;
+    }
 }
 
 /****************************************/
@@ -121,6 +136,10 @@ void BaseController::ControlStep()
 void BaseController::Reset()
 {
     //    m_cPerceptron.Reset();
+    if (m_pcRNG->Uniform(argos::CRange<Real>(0.0,1.0)) < damage_probability)
+    {
+        b_damagedrobot = true;
+    }
 }
 
 /****************************************/

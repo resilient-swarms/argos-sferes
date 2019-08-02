@@ -120,9 +120,9 @@ template<typename Param_t>
 void init_shared_mem()
 {
     // times 2 because two individuals generated per reproduction
-    size_t num_blocks = 2 * std::max(Param_t::pop::init_size,Param_t::pop::size);
+    sferes::eval::num_memory = 2 * Param_t::pop::size;// for the initial population, allocate on the spot
     sferes::eval::shared_memory.clear();
-    for (size_t i = 0; i < num_blocks; ++i)
+    for (size_t i = 0; i < sferes::eval::num_memory; ++i)
     {
         sferes::eval::shared_memory.push_back(new sferes::eval::CSharedMem(BEHAV_DIM));
     }

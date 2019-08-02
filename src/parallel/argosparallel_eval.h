@@ -74,6 +74,7 @@ namespace sferes
 {
 namespace eval
 {
+size_t num_memory;
 /* File name for shared memory area (use for communicating genome) */
 //static const std::string SHARED_MEMORY_FILE = "/MPGA_SHARED_MEMORY_" + argos::ToString(getpid());
 /** Shared memory manager for data exchange between master and slaves */
@@ -254,13 +255,17 @@ struct _argos_parallel
                                                      _fit(fit),
                                                      MasterPID(::getpid())
   {
+    allocate_additional_memory();
     create_processes();
+    destroy_additional_memory();
   }
   _argos_parallel(const _argos_parallel &ev) : _pop(ev.pop),
                                                      _fit(ev.fit),
                                                      MasterPID(::getpid())
   {
+    allocate_additional_memory();
     create_processes();
+    destroy_additional_memory();
   }
   /* SIGTERM handler for slave processes */
   // inline void SlaveHandleSIGTERM(int) {
@@ -276,7 +281,23 @@ struct _argos_parallel
   //   }
 
   // }
+  void allocate_additional_memory()
+  {
+     size_t to_add = _pop.size() - num_memory;
+     
+     for (size_t i=0; i< to_add; ++i)
+     {
+       shared_memory.push_back(new CSharedMem(BEHAV_DIM));
+     }
+     std::cout<<"allocated memory: "<<shared_memory.size()<<std::endl;// this should happen only at the 0'th generation
+  }
 
+  void destroy_additional_memory()
+  {
+    
+    shared_memory.erase(shared_memory.begin()+num_memory,shared_memory.end());
+    std::cout<<"erased memory: "<<shared_memory.size()<<std::endl;// this should happen only at the 0'th generation
+  }
   inline void quit()
   {
     argos::LOG.Flush();

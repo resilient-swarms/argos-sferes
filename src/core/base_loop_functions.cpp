@@ -23,6 +23,7 @@ void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
         for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
         {
             m_pcvecRobot.push_back(any_cast<CThymioEntity *>(it->second));
+        // damage the first number_damaged robots
         }
         if (m_unNumberRobots != m_pcvecRobot.size()) // we need to make sure the number of robots distributed in the arena match what is specified by the user in the loop function.
         {
@@ -42,6 +43,10 @@ void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
             throw std::runtime_error("\n The number of cylinders distributed in the arena " + std::to_string(m_unNumberRobots) + " does not match what is specified by the user in the loop function " + std::to_string(m_pcvecCylinder.size()));
         }
     }
+
+    
+
+    
 }
 
 CEmbodiedEntity *BaseLoopFunctions::get_embodied_entity(size_t robot)

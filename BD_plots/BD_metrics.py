@@ -246,12 +246,12 @@ def development_plots(runs,times,BD_directory,title_tag):
     # bd_shapes = [32**2, 1000,1000,1000]  # shape of the characterisation
     # y_labels=["global_performance","global_reliability","precision","coverage"]
 
-    bd_type = ["Gomes_sdbc_walls_and_robots_std","environment_diversity"]  #legend label
-    legend_labels=["SDBC","QED"]  # labels for the legend
+    bd_type = ["Gomes_sdbc_walls_and_robots_std","environment_diversity","environment_diversity"]  #legend label
+    legend_labels=["SDBC","QED","QED-Translated"]  # labels for the legend
     colors=["C"+str(i) for i in range(len(bd_type))]  # colors for the lines
     # (numsides, style, angle)
-    markers=[(3,1,0),(3,2,0)] # markers for the lines
-    bd_shapes = [5000,5000]  # shape of the characterisation
+    markers=[(3,1,0),(3,2,0),(3,3,0)] # markers for the lines
+    bd_shapes = [5000,5000,5000]  # shape of the characterisation
     y_labels=["absolute_coverage","average_performance","global_performance","global_reliability","precision","coverage"]
 
 
@@ -262,30 +262,39 @@ def development_plots(runs,times,BD_directory,title_tag):
 
 
     for i in range(len(bd_type)):
+        translated = legend_labels[i].endswith("Translated")
         for time in times:
-            archive_file="archive_" + str(time) + ".dat"
+            if translated:
+                archive_file="analysis_sdbc.dat"
+                directory = BD_directory+"/"+bd_type[i] + "/FAULT_NONE"
+            else:
+                archive_file="archive_" + str(time) + ".dat"
+                directory = BD_directory + "/" + bd_type[i]
 
 
-            abs_coverage=absolutecoverages(bd_shapes[i], BD_directory+"/"+bd_type[i], runs, archive_file)
+            abs_coverage=absolutecoverages(bd_shapes[i], directory, runs, archive_file)
             add_boxplotlike_data(abs_coverage, y_bottom, y_mid, y_top, y_label="absolute_coverage",method_index=i)
 
+            coverage = coverages(bd_shapes[i], directory, runs, archive_file)
+            add_boxplotlike_data(coverage, y_bottom, y_mid, y_top, y_label="coverage", method_index=i)
 
-            avg_perform = avg_performances(BD_directory+"/"+bd_type[i], runs, archive_file , 1.0,
-                                                 conversion_func=None)
-            add_boxplotlike_data(avg_perform, y_bottom, y_mid, y_top, y_label="average_performance",method_index=i)
+            if not translated:
+
+                avg_perform = avg_performances(directory, runs, archive_file , 1.0,
+                                                     conversion_func=None)
+                add_boxplotlike_data(avg_perform, y_bottom, y_mid, y_top, y_label="average_performance",method_index=i)
 
 
-            global_perform = global_performances(BD_directory+"/"+bd_type[i], runs, archive_file , 1.0,
-                                                 conversion_func=None)
-            add_boxplotlike_data(global_perform, y_bottom, y_mid, y_top, y_label="global_performance",method_index=i)
-            global_reliability = global_reliabilities(BD_directory+"/"+bd_type[i], runs, archive_file)
-            add_boxplotlike_data(global_reliability, y_bottom, y_mid, y_top, y_label="global_reliability",method_index=i)
+                global_perform = global_performances(directory, runs, archive_file , 1.0,
+                                                     conversion_func=None)
+                add_boxplotlike_data(global_perform, y_bottom, y_mid, y_top, y_label="global_performance",method_index=i)
+                global_reliability = global_reliabilities(directory, runs, archive_file)
+                add_boxplotlike_data(global_reliability, y_bottom, y_mid, y_top, y_label="global_reliability",method_index=i)
 
-            precision=precisions(BD_directory+"/"+bd_type[i], runs, archive_file)
-            add_boxplotlike_data(precision, y_bottom, y_mid, y_top, y_label="precision",method_index=i)
+                precision=precisions(directory, runs, archive_file)
+                add_boxplotlike_data(precision, y_bottom, y_mid, y_top, y_label="precision",method_index=i)
 
-            coverage=coverages(bd_shapes[i], BD_directory+"/"+bd_type[i], runs, archive_file)
-            add_boxplotlike_data(coverage, y_bottom, y_mid, y_top, y_label="coverage",method_index=i)
+
     j=0
     for label in y_labels:
         ylim=[0,5000] if label == "absolute_coverage"   else [0.0,1.0]
@@ -318,7 +327,7 @@ if __name__ == "__main__":
         print_best_individuals(
             BD_dir="/home/david/DataFinal/datanew/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
             outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
-        development_plots(runs=range(1,6), times=range(0,1100, 100), BD_directory=data_dir + "/"+title,title_tag=fitfun+"NOCORRECT")
+        development_plots(runs=range(1,2), times=range(0,1100, 100), BD_directory=data_dir + "/"+title,title_tag=fitfun+"NOCORRECT")
 
 
 
