@@ -938,6 +938,32 @@ std::vector<float> CVT_Spirit::after_trials(EvolutionLoopFunctions &cLoopFunctio
 
 /*************************************************************************/
 
+ CVT_RAB_Spirit::CVT_RAB_Spirit()
+{
+	/* most of the code remains the same as CVT_Spirit except the meaning of the bins and the number 
+	* number of bins 
+	/*
+
+	/* number of joint sensory bins */
+	num_joint_sensory_bins = 256; // here 2^2 * 2^4 bins for mean (front-back proxi; quadrant-based RAB)
+
+	/* number of joint actuator bins simply */
+	num_joint_actuator_bins = 25; // 5 bins per wheel
+
+	freqs.resize(num_joint_sensory_bins);
+}
+
+/*after getting outputs, can update the descriptor if needed*/
+void CVT_RAB_Spirit::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+{
+	size_t sens_bin = cLoopFunctions.get_quadrant_bin();
+	size_t act_bin = cLoopFunctions.get_joint_actuator_bin(num_actuator_bins);
+	++freqs[sens_bin][act_bin];
+}
+
+
+/*************************************************************************/
+
 MultiAgent_Spirit::MultiAgent_Spirit()
 {
 	/* most of the code remains the same as CVT_Spirit except the meaning of the bins and the number 

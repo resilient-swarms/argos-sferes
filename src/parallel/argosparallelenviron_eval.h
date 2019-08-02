@@ -70,13 +70,17 @@ struct _argos_parallel_envir
                                                      _fit(fit),
                                                      MasterPID(::getpid())
   {
+    allocate_additional_memory();
     create_processes();
+    destroy_additional_memory();
   }
   _argos_parallel_envir(const _argos_parallel_envir &ev) : _pop(ev.pop),
                                                      _fit(ev.fit),
                                                      MasterPID(::getpid())
   {
+    allocate_additional_memory();
     create_processes();
+    destroy_additional_memory();
   }
   /* SIGTERM handler for slave processes */
   // inline void SlaveHandleSIGTERM(int) {
@@ -92,7 +96,23 @@ struct _argos_parallel_envir
   //   }
 
   // }
+  void allocate_additional_memory()
+  {
+     size_t to_add = _pop.size() - num_memory;
+     
+     for (size_t i=0; i< to_add; ++i)
+     {
+       shared_memory.push_back(new CSharedMem(BEHAV_DIM));
+     }
+     std::cout<<"allocated memory: "<<shared_memory.size()<<std::endl;// this should happen only at the 0'th generation
+  }
 
+  void destroy_additional_memory()
+  {
+    
+    shared_memory.erase(shared_memory.begin()+num_memory,shared_memory.end());
+    std::cout<<"erased memory: "<<shared_memory.size()<<std::endl;// this should happen only at the 0'th generation
+  }
   /* create the different child processes */
   void create_processes()
   {
@@ -123,20 +143,24 @@ struct _argos_parallel_envir
       bd = shared_memory[i]->getDescriptor();
       _pop[i]->fit().set_desc(bd);
       _pop[i]->fit().set_dead(shared_memory[i]->getDeath());
-      // argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
-      // argos::LOG << "parent: descriptor for individual " << i << std::endl;
-      // for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
-      // {
-      //   argos::LOG << "   " << _pop[i]->fit().desc()[j] << std::endl;
-      // }
-      // argos::LOG << "parent: death " << _pop[i]->fit().dead() << std::endl;
+      argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
+      argos::LOG << "parent: descriptor for individual " << i << std::endl;
+      for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
+      {
+        argos::LOG << "   " << _pop[i]->fit().desc()[j] << std::endl;
+      }
+      argos::LOG << "parent: death " << _pop[i]->fit().dead() << std::endl;
     }
     argos::LOG.Flush();
     argos::LOGERR.Flush();
     SlavePIDs.clear();     // PIDs no longer exist
     //argos::LOG << "finished all processes "<< std::endl;
   }
-
+  inline float bin_option(size_t option,size_t num_options)
+  {
+    //place them in the bottom of the bin e.g[0,5) [0.5,1)
+    return (float)(option - 1) / (float)num_options; // cf. behav_pos[i] = round(p[i] * behav_shape[i]); l.192-193 map_elites.hpp
+  }
 
   void LaunchSlave(size_t slave_id)
   {
@@ -165,11 +189,11 @@ struct _argos_parallel_envir
           {
               option = g.generate(Param_t::options[i]);
               jobname = jobname + std::to_string(option) + ",";
-              bd.push_back((float)(option - 1) / (float)Param_t::options[i]);//place them in the bottom of the bin e.g[0,5) [0.5,1)
-              // cf. behav_pos[i] = round(p[i] * behav_shape[i]); l.192-193 map_elites.hpp
+              bd.push_back(bin_option(option,Param_t::options[i]));
+              
           }
           option = g.generate(Param_t::options.back());
-          bd.push_back((float)option / (float)Param_t::options.back());
+          bd.push_back(bin_option(option,Param_t::options.back()));
           jobname = jobname + std::to_string(option) + ".argos";
           argos::LOG << "loading " << jobname << std::endl;
           //redirect(jobname,getppid());
@@ -201,14 +225,14 @@ struct _argos_parallel_envir
       shared_memory[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]); // ASSUME SINGLE OBJECTIVE
       shared_memory[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
       shared_memory[slave_id]->setDeath(_pop[slave_id]->fit().dead());
-      // argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
-      //argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
+      argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
+      argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
 
-      // for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
-      // {
-      //   argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
-      // }
-      // argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
+      for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
+      {
+        argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
+      }
+      argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
       argos::LOG.Flush();
       argos::LOGERR.Flush();
       cSimulator.Destroy(); // difference to the usual argosparallel

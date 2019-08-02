@@ -9,8 +9,8 @@
 
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 #ifdef CAFFE_NETS
-    #include "caffe/sgd_solvers.hpp"
-#endif 
+#include "caffe/sgd_solvers.hpp"
+#endif
 
 /****************************************/
 /****************************************/
@@ -77,7 +77,6 @@ void EvolutionLoopFunctions::Init(TConfigurationNode &t_node)
     BaseLoopFunctions::Init(t_node);
     init_simulation(t_node);
     init_descriptors(t_node);
-
 }
 
 /* get the controller  */
@@ -125,14 +124,18 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new CVT_Spirit();
         }
+        else if (s == "cvt_rab_spirit")
+        {
+            this->descriptor = new CVT_RAB_Spirit();
+        }
         else if (s == "multiagent_spirit")
         {
             this->descriptor = new MultiAgent_Spirit();
         }
-#ifdef CAFFE_NETS       
+#ifdef CAFFE_NETS
         else if (s == "cvt_dynamics_nesterov")
         {
-            size_t max_num_updates = m_unNumberTrials*(argos::CSimulator::GetInstance().GetMaxSimulationClock() - 1);
+            size_t max_num_updates = m_unNumberTrials * (argos::CSimulator::GetInstance().GetMaxSimulationClock() - 1);
             /* process solverparam_file */
             std::string solverparam_file = "src/caffe_nets/DynamicsModel_solver.prototxt";
             this->descriptor = new TransitionDescriptor<caffe::NesterovSolver<float>>(max_num_updates, solverparam_file);
@@ -142,7 +145,7 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             // do nothing; wait for initialisation in argosparallelenviron_eval.h
         }
-        else if(s == "analysis")
+        else if (s == "analysis")
         {
             // wait for manual initialisation in analysis.cpp
         }
@@ -185,7 +188,6 @@ void EvolutionLoopFunctions::init_robots(TConfigurationNode &t_node)
     }
 }
 
-
 /* add additional agents */
 void EvolutionLoopFunctions::create_new_agents()
 {
@@ -194,7 +196,7 @@ void EvolutionLoopFunctions::create_new_agents()
     {
         m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
         Real max_rab = m_pcvecRobot[robotindex]->GetRABEquippedEntity().GetRange();
-        m_pcvecController[robotindex]->max_rab_range = max_rab*100.0;//convert to cm
+        m_pcvecController[robotindex]->max_rab_range = max_rab * 100.0; //convert to cm
     }
 }
 
@@ -219,14 +221,14 @@ void EvolutionLoopFunctions::PreStep()
 }
 void EvolutionLoopFunctions::PostStep()
 {
-   
+
     for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
         CThymioEntity *cThymio = m_pcvecRobot[robotindex];
 #ifdef COLLISION_STOP
         if (cThymio->GetEmbodiedEntity().IsCollidingWithSomething())
         {
-	    std::cout<<"collision stop"<<std::endl;
+            std::cout << "collision stop" << std::endl;
             argos::CSimulator::GetInstance().Terminate();
             stop_eval = true;
             return;
@@ -234,7 +236,7 @@ void EvolutionLoopFunctions::PostStep()
 #endif
         // update the position and orientation
         curr_theta[robotindex] = get_orientation(robotindex);
-        
+
         curr_pos[robotindex] = cThymio->GetEmbodiedEntity().GetOriginAnchor().Position;
         outf[0] = m_pcvecController[robotindex]->m_fLeftSpeed;
         outf[1] = m_pcvecController[robotindex]->m_fRightSpeed;
@@ -265,7 +267,7 @@ void EvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)
     //_ctrlrob.init(); // a copied nn object needs to be init before use
 
     for (size_t j = 0; j < m_unNumberRobots; ++j)
-       m_pcvecController[j]->nn.init(); // a copied nn object needs to be init before use
+        m_pcvecController[j]->nn.init(); // a copied nn object needs to be init before use
 }
 void EvolutionLoopFunctions::end_trial()
 {
@@ -331,6 +333,156 @@ size_t EvolutionLoopFunctions::get_quadrant_bin() const
     }
     return bin;
 }
+
+// /* get activation bin for the activations of each sensory quadrant get joint activation bin for the actuators (used for Spirit)*/
+// size_t EvolutionLoopFunctions::get_quadrant_binRAB() const
+// {
+//     // proximity sensors: front vs back
+//     size_t bin = 0;
+//     // front:
+//     for (int i = 0; i <= 4; ++i)
+//     {
+//         if (inputs[i] > 0.00)
+//         {
+//             bin += 32;
+//             break;
+//         }
+//     }
+//     //back:
+//     for (int i = 5; i <= 6; ++i)
+//     {
+//         if (inputs[i] > 0.00)
+//         {
+//             bin += 16;
+//             break;
+//         }
+//     }
+
+//     // now the RAB sensors in quadrants of 90 degrees
+
+//     // 0:90 degrees
+//     for (int i = 7; i <= 8; ++i)
+//     {
+//         if (inputs[i] > 0.00)
+//         {
+//             bin += 8;
+//             break;
+//         }
+//     }
+
+//     // 90:180 degrees
+//     for (int i = 9; i <= 10; ++i)
+//     {
+//         if (inputs[i] > 0.00)
+//         {
+//             bin += 4;
+//             break;
+//         }
+//     }
+
+//     // 180:270 degrees
+//     for (int i = 11; i <= 12; ++i)
+//     {
+//         if (inputs[i] > 0.00)
+//         {
+//             bin += 2;
+//             break;
+//         }
+//     }
+
+//     // 270:360 degrees
+//     for (int i = 13; i <= 14; ++i)
+//     {
+//         if (inputs[i] > 0.00)
+//         {
+//             bin += 1;
+//             break;
+//         }
+//     }
+//     return bin;
+// }
+
+/* get activation bin for the activations of each sensory quadrant get joint activation bin for the actuators (used for Spirit)*/
+size_t EvolutionLoopFunctions::get_quadrant_binRAB() const
+{
+    // proximity sensors: front vs back
+    size_t bin = 0;
+    // front:
+    for (int i = 0; i <= 1; ++i)
+    {
+        if (inputs[i] > 0.00)
+        {
+            bin += 128;
+            break;
+        }
+    }
+    if (inputs[2] > 0.00)
+    {
+        bin += 64;
+    }
+
+    for (int i = 3; i <= 4; ++i)
+    {
+        if (inputs[i] > 0.00)
+        {
+            bin += 32;
+            break;
+        }
+    }
+    //back:
+    for (int i = 5; i <= 6; ++i)
+    {
+        if (inputs[i] > 0.00)
+        {
+            bin += 16;
+            break;
+        }
+    }
+
+    // now the RAB sensors in quadrants of 90 degrees
+
+    // 0:90 degrees
+    for (int i = 7; i <= 8; ++i)
+    {
+        if (inputs[i] > 0.00)
+        {
+            bin += 8;
+            break;
+        }
+    }
+
+    // 90:180 degrees
+    for (int i = 9; i <= 10; ++i)
+    {
+        if (inputs[i] > 0.00)
+        {
+            bin += 4;
+            break;
+        }
+    }
+
+    // 180:270 degrees
+    for (int i = 11; i <= 12; ++i)
+    {
+        if (inputs[i] > 0.00)
+        {
+            bin += 2;
+            break;
+        }
+    }
+
+    // 270:360 degrees
+    for (int i = 13; i <= 14; ++i)
+    {
+        if (inputs[i] > 0.00)
+        {
+            bin += 1;
+            break;
+        }
+    }
+    return bin;
+}
+
 /* get joint activation bin for the actuators (used for Spirit) */
 size_t EvolutionLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
 {
@@ -342,39 +494,38 @@ size_t EvolutionLoopFunctions::get_joint_actuator_bin(size_t num_bins) const
 }
 /* get bin for the centre of mass of the swarm (used for MultiAgentSpirit) */
 size_t EvolutionLoopFunctions::get_CM_bin(size_t num_bins, size_t num_SD_bins)
-{   
+{
 
     CVector3 arena = get_arenasize();
-    CVector3 grid = arena /num_bins;
+    CVector3 grid = arena / num_bins;
     argos::CVector3 cm = centre_of_mass(old_pos);
     /* split CM into bins */
-    float bin = StatFuns::get_bin(cm.GetX(),0.0f,arena.GetX(),num_bins);// multiplied =1 ( first symbol)
-    float multiplier = (float) num_bins;// now multiplier is num_bins
-    bin+=multiplier*StatFuns::get_bin(cm.GetY(),0.0f,arena.GetY(),num_bins);
+    float bin = StatFuns::get_bin(cm.GetX(), 0.0f, arena.GetX(), num_bins); // multiplied =1 ( first symbol)
+    float multiplier = (float)num_bins;                                     // now multiplier is num_bins
+    bin += multiplier * StatFuns::get_bin(cm.GetY(), 0.0f, arena.GetY(), num_bins);
 
-    multiplier *= (float) num_bins;
+    multiplier *= (float)num_bins;
 
     /* split SD across positions into bins */
     //for a set of N > 4 data spanning a range of values R, an upper bound on the standard deviation s is given by s = 0.6R
-				// with R=1 then s = 0.6
-    CVector3 SD_arena = 0.6*arena;
+    // with R=1 then s = 0.6
+    CVector3 SD_arena = 0.6 * arena;
     CVector2 SDs = StatFuns::XY_standard_dev(old_pos);
     float sdx = SDs.GetX();
-    bin+=multiplier*StatFuns::get_bin(sdx,0.0f,SD_arena.GetX(),num_SD_bins);
+    bin += multiplier * StatFuns::get_bin(sdx, 0.0f, SD_arena.GetX(), num_SD_bins);
 
-    multiplier *= (float) num_SD_bins;
+    multiplier *= (float)num_SD_bins;
     float sdy = SDs.GetY();
-    bin+=multiplier*StatFuns::get_bin(sdy,0.0f,SD_arena.GetX(),num_SD_bins);
+    bin += multiplier * StatFuns::get_bin(sdy, 0.0f, SD_arena.GetX(), num_SD_bins);
     return bin;
 }
-
 
 /* get bin for the movement of he swarm */
 size_t EvolutionLoopFunctions::get_swarmmovement_bin(size_t num_bins, size_t num_SD_bins)
 {
     // compute displacement vectors' mean and SD for each dimension
     std::vector<float> displacement_X, displacement_Y;
-    for (size_t i=0; i < curr_pos.size(); ++i)
+    for (size_t i = 0; i < curr_pos.size(); ++i)
     {
         displacement_X.push_back(curr_pos[i].GetX() - old_pos[i].GetX());
         displacement_Y.push_back(curr_pos[i].GetY() - old_pos[i].GetY());
@@ -384,33 +535,32 @@ size_t EvolutionLoopFunctions::get_swarmmovement_bin(size_t num_bins, size_t num
     float SD_dx = StatFuns::standard_dev(displacement_X);
     float SD_dy = StatFuns::standard_dev(displacement_Y);
 
-    // now bin them 
-    
-    /* split CM into bins */
-    float max_displacement = get_controller(0)->m_sWheelTurningParams.MaxSpeed*tick_time/(100.0f);
-    float bin = StatFuns::get_bin(mean_dX,-max_displacement,max_displacement,num_bins);// multiplied =1 ( first symbol)
-    float multiplier = (float) num_bins;// now multiplier is num_bins
-    bin+=multiplier*StatFuns::get_bin(mean_dY,-max_displacement,max_displacement,num_bins);
+    // now bin them
 
-    multiplier *= (float) num_bins;
+    /* split CM into bins */
+    float max_displacement = get_controller(0)->m_sWheelTurningParams.MaxSpeed * tick_time / (100.0f);
+    float bin = StatFuns::get_bin(mean_dX, -max_displacement, max_displacement, num_bins); // multiplied =1 ( first symbol)
+    float multiplier = (float)num_bins;                                                    // now multiplier is num_bins
+    bin += multiplier * StatFuns::get_bin(mean_dY, -max_displacement, max_displacement, num_bins);
+
+    multiplier *= (float)num_bins;
 
     /* split SD across positions into bins */
     //for a set of N > 4 data spanning a range of values R, an upper bound on the standard deviation s is given by s = 0.6R
-				// with R=1 then s = 0.6
+    // with R=1 then s = 0.6
     // multiply by 2 then because range=2*max_displacement
-    float max_sd = 1.2*max_displacement;
-    bin+=multiplier*StatFuns::get_bin(SD_dx,0.0f,max_sd, num_SD_bins);
+    float max_sd = 1.2 * max_displacement;
+    bin += multiplier * StatFuns::get_bin(SD_dx, 0.0f, max_sd, num_SD_bins);
 
-    multiplier *= (float) num_SD_bins;
-    bin+=multiplier*StatFuns::get_bin(SD_dy,0.0f,max_sd, num_SD_bins);
+    multiplier *= (float)num_SD_bins;
+    bin += multiplier * StatFuns::get_bin(SD_dy, 0.0f, max_sd, num_SD_bins);
     return bin;
 }
 
-
 void EvolutionLoopFunctions::analyse(float fFitness)
 {
-    AnalysisDescriptor* descrip = dynamic_cast<AnalysisDescriptor*>(descriptor);
-    descrip->analyse_individual(*this,fFitness);
+    AnalysisDescriptor *descrip = dynamic_cast<AnalysisDescriptor *>(descriptor);
+    descrip->analyse_individual(*this, fFitness);
 }
 
 /****************************************/

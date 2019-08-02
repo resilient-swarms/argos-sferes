@@ -445,13 +445,13 @@ public:
   const float alpha_smooth = 1.0;
 
   /* number of joint sensory bins */
-  size_t num_joint_sensory_bins;
+  size_t num_joint_sensory_bins=16;
 
   /* number of actuator bins */
-  size_t num_actuator_bins;
+  size_t num_actuator_bins=5;
 
   /* number of joint actuator bins */
-  size_t num_joint_actuator_bins; // assuming two actuators
+  size_t num_joint_actuator_bins=25; // assuming two actuators
 
   /* track the frequencies of the different bins for all groups*/
   std::vector<std::vector<float>> freqs; // for each sensory state the action probabilities
@@ -478,6 +478,17 @@ public:
 
   /* get the descriptor */
   virtual std::vector<float> get_bd();
+};
+
+class CVT_RAB_Spirit : public CVT_Spirit
+{
+  // extends the CVT_Spirit class to calculate the sensory bin based on RAB sensors additionally
+public:
+  CVT_RAB_Spirit();
+
+  /*after getting outputs, can update the descriptor if needed*/
+  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+
 };
 
 class MultiAgent_Spirit : public CVT_Spirit

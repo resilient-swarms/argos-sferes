@@ -17,7 +17,7 @@ struct EnvirParams : EAParams
     {
         SFERES_CONST double epsilon = EAParams::ea::epsilon;
         SFERES_CONST size_t behav_dim = 6;
-        SFERES_ARRAY(size_t, behav_shape, 5, 4, 3, 5, 4, 4);
+        SFERES_ARRAY(size_t, behav_shape, 4, 4, 4, 4, 4, 4);
     };
     using EAParams::evo_float;
     using EAParams::parameters;
@@ -41,7 +41,7 @@ struct EnvirTaskAgnostParams : EAParams
     static std::vector<int> options;
 };
 
-std::vector<int> EnvirParams::options = {5, 4, 3, 5, 4, 4};
+std::vector<int> EnvirParams::options = {4, 4, 4, 4, 4, 4};
 std::vector<int> EnvirTaskAgnostParams::options = {3, 3, 3, 4, 3, 3, 5};
 typedef T<EnvirParams, eval::ArgosParallelEnvir<EnvirParams>>::ea_t parallelenvir_ea_t;
 typedef T<EnvirTaskAgnostParams, eval::ArgosParallelEnvir<EnvirTaskAgnostParams>>::ea_t parallelenvirtaskagnost_ea_t;

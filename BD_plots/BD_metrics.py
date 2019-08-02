@@ -246,8 +246,8 @@ def development_plots(runs,times,BD_directory,title_tag):
     # bd_shapes = [32**2, 1000,1000,1000]  # shape of the characterisation
     # y_labels=["global_performance","global_reliability","precision","coverage"]
 
-    bd_type = ["Gomes_sdbc_walls_and_robots_std","environment_diversity","environment_diversity"]  #legend label
-    legend_labels=["SDBC","QED","QED-Translated"]  # labels for the legend
+    bd_type = ["baseline","history","cvt_spirit","Gomes_sdbc_walls_and_robots_std","environment_diversity","environment_diversity"]  #legend label
+    legend_labels=["design","handcrafted","SPIRIT","SDBC","QED","QED-Translated"]  # labels for the legend
     colors=["C"+str(i) for i in range(len(bd_type))]  # colors for the lines
     # (numsides, style, angle)
     markers=[(3,1,0),(3,2,0),(3,3,0)] # markers for the lines

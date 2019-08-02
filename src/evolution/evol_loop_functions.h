@@ -123,8 +123,11 @@ public:
     /* get bin for sensory probabilities  */
     size_t get_actuator_bin(size_t i, size_t num_bins) const;
 
-    /* get activation bin for the activations of each sensory quadrant */
+    /* get activation bin for the activations of each sensory quadrant, assuming use only proximity sensors */
     size_t get_quadrant_bin() const;
+
+    /* get activation bin for the activations of each sensory quadrant, assuming use proximity+RAB sensors */
+    size_t get_quadrant_binRAB() const;
 
     /* get joint activation bin for the actuators */
     size_t get_joint_actuator_bin(size_t num_bins) const;

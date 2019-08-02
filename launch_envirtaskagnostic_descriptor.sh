@@ -83,38 +83,39 @@ FitfunType="TaskAgnost"
 		
 		if [[ "${DO_CONFIG}"="true" ]] ; then   
 				count1=0
-				for MaxSpeed in 5  10  15.; do
+				for MaxSpeed in 5 10 15 20 ; do
 					count1=$((count1+1))
 					count2=0
 				
-					for Robots in 5 10 20; do
+					for Robots in 5 10 15 20; do
 						count2=$((count2+1))
 						count3=0
 
-						for Wall in 3 4 5; do
+						for Wall in 3 4 5 6; do
 							count3=$((count3+1))
 							count4=0
 							# from the wall size, calc the center, arena, halfwall, and the wall_off
+							WallThickness=1.0
 							HalfWall=$(calc ${Wall}/2)  #
-							H=${HalfWall}
-							Arena=$(calc 3*${H}) #e.g. 1m-wall-2m-center-2m-wall-1m
-							Center=${H}
-							WallOff=$(calc ${Wall}-0.5)
+							Arena=$(calc ${Wall}+2*${WallThickness}) # wall + 2m to account for 2*1m wall
+							Center=${HalfWall}
+							WallOff=$(calc ${Wall}-0.5) # just for init robots
 
-							for Cylinder in 0 2 4 8; do
+							
+
+							FullWall=$(calc ${Wall}+${WallThickness}/2.0)
+
+							for Cylinder in 0 2 4 6; do
 								count4=$((count4+1))
 								count5=0
 
-								for RabRange in 0.25 1.0 2.0; do
+								for RabRange in 0.25 0.50 1.0 2.0; do
 									count5=$((count5+1))
 									count6=0
 									TwoR=$(calc 2*${RabRange})
 									RabGrid=$(ceiling_divide ${Wall} ${TwoR})  #  divide arena spanned by walls into cells of 2R
 									# take ceiling in case not divisible (e.g., wall=5 and 2R=4, take 2 grid cells per dimension)
-									
-                                    for ProxiRange in 0.05 0.11 0.40; do   
-										count6=$((count6+1))
-                                        count7=0
+									for ProxiRange in 0.055 0.11 0.22 0.44; do   # 4800 combinations in total
                                         for RealFitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking ; do   
                                             count7=$((count7+1))
                                             ConfigTag="${count1},${count2},${count3},${count4},${count5},${count6},${count7}"

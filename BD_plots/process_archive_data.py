@@ -120,7 +120,7 @@ def compress_histories(outputfolder):
     compress_and_remove(outputfolder, outputfolder + "/xy_history" + str(maxind))
 
 
-def get_best_individual(path, as_string=True, add_performance=False):
+def get_best_individual(path, as_string=False, add_performance=False, add_all=False):
         best_performance=-float("inf")
         maxind=np.nan
         parsed_file_list = read_spacedelimited(path)
@@ -131,10 +131,13 @@ def get_best_individual(path, as_string=True, add_performance=False):
                 b = str(b)
             performance = float(item[-1])
             if performance > best_performance:
+                maxbd=b
                 maxind=ind
                 best_performance = performance
         if add_performance:
             return maxind, best_performance
+        if add_all:
+            return maxind, best_performance, maxbd
         return maxind
 
 

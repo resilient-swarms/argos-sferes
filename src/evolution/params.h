@@ -87,7 +87,7 @@ struct EAParams
 #ifdef CVT
     struct ea
     {
-        SFERES_CONST size_t number_of_clusters = 5000;
+        SFERES_CONST size_t number_of_clusters = 4096;
         SFERES_CONST size_t number_of_dimensions = BEHAV_DIM;
         typedef boost::array<double, number_of_dimensions> point_t;
         static std::vector<point_t> centroids;
@@ -102,9 +102,9 @@ struct EAParams
 #if BEHAV_DIM == 1
         SFERES_ARRAY(size_t, behav_shape, 1000);
 #elif BEHAV_DIM == 2
-        SFERES_ARRAY(size_t, behav_shape, 32, 32);
+        SFERES_ARRAY(size_t, behav_shape, 64, 64);
 #elif BEHAV_DIM == 3
-        SFERES_ARRAY(size_t, behav_shape, 10, 10, 10);
+        SFERES_ARRAY(size_t, behav_shape, 16,16,16);
 #elif BEHAV_DIM == 6
         SFERES_ARRAY(size_t, behav_shape, 4, 4, 4, 4, 4, 4);
 #elif BEHAV_DIM == 7
