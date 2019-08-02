@@ -322,14 +322,14 @@ struct _argos_parallel
     shared_memory[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]); // ASSUME SINGLE OBJECTIVE
     shared_memory[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
     shared_memory[slave_id]->setDeath(_pop[slave_id]->fit().dead());
-    argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
-    argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
+    // argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
+    // argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
      
-    for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
-    {
-      argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
-    }
-    argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
+    // for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
+    // {
+    //   argos::LOG << "   " << _pop[slave_id]->fit().desc()[j] << std::endl;
+    // }
+    // argos::LOG << "child: death " << _pop[slave_id]->fit().dead() << std::endl;
 
     quit();
   }
@@ -362,13 +362,13 @@ struct _argos_parallel
       bd = shared_memory[i]->getDescriptor();
       _pop[i]->fit().set_desc(bd);
       _pop[i]->fit().set_dead(shared_memory[i]->getDeath());
-      argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
-      argos::LOG << "parent: descriptor for individual " << i << std::endl;
-      for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
-      {
-        argos::LOG << "   " << _pop[i]->fit().desc()[j] << std::endl;
-      }
-      argos::LOG << "parent: death " << _pop[i]->fit().dead() << std::endl;
+      // argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
+      // argos::LOG << "parent: descriptor for individual " << i << std::endl;
+      // for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
+      // {
+      //   argos::LOG << "   " << _pop[i]->fit().desc()[j] << std::endl;
+      // }
+      // argos::LOG << "parent: death " << _pop[i]->fit().dead() << std::endl;
     }
     argos::LOG.Flush();
     argos::LOGERR.Flush();
