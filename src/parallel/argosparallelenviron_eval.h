@@ -104,14 +104,14 @@ struct _argos_parallel_envir
      {
        shared_memory.push_back(new CSharedMem(BEHAV_DIM));
      }
-     std::cout<<"allocated memory: "<<shared_memory.size()<<std::endl;// this should happen only at the 0'th generation
+     //std::cout<<"allocated memory: "<<shared_memory.size()<<std::endl;// this should happen only at the 0'th generation
   }
 
   void destroy_additional_memory()
   {
     
     shared_memory.erase(shared_memory.begin()+num_memory,shared_memory.end());
-    std::cout<<"erased memory: "<<shared_memory.size()<<std::endl;// this should happen only at the 0'th generation
+    //std::cout<<"erased memory: "<<shared_memory.size()<<std::endl;// this should happen only at the 0'th generation
   }
   /* create the different child processes */
   void create_processes()
