@@ -108,10 +108,10 @@ IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(EvolutionLoopFunctions *c
 	argos::CVector3 max = cLoopFunctions->get_arenasize();
 	argos::CVector3 min = center - 0.5 * max;
 	max_deviation = StatFuns::get_minkowski_distance(max, center);
-	if (cLoopFunctions->m_unNumberRobots != 1)
-	{
-		throw std::runtime_error("number of robots should be equal to 1 when choosing IntuitiveHistoryDescriptor");
-	}
+	// if (cLoopFunctions->m_unNumberRobots != 1)
+	// {
+	// 	throw std::runtime_error("number of robots should be equal to 1 when choosing IntuitiveHistoryDescriptor");
+	// }
 	coverageCalc = CoverageCalc(cLoopFunctions);
 }
 
@@ -148,7 +148,7 @@ void IntuitiveHistoryDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunction
 	float avg_deviation = deviation / (max_deviation * (float)num_updates);
 	this->bd[1][current_trial] = avg_deviation;
 
-#ifdef THREE_D_BEHAV
+#if BEHAV_DIM == 3
 	float coverage = coverageCalc.get_coverage();
 	this->bd[2][current_trial] = coverage;
 #endif
@@ -157,7 +157,7 @@ void IntuitiveHistoryDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunction
 	std::cout << "uniformity" << uniformity << std::endl;
 	std::cout << "Max deviation" << max_deviation << std::endl;
 	std::cout << "deviation" << avg_deviation << std::endl;
-#ifdef THREE_D_BEHAV
+#if  BEHAV_DIM == 3
 	std::cout << "coverage" << coverage << std::endl;
 #endif
 #endif

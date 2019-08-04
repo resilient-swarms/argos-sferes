@@ -29,49 +29,49 @@ void CoverageCalc::define_grid(BaseLoopFunctions* cLoopFunctions)
 
 void CoverageCalc::get_num_cells(BaseLoopFunctions &cLoopFunctions)
 {
-    CSpace::TMapPerType &argos_cylinders = cLoopFunctions.GetSpace().GetEntitiesByType("cylinder");
-    float obstacle_cells=0.0f;
-    for (CSpace::TMapPerType::iterator it = argos_cylinders.begin(); it != argos_cylinders.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
-	{
-        CCylinderEntity &cylinder = *any_cast<CCylinderEntity *>(it->second);
+    // CSpace::TMapPerType &argos_cylinders = cLoopFunctions.GetSpace().GetEntitiesByType("cylinder");
+    // float obstacle_cells=0.0f;
+    // for (CSpace::TMapPerType::iterator it = argos_cylinders.begin(); it != argos_cylinders.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
+	// {
+    //     CCylinderEntity &cylinder = *any_cast<CCylinderEntity *>(it->second);
 
-        CVector3 pos = cylinder.GetEmbodiedEntity().GetOriginAnchor().Position;
+    //     CVector3 pos = cylinder.GetEmbodiedEntity().GetOriginAnchor().Position;
 
-        //identify the enclosed rectangle
-		float r =  cylinder.GetRadius();
+    //     //identify the enclosed rectangle
+	// 	float r =  cylinder.GetRadius();
 
-        float a = sqrt(2)*r*r;
-        float half_a_pos = a/2;
-        float x_min = pos.GetX() - half_a_pos;
-        float x_max = pos.GetX() + half_a_pos;
-        float y_min = pos.GetY() - half_a_pos;
-        float y_max = pos.GetY() + half_a_pos;
+    //     float a = sqrt(2)*r*r;
+    //     float half_a_pos = a/2;
+    //     float x_min = pos.GetX() - half_a_pos;
+    //     float x_max = pos.GetX() + half_a_pos;
+    //     float y_min = pos.GetY() - half_a_pos;
+    //     float y_max = pos.GetY() + half_a_pos;
 
 
         
-        // exploit relation between circle and square; 
-        // cf https://math.stackexchange.com/questions/854535/how-can-i-find-the-smallest-enclosing-circle-for-a-rectangle
-        // R = sqrt(2* a^2 )/2 --> 2 a^2 = 4 R^2 --> a^2 = 2R^2 -> a = sqrt(2)R  ---> area = a^2=2 R ^2
+    //     // exploit relation between circle and square; 
+    //     // cf https://math.stackexchange.com/questions/854535/how-can-i-find-the-smallest-enclosing-circle-for-a-rectangle
+    //     // R = sqrt(2* a^2 )/2 --> 2 a^2 = 4 R^2 --> a^2 = 2R^2 -> a = sqrt(2)R  ---> area = a^2=2 R ^2
        
-        // now get the number of squares FULLY enclosed by the enclosing rectangle
-        // assuming grid [0,grid_step,2*grid_step,...]
-        size_t start_bin_x = std::ceil(x_min/grid_step);
-        size_t end_bin_x = std::floor(x_max/grid_step);
+    //     // now get the number of squares FULLY enclosed by the enclosing rectangle
+    //     // assuming grid [0,grid_step,2*grid_step,...]
+    //     size_t start_bin_x = std::ceil(x_min/grid_step);
+    //     size_t end_bin_x = std::floor(x_max/grid_step);
 
-        size_t start_bin_y = std::ceil(y_min/grid_step);
-        size_t end_bin_y = std::floor(y_max/grid_step);
+    //     size_t start_bin_y = std::ceil(y_min/grid_step);
+    //     size_t end_bin_y = std::floor(y_max/grid_step);
 
-        if (start_bin_x >= end_bin_x || start_bin_y >= end_bin_y)
-            continue;
-        obstacle_cells+=(end_bin_x - start_bin_x)*(end_bin_y - start_bin_y);
+    //     if (start_bin_x >= end_bin_x || start_bin_y >= end_bin_y)
+    //         continue;
+    //     obstacle_cells+=(end_bin_x - start_bin_x)*(end_bin_y - start_bin_y);
        
-        // float area =2*r*r;
-        // size_t additional_taken = std::floor(area / (grid_step*grid_step));
-        // size+=additional_taken;
-	}
+    //     // float area =2*r*r;
+    //     // size_t additional_taken = std::floor(area / (grid_step*grid_step));
+    //     // size+=additional_taken;
+	// }
     argos::CVector3 max = cLoopFunctions.get_arenasize();
     float total_size = (max.GetX() * max.GetY()) / (grid_step*grid_step);
-    num_cells = std::ceil(total_size - obstacle_cells);
+    num_cells = std::ceil(total_size);  //std::ceil(total_size - obstacle_cells);
 }
 /* get the actual coverage of a single trial */
 float CoverageCalc::get_coverage() const
