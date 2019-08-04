@@ -11,8 +11,17 @@ import pickle
 import os
 home=os.environ["HOME"]
 
+N = 100000  # as usual take 100000 datapoints
+batch_size = 10000  # avoid too big memory requirement
+BD = 6400
+centroids = 4096
+states = 256
+actions = 25
+prefix = home + "/argos-sferes/experiments/centroids/SPIRIT"
+
 def generate_data(start,end,num_states,num_actions,BD_size):
     final_points=[]
+
     for i in range(start,end):
         #print("point "+str(i))
         point=[]
@@ -35,18 +44,13 @@ def generate_data(start,end,num_states,num_actions,BD_size):
         #print(point)
         final_points.append(point)
     return final_points
-
-if __name__ == "__main__":
-    N=100000  # as usual take 100000 datapoints
-    batch_size=1000  # avoid too big memory requirement
-    BD=6400
-    centroids=4096
-    states=256
-    actions=25
-    prefix=home+"/argos-sferes/experiments/centroids/SPIRIT"
+def make_batches():
+    assert batch_size>BD
     j=0
     for i in range(0,N,batch_size):
         data=generate_data(i,i+batch_size,states,actions,BD)
         pickle.dump(data,open(prefix+str(j),"wb"))
         j+=1
-    os.system("python cvt.py -p="+str(N)+" -b="+str(batch_size)+" -d="+str(BD)+" -k="+str(centroids)+" -l="+prefix)
+if __name__ == "__main__":
+    make_batches()
+    os.system("python "+home+"/argos-sferes/sferes2/modules/cvt_map_elites/cvt.py -p="+str(N)+" -b="+str(batch_size)+" -d="+str(BD)+" -k="+str(centroids)+" -l="+prefix)

@@ -1,4 +1,4 @@
-import lzma
+import zlib
 import tarfile
 from dimensionality_plot import *
 HOME_DIR = os.environ["HOME"]
@@ -127,13 +127,14 @@ def NCD(file1,file2, from_gz=True):
     y=read_history_file(file2,from_gz)
     x_y = x + y  # concatenation
 
-    x_c = lzma.compress(x)
-    y_c = lzma.compress(y)
-    x_y_c = lzma.compress(x_y)
+    x_c = zlib.compress(x)
+    y_c = zlib.compress(y)
+    x_y_c = zlib.compress(x_y)
 
     enum = len(x_y_c) - min(len(x_c), len(y_c))
     denom = max(len(x_c), len(y_c))
-    return  enum / denom
+    NCD =  enum / denom
+    print("NCD =%.3f"%(NCD))
 
 def gather_perturbation_results(bd_type,fitfuns,faults,runs):
     for bd in bd_type:
@@ -176,22 +177,17 @@ def filenames(fitfun,bd):
     return fitfun + bd + "_DeltaPs.pkl",fitfun+ bd + "_ncds.pkl"
 if __name__ == "__main__":
 
-
-
-
-
-
     faults=["FAULT_NONE","FAULT_PROXIMITYSENSORS_SETMIN","FAULT_PROXIMITYSENSORS_SETMAX","FAULT_PROXIMITYSENSORS_SETRANDOM",
             "FAULT_ACTUATOR_LWHEEL_SETHALF", "FAULT_ACTUATOR_RWHEEL_SETHALF", "FAULT_ACTUATOR_BWHEELS_SETHALF"]
     F=len(faults)
-    bd_type = ["Gomes_sdbc_walls_and_robots_std","environment_diversity"]  # legend label
-    plot_titles = ["SDBC","QED"]  # labels for the legend
+    bd_type = ["environment_diversity"]  # legend label
+    plot_titles = ["QED"]  # labels for the legend
     fitfuns = ["Aggregation","Dispersion", "DecayCoverage", "DecayBorderCoverage", "Flocking"]
     colors = ["C" + str(i) for i in range(len(bd_type))]
     markers = [(2, 1, 0), (3, 1, 0)]
 
-    #gather_perturbation_results(bd_type, fitfuns, faults,runs=[1])
-    gather_category_results(bd_type, fitfuns, faults, runs=[1])
+    gather_perturbation_results(bd_type, fitfuns, faults,runs=[1])
+    #gather_category_results(bd_type, fitfuns, faults, runs=[1])
 
     i=0
     for fitfun in fitfuns:
