@@ -956,7 +956,7 @@ std::vector<float> CVT_Spirit::after_trials(EvolutionLoopFunctions &cLoopFunctio
 /*after getting outputs, can update the descriptor if needed*/
 void CVT_RAB_Spirit::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
-	size_t sens_bin = cLoopFunctions.get_quadrant_bin();
+	size_t sens_bin = cLoopFunctions.get_quadrant_binRAB();
 	size_t act_bin = cLoopFunctions.get_joint_actuator_bin(num_actuator_bins);
 	++freqs[sens_bin][act_bin];
 }

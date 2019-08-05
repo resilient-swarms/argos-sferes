@@ -53,6 +53,37 @@ std::vector<T> element_wise_additiondiv(std::vector<T> result, const std::vector
     return result;//note this is a copy !
 }
 
+template<typename Array_t>
+float sum_array(const Array_t& arr)
+{
+    float sum = 0.0f;
+    for(auto i:arr) 
+    {
+        sum+=i;
+    }
+    return sum;
+}
+
+template<typename Array_t>
+void check_sums(float number, const Array_t& arr, size_t batch)
+{
+    
+    int j=0;
+    while (j < arr.size())
+    {
+        float sum = 0.0f;
+        for(auto it=  arr.begin()+j; it != arr.begin() + j + batch; ++it ) 
+        {
+            sum+=*it;
+        }
+        if (std::abs(sum - number) < 0.05)
+        {
+            std::cout<<"sum: "<<sum<<std::endl;
+        }
+        j+=batch;
+    }
+}
+
 template <int N>
 struct Factorial 
 {

@@ -8,6 +8,8 @@
 #include <src/evolution/evol_loop_functions.h>
 #include <src/exec_tools.h>
 
+#include <src/core/statistics.h>
+
 /****************************************/
 /****************************************/
 
@@ -44,6 +46,12 @@ int main(int argc, char **argv)
 #ifdef CVT
     static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
     EAParams::ea::centroids = load_centroids(cLoopFunctions.centroids_folder + "/centroids_" + std::to_string(EAParams::ea::number_of_clusters) + "_" + std::to_string(EAParams::ea::number_of_dimensions) + ".dat");
+
+    // // check for SPIRIT
+    // for (int i=0; i< EAParams::ea::number_of_clusters; ++i)
+    // {
+    //     check_sums<boost::array<double, 6400>>(1.0f, EAParams::ea::centroids[i],25);
+    // }
 #endif
 #ifdef ARGOS_PARALLEL
     init_shared_mem<EAParams>();
