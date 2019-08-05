@@ -76,7 +76,7 @@ void check_sums(float number, const Array_t& arr, size_t batch)
         {
             sum+=*it;
         }
-        if (std::abs(sum - number) < 0.05)
+        if (std::abs(sum - number) > 0.05)
         {
             std::cout<<"sum: "<<sum<<std::endl;
         }
