@@ -17,13 +17,13 @@ if [ "$1" = "best" ]; then
     echo "Getting the best:\nStarting the following command: "${jobtocome}""
     echo 
     echo "Looking for individuals at: "${archivefile}
-    jobtocome="${COMMAND} ${CONFIG} best -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
+    jobtocome="${COMMAND} ${CONFIG} best ${FINALGEN_ARCHIVE} -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
     python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "best"
     exit 1
 fi 
 
 # first get all the fitness and descriptor values
-jobtocome="${COMMAND} ${CONFIG} all -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
+jobtocome="${COMMAND} ${CONFIG} all ${FINALGEN_ARCHIVE} -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
 echo "Starting the following command: "${jobtocome}" for all individuals"
 echo 
 echo "Looking for individuals at: "${archivefile}

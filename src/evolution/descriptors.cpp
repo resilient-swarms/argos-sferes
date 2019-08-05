@@ -7,13 +7,12 @@
 #include <random>
 #define SENSOR_ACTIVATION_THRESHOLD 0.5
 
-
-
 void write_individual(std::vector<float> bd, float fitness, size_t individual, std::string filename)
 {
+
 	std::ofstream ofs;
 	ofs.open(filename.c_str(), std::ios::app);
-	
+
 	ofs << individual << "    ";
 	size_t offset = 0;
 	for (size_t dim = 0; dim < bd.size(); ++dim)
@@ -25,8 +24,8 @@ void write_individual(std::vector<float> bd, float fitness, size_t individual, s
 }
 
 
-/***********************************************/
 
+/***********************************************/
 
 Descriptor::Descriptor(size_t dims) : behav_dim(dims)
 {
@@ -70,8 +69,6 @@ std::vector<float> Descriptor::after_trials(EvolutionLoopFunctions &cLoopFunctio
 	return final_bd;
 }
 
-
-
 /**********************************************************************/
 
 void AverageDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
@@ -98,7 +95,7 @@ void AverageDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 	}
 }
 
-IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(EvolutionLoopFunctions *cLoopFunctions)
+IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(EvolutionLoopFunctions *cLoopFunctions,size_t behav_dim) : Descriptor(behav_dim)
 {
 
 	//define member variables
@@ -148,18 +145,18 @@ void IntuitiveHistoryDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunction
 	float avg_deviation = deviation / (max_deviation * (float)num_updates);
 	this->bd[1][current_trial] = avg_deviation;
 
-#if BEHAV_DIM == 3
+// #if BEHAV_DIM == 3
 	float coverage = coverageCalc.get_coverage();
 	this->bd[2][current_trial] = coverage;
-#endif
+// #endif
 
 #ifdef PRINTING
 	std::cout << "uniformity" << uniformity << std::endl;
 	std::cout << "Max deviation" << max_deviation << std::endl;
 	std::cout << "deviation" << avg_deviation << std::endl;
-#if  BEHAV_DIM == 3
+// #if BEHAV_DIM == 3
 	std::cout << "coverage" << coverage << std::endl;
-#endif
+// #endif
 #endif
 
 	coverageCalc.after_trial();
@@ -375,7 +372,7 @@ void SDBC::init_walls(CLoopFunctions *cLoopFunctions)
 			// id does not name it wall
 			continue;
 		}
-		CVector3 position = dynamic_cast<BaseLoopFunctions*>(cLoopFunctions)->get_wall_pos(cBody.GetId());
+		CVector3 position = dynamic_cast<BaseLoopFunctions *>(cLoopFunctions)->get_wall_pos(cBody.GetId());
 		Entity e = Entity();
 		e.position = CVector3(position);
 		boxes.push_back(e);
@@ -862,7 +859,7 @@ void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, EvolutionLoopF
 
 /*************************************************************************/
 
-CVT_Spirit::CVT_Spirit()
+CVT_Spirit::CVT_Spirit(size_t behav_dim) : Descriptor(behav_dim)
 {
 	freqs.resize(num_joint_sensory_bins);
 }
@@ -938,7 +935,7 @@ std::vector<float> CVT_Spirit::after_trials(EvolutionLoopFunctions &cLoopFunctio
 
 /*************************************************************************/
 
- CVT_RAB_Spirit::CVT_RAB_Spirit()
+CVT_RAB_Spirit::CVT_RAB_Spirit(size_t behav_dim) : CVT_Spirit(behav_dim)
 {
 	/* most of the code remains the same as CVT_Spirit except the meaning of the bins and the number 
 	* number of bins 
@@ -960,7 +957,6 @@ void CVT_RAB_Spirit::set_output_descriptor(size_t robot_index, EvolutionLoopFunc
 	size_t act_bin = cLoopFunctions.get_joint_actuator_bin(num_actuator_bins);
 	++freqs[sens_bin][act_bin];
 }
-
 
 /*************************************************************************/
 
@@ -1105,7 +1101,6 @@ void SubjectiveHistoryDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopF
 	file_writer << "\n";
 }
 
-
 /*summarise BD at the end of trials*/
 std::vector<float> SubjectiveHistoryDescriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
@@ -1157,10 +1152,9 @@ std::vector<float> ObjectiveHistoryDescriptor::after_trials(EvolutionLoopFunctio
 
 /*******************************************************************************/
 
-AnalysisDescriptor::AnalysisDescriptor(size_t individ, std::string file_n,std::map<std::string, Descriptor *> slaves) : 
-slave_descriptors(slaves),
-individual(individ),
-file_name(file_n)
+AnalysisDescriptor::AnalysisDescriptor(size_t individ, std::string file_n, std::map<std::string, Descriptor *> slaves) : slave_descriptors(slaves),
+																														 individual(individ),
+																														 file_name(file_n)
 {
 }
 
@@ -1222,8 +1216,7 @@ void AnalysisDescriptor::analyse_individual(EvolutionLoopFunctions &cLoopFunctio
 		std::vector<float> bd = desc.second->after_trials(cLoopFunctions);
 		if (!bd.empty())
 		{
-			write_individual(bd, fFitness, individual, file_name+desc.first+".dat");
+			write_individual(bd, fFitness, individual, file_name + desc.first + ".dat");
 		}
-		
 	}
 }

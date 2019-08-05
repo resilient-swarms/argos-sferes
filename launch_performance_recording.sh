@@ -1,37 +1,25 @@
 #!/bin/bash -e
 
 
-
+# run environment_diversity on generation START:END by STEP
  
 
 
 data=$1
-export FINALGEN_ARCHIVE=2000 # never forget zero-padding for generation file, not for archive file
-export FINALGEN_GENFILE=02000
+# the final generation until which to run FAULT_NONE
+
+MINGEN=0
+MAXGEN=2000
+STEP=500
 # Create a data diretory
 mkdir -p $data
 declare -A descriptors
 declare -A voronoi
 
 
-# descriptors["history"]=2
-# descriptors["cvt_mutualinfoact"]=14
-# descriptors["cvt_mutualinfo"]=21
-# descriptors["cvt_spirit"]=400
-# descriptors["cvt_sdbc_all_std"]=14
-# voronoi["cvt_mutualinfo"]="cvt"
-# voronoi["history"]=""
-# voronoi["cvt_mutualinfoact"]="cvt"
-# voronoi["cvt_mutualinfo"]="cvt"
-# voronoi["cvt_spirit"]="cvt"
-# voronoi["cvt_sdbc_all_std"]="cvt"
-
 
 command="bin/analysis"   # note: cvt and 10D does not really matter since we are not evolving
 
-
-#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
 descriptors["environment_diversity"]=6
 voronoi["environment_diversity"]=""
@@ -43,11 +31,10 @@ time["Dispersion"]=400
 time["Aggregation"]=400
 time["Flocking"]=400
 
-for FaultType in "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" \
-"FAULT_ACTUATOR_LWHEEL_SETHALF" "FAULT_ACTUATOR_RWHEEL_SETHALF" "FAULT_ACTUATOR_BWHEELS_SETHALF"; do
+for FaultType in "FAULT_NONE"; do
 SimTime=${time[${FitfunType}]}
 echo "simtime"${SimTime}
-for FaultID in "0"; do
+for FaultID in "-1"; do
 for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking; do
     echo 'Fitfun'${FitFunType}
     for SensorRange in 11; do
@@ -62,7 +49,8 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 	echo "tag is ${tag}"
 
 	for Replicates in $(seq 1 5); do
-          # Take template.argos and make an .argos file for this experiment
+        for GEN in $(seq ${MINGEN} ${STEP} ${MAXGEN}); do
+            # Take template.argos and make an .argos file for this experiment
             SUFFIX=${Replicates}
 
 			#read the data from the original experiment
@@ -106,12 +94,31 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			export CONFIG=${ConfigFile}
 			export OUTPUTDIR=${Outfolder}
 			export ARCHIVEDIR=${ArchiveDir}
-
+            export FINALGEN_ARCHIVE=${GEN} # never forget zero-padding for generation file, not for archive file
+			 if [ ${GEN} -gt 9999 ]
+			then
+				export FINALGEN_GENFILE=${GEN}   # add one zero
+			elif [ ${GEN} -gt 999 ]
+			then
+				export FINALGEN_GENFILE=0${GEN}  # add two zeros
+			elif [ ${GEN} -gt 99 ]
+			then
+				export FINALGEN_GENFILE=00${GEN} # add two zeros
+			elif [ ${GEN} -gt 9 ]
+			then
+				export FINALGEN_GENFILE=000${GEN} # add two zeros
+			else
+				export FINALGEN_GENFILE=0000${GEN} # add two zeros
+			fi
+            
 			echo "submitting job"
 			bash zero_padding_data.sh ${ArchiveDir} # make sure everything is zero-padded
 	                 
 
-			sbatch submit_test.sh $2  # process the second argument; "compress" if just need compression else empty
+			bash submit_test.sh $2  # process the second argument; "compress" if just need compression else empty
+			echo $GEN
+			
+			done
         done
 	done
     done

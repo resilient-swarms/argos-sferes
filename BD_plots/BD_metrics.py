@@ -246,16 +246,20 @@ def development_plots(runs,times,BD_directory,title_tag):
     # bd_shapes = [32**2, 1000,1000,1000]  # shape of the characterisation
     # y_labels=["global_performance","global_reliability","precision","coverage"]
 
-    bd_type = ["baseline","history","cvt_spirit","Gomes_sdbc_walls_and_robots_std","environment_diversity","environment_diversity"]  #legend label
-    legend_labels=["design","handcrafted","SPIRIT","SDBC","QED","QED-Translated"]  # labels for the legend
+    # bd_type = ["baseline","history","cvt_rab_spirit","Gomes_sdbc_walls_and_robots_std","environment_diversity","environment_diversity"]  #legend label
+    # legend_labels=["design","handcrafted","SPIRIT","SDBC","QED","QED-Translated"]  # labels for the legend
+
+    bd_type = ["history","Gomes_sdbc_walls_and_robots_std","environment_diversity"]  #legend label
+    legend_labels=["handcrafted","SDBC","QED"]  # labels for the legend
+
     colors=["C"+str(i) for i in range(len(bd_type))]  # colors for the lines
     # (numsides, style, angle)
-    markers=[(3,1,0),(3,2,0),(3,3,0)] # markers for the lines
-    bd_shapes = [5000,5000,5000]  # shape of the characterisation
+    markers=[(2,1,0),(2,2,0),(3,1,0),(3,2,0),(3,3,0)] # markers for the lines
+    bd_shapes =[4096, 4096, 4096,4096,4096]  # shape of the characterisation
     y_labels=["absolute_coverage","average_performance","global_performance","global_reliability","precision","coverage"]
 
 
-    boxes=[(.20,.20),(.20,.20),(.20,.20),(.20,.20),(0.20,0.20),(0.20,0.20)] # where to place the legend box
+    boxes=[(.20,.80),(.20,.80),(.20,.80),(.20,.80),(0.20,0.80),(0.20,0.80)] # where to place the legend box
     y_bottom={ylabel:[[] for i in bd_type] for ylabel in y_labels}
     y_mid = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
     y_top = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
@@ -322,12 +326,12 @@ if __name__ == "__main__":
     fitfuns= ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
 
     for fitfun in fitfuns:
-        data_dir = HOME_DIR + "/DataFinal/datanew"
+        data_dir = HOME_DIR + "/DataFinal/ExperimentData"
         title=fitfun+"range11"
         print_best_individuals(
             BD_dir="/home/david/DataFinal/datanew/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
             outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
-        development_plots(runs=range(1,2), times=range(0,1100, 100), BD_directory=data_dir + "/"+title,title_tag=fitfun+"NOCORRECT")
+        development_plots(runs=range(1,6), times=range(0,2000, 100), BD_directory=data_dir + "/"+title,title_tag="FinalBDComp/"+fitfun+"NOCORRECT")
 
 
 

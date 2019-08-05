@@ -88,7 +88,7 @@ class IntuitiveHistoryDescriptor : public Descriptor
     *  after all trials, gather statistics of the observed history
     */
 public:
-  IntuitiveHistoryDescriptor(EvolutionLoopFunctions *cLoopFunctions);
+  IntuitiveHistoryDescriptor(EvolutionLoopFunctions *cLoopFunctions,size_t behav_dim=3);
   CoverageCalc coverageCalc;
 
   argos::CVector3 center;
@@ -439,7 +439,7 @@ class CVT_Spirit : public Descriptor
   /* most of the code remains the same as CVT_Spirit except the meaning of the bins and the number 
   number of bins */
 public:
-  CVT_Spirit();
+  CVT_Spirit(size_t behav_dim=400);
 
   /* smoothing factor */
   const float alpha_smooth = 1.0;
@@ -484,7 +484,7 @@ class CVT_RAB_Spirit : public CVT_Spirit
 {
   // extends the CVT_Spirit class to calculate the sensory bin based on RAB sensors additionally
 public:
-  CVT_RAB_Spirit();
+  CVT_RAB_Spirit(size_t behav_dim=4600);
 
   /*after getting outputs, can update the descriptor if needed*/
   virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
@@ -797,7 +797,5 @@ public:
 
 
 };
-
-
 
 #endif

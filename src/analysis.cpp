@@ -24,6 +24,8 @@ Descriptor* init_analysis_descriptor(EvolutionLoopFunctions& cLoopFunctions, siz
     }
     else{
         slaves["sdbc"] = new SDBC(&cLoopFunctions, "cvt_Gomes_sdbc_walls_and_robots_std",10);
+        slaves["handcrafted"] = new IntuitiveHistoryDescriptor(&cLoopFunctions,3);
+        slaves["spirit"] = new CVT_RAB_Spirit(6400);
     }
     return new AnalysisDescriptor(individual_index, filename, slaves);
 }
@@ -82,7 +84,7 @@ int main(int argc, char **argv)
     /* process arguments*/
     size_t individual_index = std::atoi((*(individual_it+1)).c_str()); 
     cLoopFunctions.descriptor = init_analysis_descriptor(cLoopFunctions,individual_index,
-                    std::string(cLoopFunctions.output_folder)+std::string("/analysis_"),
+                    std::string(cLoopFunctions.output_folder)+std::string("/analysis")+std::string(argv[3])+std::string("_"), // add generation number to identify uniquely
                     argv[2]);
 
     configure_and_run_ea<serial_ea_t>(argc,argv);

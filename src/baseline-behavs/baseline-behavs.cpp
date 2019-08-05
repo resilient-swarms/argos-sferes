@@ -150,16 +150,17 @@ void CBaselineBehavs::ControlStep()
     m_uRABDataIndex = 0;
 
     bool b_RunningGeneralFaults(false);
-    if(b_damagedrobot && (FBehavior == FaultBehavior::FAULT_STRAIGHTLINE ||
-                          FBehavior == FaultBehavior::FAULT_RANDOMWALK ||
-                          FBehavior == FaultBehavior::FAULT_CIRCLE ||
-                          FBehavior == FaultBehavior::FAULT_STOP))
-    {
-        b_RunningGeneralFaults = true;
-        RunGeneralFaults();
-    }
+    // if(b_damagedrobot && (FBehavior == FaultBehavior::FAULT_STRAIGHTLINE ||
+    //                       FBehavior == FaultBehavior::FAULT_RANDOMWALK ||
+    //                       FBehavior == FaultBehavior::FAULT_CIRCLE ||
+    //                       FBehavior == FaultBehavior::FAULT_STOP))
+    // {
+    //     b_RunningGeneralFaults = true;
+    //     RunGeneralFaults();
+    // }
 
-    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION    ||
+    // else 
+    if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION    ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION     ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING       ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING         ||
@@ -355,26 +356,26 @@ void CBaselineBehavs::RunGeneralFaults()
 {
     //m_pcLEDs->SetAllColors(CColor::RED);
 
-    m_vecBehaviors.clear();
-    if(FBehavior == FaultBehavior::FAULT_STRAIGHTLINE)
-    {
-        CRandomWalkBehavior* pcStraightLineBehavior = new CRandomWalkBehavior(0.0f);
-        m_vecBehaviors.push_back(pcStraightLineBehavior);
-    }
-    else if (FBehavior == FaultBehavior::FAULT_RANDOMWALK)
-    {
-        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f);  // 0.05f
-        m_vecBehaviors.push_back(pcRandomWalkBehavior);
-    }
+    // m_vecBehaviors.clear();
+    // if(FBehavior == FaultBehavior::FAULT_STRAIGHTLINE)
+    // {
+    //     CRandomWalkBehavior* pcStraightLineBehavior = new CRandomWalkBehavior(0.0f);
+    //     m_vecBehaviors.push_back(pcStraightLineBehavior);
+    // }
+    // else if (FBehavior == FaultBehavior::FAULT_RANDOMWALK)
+    // {
+    //     CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f);  // 0.05f
+    //     m_vecBehaviors.push_back(pcRandomWalkBehavior);
+    // }
 
-    else if (FBehavior == FaultBehavior::FAULT_CIRCLE)
-    {
-        CCircleBehavior* pcCircleBehavior = new CCircleBehavior();
-        m_vecBehaviors.push_back(pcCircleBehavior);
-    }
+    // else if (FBehavior == FaultBehavior::FAULT_CIRCLE)
+    // {
+    //     CCircleBehavior* pcCircleBehavior = new CCircleBehavior();
+    //     m_vecBehaviors.push_back(pcCircleBehavior);
+    // }
 
-    else //FBehavior == FaultBehavior::FAULT_STOP
-    {}
+    // else //FBehavior == FaultBehavior::FAULT_STOP
+    // {}
 }
 
 /****************************************/
