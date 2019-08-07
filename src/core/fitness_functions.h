@@ -209,4 +209,45 @@ public:
   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
 };
 
+
+/***********************************/
+
+class Chaining : public FitFun
+{
+    /* The fitness function is inversely proportional to
+     * the average distance between the closest robots connected through RAB to the
+     * source and destination by a chain (or network) of robots.
+     *
+     * The number of robots used in this fitness function is n-2 as two robots are set aside
+     * by this function to act as the source and destination.
+     * TODO: The source and destination robots can be stationary or moving.
+     * */
+public:
+    Chaining();
+
+    /* source */
+    const size_t src_robot_id = 0;
+    /* destination */
+    const size_t dest_robot_id = 1;
+    /* keep track of the number of updates */
+    size_t num_updates = 0;
+    /* keep track if the distance during the trial */
+    float trial_dist = 0.0f;
+
+
+    virtual void before_trial(BaseLoopFunctions &cLoopFunctions);
+    /*after completing trial, calc fitness*/
+    virtual void apply(BaseLoopFunctions &cLoopFunctions);
+    /*after completing all trials, combine fitness*/
+    virtual float after_trials();
+    /*after a single step of all agents */
+    virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
+    /* calculate the smallest distance between networked robots connected to the source and destination */
+    float min_connected_dist (BaseLoopFunctions &cLoopFunctions, float maxdist);
+    /* make sure the source and destination are the maximally distant robots */
+    void swap_robots (BaseLoopFunctions &cLoopFunctions, size_t robot_a, size_t robot_b);
+};
+
+
+
 // #endif

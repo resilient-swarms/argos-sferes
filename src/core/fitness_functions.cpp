@@ -370,3 +370,206 @@ float Flocking::after_trials()
     fitness_per_trial.clear();
     return meanfit;
 }
+
+
+/****************************************************************/
+
+
+Chaining::Chaining()
+{
+   num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock(); // one update for the entire swarm
+}
+
+void Chaining::before_trial(BaseLoopFunctions &cLoopFunctions)
+{
+   cLoopFunctions.m_pcvecRobot[src_robot_id]->GetControllableEntity().SetController("station_controller");
+   cLoopFunctions.m_pcvecRobot[dest_robot_id]->GetControllableEntity().SetController("station_controller");
+
+   Real max_sq_dist = -1000.0;
+   size_t max_i, max_j;
+   for (size_t i = 0; i < cLoopFunctions.m_pcvecRobot.size(); ++i) {
+       for (size_t j = i + 1; j < cLoopFunctions.m_pcvecRobot.size(); ++j)
+       {
+           Real dist = SquareDistance(
+                   cLoopFunctions.m_pcvecRobot[i]->GetEmbodiedEntity().GetOriginAnchor().Position,
+                   cLoopFunctions.m_pcvecRobot[j]->GetEmbodiedEntity().GetOriginAnchor().Position);
+           if (dist > max_sq_dist) {
+               max_sq_dist = dist;
+               max_i = i;
+               max_j = j;
+           }
+       }
+   }
+
+   //std::cout << "src thymio" << src_robot_id << ", dest thymio" << dest_robot_id << ", max_i "<< max_i << ", max_j " << max_j << ": Dist: " << max_sq_dist << std::endl;
+
+   if (max_j != src_robot_id && max_j != dest_robot_id && max_i != src_robot_id && max_i != dest_robot_id)
+   {
+       // all different swap all
+       swap_robots(cLoopFunctions, max_j, src_robot_id);
+       swap_robots(cLoopFunctions, max_i, dest_robot_id);
+   } else if ((max_j == src_robot_id && max_i == dest_robot_id) || (max_j == dest_robot_id && max_i == src_robot_id)) {
+       //both same no swap
+       //std::cout << "no swap" << std::endl;
+   } else if (max_i == src_robot_id) {
+       //std::cout << "swap " << max_j << " and " << dest_robot_id << std::endl;
+       swap_robots(cLoopFunctions, max_j, dest_robot_id);
+   } else if (max_i == dest_robot_id) {
+       //std::cout << "swap " << max_j << " and " << src_robot_id << std::endl;
+       swap_robots(cLoopFunctions, max_j, src_robot_id);
+   } else if (max_j == src_robot_id) {
+       //std::cout << "swap " << max_i << " and " << dest_robot_id << std::endl;
+       swap_robots(cLoopFunctions, max_i, dest_robot_id);
+   } else if (max_j == dest_robot_id) {
+       //std::cout << "swap " << max_i << " and " << src_robot_id << std::endl;
+       swap_robots(cLoopFunctions, max_i, src_robot_id);
+   }
+}
+
+void Chaining::swap_robots (BaseLoopFunctions &cLoopFunctions, size_t robot_a, size_t robot_b)
+{
+   CVector3 new_position = cLoopFunctions.m_pcvecRobot[robot_a]->GetEmbodiedEntity().GetOriginAnchor().Position;
+   CQuaternion new_orientation = cLoopFunctions.m_pcvecRobot[robot_a]->GetEmbodiedEntity().GetOriginAnchor().Orientation;
+
+   CVector3 temp_position = CVector3(1,1,0);
+
+   CVector3 old_position = cLoopFunctions.m_pcvecRobot[robot_b]->GetEmbodiedEntity().GetOriginAnchor().Position;
+   CQuaternion old_orientation = cLoopFunctions.m_pcvecRobot[robot_b]->GetEmbodiedEntity().GetOriginAnchor().Orientation;
+
+   CVector3 size = cLoopFunctions.GetSpace().GetArenaSize();
+   Real minX = 0.05f; // the 0.05m offset accounts for the wall thickness
+   Real maxX = size.GetX() - 0.05f;
+   Real minY = 0.05f;
+   Real maxY = size.GetY() - 0.05;
+
+   int num_tries = 0;
+   // move to temp
+   while (!cLoopFunctions.m_pcvecRobot[robot_b]->GetEmbodiedEntity().MoveTo( // move the body of the robot
+           temp_position,                                   // to this position
+           new_orientation,                                // with this orientation
+           false                                       // this is not a check, leave the robot there
+   ))
+   {
+       temp_position = CVector3(cLoopFunctions.m_pcRNG->Uniform(CRange<Real>(minX, maxX)), cLoopFunctions.m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
+       if (num_tries > 10000)
+       {
+           throw std::runtime_error("failed to swap robot positions; too many obstacles?");
+       }
+       ++num_tries;
+   }
+   // move to old
+   if (!cLoopFunctions.m_pcvecRobot[robot_a]->GetEmbodiedEntity().MoveTo( // move the body of the robot
+           old_position,                                   // to this position
+           old_orientation,                                // with this orientation
+           false                                       // this is not a check, leave the robot there
+   )) {
+       throw std::runtime_error("failed to swap robot positions");
+   }
+   // move to new
+   if (!cLoopFunctions.m_pcvecRobot[robot_b]->GetEmbodiedEntity().MoveTo( // move the body of the robot
+           new_position,                                   // to this position
+           new_orientation,                                // with this orientation
+           false                                       // this is not a check, leave the robot there
+   )) {
+       throw std::runtime_error("failed to swap robot positions");
+   }
+}
+
+void Chaining::after_robotloop(BaseLoopFunctions &cLoopFunctions)
+{
+   float maxdist = StatFuns::get_minkowski_distance(cLoopFunctions.curr_pos[src_robot_id], cLoopFunctions.curr_pos[dest_robot_id]);
+   float mindist = min_connected_dist(cLoopFunctions, maxdist);
+
+#ifdef PRINTING
+   std::cout << "Current Dist: " << (1 - (mindist / maxdist)) << std::endl;
+#endif
+   trial_dist += 1 - (mindist / maxdist);
+}
+
+float Chaining::min_connected_dist(BaseLoopFunctions &cLoopFunctions, float maxdist)
+{
+   std::vector<size_t> src_connected = {src_robot_id};
+   std::vector<size_t> closed_set = {};
+   std::vector<size_t> open_set = {src_robot_id};
+
+   while (!open_set.empty())
+   {
+       size_t current = open_set.back();
+       open_set.pop_back();
+       closed_set.push_back(current);
+       BaseController& controller = dynamic_cast<BaseController&>(cLoopFunctions.m_pcvecRobot[current]->GetControllableEntity().GetController());
+       auto RAB = controller.m_pcRABS->GetReadings();
+
+       for (int i = 0; i < RAB.size(); ++i) {
+           if (RAB[i].Data[1] == dest_robot_id)
+               return 0;
+           if(std::find(closed_set.begin(), closed_set.end(), RAB[i].Data[1]) != closed_set.end()) {
+               continue;
+           } else {
+               src_connected.push_back(RAB[i].Data[1]);
+               open_set.push_back(RAB[i].Data[1]);
+           }
+       }
+   }
+
+   std::vector<size_t> dest_connected = {dest_robot_id};
+   closed_set = {};
+   open_set = {dest_robot_id};
+   while (!open_set.empty())
+   {
+       size_t current = open_set.back();
+       open_set.pop_back();
+       closed_set.push_back(current);
+       BaseController& controller = dynamic_cast<BaseController&>(cLoopFunctions.m_pcvecRobot[current]->GetControllableEntity().GetController());
+       auto RAB = controller.m_pcRABS->GetReadings();
+
+       for (int i = 0; i < RAB.size(); ++i) {
+           if (RAB[i].Data[1] == src_robot_id)
+               return 0;
+           if(std::find(closed_set.begin(), closed_set.end(), RAB[i].Data[1]) != closed_set.end()) {
+               continue;
+           } else {
+               dest_connected.push_back(RAB[i].Data[1]);
+               open_set.push_back(RAB[i].Data[1]);
+           }
+       }
+   }
+
+   float min_dist = maxdist;
+   for(size_t i = 0; i < src_connected.size(); ++i)
+   {
+       for (int j = 0; j < dest_connected.size(); ++j)
+       {
+           float dist = StatFuns::get_minkowski_distance(cLoopFunctions.curr_pos[src_connected[i]], cLoopFunctions.curr_pos[dest_connected[j]]);
+           if(min_dist > dist)
+           {
+               min_dist = dist;
+           }
+       }
+   }
+   return min_dist;
+}
+
+/*after completing trial, calc fitness*/
+void Chaining::apply(BaseLoopFunctions &cLoopFunctions)
+{
+   // The fitness function is inversely proportional to
+   // the average distance between the closest robots connected to the source and destination by RAB.
+   // This includes the source and destination robots themselves.
+   float fitness = trial_dist / ((float)num_updates);
+   if (!StatFuns::in_range(fitness, 0.0f, 1.0f))
+   {
+       throw std::runtime_error("fitness not in [0,1]");
+   }
+   fitness_per_trial.push_back(fitness);
+   //std::cout << "fitness of trial " << fitness << std::endl;
+   trial_dist = 0.0f;
+}
+/*after completing all trials, combine fitness*/
+float Chaining::after_trials()
+{
+   float meanfit = StatFuns::mean(fitness_per_trial);
+   fitness_per_trial.clear();
+   //std::cout << "MEAN FITNESS " << meanfit << std::endl;
+   return meanfit;
+}

@@ -5,6 +5,7 @@
 #include <argos3/plugins/simulator/entities/cylinder_entity.h>
 #include <iterator>
 #include <random>
+#include <boost/graph/strong_components.hpp>
 #define SENSOR_ACTIVATION_THRESHOLD 0.5
 
 void write_individual(std::vector<float> bd, float fitness, size_t individual, std::string filename)
@@ -94,6 +95,148 @@ void AverageDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 		};
 	}
 }
+/*********************************************************************************/
+
+NeuralDescriptor::NeuralDescriptor()
+{
+    nb_input_output = ParamsDnn::dnn::nb_inputs + ParamsDnn::dnn::nb_outputs;
+    max_nb_neurons = ParamsDnn::dnn::max_nb_neurons * 2;
+    max_nb_connections = ParamsDnn::dnn::max_nb_conns * 2;
+}
+
+void NeuralDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+{
+    //nb connections
+    unsigned nb_connections = cLoopFunctions.m_pcvecController[0]->nn.get_nb_connections();
+    if (nb_connections > max_nb_connections) // cap the bd so at least the evolution will not throw an exception
+    {
+        // a bd of 1 now means the nb_connections is >= max_nb_connections
+        this->bd[0][current_trial] = 1;
+    } else
+    {
+        float prc_connections = nb_connections / max_nb_connections;
+        this->bd[0][current_trial] = prc_connections;
+    }
+
+    //nb neurons
+    unsigned nb_neurons = cLoopFunctions.m_pcvecController[0]->nn.get_nb_neurons() - nb_input_output;
+    if (nb_neurons > max_nb_neurons) // cap the bd so at least the evolution will not throw an exception
+    {
+        // a bd of 1 now means the nb_neurons is >= max_nb_neurons
+        this->bd[1][current_trial] = 1;
+    } else
+    {
+        float prc_neurons = nb_neurons / max_nb_neurons;
+        this->bd[1][current_trial] = prc_neurons;
+    }
+}
+
+void NeuralCyclesDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+{
+    this->bd[0][current_trial] = strongly_connected(cLoopFunctions);
+
+    // Degree ditribution of all the input nodes when k=0.
+    // i.e. what proportion of the input nodes have 0 outgoing connections
+    auto g = cLoopFunctions.m_pcvecController[0]->nn.get_graph();
+    auto input_nodes = cLoopFunctions.m_pcvecController[0]->nn.get_inputs();
+    int k_degree = 0;
+    for (int i = 0; i < input_nodes.size(); i++)
+    {
+        if (g.out_edge_list(input_nodes[i]).size() == 0)
+        {
+            k_degree++;
+        }
+    }
+#ifdef PRINTING
+    std::cout << "Total number of input nodes: " << input_nodes.size() << std::endl;
+    std::cout << "Total number of input nodes with degree 0: " << k_degree << std::endl;
+#endif
+    float prc = k_degree / (float)input_nodes.size();
+    this->bd[1][current_trial] = prc;
+}
+
+float NeuralCyclesDescriptor::strongly_connected(EvolutionLoopFunctions &cLoopFunctions)
+{
+    using namespace boost;
+
+    auto g = cLoopFunctions.m_pcvecController[0]->nn.get_graph();
+    typedef decltype(g) Graph;
+    typedef Graph::vertex_iterator VertexIterator;
+    typedef Graph::vertex_descriptor VertexDesc;
+    typedef std::map<VertexDesc, size_t> VertexDescMap;
+
+    // make vertex index map
+    VertexDescMap idxMap;
+    associative_property_map<VertexDescMap> indexMap(idxMap);
+    VertexIterator di, dj;
+    tie(di, dj) = vertices(g);
+    for(int i = 0; di != dj; ++di,++i){
+        put(indexMap, (*di), i);
+    }
+
+    // Calculate the strongly connected subgraph
+    // potential alternative implimentation: hawick_circuits
+    std::map<VertexDesc, size_t> compMap;
+    associative_property_map<VertexDescMap> componentMap(compMap);
+    int num = strong_components(g, componentMap, vertex_index_map(indexMap));
+    // Note: neurons not in a cycle are represented as a subgraph of size = 1
+    // this is unfortunately the same as a recurrent connection.
+
+    // Get the size of each subgraph
+    std::vector<int> mean_comp_size(num);
+    for (std::map<VertexDesc, size_t>::iterator it = compMap.begin(); it != compMap.end(); ++it)
+    {
+       mean_comp_size[it->second]++;
+   }
+
+   unsigned nb_comps = 0; // number of cycles
+   unsigned nb_neurons_comp = 0; // total number of neurons in a cycle
+   for (int i = 0; i < mean_comp_size.size(); i++)
+   {
+       if (mean_comp_size[i] > 1)
+       {
+           nb_comps++;
+           nb_neurons_comp += mean_comp_size[i];
+       }
+   }
+   // get all recurrent connections of the graph separately and add them to the totals
+   Graph::edge_iterator ei, ei_end;
+   for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
+       if (source(*ei, g) == target(*ei, g))
+       {
+           nb_comps++;
+           nb_neurons_comp++;
+       }
+   }
+
+   //number of neurons in the graph neurons
+   auto nb_neurons = cLoopFunctions.m_pcvecController[0]->nn.get_nb_neurons();
+
+#ifdef PRINTING
+   std::cout << "Total number of cycles: " << nb_comps << std::endl;
+   std::cout << "Total number of neurons in cycles: " << nb_neurons_comp << std::endl;
+   std::cout << "Total number of neurons: " << nb_neurons << std::endl;
+#endif
+
+   if (nb_neurons == 0) // cannot divide by 0
+   {
+       return 0;
+   } else
+   {
+       // the proportion of all neurons that are in cycles
+       return (float)nb_neurons_comp / (float)nb_neurons;
+   }
+}
+
+
+
+
+
+
+
+/*********************************************************************************/
+
+
 
 IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(EvolutionLoopFunctions *cLoopFunctions,size_t behav_dim) : Descriptor(behav_dim)
 {

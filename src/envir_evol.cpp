@@ -43,8 +43,8 @@ struct EnvirTaskAgnostParams : EAParams
 
 std::vector<int> EnvirParams::options = {4, 4, 4, 4, 4, 4};
 std::vector<int> EnvirTaskAgnostParams::options = {3, 3, 3, 4, 3, 3, 5};
-typedef T<EnvirParams, eval::ArgosParallelEnvir<EnvirParams>>::ea_t parallelenvir_ea_t;
-typedef T<EnvirTaskAgnostParams, eval::ArgosParallelEnvir<EnvirTaskAgnostParams>>::ea_t parallelenvirtaskagnost_ea_t;
+typedef T<EnvirParams, phen_t,eval::ArgosParallelEnvir<EnvirParams>>::ea_t parallelenvir_ea_t;
+typedef T<EnvirTaskAgnostParams, phen_t,eval::ArgosParallelEnvir<EnvirTaskAgnostParams>>::ea_t parallelenvirtaskagnost_ea_t;
 
 /****************************************/
 /****************************************/

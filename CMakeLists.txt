@@ -108,6 +108,7 @@ option(ANALYSIS "Perturbations" OFF)
 option(BO "Bayesian Optimisation" OFF)
 option(ARGOS_PAR "Parallelisation" OFF)
 option(CAFFE "caffe neural networks" OFF)
+option(RAB_CONTROL "control RAB" OFF)
 
 #add_definitions(-DCOLLISION_STOP)  
 
@@ -255,11 +256,19 @@ else(NOT BASELINE)
         message("Bayesian Optimisation is NOT defined")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
 	    message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
+        if(${RAB_CONTROL})
+            message("using additional RAB control")
+            set(exec_prefix "nnrab_evol")
+            add_definitions(-DRAB_CONTROL)
+        else(NOT ${RAB_CONTROL})
+            message("not using additional RAB control")
+            set(exec_prefix "behaviour_evol")
+        endif()
         if(${ARGOS_PAR} EQUAL 1)
             message("using parallel (1)")
             add_definitions(-DARGOS_PARALLEL) 
-            set(EXECUTABLE behaviour_evol${tag})
-            set(EXEC_FILE behaviour_evol.cpp)
+            set(EXECUTABLE ${exec_prefix}${tag})
+            set(EXEC_FILE ${exec_prefix}.cpp)
         elseif(${ARGOS_PAR} EQUAL 2)
             message("using parallel environments (2)")
             add_definitions(-DARGOS_PARALLELENVIR) 
@@ -267,8 +276,8 @@ else(NOT BASELINE)
             set(EXEC_FILE envir_evol.cpp)
         else()
             message("using serial (0)")
-            set(EXECUTABLE behaviour_evol${tag})
-            set(EXEC_FILE behaviour_evol.cpp)
+            set(EXECUTABLE ${exec_prefix}${tag})
+            set(EXEC_FILE ${exec_prefix}.cpp)
         endif()
     endif()
     
@@ -297,6 +306,12 @@ else(NOT BASELINE)
         src/evolution/nn_controller.h
         src/evolution/nn_controller.cpp)
     
+    add_library(station_controller SHARED
+        src/core/station_controller.cpp
+         src/core/station_controller.h)
+
+    list(APPEND CONTROL "station_controller")
+
     set(LOOPFUN evolution_loopfunctions${tag})
     
     

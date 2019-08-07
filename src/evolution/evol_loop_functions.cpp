@@ -45,6 +45,14 @@ bool EvolutionLoopFunctions::check_BD_choice(const std::string choice)
         }
         return true;
     }
+    else if (choice == "neural" || choice == "neuralcycles")
+    {
+       if (BEHAV_DIM != 2)
+       {
+           throw std::runtime_error(choice + " should be 2-dimensional");
+       }
+       return true;
+    }
     else if (choice == "cvt_mutualinfo")
     {
         if (BEHAV_DIM != 21)

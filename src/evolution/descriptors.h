@@ -81,6 +81,34 @@ public:
   virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
 };
 
+
+class NeuralDescriptor : public Descriptor
+{
+   /* Get the number of connections and neurons in the NN; 2D ONLY for now.
+      */
+public:
+   NeuralDescriptor();
+   float max_nb_neurons;
+   float max_nb_connections;
+   unsigned nb_input_output;
+
+   /*end the trial*/
+   virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+};
+
+class NeuralCyclesDescriptor : public Descriptor
+{
+   /* Get the number of connections and neurons in the NN; 2D ONLY for now.
+      */
+public:
+   NeuralCyclesDescriptor() {}
+
+   static float strongly_connected (EvolutionLoopFunctions &cLoopFunctions);
+
+   /*end the trial*/
+   virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+};
+
 class IntuitiveHistoryDescriptor : public Descriptor
 {
   /* 

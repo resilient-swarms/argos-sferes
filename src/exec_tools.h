@@ -89,23 +89,23 @@ typedef phen::Dnn<robots_nn::gen_t, fit_t, ParamsDnn> phen_t;
 //MODIFIER
 typedef modif::Dummy<> modifier_t;
 
-template <typename Params_t, typename eval_t>
+template <typename Params_t, typename Phen_t, typename eval_t>
 struct T
 {
 
 #ifdef CVT
-    typedef boost::fusion::vector<stat::Map<phen_t, Params_t>, stat::MapProgress<phen_t, Params_t>> stat_t;
-    typedef ea::CVTMapElites<phen_t, eval_t, stat_t, modifier_t,Params_t> ea_t;
+    typedef boost::fusion::vector<stat::Map<Phen_t, Params_t>, stat::MapProgress<Phen_t, Params_t>> stat_t;
+    typedef ea::CVTMapElites<Phen_t, eval_t, stat_t, modifier_t,Params_t> ea_t;
 #else
     typedef boost::fusion::vector<
-        sferes::stat::Map<phen_t, Params_t>,
-        sferes::stat::MapProgress<phen_t, Params_t>>
+        sferes::stat::Map<Phen_t, Params_t>,
+        sferes::stat::MapProgress<Phen_t, Params_t>>
         stat_t;
-    typedef ea::MapElites<phen_t, eval_t, stat_t, modifier_t, Params_t> ea_t;
+    typedef ea::MapElites<Phen_t, eval_t, stat_t, modifier_t, Params_t> ea_t;
 #endif
 };
-typedef T<EAParams,eval::Eval<EAParams>>::ea_t serial_ea_t;
-typedef T<EAParams,eval::ArgosParallel<EAParams>>::ea_t parallel_ea_t;
+typedef T<EAParams,phen_t,eval::Eval<EAParams>>::ea_t serial_ea_t;
+typedef T<EAParams,phen_t,eval::ArgosParallel<EAParams>>::ea_t parallel_ea_t;
 
 
 template <typename ea_t>
