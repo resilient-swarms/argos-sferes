@@ -82,7 +82,8 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 				export GENERATION_FILE=${RESUME_GENERATION}
 		fi
 		
-		if [[ "${DO_CONFIG}"="true" ]] ; then   
+		if [[ "${DO_CONFIG}" = "true" ]] ; then  
+				echo "doing config" 
 				count1=0
 				for MaxSpeed in 5 10 15 20 ; do
 					count1=$((count1+1))
