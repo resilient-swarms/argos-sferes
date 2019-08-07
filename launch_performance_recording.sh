@@ -95,7 +95,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			export OUTPUTDIR=${Outfolder}
 			export ARCHIVEDIR=${ArchiveDir}
             export FINALGEN_ARCHIVE=${GEN} # never forget zero-padding for generation file, not for archive file
-			 if [ ${GEN} -gt 9999 ]
+			if [ ${GEN} -gt 9999 ]
 			then
 				export FINALGEN_GENFILE=${GEN}   # add one zero
 			elif [ ${GEN} -gt 999 ]

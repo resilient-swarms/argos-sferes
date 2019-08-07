@@ -130,13 +130,17 @@ def get_plot(ax,index, xx, stats, colors, markers, markers_on,y_err=[],fill_betw
             ax.fill_between(xx, y_temp, y_temp2, where=y_temp2 >= y_temp, facecolor=colors[index], interpolate=True,alpha=0.5)
     return line
 
+def finish_fig(fig,save_filename):
+    fig.tight_layout()
+    fig.savefig(save_filename)
 
 
 
 def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,legend_labels,xlim=None,xscale="linear",yscale="linear",
                legendbox=(.10,.10),annotations=[],xticks=[],yticks=[],task_markers=[],scatter=False,
                legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[],index_x=[],
-               xaxis_style="plain",y_err=[],force=False,fill_between=[]
+               xaxis_style="plain",y_err=[],force=False,fill_between=[],
+               ax=None, title=None
                ):
     print("prepare plotting "+ylabel)
     if not force:
@@ -153,12 +157,12 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
     # colors = [colors[i] for i in legend_indexes]
     while True:
         # ylim: [0,y_max]
-        fig = PLT.figure(figsize=(figx,figy))
 
-
-
-        ax = fig.add_subplot(1, 1, 1)
-        # # use default : assumes time development plot
+        if ax is None:
+            fig = PLT.figure(figsize=(figx,figy))
+            ax = fig.add_subplot(1,1,1)# # use default : assumes time development plot
+        else:
+            fig = None
 
 
         ax.xaxis.major.formatter._useMathText = True
@@ -189,27 +193,28 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
                 line=get_plot(ax,index,xx,stats,colors,markers,markers_on,y_err, fill_between)
 
             lines.append(line)
-        axes = fig.gca()
-        axes.set_xlabel(xlabel, fontsize=36)
+        #axes = PLT.gca()
+        ax.set_xlabel(xlabel, fontsize=36)
 
-        axes.set_ylabel(ylabel, fontsize=36)
+        ax.set_ylabel(ylabel, fontsize=36)
 
         if ylim is not None:
-            axes.set_ylim(ylim)
+            ax.set_ylim(ylim)
         if xlim is not None:
-            axes.set_xlim(xlim)
+            ax.set_xlim(xlim)
+
+        if title:
+            ax.set_title(title, fontsize=46)
 
 
-
-
-        axes.tick_params(axis='both', which='major', labelsize=28)
-        axes.tick_params(axis='both', which='minor', labelsize=28)
-        axes.xaxis.offsetText.set_fontsize(28)
-        axes.yaxis.offsetText.set_fontsize(28)
+        ax.tick_params(axis='both', which='major', labelsize=28)
+        ax.tick_params(axis='both', which='minor', labelsize=28)
+        ax.xaxis.offsetText.set_fontsize(28)
+        ax.yaxis.offsetText.set_fontsize(28)
 
 
         for (xc,F) in task_markers:
-            axes.axvline(x=xc)
+            ax.axvline(x=xc)
         for x,y in additional_lines:
             add_line(x,y,ax)
         for annot in annotations:
@@ -237,21 +242,24 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
             if isinstance(xticks, dict):
                 PLT.xticks(xticks["ticks"], xticks["labels"])
             else:
-                axes.set_xticks(xticks)
+                ax.set_xticks(xticks)
         if yticks:
-            axes.tick_params(
+            ax.tick_params(
                 axis='y',  # changes apply to the x-axis
                 which='both',  # both major and minor ticks are affected
                 bottom=False,  # ticks along the bottom edge are off
                 top=False,  # ticks along the top edge are off
                 labelbottom=False)  # labels along the bottom edge are off
-            axes.set_yticks(yticks)
-        PLT.grid(True)
+            ax.set_yticks(yticks)
 
-        leg = fig.legend(lines,labels=legend_labels, loc=3,ncol=legend_cols,
+        ax.grid(True)
+
+        leg = ax.legend(lines,labels=legend_labels, loc=3,ncol=legend_cols,
                    bbox_to_anchor=legendbox, prop={'size':legend_fontsize},
                    fancybox=True)
         leg.set_alpha(0.50)
+
+        if fig is None: return # nothing to save, just a subplot
         fig.tight_layout()
         fig.show()
         if force:

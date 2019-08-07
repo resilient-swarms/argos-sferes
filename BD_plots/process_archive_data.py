@@ -234,6 +234,14 @@ def get_bins(bd_shape):
 
 
 if __name__ == "__main__":
+    sys.path.append("/home/david/DataFinal/ExperimentData")
+    os.system("cd /home/david/DataFinal/ExperimentData")
+    args.c = "bin/analysis6D/Aggregationrange11/environment_diversity/FAULT_NONE/exp_5.argos all 1000 " \
+             "-d  Aggregationrange11/environment_diversity/FAULT_NONE/results5 " \
+             "--load  Aggregationrange11/environment_diversity/results5/gen_01000 --o outputfile"
+    args.p = "/home/david/DataFinal/ExperimentData/Aggregationrange11/environment_diversity/results5/archive_1000.dat"
+    args.o= "/home/david/DataFinal/ExperimentData/Aggregationrange11/environment_diversity/FAULT_NONE/results5"
+    args.b = "all"
     if args.b == "best":
         run_best_individual(args.c, args.o)
     elif args.b == "compress":

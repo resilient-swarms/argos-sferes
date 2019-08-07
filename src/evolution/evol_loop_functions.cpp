@@ -12,6 +12,8 @@
 #include "caffe/sgd_solvers.hpp"
 #endif
 
+#define PROXI_SENS_OFFSET 
+
 /****************************************/
 /****************************************/
 
@@ -405,81 +407,105 @@ size_t EvolutionLoopFunctions::get_quadrant_bin() const
 /* get activation bin for the activations of each sensory quadrant get joint activation bin for the actuators (used for Spirit)*/
 size_t EvolutionLoopFunctions::get_quadrant_binRAB() const
 {
-    // proximity sensors: front vs back
+
+
+    // proximity sensors: (quadrants)
     size_t bin = 0;
-    // front:
+    // front left:
     for (int i = 0; i <= 1; ++i)
-    {
-        if (inputs[i] > 0.00)
+    { 
+        if (inputs[i] < 0.00)  // note : after normalisation, -1 is maximal sensory firing and 1 is minimal sensory firing, 0.0 represents middle
         {
-            bin += 128;
+            //std::cout<<"left proximity"<<std::endl;
+            bin += 32;
             break;
         }
     }
-    if (inputs[2] > 0.00)
+    // front center
+    if (inputs[2] < 0.00)
     {
-        bin += 64;
+        //std::cout<<"front proximity"<<std::endl;
+        bin += 16;
     }
-
+    // front right
     for (int i = 3; i <= 4; ++i)
     {
-        if (inputs[i] > 0.00)
+        if (inputs[i] < 0.00)
         {
-            bin += 32;
+            //std::cout<<"right proximity"<<std::endl;
+            bin += 8;
             break;
         }
     }
     //back:
     for (int i = 5; i <= 6; ++i)
     {
-        if (inputs[i] > 0.00)
+        if (inputs[i] < 0.00)
         {
-            bin += 16;
-            break;
-        }
-    }
-
-    // now the RAB sensors in quadrants of 90 degrees
-
-    // 0:90 degrees
-    for (int i = 7; i <= 8; ++i)
-    {
-        if (inputs[i] > 0.00)
-        {
-            bin += 8;
-            break;
-        }
-    }
-
-    // 90:180 degrees
-    for (int i = 9; i <= 10; ++i)
-    {
-        if (inputs[i] > 0.00)
-        {
+            //std::cout<<"back proximity"<<std::endl;
             bin += 4;
             break;
         }
     }
 
-    // 180:270 degrees
-    for (int i = 11; i <= 12; ++i)
+    // now the RAB sensors in halfs (180 degrees; front vs back)
+
+    // 0:90 degrees
+    bool bin_front=false;
+    for (int i = 7; i <= 8; ++i)
     {
-        if (inputs[i] > 0.00)
+        if (inputs[i] < 0.00) // note : after normalisation, -1 is maximal sensory firing and 1 is minimal sensory firing, 0.0 represents middle
         {
-            bin += 2;
+            //std::cout<<"RAB [0:90] degrees " <<std::endl;
+            bin += 8;
+            bin_front = true;
             break;
         }
     }
 
-    // 270:360 degrees
-    for (int i = 13; i <= 14; ++i)
+    // 90:180 degrees
+    bool bin_back=false;
+    for (int i = 9; i <= 10; ++i)
     {
-        if (inputs[i] > 0.00)
+        if (inputs[i] < 0.00)
         {
+            //std::cout<<"RAB [90:180] degrees " <<std::endl;
             bin += 1;
+            bin_back = true;
             break;
         }
     }
+
+    // 180:270 degrees
+    if ( !bin_back )
+    {
+        for (int i = 11; i <= 12; ++i)
+        {
+            
+            if (inputs[i] < 0.00)
+            {
+                //std::cout<<"RAB [180:270] degrees " <<std::endl;
+                bin += 2;
+                break;
+            }
+        }
+    }
+
+    // 270:360 degrees
+    if ( !bin_front )
+    {
+        for (int i = 13; i <= 14; ++i)
+        {
+            
+            if (inputs[i] < 0.00)
+            {
+                //std::cout<<"RAB [270:360] degrees "<<std::endl;
+                bin += 1;
+                break;
+            }
+        }
+    }
+    std::cout<<"bin " << bin<<std::endl;
     return bin;
 }
 

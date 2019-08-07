@@ -1,4 +1,4 @@
-from plots import createPlot
+from plots import *
 from dimensionality_plot import *
 # behavioural metrics defined in Mouret, J., & Clune, J. (2015). Illuminating search spaces by mapping elites. 1–15.
 import os
@@ -235,7 +235,7 @@ def print_best_individuals(BD_dir,outfile, number,generation):
             f.write("%s %s %.3f \n" % (indexes[i], array[0:-1], array[-1]))
             i += 1
 
-def development_plots(runs,times,BD_directory,title_tag):
+def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None):
 
     # bd_type = ["history","cvt_mutualinfo","cvt_mutualinfoact","cvt_spirit"]  #legend label
     #
@@ -249,65 +249,74 @@ def development_plots(runs,times,BD_directory,title_tag):
     # bd_type = ["baseline","history","cvt_rab_spirit","Gomes_sdbc_walls_and_robots_std","environment_diversity","environment_diversity"]  #legend label
     # legend_labels=["design","handcrafted","SPIRIT","SDBC","QED","QED-Translated"]  # labels for the legend
 
-    bd_type = ["history","Gomes_sdbc_walls_and_robots_std","environment_diversity"]  #legend label
-    legend_labels=["handcrafted","SDBC","QED"]  # labels for the legend
+    bd_type = ["history","Gomes_sdbc_walls_and_robots_std","environment_diversity","environment_diversity"]  #legend label
+    legend_labels=["handcrafted","SDBC","QED-Evolution","QED-Actual"]  # labels for the legend
 
     colors=["C"+str(i) for i in range(len(bd_type))]  # colors for the lines
     # (numsides, style, angle)
     markers=[(2,1,0),(2,2,0),(3,1,0),(3,2,0),(3,3,0)] # markers for the lines
     bd_shapes =[4096, 4096, 4096,4096,4096]  # shape of the characterisation
-    y_labels=["absolute_coverage","average_performance","global_performance","global_reliability","precision","coverage"]
+    y_labels=["global_performance","average_performance","coverage","global_reliability"]
 
 
-    boxes=[(.20,.80),(.20,.80),(.20,.80),(.20,.80),(0.20,0.80),(0.20,0.80)] # where to place the legend box
+    boxes=[(.10,.40),(.10,.60),(.10,.60),(.45,.15),(0.20,0.20),(0.20,0.20)] # where to place the legend box
     y_bottom={ylabel:[[] for i in bd_type] for ylabel in y_labels}
     y_mid = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
     y_top = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
 
 
     for i in range(len(bd_type)):
-        translated = legend_labels[i].endswith("Translated")
+        translated = legend_labels[i].endswith("-Actual")
         for time in times:
             if translated:
-                archive_file="analysis_sdbc.dat"
+                archive_file="analysis"+str(time)+"_handcrafted.dat"  # just use the one that is quickest
                 directory = BD_directory+"/"+bd_type[i] + "/FAULT_NONE"
             else:
                 archive_file="archive_" + str(time) + ".dat"
                 directory = BD_directory + "/" + bd_type[i]
 
 
-            abs_coverage=absolutecoverages(bd_shapes[i], directory, runs, archive_file)
-            add_boxplotlike_data(abs_coverage, y_bottom, y_mid, y_top, y_label="absolute_coverage",method_index=i)
+            #abs_coverage=absolutecoverages(bd_shapes[i], directory, runs, archive_file)
+            #add_boxplotlike_data(abs_coverage, y_bottom, y_mid, y_top, y_label="absolute_coverage",method_index=i)
 
             coverage = coverages(bd_shapes[i], directory, runs, archive_file)
             add_boxplotlike_data(coverage, y_bottom, y_mid, y_top, y_label="coverage", method_index=i)
 
-            if not translated:
-
-                avg_perform = avg_performances(directory, runs, archive_file , 1.0,
-                                                     conversion_func=None)
-                add_boxplotlike_data(avg_perform, y_bottom, y_mid, y_top, y_label="average_performance",method_index=i)
 
 
-                global_perform = global_performances(directory, runs, archive_file , 1.0,
-                                                     conversion_func=None)
-                add_boxplotlike_data(global_perform, y_bottom, y_mid, y_top, y_label="global_performance",method_index=i)
-                global_reliability = global_reliabilities(directory, runs, archive_file)
-                add_boxplotlike_data(global_reliability, y_bottom, y_mid, y_top, y_label="global_reliability",method_index=i)
+            avg_perform = avg_performances(directory, runs, archive_file , 1.0,
+                                           conversion_func=None)
+            add_boxplotlike_data(avg_perform, y_bottom, y_mid, y_top, y_label="average_performance",method_index=i)
 
-                precision=precisions(directory, runs, archive_file)
-                add_boxplotlike_data(precision, y_bottom, y_mid, y_top, y_label="precision",method_index=i)
+
+            global_perform = global_performances(directory, runs, archive_file , 1.0,
+                                                 conversion_func=None)
+            add_boxplotlike_data(global_perform, y_bottom, y_mid, y_top, y_label="global_performance",method_index=i)
+            global_reliability = global_reliabilities(directory, runs, archive_file)
+            add_boxplotlike_data(global_reliability, y_bottom, y_mid, y_top, y_label="global_reliability",method_index=i)
+
+            #precision=precisions(directory, runs, archive_file)
+            #add_boxplotlike_data(precision, y_bottom, y_mid, y_top, y_label="precision",method_index=i)
 
 
     j=0
+
     for label in y_labels:
         ylim=[0,5000] if label == "absolute_coverage"   else [0.0,1.0]
+        axis = None if ax is None else ax[j]
+        # createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=ylim,
+        #            save_filename=RESULTSFOLDER+"/"+title_tag+label+".pdf",legend_labels=legend_labels,
+        #            xlim=None,xscale="linear",yscale="linear",
+        #        legendbox=boxes[j],annotations=[],xticks=[],yticks=[],task_markers=[],scatter=False,
+        #        legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[],index_x=[],
+        #        xaxis_style="plain",y_err=[],force=True,fill_between=(y_bottom[label],y_top[label]))
         createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=ylim,
                    save_filename=RESULTSFOLDER+"/"+title_tag+label+".pdf",legend_labels=legend_labels,
                    xlim=None,xscale="linear",yscale="linear",
                legendbox=boxes[j],annotations=[],xticks=[],yticks=[],task_markers=[],scatter=False,
                legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[],index_x=[],
-               xaxis_style="plain",y_err=[],force=True,fill_between=(y_bottom[label],y_top[label]))
+               xaxis_style="plain",y_err=[],force=True,fill_between=(y_bottom[label],y_top[label]),
+                   ax=axis,title=title )
         j+=1
 
 
@@ -316,24 +325,21 @@ if __name__ == "__main__":
     
     runs=5
 
-
-
-
-
-
-
-
-    fitfuns= ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
-
+    fitfuns= ["Aggregation"] #,"DecayBorderCoverage","Flocking"]
+    fig, axs = plt.subplots(4, 5,figsize=(50,40))  # coverage, avg perf., global perf., global reliability
+    i=0
     for fitfun in fitfuns:
         data_dir = HOME_DIR + "/DataFinal/ExperimentData"
         title=fitfun+"range11"
         print_best_individuals(
             BD_dir="/home/david/DataFinal/datanew/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
             outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
-        development_plots(runs=range(1,6), times=range(0,2000, 100), BD_directory=data_dir + "/"+title,title_tag="FinalBDComp/"+fitfun+"NOCORRECT")
+        development_plots(title=fitfun,runs=range(1,4), times=range(0,2500, 500),
+                          BD_directory=data_dir + "/"+title,title_tag="FinalBDComp/"+fitfun+"NOCORRECT",
+                          ax = axs[:,i])
+        i+=1
 
-
+    finish_fig(fig, RESULTSFOLDER +"/FinalBDComp/"+fitfun+"ALL.pdf")
 
 
     # for fitfun in fitfuns:

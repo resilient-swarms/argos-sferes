@@ -941,11 +941,14 @@ CVT_RAB_Spirit::CVT_RAB_Spirit(size_t behav_dim) : CVT_Spirit(behav_dim)
 	* number of bins 
 	/*
 
+	/* num actuator bins */
+	num_actuator_bins = 4;
+
 	/* number of joint sensory bins */
-	num_joint_sensory_bins = 256; // here 2^2 * 2^4 bins for mean (front-back proxi; quadrant-based RAB)
+	num_joint_sensory_bins = 64; // here 2^2 * 2^4 bins for mean (front-back proxi; quadrant-based RAB)
 
 	/* number of joint actuator bins simply */
-	num_joint_actuator_bins = 25; // 5 bins per wheel
+	num_joint_actuator_bins = 16; // 5 bins per wheel
 
 	freqs.resize(num_joint_sensory_bins);
 }

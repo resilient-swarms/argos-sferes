@@ -28,6 +28,7 @@ echo "Starting the following command: "${jobtocome}" for all individuals"
 echo 
 echo "Looking for individuals at: "${archivefile}
 echo
+echo ""python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all"""
 python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all"
 
 
