@@ -47,10 +47,10 @@ int main(int argc, char **argv)
     static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
     EAParams::ea::centroids = load_centroids(cLoopFunctions.centroids_folder + "/centroids_" + std::to_string(EAParams::ea::number_of_clusters) + "_" + std::to_string(EAParams::ea::number_of_dimensions) + ".dat");
 
-    // // check for SPIRIT
+    // check for SPIRIT
     // for (int i=0; i< EAParams::ea::number_of_clusters; ++i)
     // {
-    //     check_sums<boost::array<double, 6400>>(1.0f, EAParams::ea::centroids[i],25);
+    //     check_sums<boost::array<double, 1024>>(1.0f, EAParams::ea::centroids[i],16);
     // }
 #endif
 #ifdef ARGOS_PARALLEL

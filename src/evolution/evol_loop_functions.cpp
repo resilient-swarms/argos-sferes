@@ -457,7 +457,7 @@ size_t EvolutionLoopFunctions::get_quadrant_binRAB() const
         if (inputs[i] < 0.00) // note : after normalisation, -1 is maximal sensory firing and 1 is minimal sensory firing, 0.0 represents middle
         {
             //std::cout<<"RAB [0:90] degrees " <<std::endl;
-            bin += 8;
+            bin += 2;
             bin_front = true;
             break;
         }
@@ -485,7 +485,7 @@ size_t EvolutionLoopFunctions::get_quadrant_binRAB() const
             if (inputs[i] < 0.00)
             {
                 //std::cout<<"RAB [180:270] degrees " <<std::endl;
-                bin += 2;
+                bin += 1;
                 break;
             }
         }
@@ -500,12 +500,12 @@ size_t EvolutionLoopFunctions::get_quadrant_binRAB() const
             if (inputs[i] < 0.00)
             {
                 //std::cout<<"RAB [270:360] degrees "<<std::endl;
-                bin += 1;
+                bin += 2;
                 break;
             }
         }
     }
-    std::cout<<"bin " << bin<<std::endl;
+    //std::cout<<"bin " << bin<<std::endl;
     return bin;
 }
 
