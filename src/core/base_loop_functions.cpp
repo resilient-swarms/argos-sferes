@@ -270,6 +270,10 @@ void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
         {
             this->fitfun = new Flocking(this);
         }
+        else if (s == "Chaining")
+        {
+            this->fitfun = new Chaining();
+        }
         else
         {
             throw std::runtime_error("fitfuntype " + s + " not found");

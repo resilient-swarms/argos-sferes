@@ -55,7 +55,7 @@
                   trials="3"
                   robots="2"
                   descriptortype="neuralcycles"  
-                  fitfuntype="Aggregation"
+                  fitfuntype="Chaining"
 		  output_folder="experiments"
         centroids_folder="experiments/centroids"
                     />
