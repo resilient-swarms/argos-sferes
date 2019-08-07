@@ -110,6 +110,14 @@ void EvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new IntuitiveHistoryDescriptor(this);
         }
+         else if (s == "neural")
+        {
+          this->descriptor = new NeuralDescriptor();
+        }
+        else if (s == "neuralcycles")
+        {
+          this->descriptor = new NeuralCyclesDescriptor();
+        }
         else if (s.find("sdbc") != std::string::npos)
         {
             this->descriptor = new SDBC(this, s);
