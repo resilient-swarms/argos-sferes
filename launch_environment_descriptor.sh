@@ -75,12 +75,13 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 		#check if you need to resume experiments
 		RESUME_GENERATION=${latest} 
 		if [[ "${RESUME_GENERATION}" = "${Outfolder}/gen_*" ]]; then
-				echo "no previous generation file found"
-				DO_CONFIG=true
-		else
-				echo "found last generation file: "${RESUME_GENERATION}
-				export GENERATION_FILE=${RESUME_GENERATION}
-		fi
+                	echo "no previous generation file found"
+                	export GENERATION_FILE=""
+           	else
+                	echo "found last generation file: "${RESUME_GENERATION}
+                	export GENERATION_FILE=${RESUME_GENERATION}
+           	fi
+           	
 		
 		if [[ "${DO_CONFIG}" = "true" ]] ; then  
 				echo "doing config" 
@@ -155,7 +156,12 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			fi
 
 		echo "submitting job"
-	        sbatch submit_envir_job.sh
+	         if [[ $GENERATION_FILE == *10000 ]]; then
+                        echo "skipping this one, already finished"
+                 else
+                        sbatch submit_envir_job.sh
+                 fi
+
 		done
 	done
 done

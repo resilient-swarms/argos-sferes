@@ -383,6 +383,11 @@ std::vector<Real> BaseController::GetNormalizedSensorReadings()
         norm_readings.push_back(max_rab_range); // initialize rab sensor readings to max range of 100cm
     }
 
+    for(UInt8 i = proximity_sensors.size() + 8; i < proximity_sensors.size() + 16; ++i) // 8 data cones
+    {
+        norm_readings.push_back(0); // initialize rab data readings to 0 (default value)
+    }
+
     for(UInt8 i = 0; i < rab_sensors.size(); ++i)
     {
         Real min_diff = 1000.0; UInt8 min_cone_index;
@@ -395,9 +400,14 @@ std::vector<Real> BaseController::GetNormalizedSensorReadings()
             }
         }
         if(min_diff != 1000.0)
-            if(norm_readings[proximity_sensors.size() + min_cone_index] > rab_sensors[i].Range)
+            if(norm_readings[proximity_sensors.size() + min_cone_index] > rab_sensors[i].Range) {
                 norm_readings[proximity_sensors.size() + min_cone_index] = rab_sensors[i].Range;
-
+#ifdef RAB_CONTROL
+                // reinterpret 4 bytes into a float. This value will always have value [-1.0, 1.0]
+                UInt8 sensed_value = rab_sensors[i].Data[0];
+                norm_readings[proximity_sensors.size() + 8 + min_cone_index] = 1 - (sensed_value / 255.0f) * 2;
+#endif
+            }
     }
 
     for(UInt8 rab_cone_index = 0; rab_cone_index < rab_cones.size(); ++rab_cone_index)

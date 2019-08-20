@@ -92,16 +92,16 @@ def run_individual(command, individual):
     #     compress_and_remove(outputfolder, analysis_suffix + str(individual))
 def run_individuals(command, path):
     # Parallelizing using Pool.map()
-    import multiprocessing as mp
-
-    individuals = get_individuals(path)
-    pool = mp.Pool(mp.cpu_count())
-    pool.starmap(run_individual,[(command,i) for i in individuals])
-
-    pool.close()
+    # import multiprocessing as mp
+    #
     # individuals = get_individuals(path)
-    # for i in individuals:
-    #     run_individual(command,i)
+    # pool = mp.Pool(mp.cpu_count())
+    # pool.starmap(run_individual,[(command,i) for i in individuals])
+    #
+    # pool.close()
+    individuals = get_individuals(path)
+    for i in individuals:
+        run_individual(command,i)
 
 def run_best_individual(command, outputfolder):
     print("looking for "+outputfolder + "/analysis_sdbc.dat")
@@ -142,15 +142,16 @@ def get_best_individual(path, as_string=False, add_performance=False, add_all=Fa
 
 
 
-def get_bin_performances(path,as_string=True, add_indiv=False):
+def get_bin_performances(path,as_string=True, add_indiv=False,fitnessfile=False):
     parsed_file_list=read_spacedelimited(path)
     bin_performance_dict={}
     individuals=[]
     for item in parsed_file_list:
-        ind = item[0]
-        b=tuple(item[1:-1])
-        if as_string:
-            b=str(b)
+        if not fitnessfile:
+            ind = item[0]
+            b=tuple(item[1:-1])
+            if as_string:
+                b=str(b)
         performance=float(item[-1])
         bin_performance_dict[b]=performance
         individuals.append(ind)
@@ -234,14 +235,14 @@ def get_bins(bd_shape):
 
 
 if __name__ == "__main__":
-    sys.path.append("/home/david/DataFinal/ExperimentData")
-    os.system("cd /home/david/DataFinal/ExperimentData")
-    args.c = "bin/analysis6D/Aggregationrange11/environment_diversity/FAULT_NONE/exp_5.argos all 1000 " \
-             "-d  Aggregationrange11/environment_diversity/FAULT_NONE/results5 " \
-             "--load  Aggregationrange11/environment_diversity/results5/gen_01000 --o outputfile"
-    args.p = "/home/david/DataFinal/ExperimentData/Aggregationrange11/environment_diversity/results5/archive_1000.dat"
-    args.o= "/home/david/DataFinal/ExperimentData/Aggregationrange11/environment_diversity/FAULT_NONE/results5"
-    args.b = "all"
+    # sys.path.append("/home/david/DataFinal/ExperimentData")
+    # os.system("cd /home/david/DataFinal/ExperimentData")
+    # args.c = "bin/analysis6D/Aggregationrange11/environment_diversity/FAULT_NONE/exp_5.argos all 1000 " \
+    #          "-d  Aggregationrange11/environment_diversity/FAULT_NONE/results5 " \
+    #          "--load  Aggregationrange11/environment_diversity/results5/gen_01000 --o outputfile"
+    # args.p = "/home/david/DataFinal/ExperimentData/Aggregationrange11/environment_diversity/results5/archive_1000.dat"
+    # args.o= "/home/david/DataFinal/ExperimentData/Aggregationrange11/environment_diversity/FAULT_NONE/results5"
+    # args.b = "all"
     if args.b == "best":
         run_best_individual(args.c, args.o)
     elif args.b == "compress":

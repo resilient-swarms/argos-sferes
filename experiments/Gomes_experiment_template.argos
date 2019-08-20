@@ -36,7 +36,7 @@
       </sensors>
       <params>
       <wheel_turning max_speed="10" />
-      <experiment_run swarm_behavior="/"
+      <experiment_run swarm_behavior="SWARM_BEHAVIOR"
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" />
         

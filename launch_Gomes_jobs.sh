@@ -91,13 +91,17 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 	  #Comment below line if you start experiments (no previous generation files)
 	  RESUME_GENERATION=${latest} 
 	   if [[ "${RESUME_GENERATION}" = "${Outfolder}/gen_*" ]]; then
-		echo "no previous generation file found"
+                echo "no previous generation file found"
+                export GENERATION_FILE=""
            else
-		echo "found last generation file: "${RESUME_GENERATION}
-	   	export GENERATION_FILE=${RESUME_GENERATION}
-	   fi
-           
-	   sbatch submit_job.sh 
+                echo "found last generation file: "${RESUME_GENERATION}
+                export GENERATION_FILE=${RESUME_GENERATION}
+           fi
+           if [[ $GENERATION_FILE == *10000 ]]; then
+                echo "skipping this one, already finished"
+           else
+              sbatch  submit_job.sh
+           fi 
         done
 	done
     done

@@ -25,7 +25,7 @@ Descriptor* init_analysis_descriptor(EvolutionLoopFunctions& cLoopFunctions, siz
     else{
         slaves["sdbc"] = new SDBC(&cLoopFunctions, "cvt_Gomes_sdbc_walls_and_robots_std",10);
         slaves["handcrafted"] = new IntuitiveHistoryDescriptor(&cLoopFunctions,3);
-        slaves["spirit"] = new CVT_RAB_Spirit(6400);
+        slaves["spirit"] = new CVT_RAB_Spirit(1024);
     }
     return new AnalysisDescriptor(individual_index, filename, slaves);
 }

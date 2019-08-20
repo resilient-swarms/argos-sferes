@@ -117,8 +117,6 @@ def get_plot(ax,index, xx, stats, colors, markers, markers_on,y_err=[],fill_betw
         line = ax.errorbar(xx, stats[index],yerr=y_err[index], color=colors[index], marker=markers[index], markevery=markers_on, ms=16,
                     linewidth=4)
     else:
-
-
         line, = ax.plot(xx, stats[index], color=colors[index], marker=markers[index], markevery=markers_on, ms=16,
                             linewidth=4)
 

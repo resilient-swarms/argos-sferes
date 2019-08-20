@@ -21,4 +21,5 @@ if [ ! -z  "${GENERATION_FILE}" ]; then
 fi
 
 echo "Starting the following command: "${jobtocome}
+ulimit -c 0
 ${jobtocome}

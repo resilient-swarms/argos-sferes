@@ -1,4 +1,5 @@
-
+#ifndef ARGOS_SFERES_PARAMS_H
+#define ARGOS_SFERES_PARAMS_H
 
 #include <sferes/phen/parameters.hpp>
 
@@ -46,8 +47,13 @@ struct ParamsDnn
     /* use only the proximity sensors */
     struct dnn
     {
-        static constexpr size_t nb_inputs = 16; // ! 7 ir sensors + 8 RAB sensors bias input at +1
+    #ifdef RAB_CONTROL
+        static constexpr size_t nb_inputs = 24; // ! 7 ir sensors + 8 RAB sensors + 8 RAB data + bias input at +1
+        static constexpr size_t nb_outputs = 3; // 2 motors: left and right wheel + rab output
+    #else
+        static constexpr size_t nb_inputs = 16; // ! 7 ir sensors + 8 RAB sensors + bias input at +1
         static constexpr size_t nb_outputs = 2; // 2 motors: left and right wheel
+    #endif
 
         static constexpr int io_param_evolving = true;
         static constexpr float m_rate_add_conn = 0.15f;
@@ -155,4 +161,6 @@ typedef Neuron<pf_t, af_t> neuron_t;
 typedef Connection<weight_t> connection_t;
 typedef sferes::gen::Dnn<neuron_t, connection_t, ParamsDnn> gen_t;
 typedef typename gen_t::nn_t nn_t; // not sure if typename should be here?
-} // namespace robots_
+} // namespace robots_nn
+
+#endif //ARGOS_SFERES_PARAMS_H

@@ -8,12 +8,7 @@
 
 
 FILE=./bin/behaviour_evol${VORONOI}${BD}D
-if [ -f "$FILE" ]; then
-    echo "$FILE exist"
-else 
-    echo "$FILE does not exist"
-    exit 1;
-fi
+
 jobtocome="${FILE} ${CONFIG} -d ${OUTPUTDIR}"
 if [ ! -z  "${GENERATION_FILE}" ]; then
    echo "Generation file already exists; plan to resume"
@@ -21,4 +16,5 @@ if [ ! -z  "${GENERATION_FILE}" ]; then
 fi
 
 echo "Starting the following command: "${jobtocome}
+ulimit -c 0
 ${jobtocome}

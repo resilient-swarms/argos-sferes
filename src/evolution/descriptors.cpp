@@ -62,7 +62,9 @@ std::vector<float> Descriptor::after_trials(EvolutionLoopFunctions &cLoopFunctio
 
 			if (!StatFuns::in_range(final_bd[i], 0.0f, 1.0f))
 			{
-				throw std::runtime_error("bd not in [0,1]");
+				std::cout<<"bd" << i << " not in [0,1]:"<< final_bd[i] << std::endl;
+                StatFuns::clip(final_bd[i],0.0f,1.0f);
+
 			}
 		}
 	}
@@ -91,7 +93,9 @@ void AverageDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 		this->bd[i][current_trial] /= (float)num_updates;
 		if (!StatFuns::in_range(this->bd[i][current_trial], 0.0f, 1.0))
 		{
-			throw std::runtime_error("bd not in [0,1]");
+			 std::cout<<"bd" << i << " not in [0,1]:"<< bd[i][current_trial] << std::endl;
+            StatFuns::clip(bd[i][current_trial],0.0f,1.0f);
+
 		};
 	}
 }
@@ -773,7 +777,9 @@ void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 
 		if (!StatFuns::in_range(bd[i][current_trial], 0.0f, 1.0f))
 		{
-			throw std::runtime_error("bd" + std::to_string(i) + " not in [0,1]: " + std::to_string(bd[i][current_trial]));
+			std::cout<<"bd" << i << " not in [0,1]:"<< bd[i][current_trial] << std::endl;
+            StatFuns::clip(bd[i][current_trial],0.0f,1.0f);
+
 		};
 	}
 }
