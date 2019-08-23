@@ -30,14 +30,14 @@ behaviour["Flocking"]=SWARM_FLOCKING
 
 
 DescriptorType=baseline
-for FitfunType in  DecayBorderCoverage Flocking ; do  # add Flocking later
+for FitfunType in BorderCoverage DecayBorderCoverage Flocking ; do  # add Flocking later
     echo 'Fitfun'${FitfunType}
     SimTime=${time[${FitfunType}]}
     BEHAVIOUR=${behaviour[${FitfunType}]}
     echo ${BEHAVIOUR}
     sleep 2
     echo "simtime"${SimTime}
-    for SensorRange in 11; do
+    for SensorRange in 0.11; do
 	echo 'sens'${SensorRange}
 
 	for Replicates in $(seq 1 5); do

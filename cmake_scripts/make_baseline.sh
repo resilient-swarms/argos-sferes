@@ -5,6 +5,6 @@ cd ~/argos-sferes
 
 mkdir buildbaseline && cd buildbaseline
 
-cmake -DRECORD_FITNESS=ON -DBASELINE=ON ..
+cmake -DCMAKE_BUILD_TYPE=Debug -DRECORD_FITNESS=ON -DBASELINE=ON ..
 
 make

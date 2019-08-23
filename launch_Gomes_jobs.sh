@@ -33,7 +33,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
     echo 'Fitfun'${FitfunType}
     SimTime=${time[${FitfunType}]}
     echo "simtime"${SimTime}
-    for SensorRange in 11; do
+    for SensorRange in 0.11; do
 	echo 'sens'${SensorRange}
     for key in ${!descriptors[@]}; do
 	DescriptorType=${key}
@@ -97,7 +97,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
                 echo "found last generation file: "${RESUME_GENERATION}
                 export GENERATION_FILE=${RESUME_GENERATION}
            fi
-           if [[ $GENERATION_FILE == *10000 ]]; then
+           if [[ $GENERATION_FILE == *10100 ]]; then
                 echo "skipping this one, already finished"
            else
               sbatch  submit_job.sh

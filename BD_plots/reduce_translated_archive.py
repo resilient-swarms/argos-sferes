@@ -67,7 +67,7 @@ def mapelites_bd_condition(behav,fitness,new_archive,epsilon=0.0):
     # behav_pos[i] = std::
     #     min(behav_pos[i], behav_shape[i] - 1);
     # assert (behav_pos[i] < behav_shape[i]);
-    # }
+    #
 
 
 def calc_dist(p1,p2):
@@ -94,6 +94,8 @@ def cvt_mapelites_bd_condition(bd, fitness,new_archive, centroids):
 
 
 if __name__ == "__main__":
-    args.i="/home/david/Data/ExperimentData/Aggregationrange11/environment_diversity/FAULT_NONE/results1/analysis1000_handcrafted.dat"
-    args.o="/home/david/Data/ExperimentData/Aggregationrange11/environment_diversity/FAULT_NONE/results1/analysis1000_handcraftedREDUCED.dat"
-    reduce_translated_archive(args.i,mapelites_bd_condition,args.o,helper_data=(16,16,16))
+    for fitfun in ["Aggregation","Dispersion"]:
+        for gen in range(0,2500,500):
+            input="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_handcrafted.dat"
+            output="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_handcraftedREDUCED.dat"
+            reduce_translated_archive(args.i,mapelites_bd_condition,args.o,helper_data=(16,16,16))

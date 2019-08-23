@@ -14,9 +14,6 @@ CoverageCalc::CoverageCalc(BaseLoopFunctions *cLoopFunctions)
 void CoverageCalc::define_grid(BaseLoopFunctions* cLoopFunctions)
 {
     // initialise grid (for calculating coverage and uniformity)
-    argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
-
-
     SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0)->GetBoundingBox();
 
     float xdim = bounding_box.MaxCorner.GetX() - bounding_box.MinCorner.GetX();
@@ -208,7 +205,7 @@ void BorderCoverageCalc::update(argos::CVector3 pos)
 DecayCoverageCalc::DecayCoverageCalc(std::string init_type, BaseLoopFunctions *cLoopFunctions)
 {
     // note: simplifying assumption that obstacles are not placed on the border
-    argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
+    argos::CVector3 max = cLoopFunctions->get_arenasize();
     grid_step_x = max.GetX()/grid_size_x;
     grid_step_y = max.GetY()/grid_size_y;
 

@@ -281,7 +281,7 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
     bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity","environment_diversity","environment_diversity","environment_diversity","baseline"]  #legend label
     legend_labels=["handcrafted","SDBC","SPIRIT","QED","QED->handcrafted","QED->SPIRIT","QED->SDBC","baseline"]  # labels for the legend
 
-    colors=["C"+str(i) for i in range(len(bd_type))]  # colors for the lines
+    colors=["C0","C1","C2","C3","C3","C3","C3","C4"]  # colors for the lines
     # (numsides, style, angle)
     markers=[(1,1,0),(1,2,0),(1,3,0),(3,1,0),(3,2,0),(3,3,0),(4,1,0),(4,2,0),(4,3,0)] # markers for the lines
     bd_shapes =[4096, 4096, 4096,4096, 4096, 4096,4096,4096, 4096]  # shape of the characterisation
@@ -361,7 +361,7 @@ if __name__ == "__main__":
     
     runs=5
 
-    fitfuns= ["Aggregation","DecayCoverage","Dispersion","DecayBorderCoverage"] #,"DecayBorderCoverage","Flocking"]
+    fitfuns= ["Aggregation","DecayCoverage","Dispersion","DecayBorderCoverage","Flocking"] #,"DecayBorderCoverage","Flocking"]
     fig, axs = plt.subplots(4, 5,figsize=(50,40))  # coverage, avg perf., global perf., global reliability
     i=0
     for fitfun in fitfuns:
