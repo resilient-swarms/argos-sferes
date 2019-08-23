@@ -98,4 +98,12 @@ if __name__ == "__main__":
         for gen in range(0,2500,500):
             input="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_handcrafted.dat"
             output="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_handcraftedREDUCED.dat"
-            reduce_translated_archive(args.i,mapelites_bd_condition,args.o,helper_data=(16,16,16))
+            reduce_translated_archive(input,mapelites_bd_condition,output,helper_data=(16,16,16))
+
+            # input="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_spirit.dat"
+            # output="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_spiritREDUCED.dat"
+            # reduce_translated_archive(input,cvt_mapelites_bd_condition,output,helper_data=(16,16,16))
+            #
+            # input="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_sdbc.at"
+            # output="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_sdbcREDUCED.dat"
+            # reduce_translated_archive(input,cvt_mapelites_bd_condition,output,helper_data=(16,16,16))
