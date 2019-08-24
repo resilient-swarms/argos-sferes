@@ -1,6 +1,6 @@
-import zlib
-import tarfile
+
 from dimensionality_plot import *
+from NCD import *
 HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
 from plots import *
@@ -40,9 +40,6 @@ def get_pca_result(pca,bd,bins=3):
     return bd_cat
 
 
-
-
-
 def scatter_plot(x,y,colors,area,filename):
     plt.scatter(x, y, s=area, c=colors, alpha=0.5)
     plt.savefig(filename)
@@ -60,81 +57,6 @@ def get_delta_P(non_perturbed_path,perturbed_path):
     _index, p_performance = get_best_individual(perturbed_path,add_performance=True)
     return p_performance - np_performance
 
-
-def NCD_perturbation_plot(archive_path):
-    pass
-
-def get_help_data(directory,history_type,runs):
-    max_performance = -float("inf")
-    max_run = None
-    max_indiv = None
-    for run in runs:
-        file = directory+str(run)+"/analysis_sdbc.dat"
-        best_indiv, performance = get_best_individual(file,add_performance=True)
-        if performance > max_performance:
-            max_performance = performance
-            max_run = run
-            max_indiv = best_indiv
-    history_file = directory + str(max_run) + "/" + history_type + "_history" + str(max_indiv)
-    return history_file, max_performance
-
-
-def gather_NCDs(BD_DIRECTORY,faults, runs, history_type="sa"):
-    """
-    use existing state/observation-action trajectory files and calculate pair-wise NCDs for all individuals within the sa;e run
-    the average is returned
-    :return:
-    """
-    assert faults[0]=="FAULT_NONE"
-
-    directories=[ BD_DIRECTORY+"/"+faults[f] + "/results" for f in range(len(faults)) ]
-    ncds = []
-    delta_ps=[]
-    history_comp, performance_comp = get_help_data(directories[0],history_type,runs)
-
-    for i in range(1,len(directories)):
-        history_file, performance = get_help_data(directories[i], history_type, runs)
-        # get delta_p
-        delta_p = performance - performance_comp
-        print("performance difference: " +str(delta_p))
-        delta_ps.append(delta_p)
-        # get ncd
-        ncd = NCD(history_comp,history_file)
-        ncds.append(ncd)
-
-
-
-    return ncds, delta_ps
-
-def read_history_file(filename,from_gz=True):
-    if from_gz:
-        print("opening "+str(filename)+".tar.gz")
-        tar = tarfile.open(filename+".tar.gz")
-        member = tar.getmembers()[0]  # assumes only a single file in the archive
-        f = tar.extractfile(member)
-        content=f.read()
-        tar.close()
-        return content
-    else:
-        x = open(filename, 'rb').read()  # file 1
-    return x
-
-def NCD(file1,file2, from_gz=True):
-    print("getting NCDs:")
-    print(file1)
-    x=read_history_file(file1,from_gz)
-    print(file2)
-    y=read_history_file(file2,from_gz)
-    x_y = x + y  # concatenation
-
-    x_c = zlib.compress(x)
-    y_c = zlib.compress(y)
-    x_y_c = zlib.compress(x_y)
-
-    enum = len(x_y_c) - min(len(x_c), len(y_c))
-    denom = max(len(x_c), len(y_c))
-    NCD =  enum / denom
-    print("NCD =%.3f"%(NCD))
 
 def gather_perturbation_results(bd_type,fitfuns,faults,runs):
     for bd in bd_type:
@@ -175,7 +97,11 @@ def gather_category_results(bd_type, fitfuns, faults, runs):
                 pickle.dump(ncds_list, open(ncd_file, "wb"))
 def filenames(fitfun,bd):
     return fitfun + bd + "_DeltaPs.pkl",fitfun+ bd + "_ncds.pkl"
+
+
+
 if __name__ == "__main__":
+    test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
 
     faults=["FAULT_NONE","FAULT_PROXIMITYSENSORS_SETMIN","FAULT_PROXIMITYSENSORS_SETMAX","FAULT_PROXIMITYSENSORS_SETRANDOM",
             "FAULT_ACTUATOR_LWHEEL_SETHALF", "FAULT_ACTUATOR_RWHEEL_SETHALF", "FAULT_ACTUATOR_BWHEELS_SETHALF"]

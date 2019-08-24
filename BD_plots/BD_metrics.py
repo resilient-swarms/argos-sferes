@@ -12,9 +12,9 @@ RESULTSFOLDER="results"
 
 def get_all_performances(path,conversion_func=None,from_fitfile=False):
     if conversion_func is not None:
-        all_performances = [conversion_func(fitness) for fitness in get_bin_performances(path,from_fitfile).values()]
+        all_performances = [conversion_func(fitness) for fitness in get_bin_performances_uniquearchive(path,from_fitfile).values()]
     else:
-        all_performances = [fitness for fitness in get_bin_performances(path,from_fitfile).values()]
+        all_performances = [fitness for fitness in get_bin_performances_uniquearchive(path,from_fitfile).values()]
     return all_performances
 
 def global_performances(BD_directory, runs, archive_file_path, max_performance,conversion_func,from_fitfile=False):
@@ -106,7 +106,7 @@ def _global_reliability(combined_archive,BD_directory, run, archive_file_path):
     :return:
     """
     path = get_archive_filepath(BD_directory, run, archive_file_path)
-    all_non_empty_performances = get_bin_performances(path)
+    all_non_empty_performances = get_bin_performances_uniquearchive(path)
 
     cell_performances = []
 
@@ -142,7 +142,7 @@ def _precision(combined_archive, BD_directory, run, archive_file_path):
     :return:
     """
     path = get_archive_filepath(BD_directory, run, archive_file_path)
-    all_non_empty_performances = get_bin_performances(path)
+    all_non_empty_performances = get_bin_performances_uniquearchive(path)
 
     cell_performances = []
 
@@ -169,7 +169,7 @@ def _coverage(bd_shape,BD_directory, run, archive_file_path):
     """
 
     path = get_archive_filepath(BD_directory, run, archive_file_path)
-    all_non_empty_performances = get_bin_performances(path)
+    all_non_empty_performances = get_bin_performances_uniquearchive(path)
     num_filled=len(all_non_empty_performances)
     max_num_filled=get_bins(bd_shape)
     return float(num_filled)/float(max_num_filled)
@@ -189,7 +189,7 @@ def _absolutecoverage(bd_shape,BD_directory, run, archive_file_path):
     """
 
     path = get_archive_filepath(BD_directory, run, archive_file_path)
-    all_non_empty_performances = get_bin_performances(path)
+    all_non_empty_performances = get_bin_performances_uniquearchive(path)
     num_filled=len(all_non_empty_performances)
     return float(num_filled)
 
@@ -201,7 +201,7 @@ def add_boxplotlike_data(stats, y_bottom,y_mid,y_top, y_label,method_index,stati
     return x.25,x.50 and x.75
     :return:
     """
-    if statistic=="mean_SD":
+    if statistic!="mean_SD":
         x1,x2,x3=tuple(np.quantile(stats, q=[.25, .50, .75]))
     else:
         sd = np.std(stats)

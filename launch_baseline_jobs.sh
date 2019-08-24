@@ -30,7 +30,7 @@ behaviour["Flocking"]=SWARM_FLOCKING
 
 
 DescriptorType=baseline
-for FitfunType in BorderCoverage DecayBorderCoverage Flocking ; do  # add Flocking later
+for FitfunType in Flocking ; do  
     echo 'Fitfun'${FitfunType}
     SimTime=${time[${FitfunType}]}
     BEHAVIOUR=${behaviour[${FitfunType}]}
@@ -48,25 +48,7 @@ for FitfunType in BorderCoverage DecayBorderCoverage Flocking ; do  # add Flocki
             Outfolder=${ConfigFolder}/results${SUFFIX}
 	    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 	
-	    mkdir -p $Outfolder
-           sed 	-e "s|THREADS|0|" \
-				-e "s|TRIALS|50|" \
-                -e "s|ROBOTS|10|"                    \
-                -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
-				-e "s|SEED|${Replicates}|"                    \
-                -e "s|FITFUN_TYPE|${FitfunType}|"                   \
-                -e "s|DESCRIPTOR_TYPE|${DescriptorType}|"                  \
-                -e "s|OUTPUTFOLDER|${Outfolder}|" \
-				-e "s|SENSOR_RANGE|${SensorRange}|" \
-				-e "s|CENTROIDSFOLDER|experiments/centroids| " \
-				-e "s|NOISE_LEVEL|0.05|"    \
-                -e "s|evolution_loopfunctionsBEHAVIOUR_TAG.so|baseline-behavs-loopfunc.so|" \
-		-e "s|evolution_loopfunctionsBEHAVIOUR_TAG|baseline-behavs-loop-functions|" \
-		-e "s|nn_controller|baseline-behavs|" \
-		-e 's|"tnn"|"bb"|' \
-		-e "s|SWARM_BEHAVIOR|${BEHAVIOUR}|" \
-				experiments/Gomes_experiment_template.argos \
-                > ${ConfigFile}
+	    
              if [ ! -z "${CVT}"  ]; then
         	echo ${CVT}
 		#if [ $Replicates -eq 1 ]; then

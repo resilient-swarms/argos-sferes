@@ -1,5 +1,5 @@
 import numpy as np
-from BD_plots.process_archive_data import *
+from process_archive_data import *
 
 from matplotlib import pyplot as plt
 
@@ -105,7 +105,7 @@ def get_data(base_path,fitfun,descriptors,faults,runs, sens_range, fault_id):
 
                 print(M)
                 print(temp)
-                behav=get_bin_performances(archive_file,as_string=False)
+                behav=get_bin_performances_uniquearchive(archive_file,as_string=False)
                 behav=list(behav.keys())
 
                 if perturbation.endswith("NONE"):
@@ -152,7 +152,6 @@ if __name__ == "__main__":
                   runs=5,
                  sens_range=50,
                   fault_id=0)
-
 
 
     make_boxplot(data,row_conditions=descriptors,col_conditions=faults, save_filename=fitfun+"boxplot_faults.png",

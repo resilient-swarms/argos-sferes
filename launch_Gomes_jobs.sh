@@ -97,7 +97,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
                 echo "found last generation file: "${RESUME_GENERATION}
                 export GENERATION_FILE=${RESUME_GENERATION}
            fi
-           if [[ $GENERATION_FILE == *10100 ]]; then
+           if [[ $GENERATION_FILE == *10000 ]]; then
                 echo "skipping this one, already finished"
            else
               sbatch  submit_job.sh

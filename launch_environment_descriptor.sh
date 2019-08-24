@@ -75,12 +75,12 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 		#check if you need to resume experiments
 		RESUME_GENERATION=${latest} 
 		if [[ "${RESUME_GENERATION}" = "${Outfolder}/gen_*" ]]; then
-                	echo "no previous generation file found"
-                	export GENERATION_FILE=""
-           	else
-                	echo "found last generation file: "${RESUME_GENERATION}
-                	export GENERATION_FILE=${RESUME_GENERATION}
-           	fi
+            echo "no previous generation file found"
+            export GENERATION_FILE=""
+        else
+            echo "found last generation file: "${RESUME_GENERATION}
+            export GENERATION_FILE=${RESUME_GENERATION}
+        fi
            	
 		
 		if [[ "${DO_CONFIG}" = "true" ]] ; then  

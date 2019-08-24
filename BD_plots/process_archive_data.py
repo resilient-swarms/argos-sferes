@@ -6,6 +6,8 @@ from itertools import product
 import argparse
 
 import argparse
+from collections import OrderedDict
+
 
 import matplotlib as mpl
 
@@ -141,10 +143,12 @@ def get_best_individual(path, as_string=False, add_performance=False, add_all=Fa
         return maxind
 
 
-
-def get_bin_performances(path,as_string=True, add_indiv=False,fitnessfile=False):
+def get_bin_performances_uniquearchive(path,as_string=True, add_indiv=False,fitnessfile=False):
+    """
+    get the bin performance dict assuming the archive includes no duplicate bins
+    """
     parsed_file_list=read_spacedelimited(path)
-    bin_performance_dict={}
+    bin_performance_dict=OrderedDict()
     individuals=[]
     for item in parsed_file_list:
         if not fitnessfile:
@@ -154,12 +158,49 @@ def get_bin_performances(path,as_string=True, add_indiv=False,fitnessfile=False)
                 b=str(b)
         performance=float(item[-1])
         bin_performance_dict[b]=performance
+
         individuals.append(ind)
 
     if not add_indiv:
         return bin_performance_dict
     else:
+        # check that individuals are correct
+        i=0
+        print(len(bin_performance_dict))
+        print(len(individuals))
+        for bin,performance in bin_performance_dict.items():
+            b=individuals[i]
+            print(i)
+            assert b==bin, str(b)+" vs "+str(bin)
+            i+=1
         return bin_performance_dict, individuals
+
+
+def get_bin_performances_duplicatearchive(path,add_function,helper_data,as_string=True, add_indiv=False):
+    """
+    get the bin performance dict assuming the archive includes duplicate bins
+    """
+    parsed_file_list=read_spacedelimited(path)
+    bin_performance_dict={}
+    for item in parsed_file_list:
+        ind = item[0]
+        b=tuple(item[1:-1])
+        if as_string:
+            b=str(b)
+        performance=float(item[-1])
+        new_entry = (performance, ind)
+        add_function(b,helper_data,new_entry,bin_performance_dict)
+
+
+    return bin_performance_dict
+
+
+def load_centroids(file):
+    parsed_file_list=read_spacedelimited(file)
+    centroids=[]
+    for item in parsed_file_list:
+        centroids.append(np.array(tuple(item),dtype=float))
+    return centroids
 
 def get_archive_filepath(BD_directory,run, archive_file_path):
     return BD_directory + "/results" + str(run) + "/" + archive_file_path
@@ -167,7 +208,7 @@ def get_archive_filepath(BD_directory,run, archive_file_path):
 
 def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,include_val=True,include_ind=False):
     if by_bin:
-        combined_archive={}
+        combined_archive=OrderedDict({})
     else:
         combined_archive=[]
     if include_ind:
@@ -176,11 +217,11 @@ def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,includ
         filepath=get_archive_filepath(BD_directory, run, archive_file_path)
         if include_ind:
 
-            bin_performance_dict,indiv=get_bin_performances(filepath,as_string=by_bin, add_indiv=True)
+            bin_performance_dict,indiv=get_bin_performances_uniquearchive(filepath,as_string=by_bin, add_indiv=True)
             for ind in indiv:
                 individuals.append(ind)
         else:
-            bin_performance_dict = get_bin_performances(filepath, as_string=by_bin)
+            bin_performance_dict = get_bin_performances_uniquearchive(filepath, as_string=by_bin)
         for key, value in bin_performance_dict.items():
             if by_bin:
                 if key in combined_archive:
