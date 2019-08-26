@@ -133,7 +133,7 @@ def combine_files(filename,filename2):
     x = open(filename,"rb").read()
     y = open(filename2,"rb").read()
     x_y = x + y
-    with open("temp","wb") as f:
+    with open("temp","wb",1) as f:
         f.write(x_y)
     return
 #     stri = pickle.load(open(filename + ".pkl", "rb"))

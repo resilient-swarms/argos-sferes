@@ -37,7 +37,7 @@ echo "simtime"${SimTime}
 for FaultID in "-1"; do
 for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking; do
     echo 'Fitfun'${FitFunType}
-    for SensorRange in 11; do
+    for SensorRange in 0.11; do
 	echo 'sens'${SensorRange}
     for key in ${!descriptors[@]}; do
 	DescriptorType=${key}
