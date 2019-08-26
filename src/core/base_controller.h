@@ -138,6 +138,7 @@ public:
     std::vector<Real> GetNormalizedSensorReadings();
 
     void process_faultbehaviour(std::string errorbehav);
+    void parse_perturbation_set(std::string error_behav);
     void damage_sensors(std::vector<float> &inputs);
     void damage_actuators();
     /* left wheel velocity normalised to [0,1]*/

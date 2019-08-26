@@ -156,7 +156,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			fi
 
 		echo "submitting job"
-	         if [[ $GENERATION_FILE == *10000 ]]; then
+	         if [[ $GENERATION_FILE == *10100 ]]; then
                         echo "skipping this one, already finished"
                  else
                         sbatch submit_envir_job.sh

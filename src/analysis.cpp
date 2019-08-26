@@ -16,16 +16,29 @@
 Descriptor* init_analysis_descriptor(EvolutionLoopFunctions& cLoopFunctions, size_t individual_index,std::string filename,char* best)
 {
     std::map<std::string,Descriptor*> slaves;
-    if (!strcmp(best,"best"))  // remember, strcmp returns 0 if they are equal
+    if (!strcmp(best,"history"))  // remember, strcmp returns 0 if they are equal
     {
         // record state-action history information for the best individual
         slaves["sa_history"] = new SubjectiveHistoryDescriptor(cLoopFunctions.output_folder + "/sa_history"+std::to_string(individual_index));
         slaves["xy_history"] = new ObjectiveHistoryDescriptor(cLoopFunctions.output_folder +  "/xy_history"+std::to_string(individual_index));
     }
-    else{
+    else if (!strcmp(best,"descriptors"))  // remember, strcmp returns 0 if they are equal
+    {
         slaves["sdbc"] = new SDBC(&cLoopFunctions, "cvt_Gomes_sdbc_walls_and_robots_std",10);
         slaves["handcrafted"] = new IntuitiveHistoryDescriptor(&cLoopFunctions,3);
         slaves["spirit"] = new CVT_RAB_Spirit(1024);
+    }
+    else if (!strcmp(best,"all"))  // remember, strcmp returns 0 if they are equal
+    {
+        slaves["sdbc"] = new SDBC(&cLoopFunctions, "cvt_Gomes_sdbc_walls_and_robots_std",10);
+        slaves["handcrafted"] = new IntuitiveHistoryDescriptor(&cLoopFunctions,3);
+        slaves["spirit"] = new CVT_RAB_Spirit(1024);
+
+        slaves["sa_history"] = new SubjectiveHistoryDescriptor(cLoopFunctions.output_folder + "/sa_history"+std::to_string(individual_index));
+        slaves["xy_history"] = new ObjectiveHistoryDescriptor(cLoopFunctions.output_folder +  "/xy_history"+std::to_string(individual_index));
+    }
+    else{
+        slaves["handcrafted"] = new IntuitiveHistoryDescriptor(&cLoopFunctions,3);
     }
     return new AnalysisDescriptor(individual_index, filename, slaves);
 }

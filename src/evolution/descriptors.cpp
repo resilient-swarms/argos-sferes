@@ -1321,6 +1321,11 @@ void AnalysisDescriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 /*reset BD at the start of a trial*/
 void AnalysisDescriptor::start_trial()
 {
+	if (current_trial ==max_history_trials)
+	{
+		slave_descriptors.erase("sa_history");
+		slave_descriptors.erase("xy_history");
+	}
 	for (auto const &x : slave_descriptors)
 	{
 		x.second->start_trial();

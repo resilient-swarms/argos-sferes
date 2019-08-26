@@ -1,4 +1,5 @@
 #include <src/core/base_controller.h>
+#include <fstream>
 
 /****************************************/
 /****************************************/
@@ -120,12 +121,45 @@ void BaseController::Init(TConfigurationNode &t_node)
     }
 }
 
+void BaseController::parse_perturbation_set(std::string filename)
+{
+    std::string line;
+    //open file
+    filename.erase(0,std::string("FILE:").length());// strip the prefix
+    std::ifstream file(filename);
+    //get the line
+    if (file.good())
+    {
+        std::getline(file,line);
+    }
+    file.close();
+    //
+    std::stringstream ss(line);
+    std::vector<std::string> result;
+
+    while( ss.good() )
+    {
+        std::string substr;
+        std::getline( ss, substr, ',' );
+        result.push_back( substr );
+    }
+    // get the fault for this controller
+    std::string id = this->GetId();
+    id.erase(0, std::string("thymio").length());
+    size_t index = std::stoi(id);
+    process_faultbehaviour(result[index]);
+    b_damagedrobot = true;
+}
 /****************************************/
 /****************************************/
 
 void BaseController::ControlStep()
 {
-
+    if (b_damagedrobot)
+    {
+        damage_actuators();
+    }
+    
     m_pcWheels->SetLinearVelocity(
         m_fLeftSpeed,
         m_fRightSpeed);
@@ -207,7 +241,11 @@ void BaseController::process_faultbehaviour(std::string errorbehav)
 
     // else if  (errorbehav.compare("FAULT_POWER_FAILURE") == 0)
     //     FBehavior = FAULT_POWER_FAILURE;
-
+    else if(errorbehav.rfind("FILE:", 0) == 0)   // process perturbation set
+    {
+        
+        parse_perturbation_set(errorbehav);
+    }
     else
     {
         std::cerr << "invalid fault behavior";

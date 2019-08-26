@@ -800,6 +800,7 @@ public:
   std::map<std::string,Descriptor*> slave_descriptors;
   size_t individual;
   std::string file_name;
+  const size_t max_history_trials = 5;
   AnalysisDescriptor(size_t individ, std::string file_n,std::map<std::string,Descriptor*> slaves);
 
 

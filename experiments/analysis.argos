@@ -38,7 +38,7 @@
       <params>
       <wheel_turning max_speed="10" />
       <experiment_run swarm_behavior="/"
-						fault_behavior="FAULT_ACTUATOR_LWHEEL_SETHALF" 
+			fault_behavior="FILE:experiments/perturbations/run1_p0.txt" 
 	                id_faulty_robot="0" />
         
       </params>      
@@ -50,8 +50,8 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libevolution_loopfunctionscvt10D.so"
-                  label="evolution_loopfunctionscvt10D"
+  <loop_functions library="lib/libevolution_loopfunctions6D.so"
+                  label="evolution_loopfunctions6D"
                   trials="3"
                   robots="10"
                   descriptortype="analysis"  

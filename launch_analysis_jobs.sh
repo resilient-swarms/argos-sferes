@@ -43,8 +43,10 @@ time["Dispersion"]=400
 time["Aggregation"]=400
 time["Flocking"]=400
 
-for FaultType in "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" \
-"FAULT_ACTUATOR_LWHEEL_SETHALF" "FAULT_ACTUATOR_RWHEEL_SETHALF" "FAULT_ACTUATOR_BWHEELS_SETHALF"; do
+perturbations_folder="experiments/perturbations"
+# for FaultType in "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" \
+# "FAULT_ACTUATOR_LWHEEL_SETHALF" "FAULT_ACTUATOR_RWHEEL_SETHALF" "FAULT_ACTUATOR_BWHEELS_SETHALF"; do
+for FaultIndex in $(seq 0 4); do
 SimTime=${time[${FitfunType}]}
 echo "simtime"${SimTime}
 for FaultID in "0"; do
@@ -62,7 +64,9 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 	echo "tag is ${tag}"
 
 	for Replicates in $(seq 1 5); do
-          # Take template.argos and make an .argos file for this experiment
+			FaultType="FILE:${perturbations_folder}/run${Replicates}_p${FaultIndex}.txt"
+			echo "will look for perturbations at ${FaultType}"
+          	# Take template.argos and make an .argos file for this experiment
             SUFFIX=${Replicates}
 
 			#read the data from the original experiment

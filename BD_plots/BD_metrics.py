@@ -195,6 +195,14 @@ def _absolutecoverage(bd_shape,BD_directory, run, archive_file_path):
 
 
 
+def translated_coverages(t,BD_dir,runs, targets):
+    d={target:[] for target in targets}
+    for run in runs:
+        for target, shape in targets.items():
+            archive_file = "analysis" + str(t) + "_" + target + "REDUCED.dat"
+            d[target].append( _absolutecoverage(shape, BD_dir, run, archive_file))
+    print("translated coverages " + str(d))
+    return d
 
 def add_boxplotlike_data(stats, y_bottom,y_mid,y_top, y_label,method_index,statistic="mean_SD"):
     """
@@ -264,6 +272,7 @@ def try_add_performance_data(i,bd_shapes,directory,runs,archive_file, y_bottom,y
     except Exception as e:
         print(e)
 
+
 def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None):
 
     # bd_type = ["history","cvt_mutualinfo","cvt_mutualinfoact","cvt_spirit"]  #legend label
@@ -278,10 +287,10 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
     # bd_type = ["baseline","history","cvt_rab_spirit","Gomes_sdbc_walls_and_robots_std","environment_diversity","environment_diversity"]  #legend label
     # legend_labels=["design","handcrafted","SPIRIT","SDBC","QED","QED-Translated"]  # labels for the legend
 
-    bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity","environment_diversity","environment_diversity","environment_diversity","baseline"]  #legend label
-    legend_labels=["handcrafted","SDBC","SPIRIT","QED","QED->handcrafted","QED->SPIRIT","QED->SDBC","baseline"]  # labels for the legend
+    bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity","environment_diversity","baseline"]  #legend label
+    legend_labels=["handcrafted","SDBC","SPIRIT","QED","QED-transfer","baseline"]  # labels for the legend
 
-    colors=["C0","C1","C2","C3","C3","C3","C3","C4"]  # colors for the lines
+    colors=["C0","C1","C2","C3","C3","C4"]  # colors for the lines
     # (numsides, style, angle)
     markers=[(1,1,0),(1,2,0),(1,3,0),(3,1,0),(3,2,0),(3,3,0),(4,1,0),(4,2,0),(4,3,0)] # markers for the lines
     bd_shapes =[4096, 4096, 4096,4096, 4096, 4096,4096,4096, 4096]  # shape of the characterisation
@@ -304,14 +313,16 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
                 # archive_file="analysis"+str(time)+"_handcrafted.dat"  # just use the one that is quickest
                 directory = BD_directory+"/"+bd_type[i] + "/FAULT_NONE"
                 if "handcrafted" in legend_labels[i]:
-                    archive_file="analysis"+str(time)+"_handcraftedREDUCED.dat"
-                elif "SPIRIT" in legend_labels[i]:
-                    archive_file = "analysis" + str(time) + "_spiritREDUCED.dat"
+                    archive_file = "analysis" + str(time) + "_handcraftedREDUCED.dat"
                 elif "SDBC" in legend_labels[i]:
                     archive_file = "analysis" + str(time) + "_sdbcREDUCED.dat"
+                elif "SPIRIT" in legend_labels[i]:
+                    archive_file = "analysis" + str(time) + "_spiritREDUCED.dat"
                 else:
                     raise Exception("")
-
+            elif legend_labels[i].endswith("transfer"):
+                directory = BD_directory+"/"+bd_type[i] + "/FAULT_NONE"
+                archive_file = "analysis" + str(time) + "_handcraftedREDUCED.dat"
             else:
                 archive_file="archive_" + str(time) + ".dat"
                 directory = BD_directory + "/" + bd_type[i]
@@ -319,7 +330,7 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
 
             #abs_coverage=absolutecoverages(bd_shapes[i], directory, runs, archive_file)
             #add_boxplotlike_data(abs_coverage, y_bottom, y_mid, y_top, y_label="absolute_coverage",method_index=i)
-            try_add_performance_data(i,bd_shapes,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=False)
+            try_add_performance_data(i,bd_shapes,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=translated)
         # now add baseline
         i = len(bd_type) - 1
         directory = BD_directory + "/" + bd_type[i] + "/"
@@ -361,21 +372,28 @@ if __name__ == "__main__":
     
     runs=5
 
-    fitfuns= ["Aggregation","DecayCoverage","Dispersion","DecayBorderCoverage","Flocking"] #,"DecayBorderCoverage","Flocking"]
+    fitfuns= ["Aggregation","Dispersion","Flocking","DecayCoverage","DecayBorderCoverage"] #,"DecayBorderCoverage","Flocking"]
     fig, axs = plt.subplots(4, 5,figsize=(50,40))  # coverage, avg perf., global perf., global reliability
     i=0
     for fitfun in fitfuns:
         data_dir = HOME_DIR + "/Data/ExperimentData"
-        title=fitfun+"range11"
+        title=fitfun+"range0.11"
         # print_best_individuals(
         #     BD_dir="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
         #     outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
-        development_plots(title=fitfun,runs=range(1,6), times=range(0,10000, 500),
-                          BD_directory=data_dir + "/"+title,title_tag="FinalBDComp/"+fitfun+"NOCORRECT",
+        BD_dir = data_dir + "/"+title
+
+        development_plots(title=fitfun,runs=range(1,2), times=range(0,10000, 500),
+                          BD_directory=BD_dir,title_tag="FinalBDComp/"+fitfun+"NOCORRECT",
                           ax = axs[:,i])
+        try:
+            tl_cv = translated_coverages(2000, BD_dir+"/environment_diversity/FAULT_NONE", range(1,2), targets={"handcrafted": 4096, "sdbc": 4096})
+        except Exception as e:
+            print(e)
         i+=1
 
     finish_fig(fig, RESULTSFOLDER +"/FinalBDComp/"+fitfun+"ALL.pdf")
+
 
 
     # for fitfun in fitfuns:
