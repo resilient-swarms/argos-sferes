@@ -26,11 +26,20 @@ declare -A voronoi
 
 command="bin/analysis" # note: cvt and 10D does not really matter since we are not evolving
 
-descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
 #descriptors["environment_diversity"]=6
 #voronoi["environment_diversity"]=""
+
+
+descriptors["history"]=3
+voronoi["history"]=""
+
+descriptors["cvt_rab_spirit"]=1024
+voronoi["cvt_rab_spirit"]="cvt"
+
+
 
 time["DecayCoverage"]=400
 time["DecayBorderCoverage"]=400
@@ -45,7 +54,7 @@ for FaultIndex in $(seq 0 4); do
 	SimTime=${time[${FitfunType}]}
 	echo "simtime"${SimTime}
 	for FaultID in "-1"; do
-		for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking; do
+		for FitfunType in Aggregation Dispersion Flocking; do
 			echo 'Fitfun'${FitFunType}
 			for SensorRange in 0.11; do
 				echo 'sens'${SensorRange}
@@ -58,7 +67,7 @@ for FaultIndex in $(seq 0 4); do
 					echo "has ${BD_DIMS} dimensions"
 					echo "tag is ${tag}"
 
-					for Replicates in $(seq 1 5); do
+					for Replicates in $(seq 1 2); do
 
 						# Take template.argos and make an .argos file for this experiment
 						SUFFIX=${Replicates}
@@ -80,6 +89,7 @@ for FaultIndex in $(seq 0 4); do
 							# look at archive dir at previous perturbation results; config is at FAULT_NONE
 							FaultType="FILE:${perturbations_folder}/run${Replicates}_p${FaultIndex}.txt"
 							ConfigFolder=${Base}/run${Replicates}_p${FaultIndex}
+							mkdir -p ${ConfigFolder}
 							ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 							export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
 							export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
@@ -118,7 +128,7 @@ for FaultIndex in $(seq 0 4); do
 						echo "submitting job"
 						bash zero_padding_data.sh ${Base}/results${SUFFIX} # make sure everything is zero-padded
 
-						bash submit_test.sh $2 # process the second argument; "compress" if just need compression else empty
+						sbatch submit_test.sh $2 # process the second argument; "compress" if just need compression else empty
 					done
 				done
 			done

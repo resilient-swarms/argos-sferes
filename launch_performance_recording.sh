@@ -22,8 +22,14 @@ command="bin/analysis" # note: cvt and 10D does not really matter since we are n
 #descriptors["environment_diversity"]=6
 #voronoi["environment_diversity"]=""
 
-descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+
+#descriptors["history"]=3
+#voronoi["history"]=""
+
+descriptors["cvt_rab_spirit"]=1024
+voronoi["cvt_rab_spirit"]="cvt"
 
 time["DecayCoverage"]=400
 time["DecayBorderCoverage"]=400
@@ -35,7 +41,7 @@ for FaultType in "FAULT_NONE"; do
 	SimTime=${time[${FitfunType}]}
 	echo "simtime"${SimTime}
 	for FaultID in "-1"; do
-		for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking; do
+		for FitfunType in Aggregation Dispersion Flocking; do
 			echo 'Fitfun'${FitFunType}
 			for SensorRange in 0.11; do
 				echo 'sens'${SensorRange}
@@ -48,7 +54,7 @@ for FaultType in "FAULT_NONE"; do
 					echo "has ${BD_DIMS} dimensions"
 					echo "tag is ${tag}"
 
-					for Replicates in $(seq 1 5); do
+					for Replicates in $(seq 1 2); do
 						for GEN in $(seq ${MINGEN} ${STEP} ${MAXGEN}); do
 							# Take template.argos and make an .argos file for this experiment
 							SUFFIX=${Replicates}
@@ -111,7 +117,7 @@ for FaultType in "FAULT_NONE"; do
 
 							echo "submitting job"
 							bash zero_padding_data.sh ${Base}/results${SUFFIX} # make sure everything is zero-padded
-							bash submit_test.sh $2                             # process the second argument; "compress" if just need compression else empty
+							sbatch submit_test.sh $2                             # process the second argument; "compress" if just need compression else empty
 							echo $GEN
 
 						done
