@@ -1313,6 +1313,7 @@ AnalysisDescriptor::AnalysisDescriptor(size_t individ, std::string file_n, std::
 /* prepare for trials*/
 void AnalysisDescriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 {
+	current_trial = 0;
 	for (auto const &x : slave_descriptors)
 	{
 		x.second->before_trials(cLoopFunctions);
@@ -1321,11 +1322,7 @@ void AnalysisDescriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
 /*reset BD at the start of a trial*/
 void AnalysisDescriptor::start_trial()
 {
-	if (current_trial ==max_history_trials)
-	{
-		slave_descriptors.erase("sa_history");
-		slave_descriptors.erase("xy_history");
-	}
+
 	for (auto const &x : slave_descriptors)
 	{
 		x.second->start_trial();

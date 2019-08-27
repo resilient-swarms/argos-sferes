@@ -20,6 +20,7 @@ parser.add_argument('-c', type=str,help='command to perform (required)')
 parser.add_argument('-p', type=str, help="archive path where the individuals are located" )
 parser.add_argument('-o', type=str, help="outputfolder" )
 parser.add_argument('-b', type=str, help="best or not")
+parser.add_argument('-g', type=str, help="generation")
 args = parser.parse_args()
 
 
@@ -81,8 +82,30 @@ def get_best_diversity_individuals(behavs,indivs):
     return l,inds
 def compress_and_remove(outputfolder, file):
     os.system("cd "+ outputfolder + " && GZIP=-9 tar cvzf "+file+".tar.gz " +file +" && rm "+file)
+def compress_and_remove_lzma(outputfolder, file):
+    os.system("cd "+ outputfolder + " && "+lzma_compress(file)+" && rm "+file)
 
 
+def decompress_lzma(filename):
+    directory=os.path.dirname(filename)
+    os.system("7z e -mm=LZMA -mx=9 " + filename + ".zip -o"+directory)
+
+
+def perform_ppm(file, from_zip=False):
+    if not from_zip:
+        os.system("7z a -mm=PPMd -mmem=256M -mx=9 -mo=32 " + file + ".zip " + file)
+    return os.path.getsize(file + ".zip")
+
+
+def lzma_compress(file):
+    return "7z a -mm=LZMA -mx=9 " + file + ".zip " + file
+
+
+
+def perform_lzma(file,from_zip=False):
+    if not from_zip:
+        os.system(lzma_compress(file))
+    return os.path.getsize(file + ".zip")
 
 def run_individual(command, individual):
     new_command = command + " -n " + individual
@@ -105,21 +128,21 @@ def run_individuals(command, path):
     for i in individuals:
         run_individual(command,i)
 
-def run_best_individual(command, outputfolder):
-    print("looking for "+outputfolder + "/analysis_sdbc.dat")
-    maxind = get_best_individual(outputfolder + "/analysis_sdbc.dat")
+def run_best_individual(command, outputfolder, generation):
+    print("looking for "+outputfolder + "/analysis"+generation+"_handcrafted.dat")
+    maxind = get_best_individual(outputfolder + "/analysis"+generation+"_handcrafted.dat")
     print("start run best individual: "+str(maxind))
     run_individual(command, maxind)
     for analysis_suffix in ["sa_history", "xy_history"]:
-        compress_and_remove(outputfolder, analysis_suffix + str(maxind))
+        compress_and_remove_lzma(outputfolder, analysis_suffix + str(maxind)+".temp")
 
-def compress_histories(outputfolder):
-    print("looking for " + outputfolder + "/analysis_sdbc.dat")
-    maxind = get_best_individual(outputfolder + "/analysis_sdbc.dat")
-    print("start compress best individual history: " + str(maxind))
-
-    compress_and_remove(outputfolder,outputfolder+"/sa_history"+str(maxind))
-    compress_and_remove(outputfolder, outputfolder + "/xy_history" + str(maxind))
+# def compress_histories(outputfolder):
+#     print("looking for " + outputfolder + "/analysis_sdbc.dat")
+#     maxind = get_best_individual(outputfolder + "/analysis_sdbc.dat")
+#     print("start compress best individual history: " + str(maxind))
+#
+#     compress_and_remove(outputfolder,outputfolder+"/sa_history"+str(maxind))
+#     compress_and_remove(outputfolder, outputfolder + "/xy_history" + str(maxind))
 
 
 def get_best_individual(path, as_string=False, add_performance=False, add_all=False):
@@ -207,6 +230,17 @@ def get_archive_filepath(BD_directory,run, archive_file_path):
 
 
 def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,include_val=True,include_ind=False):
+    """
+    takes different runs, then combines the archives,
+    filling cells filled by any of the runs, with a list of all found solutions across runs for each cell)
+    :param BD_directory:
+    :param runs:
+    :param archive_file_path:
+    :param by_bin:
+    :param include_val:
+    :param include_ind:
+    :return:
+    """
     if by_bin:
         combined_archive=OrderedDict({})
     else:
@@ -285,8 +319,8 @@ if __name__ == "__main__":
     # args.o= "/home/david/DataFinal/ExperimentData/Aggregationrange11/environment_diversity/FAULT_NONE/results5"
     # args.b = "all"
     if args.b == "best":
-        run_best_individual(args.c, args.o)
-    elif args.b == "compress":
-        compress_histories(args.o)
+        run_best_individual(args.c, args.o, args.g)
+    # elif args.b == "compress":
+    #     compress_histories(args.o)
     else:
         run_individuals(args.c, args.p)

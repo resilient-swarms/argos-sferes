@@ -7,20 +7,22 @@
 
 source activate py3.7 # just for the cvt initialisation
 
-generationfile="${ARCHIVEDIR}/gen_${FINALGEN_GENFILE}"
-archivefile="${ARCHIVEDIR}/archive_${FINALGEN_ARCHIVE}.dat"
 
+
+echo ${CONFIG}
+sleep 5
 
 
 if [ "$1" = "best" ]; then
     # now get the history of the best solution
+    jobtocome="${COMMAND} ${CONFIG} best ${FINALGEN_ARCHIVE} -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
     echo "Getting the best:\nStarting the following command: "${jobtocome}""
     echo 
     echo "Looking for individuals at: "${archivefile}
-    jobtocome="${COMMAND} ${CONFIG} best ${FINALGEN_ARCHIVE} -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
-    python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "best"
+    python BD_plots/process_archive_data.py -c "${jobtocome}" -o "${OUTPUTDIR}" -g "${FINALGEN_ARCHIVE}" -b "best"
     exit 1
 fi 
+
 
 # first get all the fitness and descriptor values
 jobtocome="${COMMAND} ${CONFIG} all ${FINALGEN_ARCHIVE} -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
@@ -28,7 +30,7 @@ echo "Starting the following command: "${jobtocome}" for all individuals"
 echo 
 echo "Looking for individuals at: "${archivefile}
 echo
-echo ""python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all"""
+echo "python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all""
 python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all"
 
 

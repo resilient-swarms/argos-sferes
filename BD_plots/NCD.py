@@ -129,26 +129,38 @@ def test_NCD(compressor,num_agents, num_trials,num_ticks, num_features):
 #         pickle.dump(data,open(filename+".pkl","wb"))
 #
 #
-def combine_files(filename,filename2):
-    x = open(filename,"rb").read()
-    y = open(filename2,"rb").read()
+
+
+
+def combine_files(filename,filename2,from_zip=False):
+    if from_zip:
+        decompress_lzma(filename)
+        x = open(filename, "rb").read()
+        os.system("rm "+filename)
+        if filename==filename2:
+            y=x
+        else:
+            decompress_lzma(filename2)
+            y = open(filename2, "rb").read()
+            os.system("rm " + filename2)
+    else:
+        x = open(filename,"rb").read()
+        if filename==filename2:
+            y=x
+        else:
+            y = open(filename2+".temp", "rb").read()
     x_y = x + y
-    with open("temp","wb",1) as f:
+    with open("xy.temp","wb",1) as f:
         f.write(x_y)
+
     return
 #     stri = pickle.load(open(filename + ".pkl", "rb"))
 #     str2 = pickle.load(open(filename2 + ".pkl", "rb"))
 #     new_str = stri + str2
 #     pickle.dump(new_str,open("temp.pkl","wb"))
 
-def perform_ppm(file):
-    os.system("7z a -mm=PPMd -mmem=256M -mx=9 -mo=32 " + file + ".zip " + file)
-    return os.path.getsize(file + ".zip")
 
-def perform_lzma(file):
-    os.system("7z a -mm=LZMA -mx=9 " + file + ".zip " + file)
-    return os.path.getsize(file + ".zip")
-def NCD(file1,file2,compressor):
+def NCD(file1,file2,compressor,from_zip=False):
 
     # two choicesare important :
     # 1. use the PPM compression
@@ -161,17 +173,19 @@ def NCD(file1,file2,compressor):
 
     # 2. use highest compression level = 9
 
+    # in practice, here: lzma works really wel for reasonable file sizes
+
     print("getting NCDs:")
 
     import os
 
-    l_x = compressor(file1)
+    l_x = compressor(file1,from_zip)
     if file1 != file2:
-        l_y = compressor(file2)
+        l_y = compressor(file2,from_zip)
     else:
         l_y = l_x
-    combine_files(file1, file2)
-    l_xy = compressor("temp")
+    combine_files(file1, file2, from_zip)
+    l_xy = compressor("xy.temp",from_zip=False)  # always need to perform compression here
     #os.system("rm temp.zip")
     enum = l_xy - min(l_x, l_y)
     denom = max(l_x, l_y)
@@ -214,4 +228,25 @@ def NCD(file1,file2,compressor):
 #     print("NCD =%.3f"%(NCD))
 
 if __name__ == "__main__":
-    test_NCD(compressor=perform_lzma,num_agents=10, num_trials=5,num_ticks=2000, num_features=2)
+    #test_NCD(compressor=perform_lzma,num_agents=10, num_trials=5,num_ticks=2000, num_features=2)
+
+    # # sa_history: variability for the same individual: NCD~=0.80 for different seed, NCD~=0 for same seed; different individual between 0.80 and 1.0
+    # file1="/home/david/Data/ExperimentData/Aggregationrange11/Gomes_sdbc_walls_and_robots_std/run1_p0/results1/sa_history525.temp"
+    # file2="/home/david/Data/ExperimentData/Aggregationrange11/Gomes_sdbc_walls_and_robots_std/run1_p0/results1/sa_history323_run1.temp"
+    # file3 = "/home/david/Data/ExperimentData/Aggregationrange11/Gomes_sdbc_walls_and_robots_std/run1_p0/results1/sa_history323.temp"
+
+    # sa_history: variability for the same individual: NCD~=0.50 for different seed, NCD~=0 for same seed; different individual between 0.50 and 1.0
+    file1="/home/david/Data/ExperimentData/Aggregationrange11/Gomes_sdbc_walls_and_robots_std/run1_p0/results1/xy_history525.temp"
+    file2="/home/david/Data/ExperimentData/Aggregationrange11/Gomes_sdbc_walls_and_robots_std/run1_p0/results1/xy_history323_run1.temp"
+    file3 = "/home/david/Data/ExperimentData/Aggregationrange11/Gomes_sdbc_walls_and_robots_std/run1_p0/results1/xy_history323.temp"
+    NCD(file1, file1, perform_lzma, from_zip=True)
+    NCD(file2, file2, perform_lzma, from_zip=True)
+    NCD(file3, file3, perform_lzma, from_zip=True)
+
+    NCD(file1, file2, perform_lzma, from_zip=True)
+
+    print("check variability across seeds")
+    NCD(file2, file3, perform_lzma, from_zip=True)
+
+    NCD(file1, file3, perform_lzma, from_zip=True)
+

@@ -38,35 +38,35 @@ for FitfunType in Flocking ; do
     sleep 2
     echo "simtime"${SimTime}
     for SensorRange in 0.11; do
-	echo 'sens'${SensorRange}
+	      echo 'sens'${SensorRange}
 
-	for Replicates in $(seq 1 5); do
-                       
-            # Take template.argos and make an .argos file for this experiment
-            SUFFIX=${Replicates}
-            ConfigFolder=${data}/${FitfunType}range${SensorRange}/${DescriptorType}
-            Outfolder=${ConfigFolder}/results${SUFFIX}
-	    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
-	
-	    
-             if [ ! -z "${CVT}"  ]; then
-        	echo ${CVT}
-		#if [ $Replicates -eq 1 ]; then
-		#	python sferes2/modules/cvt_map_elites/cvt.py -k 1000 -d ${BD_DIMS} -p 100000 -f ${Outfolder}
-		#else
+        for Replicates in $(seq 1 5); do
+                            
+                  # Take template.argos and make an .argos file for this experiment
+                  SUFFIX=${Replicates}
+                  ConfigFolder=${data}/${FitfunType}range${SensorRange}/${DescriptorType}
+                  Outfolder=${ConfigFolder}/results${SUFFIX}
+                  ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
+        
+            
+                  if [ ! -z "${CVT}"  ]; then
+                      echo ${CVT}
+                      #if [ $Replicates -eq 1 ]; then
+                      #	python sferes2/modules/cvt_map_elites/cvt.py -k 1000 -d ${BD_DIMS} -p 100000 -f ${Outfolder}
+                      #else
 
-		#	cp ${ConfigFolder}/results1/centroids_1000_${BD_DIMS}.dat ${Outfolder}
-		#fi
-		vsuffix='-v '${CVT}
-		echo ${cvsuffix}
-		
-	     fi
-	  
-	   # Call ARGoS
-	   export CONFIG=${ConfigFile}
-	   export OUTPUTDIR=${Outfolder}
+                      #	cp ${ConfigFolder}/results1/centroids_1000_${BD_DIMS}.dat ${Outfolder}
+                      #fi
+                      vsuffix='-v '${CVT}
+                      echo ${cvsuffix}
+                
+                  fi
+          
+          # Call ARGoS
+          export CONFIG=${ConfigFile}
+          export OUTPUTDIR=${Outfolder}
 
-           bash submit_baseline_job.sh
-        done
+          bash submit_baseline_job.sh
+          done
     done
 done

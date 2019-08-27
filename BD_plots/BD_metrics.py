@@ -6,7 +6,7 @@ import os
 HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
 
-
+import copy
 
 
 
@@ -77,7 +77,13 @@ def _avg_performance(BD_directory, run,archive_file_path,max_performance,convers
     return np.mean(all_performances)/max_performance
 
 def global_reliabilities(BD_directory,runs,archive_file_path):
-    #bins=get_bins(bd_shape)
+    """
+    averages the global reliability across the different maps in the combined archive
+    :param BD_directory:
+    :param runs:
+    :param archive_file_path:
+    :return:
+    """
 
     combined_archive=get_combined_archive(BD_directory, runs, archive_file_path)
     stats = []
@@ -96,8 +102,12 @@ def _global_reliability(combined_archive,BD_directory, run, archive_file_path):
     (to avoid dividing by zero, and because it may not be possible to fill such cells and algorithms
      thus should not be penalized for not doing so).
 
-     Based on the formal equation:
+     NOTE: because here we are comparing descriptors with the same algorithm,
+     and different descriptors have different meaning for the cells,
+     the best performance and filled cells are computed by the different runs of a single setting
 
+     i.e., ignore cells that have not been filled in any of the runs,
+     but for cells that are filled compute a map's performance/max(performance) and average it
 
     :param BD_directory: directory in which all the runs of a BD are located,
             e.g. ~/Desktop/history_obstacles
@@ -122,6 +132,13 @@ def _global_reliability(combined_archive,BD_directory, run, archive_file_path):
     return mean
 
 def precisions(BD_directory,runs,archive_file_path):
+    """
+    averages the precision of the different maps in the combined archive
+    :param BD_directory:
+    :param runs:
+    :param archive_file_path:
+    :return:
+    """
     combined_archive=get_combined_archive(BD_directory, runs, archive_file_path)
     stats = []
     for run in runs:
@@ -132,8 +149,10 @@ def _precision(combined_archive, BD_directory, run, archive_file_path):
 
     """
     Same as global reliability, but for each run, the normalized performance
-    is averaged only for the cells that were filled by that algo- rithm in that run.
+    is averaged only for the cells that were filled by that algo- rithm **in that run**
 
+    i.e., ignore cells not filled in the current run,
+    but for cells that are filled compute a map's performance/max(performance) and average it
 
     :param BD_directory: directory in which all the runs of a BD are located,
             e.g. ~/Desktop/history_obstacles
@@ -193,14 +212,25 @@ def _absolutecoverage(bd_shape,BD_directory, run, archive_file_path):
     num_filled=len(all_non_empty_performances)
     return float(num_filled)
 
-
-
+def globalcoverage(BD_directory,runs,archive_file_path):
+    """
+    averages the precision of the different maps in the combined archive
+    :param BD_directory:
+    :param runs:
+    :param archive_file_path:
+    :return:
+    """
+    combined_archive=get_combined_archive(BD_directory, runs, archive_file_path)
+    num_filled = len(combined_archive)
+    return float(num_filled)
 def translated_coverages(t,BD_dir,runs, targets):
     d={target:[] for target in targets}
+    relative={target:[] for target in targets}
     for run in runs:
         for target, shape in targets.items():
             archive_file = "analysis" + str(t) + "_" + target + "REDUCED.dat"
-            d[target].append( _absolutecoverage(shape, BD_dir, run, archive_file))
+            cov = _absolutecoverage(shape, BD_dir, run, archive_file)
+            d[target].append(cov)
     print("translated coverages " + str(d))
     return d
 
@@ -264,8 +294,14 @@ def try_add_performance_data(i,bd_shapes,directory,runs,archive_file, y_bottom,y
         add_boxplotlike_data(global_perform, y_bottom, y_mid, y_top, y_label="global_performance", method_index=i)
 
         if not from_fitfile:
-            coverage = coverages(bd_shapes[i], directory, runs, archive_file)
-            add_boxplotlike_data(coverage, y_bottom, y_mid, y_top, y_label="coverage", method_index=i)
+            # coverage = coverages(bd_shapes[i], directory, runs, archive_file)
+            # add_boxplotlike_data(coverage, y_bottom, y_mid, y_top, y_label="coverage", method_index=i)
+
+            absolutecoverage = absolutecoverages(bd_shapes[i], directory, runs, archive_file)
+            add_boxplotlike_data(absolutecoverage, y_bottom, y_mid, y_top, y_label="absolute_coverage", method_index=i)
+
+            globalcov = globalcoverage(directory, runs, archive_file)
+            add_boxplotlike_data([globalcov], y_bottom, y_mid, y_top, y_label="global_coverage", method_index=i)
 
             global_reliability = global_reliabilities(directory, runs, archive_file)
             add_boxplotlike_data(global_reliability, y_bottom, y_mid, y_top, y_label="global_reliability", method_index=i)
@@ -294,15 +330,13 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
     # (numsides, style, angle)
     markers=[(1,1,0),(1,2,0),(1,3,0),(3,1,0),(3,2,0),(3,3,0),(4,1,0),(4,2,0),(4,3,0)] # markers for the lines
     bd_shapes =[4096, 4096, 4096,4096, 4096, 4096,4096,4096, 4096]  # shape of the characterisation
-    y_labels=["global_performance","average_performance","coverage","global_reliability"]
+    y_labels=["global_performance","average_performance","absolute_coverage","global_coverage","global_reliability"]
 
 
     boxes=[(.10,.40),(.10,.60),(.10,.60),(.45,.15),(0.20,0.20),(0.20,0.20)] # where to place the legend box
     y_bottom={ylabel:[[] for i in bd_type] for ylabel in y_labels}
     y_mid = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
     y_top = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
-
-
 
 
     for time in times:
@@ -344,13 +378,14 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
     j=0
 
     for label in y_labels:
-        ylim=[0,5000] if label == "absolute_coverage"   else [0.0,1.0]
+        ylim=[0,4096] if label in ["absolute_coverage","global_coverage"]   else [0.0,1.0]
         axis = None if ax is None else ax[j]
+        temp_labels = copy.copy(legend_labels)
         if not label.endswith("performance"):
-            #strip the final bd (baseline only has performance data)
-            temp_labels=legend_labels[:-1]
-        else:
-            temp_labels=legend_labels
+            #strip baseline and transfer
+            temp_labels.remove("baseline")
+            temp_labels.remove("QED-transfer")
+
         # createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=ylim,
         #            save_filename=RESULTSFOLDER+"/"+title_tag+label+".pdf",legend_labels=legend_labels,
         #            xlim=None,xscale="linear",yscale="linear",
@@ -359,12 +394,25 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
         #        xaxis_style="plain",y_err=[],force=True,fill_between=(y_bottom[label],y_top[label]))
         createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=ylim,
                    save_filename=RESULTSFOLDER+"/"+title_tag+label+".pdf",legend_labels=temp_labels,
-                   xlim=None,xscale="linear",yscale="linear",
+                   xlim=[0,10500],xscale="linear",yscale="linear",
                legendbox=boxes[j],annotations=[],xticks=[],yticks=[],task_markers=[],scatter=False,
                legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[],index_x=[],
                xaxis_style="plain",y_err=[],force=True,fill_between=(y_bottom[label],y_top[label]),
                    ax=axis,title=title )
         j+=1
+
+    try:
+        time_index=-1 #only last
+        tl_cv = []
+        relative_tl_cv=[]
+        for i in range(len(bd_type) - 1):
+            numbers=np.array(translated_coverages(times[time_index], BD_dir + "/environment_diversity/FAULT_NONE", runs,
+                                 targets={"handcrafted": 4096, "sdbc": 4096}))
+            tl_cv.append(numbers)
+            base_coverage = float(y_mid["absolute_coverage"][i][time_index])
+            relative_tl_cv.append(numbers/base_coverage)  # % of solutions maintained
+    except Exception as e:
+        print(e)
 
 
 if __name__ == "__main__":
@@ -373,7 +421,7 @@ if __name__ == "__main__":
     runs=5
 
     fitfuns= ["Aggregation","Dispersion","Flocking","DecayCoverage","DecayBorderCoverage"] #,"DecayBorderCoverage","Flocking"]
-    fig, axs = plt.subplots(4, 5,figsize=(50,40))  # coverage, avg perf., global perf., global reliability
+    fig, axs = plt.subplots(5, 5,figsize=(50,40))  # coverage, avg perf., global perf., global reliability
     i=0
     for fitfun in fitfuns:
         data_dir = HOME_DIR + "/Data/ExperimentData"
@@ -383,13 +431,10 @@ if __name__ == "__main__":
         #     outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
         BD_dir = data_dir + "/"+title
 
-        development_plots(title=fitfun,runs=range(1,2), times=range(0,10000, 500),
+        development_plots(title=fitfun,runs=range(1,6), times=range(0,10500, 500),
                           BD_directory=BD_dir,title_tag="FinalBDComp/"+fitfun+"NOCORRECT",
                           ax = axs[:,i])
-        try:
-            tl_cv = translated_coverages(2000, BD_dir+"/environment_diversity/FAULT_NONE", range(1,2), targets={"handcrafted": 4096, "sdbc": 4096})
-        except Exception as e:
-            print(e)
+
         i+=1
 
     finish_fig(fig, RESULTSFOLDER +"/FinalBDComp/"+fitfun+"ALL.pdf")

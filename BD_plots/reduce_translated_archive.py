@@ -128,19 +128,19 @@ if __name__ == "__main__":
     for fitfun in ["Aggregation","Dispersion"]:
         centroids_sdbc = load_centroids("/home/david/argos-sferes/experiments/centroids/centroids_4096_10.dat")
         centroids_spirit = load_centroids("/home/david/argos-sferes/experiments/centroids/centroids_4096_1024.dat")
-        for gen in range(0,2500,500):
-            # input="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_handcrafted.dat"
-            # output="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_handcraftedREDUCED.dat"
-            #
+        for gen in range(5000,5500,500):
+            input="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std/FAULT_NONE/results1/analysis"+str(gen)+"_handcrafted.dat"
+            output="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std/FAULT_NONE/results1/analysis"+str(gen)+"_handcraftedREDUCED.dat"
+           #
             # #archive_file, transformation, new_archive_file, transform_data
-            # reduce_translated_archive(input,mapelites_bd_add,output,transform_data=(16,16,16))
+            reduce_translated_archive(input,mapelites_bd_add,output,transform_data=(16,16,16))
             #
             # input="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_spirit.dat"
             # output="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_spiritREDUCED.dat"
             # reduce_translated_archive(input,cvt_mapelites_bd_add, output,transform_data=centroids_spirit)
 
-            input="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_sdbc.dat"
-            output="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_sdbcREDUCED.dat"
+            input="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std/FAULT_NONE/results1/analysis"+str(gen)+"_sdbc.dat"
+            output="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std/FAULT_NONE/results1/analysis"+str(gen)+"_sdbcREDUCED.dat"
             reduce_translated_archive(input,cvt_mapelites_bd_add, output,transform_data=centroids_sdbc)
 
 
