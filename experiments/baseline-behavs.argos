@@ -7,7 +7,7 @@
   <framework>
     <system threads="0" />
     <experiment length="400"
-                ticks_per_second="5"
+                ticks_per_second="10"
                 random_seed="1" />
   </framework>
 
@@ -32,7 +32,7 @@
       </sensors>
       <params>
       <wheel_turning max_speed="5" />
-      <experiment_run swarm_behavior="SWARM_COVERAGE"
+      <experiment_run swarm_behavior="SWARM_FLOCKING"
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" />
         
@@ -111,4 +111,9 @@
   <!-- ****************** -->
   <!-- * Visualization * -->
   <!-- ****************** -->
+   <visualization>
+ <qt-opengl>
+        <user_functions label="robotid_vis" />
+    </qt-opengl>
+  </visualization>
 </argos-configuration>

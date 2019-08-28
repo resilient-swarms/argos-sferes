@@ -309,7 +309,7 @@ def try_add_performance_data(i,bd_shapes,directory,runs,archive_file, y_bottom,y
         print(e)
 
 
-def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None):
+def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_labels,fig=None,ax=None):
 
     # bd_type = ["history","cvt_mutualinfo","cvt_mutualinfoact","cvt_spirit"]  #legend label
     #
@@ -323,8 +323,8 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
     # bd_type = ["baseline","history","cvt_rab_spirit","Gomes_sdbc_walls_and_robots_std","environment_diversity","environment_diversity"]  #legend label
     # legend_labels=["design","handcrafted","SPIRIT","SDBC","QED","QED-Translated"]  # labels for the legend
 
-    bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity","environment_diversity","baseline"]  #legend label
-    legend_labels=["handcrafted","SDBC","SPIRIT","QED","QED-transfer","baseline"]  # labels for the legend
+
+
 
     colors=["C0","C1","C2","C3","C3","C4"]  # colors for the lines
     # (numsides, style, angle)
@@ -403,50 +403,77 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
                    ax=axis,title=title )
         j+=1
 
-    try:
-        time_index=times.index(5000) #only last
-        tl_cv = []
-        relative_tl_cv=[]
-        with open("coverage_table","w") as f:
-            targets = {"handcrafted": 4096, "sdbc": 4096, "spirit": 4096}
-            labels = ["handcrafted","SDBC","SPIRIT"]
-            f.write("   & \rightarrow %s & \rightarrow %s & \rightarrow %s \\ \n"%(labels[0],labels[1],labels[2]))
-            for i in range(len(bd_type) - 1):
+def make_translation_table(tab_label,BD_dirs,runs):
 
-                numbers=np.array(translated_coverages(times[time_index], BD_dir + "/environment_diversity/FAULT_NONE", runs,
-                                     targets=targets))
-                tl_cv.append(numbers)
-                base_coverage = float(y_mid["absolute_coverage"][i][time_index])
-                relative_tl_cv.append(numbers/base_coverage)  # % of solutions maintained
+    try:
+        time_index = times.index(5000)  # only last
+
+        with open("coverage_table" + tab_label, "w") as f:
+            targets = OrderedDict({"handcrafted": 4096, "sdbc": 4096, "spirit": 4096})
+            labels = ["handcrafted", "SDBC", "SPIRIT"]
+
+            f.write(r"   & $\rightarrow$ %s & $\rightarrow$ %s & $\rightarrow$ %s \\ " % (
+                labels[0], labels[1], labels[2]))
+            f.write("\n")
+            for i in range(len(bd_type) - 2):
+                numbers = {target: [] for target in targets} # gather all the translated coverages for all targets
+                for directory in BD_dirs:
+                    temp = translated_coverages(times[time_index], directory + "/" + str(bd_type[i]) + "/FAULT_NONE",
+                                               runs,
+                                               targets=targets)
+                    for bd in targets:
+                        numbers[bd] = np.append(numbers[bd], temp[bd])
+                avg_cov = {bd: np.mean(numbers[bd]) for bd in numbers}
+                std_cov = {bd: np.std(numbers[bd]) for bd in numbers}
+                # base_coverage = float(y_mid["absolute_coverage"][i][time_index])
+                # relative_tl_cv=avg_cov/base_coverage # % of solutions maintained
                 f.write(legend_labels[i])
-                for cov in relative_tl_cv:
-                    f.write("& %d "%(cov))
-                f.write("\\\n ")
+                for tg in targets:
+                    f.write(r" & $%d \pm %d$ " % (avg_cov[tg], std_cov[tg]))
+
+                    # f.write(r"& %d "%(relcov))
+                f.write(r"\\ ")
+                f.write("\n")
     except Exception as e:
         print(e)
 
+    i += 1
+
+
+def get_bd_dir(fitfun):
+    data_dir = HOME_DIR + "/Data/ExperimentData"
+    title = fitfun + "range0.11"
+    BD_dir = data_dir + "/" + title
+    return BD_dir
 
 if __name__ == "__main__":
     
     
-    runs=5
+    runs=range(1,3)
 
     fitfuns= ["Aggregation","Dispersion","Flocking","DecayCoverage","DecayBorderCoverage"] #,"DecayBorderCoverage","Flocking"]
-    fig, axs = plt.subplots(5, 5,figsize=(50,40))  # coverage, avg perf., global perf., global reliability
-    i=0
+    bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity",
+               "environment_diversity", "baseline"]  # file system label for bd
+    legend_labels=["handcrafted","SDBC","SPIRIT","QED","QED-transfer","baseline"]  # labels for the legend
+
+    times=range(0,10500, 500)
+
     for fitfun in fitfuns:
-        data_dir = HOME_DIR + "/Data/ExperimentData"
-        title=fitfun+"range0.11"
+        # fitness-specific
+        make_translation_table(fitfun, [get_bd_dir(fitfun)], runs)
+
+        # global
+    make_translation_table("global", [get_bd_dir(f) for f in ["Aggregation", "Dispersion"]], runs)
         # print_best_individuals(
         #     BD_dir="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
         #     outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
-        BD_dir = data_dir + "/"+title
-
-        development_plots(title=fitfun,runs=range(1,3), times=range(0,10500, 500),
-                          BD_directory=BD_dir,title_tag="FinalBDComp/"+fitfun+"NOCORRECT",
+    fig, axs = plt.subplots(5, 5, figsize=(50, 40))  # coverage, avg perf., global perf., global reliability
+    for i,fitfun in enumerate(fitfuns):
+        development_plots(title=fitfun,runs=runs, times=times,
+                          BD_directory=get_bd_dir(fitfun),title_tag="FinalBDComp/"+fitfun+"NOCORRECT",bd_type=bd_type,
+                          legend_labels=legend_labels,
                           ax = axs[:,i])
 
-        i+=1
 
     finish_fig(fig, RESULTSFOLDER +"/FinalBDComp/"+fitfun+"ALL.pdf")
 
