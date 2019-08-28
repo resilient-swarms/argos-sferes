@@ -1,8 +1,8 @@
 #!/bin/bash
 
 
-compile envir_parallel stuff
-for dim in 6 7; do   # 10 14 21 400 
+# compile envir_parallel stuff
+for dim in 6; do   # 10 14 21 400 
     cd ~/argos-sferes
     mkdir build_${dim}D
     cd build_${dim}D
@@ -20,14 +20,14 @@ done
 
 
 #compile behaviour_evol stuff
-for dim in 10 576; do   # 10 14 21 400 
+for dim in 1024 3 10; do   # 10 14 21 400 
     cd ~/argos-sferes
     mkdir build_${dim}D
     cd build_${dim}D
     if [ $dim -gt 3 ]
     then
     cmake DCMAKE_BUILD_TYPE=Debug  -DANALYSIS=ON -DCVT_USAGE=ON -DBD=${dim}  ..
-    
+    else
     cmake -DANALYSIS=ON -DBD=${dim} ..
     fi
    make -j 8

@@ -52,6 +52,7 @@ def reduce_translated_archive(archive_file,transform_condition,new_archive_file,
         f.write(str(fitness) + "\n")
         f.flush()
     f.close()
+    print("reduction complete at "+str(new_archive_file))
 
 def mapelites_bd_add(behav,behav_shape,new_entry,new_archive,epsilon=0.0):
     behav = np.array(behav, dtype=float)
@@ -125,23 +126,24 @@ def test_cases():
 
 if __name__ == "__main__":
     #test_cases()
-    for fitfun in ["Aggregation","Dispersion"]:
+    for fitfun in ["Aggregation","Dispersion","Flocking"]:
         centroids_sdbc = load_centroids("/home/david/argos-sferes/experiments/centroids/centroids_4096_10.dat")
         centroids_spirit = load_centroids("/home/david/argos-sferes/experiments/centroids/centroids_4096_1024.dat")
-        for gen in range(5000,5500,500):
-            input="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std/FAULT_NONE/results1/analysis"+str(gen)+"_handcrafted.dat"
-            output="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std/FAULT_NONE/results1/analysis"+str(gen)+"_handcraftedREDUCED.dat"
-           #
-            # #archive_file, transformation, new_archive_file, transform_data
-            reduce_translated_archive(input,mapelites_bd_add,output,transform_data=(16,16,16))
-            #
-            # input="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_spirit.dat"
-            # output="/home/david/Data/ExperimentData/"+fitfun+"range11/environment_diversity/FAULT_NONE/results1/analysis"+str(gen)+"_spiritREDUCED.dat"
-            # reduce_translated_archive(input,cvt_mapelites_bd_add, output,transform_data=centroids_spirit)
-
-            input="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std/FAULT_NONE/results1/analysis"+str(gen)+"_sdbc.dat"
-            output="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std/FAULT_NONE/results1/analysis"+str(gen)+"_sdbcREDUCED.dat"
-            reduce_translated_archive(input,cvt_mapelites_bd_add, output,transform_data=centroids_sdbc)
+        for descriptor in ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]:
+            print(descriptor)
+            for gen in range(5000,5500,500):
+                for run in range(1,3):
+                    print("run "+str(run))
+                    input="/home/david/Data/ExperimentData/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_handcrafted.dat"
+                    output="/home/david/Data/ExperimentData/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_handcraftedREDUCED.dat"
+                    reduce_translated_archive(input,mapelites_bd_add,output,transform_data=(16,16,16))
 
 
+                    input="/home/david/Data/ExperimentData/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_sdbc.dat"
+                    output="/home/david/Data/ExperimentData/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_sdbcREDUCED.dat"
+                    reduce_translated_archive(input,cvt_mapelites_bd_add, output,transform_data=centroids_sdbc)
+
+                    input="/home/david/Data/ExperimentData/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_spirit.dat"
+                    output="/home/david/Data/ExperimentData/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_spiritREDUCED.dat"
+                    reduce_translated_archive(input,cvt_mapelites_bd_add, output,transform_data=centroids_spirit)
 # (archive_file,bd_condition,new_archive_file,helper_data)

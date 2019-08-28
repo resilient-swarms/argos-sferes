@@ -342,6 +342,7 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
     for time in times:
         for i in range(len(bd_type) - 1):
             translated = "->" in legend_labels[i]
+            transfered = legend_labels[i].endswith("transfer")
             if translated:
                 # continue
                 # archive_file="analysis"+str(time)+"_handcrafted.dat"  # just use the one that is quickest
@@ -354,9 +355,10 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
                     archive_file = "analysis" + str(time) + "_spiritREDUCED.dat"
                 else:
                     raise Exception("")
-            elif legend_labels[i].endswith("transfer"):
+            elif transfered:
+                recorded_time=5000
                 directory = BD_directory+"/"+bd_type[i] + "/FAULT_NONE"
-                archive_file = "analysis" + str(time) + "_handcraftedREDUCED.dat"
+                archive_file = "analysis" + str(recorded_time) + "_handcraftedREDUCED.dat"
             else:
                 archive_file="archive_" + str(time) + ".dat"
                 directory = BD_directory + "/" + bd_type[i]
@@ -364,7 +366,7 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
 
             #abs_coverage=absolutecoverages(bd_shapes[i], directory, runs, archive_file)
             #add_boxplotlike_data(abs_coverage, y_bottom, y_mid, y_top, y_label="absolute_coverage",method_index=i)
-            try_add_performance_data(i,bd_shapes,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=translated)
+            try_add_performance_data(i,bd_shapes,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=translated or transfered)
         # now add baseline
         i = len(bd_type) - 1
         directory = BD_directory + "/" + bd_type[i] + "/"
@@ -402,15 +404,24 @@ def development_plots(title,runs,times,BD_directory,title_tag, fig=None,ax=None)
         j+=1
 
     try:
-        time_index=-1 #only last
+        time_index=times.index(5000) #only last
         tl_cv = []
         relative_tl_cv=[]
-        for i in range(len(bd_type) - 1):
-            numbers=np.array(translated_coverages(times[time_index], BD_dir + "/environment_diversity/FAULT_NONE", runs,
-                                 targets={"handcrafted": 4096, "sdbc": 4096}))
-            tl_cv.append(numbers)
-            base_coverage = float(y_mid["absolute_coverage"][i][time_index])
-            relative_tl_cv.append(numbers/base_coverage)  # % of solutions maintained
+        with open("coverage_table","w") as f:
+            targets = {"handcrafted": 4096, "sdbc": 4096, "spirit": 4096}
+            labels = ["handcrafted","SDBC","SPIRIT"]
+            f.write("   & \rightarrow %s & \rightarrow %s & \rightarrow %s \\ \n"%(labels[0],labels[1],labels[2]))
+            for i in range(len(bd_type) - 1):
+
+                numbers=np.array(translated_coverages(times[time_index], BD_dir + "/environment_diversity/FAULT_NONE", runs,
+                                     targets=targets))
+                tl_cv.append(numbers)
+                base_coverage = float(y_mid["absolute_coverage"][i][time_index])
+                relative_tl_cv.append(numbers/base_coverage)  # % of solutions maintained
+                f.write(legend_labels[i])
+                for cov in relative_tl_cv:
+                    f.write("& %d "%(cov))
+                f.write("\\\n ")
     except Exception as e:
         print(e)
 
@@ -431,7 +442,7 @@ if __name__ == "__main__":
         #     outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
         BD_dir = data_dir + "/"+title
 
-        development_plots(title=fitfun,runs=range(1,6), times=range(0,10500, 500),
+        development_plots(title=fitfun,runs=range(1,3), times=range(0,10500, 500),
                           BD_directory=BD_dir,title_tag="FinalBDComp/"+fitfun+"NOCORRECT",
                           ax = axs[:,i])
 

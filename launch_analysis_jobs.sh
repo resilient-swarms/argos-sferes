@@ -26,11 +26,11 @@ declare -A voronoi
 
 command="bin/analysis" # note: cvt and 10D does not really matter since we are not evolving
 
-#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
-#descriptors["environment_diversity"]=6
-#voronoi["environment_diversity"]=""
+descriptors["environment_diversity"]=6
+voronoi["environment_diversity"]=""
 
 
 descriptors["history"]=3
@@ -81,7 +81,7 @@ for FaultIndex in $(seq 0 4); do
 						if [ "$2" = "best" ]; then
 							echo "will look for perturbations at run${Replicates}_p${FaultIndex}"
 							ConfigFolder=${Base}
-							ConfigFile=${ConfigFolder}/history_exp_${SUFFIX}.argos # just to write the history
+							ConfigFile=${ConfigFolder}/history_exp_${Replicates}_p${FaultIndex}.argos # just to write the history
 							ArchiveDir=${ConfigFolder}/run${Replicates}_p${FaultIndex}/results${SUFFIX}
 							export Outfolder=${ArchiveDir} # where to look for the best result and to output the results
 							FaultType=FAULT_NONE
@@ -127,8 +127,11 @@ for FaultIndex in $(seq 0 4); do
 
 						echo "submitting job"
 						bash zero_padding_data.sh ${Base}/results${SUFFIX} # make sure everything is zero-padded
-
-						sbatch submit_test.sh $2 # process the second argument; "compress" if just need compression else empty
+						if [ "$2" = "best" ]; then
+							bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
+						else
+							sbatch submit_test.sh $2 # submit to iridis
+						fi
 					done
 				done
 			done

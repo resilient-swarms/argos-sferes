@@ -56,7 +56,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			fi
 			# Take template.argos and make an .argos file for this experiment
 			SUFFIX=${Replicates}
-			ConfigFolder=${data}/${FitfunType}range11/${DescriptorType}
+			ConfigFolder=${data}/${FitfunType}range0.11/${DescriptorType}
 			Outfolder=${ConfigFolder}/results${SUFFIX}
 			ConfigFile=${ConfigFolder}/exp_${SUFFIX} # no .argos tag here, will add filenumber and .argos later
 

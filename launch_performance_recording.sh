@@ -19,14 +19,14 @@ declare -A voronoi
 
 command="bin/analysis" # note: cvt and 10D does not really matter since we are not evolving
 
-#descriptors["environment_diversity"]=6
-#voronoi["environment_diversity"]=""
+descriptors["environment_diversity"]=6
+voronoi["environment_diversity"]=""
 
-#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
-#descriptors["history"]=3
-#voronoi["history"]=""
+descriptors["history"]=3
+voronoi["history"]=""
 
 descriptors["cvt_rab_spirit"]=1024
 voronoi["cvt_rab_spirit"]="cvt"
@@ -117,8 +117,12 @@ for FaultType in "FAULT_NONE"; do
 
 							echo "submitting job"
 							bash zero_padding_data.sh ${Base}/results${SUFFIX} # make sure everything is zero-padded
-							sbatch submit_test.sh $2                             # process the second argument; "compress" if just need compression else empty
-							echo $GEN
+							
+							if [ "$2" = "best" ]; then
+								bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
+							else
+								sbatch submit_test.sh $2 # submit to iridis
+							fi
 
 						done
 					done

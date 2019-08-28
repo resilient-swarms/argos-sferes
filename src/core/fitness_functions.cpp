@@ -295,8 +295,7 @@ float Dispersion::avg_min_dist(BaseLoopFunctions &cLoopFunctions)
 
 Flocking::Flocking(BaseLoopFunctions *cLoopFunctions)
 {
-    BaseController *ctrl = cLoopFunctions->get_controller(0); // assume all robots have the same RAB range
-    flocking_range = (float)ctrl->max_rab_range / (2.0f);       //half the RAB sensor range (in meters)
+    flocking_range = 0.50f;// in meters, half the usual RAB range + avoid environment_diversity to have different fitness function
     accumulator = 0.0f;
     num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock(); // one update for the entire swarm
 }

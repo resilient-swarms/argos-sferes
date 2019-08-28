@@ -746,6 +746,7 @@ public:
 class SubjectiveHistoryDescriptor : public Descriptor
 {
   public:
+  const size_t frequency=10;
   std::ofstream file_writer;
 
   /* descriptor not used for evolution but for recording state-action history*/
@@ -770,6 +771,7 @@ class SubjectiveHistoryDescriptor : public Descriptor
 class ObjectiveHistoryDescriptor : public Descriptor
 {
   public:
+  const size_t frequency=10;
   std::ofstream file_writer;
 
   /* descriptor not used for evolution but for recording state-action history*/

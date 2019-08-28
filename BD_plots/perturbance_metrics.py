@@ -62,6 +62,11 @@ def make_barplot(data,row_conditions,col_conditions,save_filename,xlabs,ylab):
         fig.suptitle(row_conditions[i])
         fig.tight_layout()
         fig.savefig(RESULTSFOLDER+"/"+row_conditions[i]+save_filename)
+
+def get_performance_data(outputdirectory, generation):
+    file = outputdirectory + "/analysis" + generation + "_handcrafted.dat"
+    best_indiv, performance = get_best_individual(file, add_performance=True)
+    return performance
 def get_data(base_path,fitfun,descriptors,faults,runs, sens_range, fault_id):
     """
     look up the data in a folder
@@ -92,7 +97,7 @@ def get_data(base_path,fitfun,descriptors,faults,runs, sens_range, fault_id):
             for run in range(1,runs+1):
                 #Outfolder=${ConfigFolder}/results${SUFFIX}; OutputFolder=${Outfolder}${FaultType}${FaultID}
                 cfg_folder=base_path+"/"+fitfun+"range"+str(sens_range)+"/"+descriptor
-                path=cfg_folder+"/"+perturbation+str(fault_id)+"/"+str(run)+"/fitness"
+                path=cfg_folder+"/run"+str(run)+"_p"+str(perturbation)+"/results"+str(run)
                 temp=read_floats_from_file(open(path,"rb"))
                 index=np.argmax(temp)
                 used_indexes.add(index)
@@ -132,15 +137,10 @@ def get_data(base_path,fitfun,descriptors,faults,runs, sens_range, fault_id):
     return data,behaviour,best_data, behaviour_diff
 
 
-
-
-if __name__ == "__main__":
-
-
+def perturbationspecificplots():
     runs =5
     fitfun="Coverage"
-    faults=["FAULT_NONE", "FAULT_PROXIMITYSENSORS_SETMIN","FAULT_PROXIMITYSENSORS_SETMAX","FAULT_PROXIMITYSENSORS_SETRANDOM",
-            "FAULT_ACTUATOR_LWHEEL_SETHALF", "FAULT_ACTUATOR_RWHEEL_SETHALF", "FAULT_ACTUATOR_BWHEELS_SETHALF"]
+    faults=range(5)
     fault_xlabs = ["NONE", "SENSOR_MIN", "SENSOR_MAX","SENSOR_RANDOM","LWHEEL_H","RWHEEL_H", "BWHEELS_H"]
     descriptors=["history","cvt_mutualinfo","cvt_mutualinfoact","cvt_spirit"]
 
@@ -166,3 +166,9 @@ if __name__ == "__main__":
     make_barplot(behaviour_diff, row_conditions=descriptors, col_conditions=faults, save_filename=fitfun + "barplot_faults_behavdiff.png",
                  xlabs=fault_xlabs,ylab="MAE behav diff")
     print(behaviour)
+
+
+
+if __name__ == "__main__":
+    perturbationspecificplots()
+

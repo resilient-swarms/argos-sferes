@@ -3,45 +3,55 @@ import tarfile
 from process_archive_data import *
 import pickle
 
-def get_help_data(directory,history_type,runs):
-    max_performance = -float("inf")
-    max_run = None
-    max_indiv = None
-    for run in runs:
-        file = directory+str(run)+"/analysis_sdbc.dat"
-        best_indiv, performance = get_best_individual(file,add_performance=True)
-        if performance > max_performance:
-            max_performance = performance
-            max_run = run
-            max_indiv = best_indiv
-    history_file = directory + str(max_run) + "/" + history_type + "_history" + str(max_indiv)
-    return history_file, max_performance
-def gather_NCDs(BD_DIRECTORY,faults, runs, history_type="sa"):
+# gets the best across runs
+# def get_help_data(directory,generation,history_type,runs):
+#     max_performance = -float("inf")
+#     max_run = None
+#     max_indiv = None
+#     for run in runs:
+#         file = directory+str(run)+"/analysis"+generation+"_sdbc.dat"
+#         best_indiv, performance = get_best_individual(file,add_performance=True)
+#         if performance > max_performance:
+#             max_performance = performance
+#             max_run = run
+#             max_indiv = best_indiv
+#     history_file = directory + str(max_run) + "/" + history_type + "_history" + str(max_indiv)
+#     return history_file, max_performance
+
+def get_help_data(outputdirectory,generation,history_type):
+    file = outputdirectory+"/analysis"+generation+"_handcrafted.dat"
+    best_indiv, performance = get_best_individual(file,add_performance=True)
+    history_file = outputdirectory+ "/" + history_type + "_history" + str(best_indiv)+".temp"
+    return history_file, performance
+
+def gather_perturbation_data(BD_DIRECTORY,generation,faults, runs, get_NCD=True,history_type="sa"):
     """
     use existing state/observation-action trajectory files and calculate pair-wise NCDs for all individuals within the sa;e run
     the average is returned
     :return:
     """
-    assert faults[0]=="FAULT_NONE"
-
-    directories=[ BD_DIRECTORY+"/"+faults[f] + "/results" for f in range(len(faults)) ]
     ncds = []
-    delta_ps=[]
-    history_comp, performance_comp = get_help_data(directories[0],history_type,runs)
-
-    for i in range(1,len(directories)):
-        history_file, performance = get_help_data(directories[i], history_type, runs)
-        # get delta_p
-        delta_p = performance - performance_comp
-        print("performance difference: " +str(delta_p))
-        delta_ps.append(delta_p)
-        # get ncd
-        ncd = NCD(history_comp,history_file)
-        ncds.append(ncd)
+    performances = []
+    performance_comps = []
 
 
+    for run in runs:
+        history_comp, performance_comp = get_help_data(BD_DIRECTORY + "/FAULT_NONE/results"+str(run), generation,
+                                                       history_type)
+        for fault in faults:
+            history_file, performance = get_help_data(BD_DIRECTORY+"/run"+str(run)+"_p"+str(fault)+"/results"+str(run),generation,history_type)
+            if get_NCD:
+                # get ncd
+                ncd = NCD(history_comp,history_file,perform_lzma, from_zip=True)
+                ncds.append(ncd)
+            else:
+                ncds=None
+            performances.append(performance)
+            performance_comps.append(performance_comp)
 
-    return ncds, delta_ps
+
+
+    return ncds, performances, performance_comps
 
 def read_history_file(filename,from_gz=True):
     if from_gz:
@@ -191,6 +201,7 @@ def NCD(file1,file2,compressor,from_zip=False):
     denom = max(l_x, l_y)
     NCD = enum / denom  # NOTE: type case to float not necessary; python 3 uses // for integer division
     print("NCD =%.3f" % (NCD))
+    return NCD
     # l_x_c = len(x_c)
     # l_y_c = len(y_c)
     # l_xy_c=len(x_y_c)

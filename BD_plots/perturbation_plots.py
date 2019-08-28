@@ -58,23 +58,21 @@ def get_delta_P(non_perturbed_path,perturbed_path):
     return p_performance - np_performance
 
 
-def gather_perturbation_results(bd_type,fitfuns,faults,runs):
+def gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,history_type):
     for bd in bd_type:
-        data_dir = HOME_DIR + "/DataFinal/datanew"
-
         ncds_list = []
         delta_p_list = []
 
         for fitfun in fitfuns:
-            title = fitfun + "range11"
-            prefix = data_dir + "/" + title + "/" + bd
-            ncds, delta_p = gather_NCDs(prefix, faults, runs=runs, history_type="xy")
+            title = fitfun + "range0.11"
+            prefix = datadir + "/" + title + "/" + bd
+            ncds, performances, nofaultperfs= gather_perturbation_data(prefix, generation, faults, runs=runs, history_type=history_type)
 
             ncds_list.append(ncds)
-            delta_p_list.append(delta_p)
-        dp_file,ncd_file = filenames(fitfun,bd)
-        pickle.dump(delta_p_list, open(dp_file, "wb"))
-        pickle.dump(ncds_list, open(ncd_file, "wb"))
+            delta_p_list.append((performances,nofaultperfs))
+            dp_file,ncd_file = filenames(fitfun,bd,history_type)
+            pickle.dump(delta_p_list, open(dp_file, "wb"))
+            pickle.dump(ncds_list, open(ncd_file, "wb"))
 
 
 def gather_category_results(bd_type, fitfuns, faults, runs):
@@ -85,7 +83,7 @@ def gather_category_results(bd_type, fitfuns, faults, runs):
         delta_p_list = []
 
         for fitfun in fitfuns:
-            title = fitfun + "range11"
+            title = fitfun + "range0.11"
             prefix = data_dir + "/" + title + "/" + bd
             pca = get_pca(prefix,[1],"archive_1000.dat",["SDBC"+str(i) for i in range(10)])
 
@@ -95,36 +93,66 @@ def gather_category_results(bd_type, fitfuns, faults, runs):
                 result = get_pca_result(pca,[maxbd],bins=3)
 
                 pickle.dump(ncds_list, open(ncd_file, "wb"))
-def filenames(fitfun,bd):
-    return fitfun + bd + "_DeltaPs.pkl",fitfun+ bd + "_ncds.pkl"
+def filenames(fitfun,bd,history_type):
+    return fitfun + bd + history_type + "_DeltaPs.pkl",fitfun+ bd + history_type +"_ncds.pkl"
 
-
-
-if __name__ == "__main__":
-    test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
-
-    faults=["FAULT_NONE","FAULT_PROXIMITYSENSORS_SETMIN","FAULT_PROXIMITYSENSORS_SETMAX","FAULT_PROXIMITYSENSORS_SETRANDOM",
-            "FAULT_ACTUATOR_LWHEEL_SETHALF", "FAULT_ACTUATOR_RWHEEL_SETHALF", "FAULT_ACTUATOR_BWHEELS_SETHALF"]
-    F=len(faults)
-    bd_type = ["environment_diversity"]  # legend label
-    plot_titles = ["QED"]  # labels for the legend
-    fitfuns = ["Aggregation","Dispersion", "DecayCoverage", "DecayBorderCoverage", "Flocking"]
-    colors = ["C" + str(i) for i in range(len(bd_type))]
-    markers = [(2, 1, 0), (3, 1, 0)]
-
-    gather_perturbation_results(bd_type, fitfuns, faults,runs=[1])
-    #gather_category_results(bd_type, fitfuns, faults, runs=[1])
-
-    i=0
+def plot_by_fitfun():
+    i = 0
     for fitfun in fitfuns:
-        stats=[]
-        x=[]
+        stats = []
+        x = []
         for bd in bd_type:
-            dp_file, ncd_file = filenames("", bd)
-            dps = pickle.load(open(dp_file,"rb"))[i]
-            ncds= pickle.load(open(ncd_file,"rb"))[i]
+            dp_file, ncd_file = filenames(fitfun, bd, history_type)
+            performances , nofaultperfs = pickle.load(open(dp_file, "rb"))[i]
+            dps = np.array(performances) - np.array(nofaultperfs)
+            ncds = pickle.load(open(ncd_file, "rb"))[i]
             stats.append(ncds)
             x.append(np.array(dps))
-        createPlot(stats,x,colors,markers,xlabel="$\Delta P$",ylabel="$NCD$",
-                   xlim=[-0.05,0.05], ylim=[0,2.0],save_filename="perturbationresults/NCD"+fitfun+".png",legend_labels=plot_titles,scatter=True,force=True)
-        i+=1
+        print(stats)
+        print(x)
+
+        createPlot(stats, x, colors, markers, xlabel="$\Delta P$", ylabel="$NCD$",
+                   xlim=[-0.45, 0.05], ylim=[0, 2.0], save_filename="results/FinalBDComp/NCD" + fitfun + ".pdf",
+                   legend_labels=plot_titles, scatter=True, force=True)
+        i += 1
+
+
+def perturbed_vs_unperturbed_archive():
+    i = 0
+    for fitfun in fitfuns:
+        stats = []
+        x = []
+        for bd in bd_type:
+            dp_file, ncd_file = filenames(fitfun, bd, history_type)
+            performances, nofaultperfs = pickle.load(open(dp_file, "rb"))[i]
+            dps = np.array(performances) - np.array(nofaultperfs)
+            ncds = pickle.load(open(ncd_file, "rb"))[i]
+            stats.append(ncds)
+            x.append(np.array(dps))
+        print(stats)
+        print(x)
+
+        createPlot(stats, x, colors, markers, xlabel="$\Delta P$", ylabel="$NCD$",
+                   xlim=[-0.45, 0.05], ylim=[0, 2.0], save_filename="results/FinalBDComp/NCD" + fitfun + ".pdf",
+                   legend_labels=plot_titles, scatter=True, force=True)
+        i += 1
+
+if __name__ == "__main__":
+    #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
+
+    faults=range(5)
+    F=len(faults)
+    bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]  # legend label
+    plot_titles = ["handcrafted","SDBC","SPIRIT","QED"]  # labels for the legend
+    fitfuns = ["Aggregation","Dispersion", "Flocking"]
+    #baseline_performances = {"Aggregation":0.9,"Dispersion":0.2, "Flocking":0.2}
+    colors = ["C" + str(i) for i in range(len(bd_type))]
+    markers = [(2, 1, 0), (3, 1, 0),(2, 1, 1), (3, 1, 1)]
+
+    datadir= HOME_DIR + "/Data/ExperimentData"
+    generation="5000"
+    history_type="sa"
+    gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults,runs=[1,2],history_type=history_type)
+    #gather_category_results(bd_type, fitfuns, faults, runs=[1])
+
+    plot_by_fitfun()

@@ -1227,30 +1227,43 @@ void SubjectiveHistoryDescriptor::before_trials(EvolutionLoopFunctions &cLoopFun
 /*reset BD at the start of a trial*/
 void SubjectiveHistoryDescriptor::start_trial()
 {
-	file_writer << std::fixed << "T" << current_trial << ":\n";
+	if(num_updates%frequency==0)
+	{
+		file_writer << std::fixed << "T" << current_trial << ":\n";
+	}
 }
 /*after getting inputs, can update the descriptor if needed*/
 void SubjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
-	for (size_t i = 0; i < cLoopFunctions.inputs.size(); ++i)
+	if(num_updates%frequency==0)
 	{
-		file_writer << std::fixed << std::setprecision(2) << cLoopFunctions.inputs[i] << ",";
+		for (size_t i = 0; i < cLoopFunctions.inputs.size(); ++i)
+		{
+			file_writer << std::fixed << std::setprecision(2) << cLoopFunctions.inputs[i] << ",";
+		}
 	}
 }
 
 /*after getting outputs, can update the descriptor if needed*/
 void SubjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
-	for (size_t i = 0; i < cLoopFunctions.outf.size() - 1; ++i)
+	if(num_updates%frequency==0)
 	{
-		file_writer << std::setprecision(2) << cLoopFunctions.outf[i] << ",";
+		for (size_t i = 0; i < cLoopFunctions.outf.size() - 1; ++i)
+		{
+			file_writer << std::setprecision(2) << cLoopFunctions.outf[i] << ",";
+		}
+		file_writer << std::setprecision(2) << cLoopFunctions.outf.back() << "# ";
 	}
-	file_writer << std::setprecision(2) << cLoopFunctions.outf.back() << "# ";
 }
 /*after the looping over robots*/
 void SubjectiveHistoryDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 {
-	file_writer << "\n";
+	if(num_updates%frequency==0)
+	{
+		file_writer << "\n";
+	}
+	++num_updates;
 }
 
 /*summarise BD at the end of trials*/
@@ -1276,14 +1289,20 @@ void ObjectiveHistoryDescriptor::before_trials(EvolutionLoopFunctions &cLoopFunc
 /*reset BD at the start of a trial*/
 void ObjectiveHistoryDescriptor::start_trial()
 {
-	file_writer << std::fixed << "T" << current_trial << ":\n";
+	if(num_updates%frequency==0)
+	{
+		file_writer << std::fixed << "T" << current_trial << ":\n";
+	}
 }
 /*after getting inputs, can update the descriptor if needed*/
 void ObjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
 {
-	CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[robot_index]);
-	file_writer << std::fixed << std::setprecision(2) << pos.GetX() << "," << pos.GetY();
-	file_writer << "# ";
+	if(num_updates%frequency==0)
+	{
+		CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[robot_index]);
+		file_writer << std::fixed << std::setprecision(2) << pos.GetX() << "," << pos.GetY();
+		file_writer << "# ";
+	}
 }
 
 /*after getting outputs, can update the descriptor if needed*/
@@ -1293,7 +1312,11 @@ void ObjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, Evolu
 /*after the looping over robots*/
 void ObjectiveHistoryDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 {
-	file_writer << "\n";
+	if(num_updates%frequency==0)
+	{
+		file_writer << "\n";
+	}
+	++num_updates;
 }
 /*summarise BD at the end of trials*/
 std::vector<float> ObjectiveHistoryDescriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
