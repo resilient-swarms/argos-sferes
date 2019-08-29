@@ -61,19 +61,15 @@ def get_delta_P(non_perturbed_path,perturbed_path):
 
 def gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,history_type):
     for bd in bd_type:
-        ncds_list = []
-        delta_p_list = []
-
         for fitfun in fitfuns:
             title = fitfun + "range0.11"
             prefix = datadir + "/" + title + "/" + bd
-            ncds, performances, nofaultperfs= gather_perturbation_data(prefix, generation, faults, runs=runs, history_type=history_type)
+            ncds, performances, nofaultperfs, euclids= gather_perturbation_data(prefix, generation, faults, runs=runs, history_type=history_type)
 
-            ncds_list.append(ncds)
-            delta_p_list.append((performances,nofaultperfs))
-            dp_file,ncd_file = filenames(fitfun,bd,history_type)
-            pickle.dump(delta_p_list, open(dp_file, "wb"))
-            pickle.dump(ncds_list, open(ncd_file, "wb"))
+            dp_file,ncd_file, euclid_file = filenames(fitfun,bd,history_type)
+            pickle.dump((performances,nofaultperfs), open(dp_file, "wb"))
+            pickle.dump(ncds, open(ncd_file, "wb"))
+            pickle.dump(euclids, open(euclid_file, "wb"))
 
 
 def gather_category_results(bd_type, fitfuns, faults, runs):
@@ -95,20 +91,23 @@ def gather_category_results(bd_type, fitfuns, faults, runs):
 
                 pickle.dump(ncds_list, open(ncd_file, "wb"))
 def filenames(fitfun,bd,history_type):
-    return fitfun + bd + history_type + "_DeltaPs.pkl",fitfun+ bd + history_type +"_ncds.pkl"
+    return fitfun + bd + history_type + "_DeltaPs.pkl",fitfun+ bd + history_type +"_ncds.pkl",fitfun+ bd + history_type +"_euclids.pkl"
 
 def plot_by_fitfun():
     i = 0
     for fitfun in fitfuns:
         stats = []
+        stats2=[]
         x2=[]
         x = []
         for bd in bd_type:
-            dp_file, ncd_file = filenames(fitfun, bd, history_type)
-            performances , nofaultperfs = pickle.load(open(dp_file, "rb"))[i]
+            dp_file, ncd_file, euclid_file = filenames(fitfun, bd, history_type)
+            performances , nofaultperfs = pickle.load(open(dp_file, "rb"))
             dps = np.array(performances) - np.array(nofaultperfs)
-            ncds = pickle.load(open(ncd_file, "rb"))[i]
+            ncds = pickle.load(open(ncd_file, "rb"))
             stats.append(ncds)
+            euclids = pickle.load(open(euclid_file,"rb"))
+            stats2.append(euclids)
             x2.append(np.array(performances))
             x.append(np.array(dps))
         print(stats)
@@ -120,6 +119,15 @@ def plot_by_fitfun():
 
         createPlot(stats, x2, colors, markers, xlabel="$P$", ylabel="$NCD$",
                    xlim=None, ylim=[0, 1.2], save_filename="results/FinalBDComp/NCD_P_" + fitfun + ".pdf",
+                   legend_labels=plot_titles, scatter=True, force=True)
+
+
+        createPlot(stats2, x, colors, markers, xlabel="$\Delta P$", ylabel="Euclidian distance",
+                   xlim=[-0.45, 0.05], ylim=[0, 1.2], save_filename="results/FinalBDComp/Euclid_DELTAP_" + fitfun + ".pdf",
+                   legend_labels=plot_titles, scatter=True, force=True)
+
+        createPlot(stats2, x2, colors, markers, xlabel="$P$", ylabel="Euclidian distance",
+                   xlim=None, ylim=[0, 1.2], save_filename="results/FinalBDComp/Euclid_P_" + fitfun + ".pdf",
                    legend_labels=plot_titles, scatter=True, force=True)
         i += 1
 
@@ -177,9 +185,9 @@ if __name__ == "__main__":
     datadir= HOME_DIR + "/Data/ExperimentData"
     generation="5000"
     history_type="xy"
-    #gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults,runs=[1,2],history_type=history_type)
+    gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults,runs=[1,2],history_type=history_type)
     #gather_category_results(bd_type, fitfuns, faults, runs=[1])
 
-    #plot_by_fitfun()
+    plot_by_fitfun()
     time=5000
     perturbed_vs_unperturbed_archive(fitfuns, bd_type, runs,faults,time,plot_titles,"boxplots_all.pdf",ylim=[0,1])

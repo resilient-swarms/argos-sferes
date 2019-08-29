@@ -471,7 +471,7 @@ if __name__ == "__main__":
                           ax = axs[:,i])
 
 
-    finish_fig(fig, RESULTSFOLDER +"/FinalBDComp/"+fitfun+"ALL.pdf")
+    finish_fig(fig, RESULTSFOLDER +"/FinalBDComp/All_BD_metrics.pdf")
 
 
 

@@ -159,10 +159,11 @@ def get_best_individual(path, as_string=False, add_performance=False, add_all=Fa
                 maxbd=b
                 maxind=ind
                 best_performance = performance
-        if add_performance:
-            return maxind, best_performance
         if add_all:
             return maxind, best_performance, maxbd
+        if add_performance:
+            return maxind, best_performance
+
         return maxind
 
 

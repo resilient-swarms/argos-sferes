@@ -1,6 +1,7 @@
 import bz2
 import tarfile
 from process_archive_data import *
+from distance_metrics import *
 import pickle
 
 # gets the best across runs
@@ -20,9 +21,9 @@ import pickle
 
 def get_help_data(outputdirectory,generation,history_type):
     file = outputdirectory+"/analysis"+generation+"_handcrafted.dat"
-    best_indiv, performance = get_best_individual(file,add_performance=True)
+    best_indiv, performance, bd = get_best_individual(file,add_all=True)
     history_file = outputdirectory+ "/" + history_type + "_history" + str(best_indiv)+".temp"
-    return history_file, performance
+    return history_file, performance, bd
 
 def gather_perturbation_data(BD_DIRECTORY,generation,faults, runs, get_NCD=True,history_type="sa"):
     """
@@ -33,13 +34,13 @@ def gather_perturbation_data(BD_DIRECTORY,generation,faults, runs, get_NCD=True,
     ncds = []
     performances = []
     performance_comps = []
-
+    euclids = []
 
     for run in runs:
-        history_comp, performance_comp = get_help_data(BD_DIRECTORY + "/FAULT_NONE/results"+str(run), generation,
+        history_comp, performance_comp, bd_comp = get_help_data(BD_DIRECTORY + "/FAULT_NONE/results"+str(run), generation,
                                                        history_type)
         for fault in faults:
-            history_file, performance = get_help_data(BD_DIRECTORY+"/run"+str(run)+"_p"+str(fault)+"/results"+str(run),generation,history_type)
+            history_file, performance, bd = get_help_data(BD_DIRECTORY+"/run"+str(run)+"_p"+str(fault)+"/results"+str(run),generation,history_type)
             if get_NCD:
                 # get ncd
                 ncd = NCD(history_comp,history_file,perform_lzma, from_zip=True)
@@ -48,10 +49,11 @@ def gather_perturbation_data(BD_DIRECTORY,generation,faults, runs, get_NCD=True,
                 ncds=None
             performances.append(performance)
             performance_comps.append(performance_comp)
+            euclids.append(norm_Euclidian_dist(np.array(bd_comp,float),np.array(bd,float)))
 
 
 
-    return ncds, performances, performance_comps
+    return ncds, performances, performance_comps, euclids
 
 def read_history_file(filename,from_gz=True):
     if from_gz:
