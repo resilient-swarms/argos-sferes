@@ -1,5 +1,6 @@
 
 from dimensionality_plot import *
+from perturbance_metrics import *
 from NCD import *
 HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
@@ -100,6 +101,7 @@ def plot_by_fitfun():
     i = 0
     for fitfun in fitfuns:
         stats = []
+        x2=[]
         x = []
         for bd in bd_type:
             dp_file, ncd_file = filenames(fitfun, bd, history_type)
@@ -107,52 +109,77 @@ def plot_by_fitfun():
             dps = np.array(performances) - np.array(nofaultperfs)
             ncds = pickle.load(open(ncd_file, "rb"))[i]
             stats.append(ncds)
+            x2.append(np.array(performances))
             x.append(np.array(dps))
         print(stats)
         print(x)
 
         createPlot(stats, x, colors, markers, xlabel="$\Delta P$", ylabel="$NCD$",
-                   xlim=[-0.45, 0.05], ylim=[0, 2.0], save_filename="results/FinalBDComp/NCD" + fitfun + ".pdf",
+                   xlim=[-0.45, 0.05], ylim=[0, 1.2], save_filename="results/FinalBDComp/NCD_DELTAP_" + fitfun + ".pdf",
+                   legend_labels=plot_titles, scatter=True, force=True)
+
+        createPlot(stats, x2, colors, markers, xlabel="$P$", ylabel="$NCD$",
+                   xlim=None, ylim=[0, 1.2], save_filename="results/FinalBDComp/NCD_P_" + fitfun + ".pdf",
                    legend_labels=plot_titles, scatter=True, force=True)
         i += 1
 
 
-def perturbed_vs_unperturbed_archive():
-    i = 0
-    for fitfun in fitfuns:
-        stats = []
-        x = []
-        for bd in bd_type:
-            dp_file, ncd_file = filenames(fitfun, bd, history_type)
+def perturbed_vs_unperturbed_best(fitfuns,bd_type,bd_labels,save_file,ylim):
+
+    data=[]
+    for i in range(len(fitfuns)):
+        data.append([])
+        for j in range(len(bd_type)):
+            # get the best performances, fault vs no_fault
+            dp_file, ncd_file = filenames(fitfuns[i], bd_type[j], history_type)
             performances, nofaultperfs = pickle.load(open(dp_file, "rb"))[i]
-            dps = np.array(performances) - np.array(nofaultperfs)
-            ncds = pickle.load(open(ncd_file, "rb"))[i]
-            stats.append(ncds)
-            x.append(np.array(dps))
-        print(stats)
-        print(x)
+            data[i].append([nofaultperfs,performances])
 
-        createPlot(stats, x, colors, markers, xlabel="$\Delta P$", ylabel="$NCD$",
-                   xlim=[-0.45, 0.05], ylim=[0, 2.0], save_filename="results/FinalBDComp/NCD" + fitfun + ".pdf",
-                   legend_labels=plot_titles, scatter=True, force=True)
-        i += 1
+    #make_boxplot_matrix(data, fitfuns, bd_labels, save_file, xlabs=["no perturb.","perturb."], ylab="performance",ylim=ylim)
+    make_boxplot_pairswithin(data, fitfuns, bd_labels, save_file, xlabs=bd_labels, ylab="performance",
+                        ylim=ylim)
+def perturbed_vs_unperturbed_archive(fitfuns,bd_type,runs,faults,time,bd_labels,save_file,ylim):
+
+    data=[]
+    for i in range(len(fitfuns)):
+        BD_dir = get_bd_dir(fitfuns[i])
+        data.append([])
+        for j in range(len(bd_type)):
+            # get all the data from the archive: no fault
+            nofaultperfs=np.array(list(get_combined_archive(BD_dir+"/"+bd_type[j]+"/FAULT_NONE",runs,"analysis"+str(time)+"_handcrafted.dat").values())).flatten()
+            # join all the data from all the fault archives:
+            performances=[]
+            for fault in range(len(faults)):
+                for run in runs:
+                    temp=np.array(list(get_bin_performances_uniquearchive(BD_dir+"/"+bd_type[j]+"/run"+str(run)+"_p"+str(fault)+"/results"+str(run)+"/analysis"+str(time)+"_handcrafted.dat").values())).flatten()
+                    performances=np.append(performances,temp)
+
+            data[i].append([nofaultperfs,performances])
+
+    #make_boxplot_matrix(data, fitfuns, bd_labels, save_file, xlabs=["no perturb.","perturb."], ylab="performance",ylim=ylim)
+    make_boxplot_pairswithin(data, fitfuns, bd_labels, save_file, xlabs=bd_labels, ylab="performance",
+                        ylim=ylim)
+
 
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
 
     faults=range(5)
     F=len(faults)
+    runs=[1,2]
     bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]  # legend label
     plot_titles = ["handcrafted","SDBC","SPIRIT","QED"]  # labels for the legend
-    fitfuns = ["Aggregation","Dispersion", "Flocking"]
+    fitfuns = ["Aggregation","Dispersion"]
     #baseline_performances = {"Aggregation":0.9,"Dispersion":0.2, "Flocking":0.2}
     colors = ["C" + str(i) for i in range(len(bd_type))]
     markers = [(2, 1, 0), (3, 1, 0),(2, 1, 1), (3, 1, 1)]
 
     datadir= HOME_DIR + "/Data/ExperimentData"
     generation="5000"
-    history_type="sa"
-    gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults,runs=[1,2],history_type=history_type)
+    history_type="xy"
+    #gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults,runs=[1,2],history_type=history_type)
     #gather_category_results(bd_type, fitfuns, faults, runs=[1])
 
-    plot_by_fitfun()
+    #plot_by_fitfun()
+    time=5000
+    perturbed_vs_unperturbed_archive(fitfuns, bd_type, runs,faults,time,plot_titles,"boxplots_all.pdf",ylim=[0,1])

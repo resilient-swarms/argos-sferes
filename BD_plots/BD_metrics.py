@@ -394,7 +394,7 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
         #        legendbox=boxes[j],annotations=[],xticks=[],yticks=[],task_markers=[],scatter=False,
         #        legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[],index_x=[],
         #        xaxis_style="plain",y_err=[],force=True,fill_between=(y_bottom[label],y_top[label]))
-        createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=ylim,
+        createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=None,
                    save_filename=RESULTSFOLDER+"/"+title_tag+label+".pdf",legend_labels=temp_labels,
                    xlim=[0,10500],xscale="linear",yscale="linear",
                legendbox=boxes[j],annotations=[],xticks=[],yticks=[],task_markers=[],scatter=False,
@@ -440,11 +440,7 @@ def make_translation_table(tab_label,BD_dirs,runs):
     i += 1
 
 
-def get_bd_dir(fitfun):
-    data_dir = HOME_DIR + "/Data/ExperimentData"
-    title = fitfun + "range0.11"
-    BD_dir = data_dir + "/" + title
-    return BD_dir
+
 
 if __name__ == "__main__":
     

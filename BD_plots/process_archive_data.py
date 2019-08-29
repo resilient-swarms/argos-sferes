@@ -228,7 +228,11 @@ def load_centroids(file):
 def get_archive_filepath(BD_directory,run, archive_file_path):
     return BD_directory + "/results" + str(run) + "/" + archive_file_path
 
-
+def get_bd_dir(fitfun):
+    data_dir = HOME_DIR + "/Data/ExperimentData"
+    title = fitfun + "range0.11"
+    BD_dir = data_dir + "/" + title
+    return BD_dir
 def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,include_val=True,include_ind=False):
     """
     takes different runs, then combines the archives,

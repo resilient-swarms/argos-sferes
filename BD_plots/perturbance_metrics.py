@@ -27,8 +27,6 @@ def read_floats_from_file(file_in):
 #     fig.tight_layout()
 #     fig.savefig(save_filename)
 def make_boxplot(data,row_conditions,col_conditions,save_filename,xlabs,ylab):
-    # Creates four polar axes, and accesses them through the returned array
-    n_cols = len(col_conditions)
     n_rows = len(row_conditions)
 
     for i in range(n_rows):
@@ -42,8 +40,38 @@ def make_boxplot(data,row_conditions,col_conditions,save_filename,xlabs,ylab):
         fig.suptitle(row_conditions[i])
         fig.tight_layout()
         fig.savefig(RESULTSFOLDER+"/"+row_conditions[i]+save_filename)
+def make_boxplot_matrix(data,row_conditions,col_conditions,save_filename,xlabs,ylab,ylim):
+    n_rows = len(row_conditions)
+    n_cols=len(col_conditions)
+    fig, axes = plt.subplots(n_rows, n_cols,figsize=(20,10))  # compare fault_none to perturbations
+    for j in range(n_cols):
+        axes[0,j].set_title(col_conditions[j],fontsize=15)
+        for i in range(n_rows):
+            axes[i, j].boxplot(data[i][j], ylim, widths=0.75)
+            axes[i,j].set_xticklabels(xlabs)
+    for ax in axes.flat:
+        ax.set(ylabel=ylab)
+        ax.yaxis.label.set_size(15)
+    for ax in axes.flat:
+        ax.label_outer()
+    fig.tight_layout()
+    fig.savefig(RESULTSFOLDER+"/"+save_filename)
+def make_boxplot_pairswithin(data,row_conditions,col_conditions,save_filename,xlabs,ylab,ylim):
+    n_rows = len(row_conditions)
+    n_cols = len(col_conditions)
+    fig, axes = plt.subplots(n_rows, 1,figsize=(20,10))  # compare fault_none to perturbations
+    for i in range(n_rows):
+        k=0
+        axes[i].set_title(row_conditions[i],fontsize=24)
+        for j in range(n_cols):
+            axes[i].boxplot(data[i][j], ylim, positions=[k+1,k+2],widths=0.75)
+            k+=3
+        axes[i].set_xticks([3*i + 1.5 for i in range(len(col_conditions))])
+        axes[i].set_xticklabels(xlabs,fontsize=15)
+        axes[i].set_ylabel(ylab,fontsize=15)
 
-
+    fig.tight_layout()
+    fig.savefig(RESULTSFOLDER+"/"+save_filename)
 
 def make_barplot(data,row_conditions,col_conditions,save_filename,xlabs,ylab):
     # Creates four polar axes, and accesses them through the returned array
