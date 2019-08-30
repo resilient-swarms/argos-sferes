@@ -252,10 +252,10 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
 
         ax.grid(True)
 
-        leg = ax.legend(lines,labels=legend_labels, loc=3,ncol=legend_cols,
-                   bbox_to_anchor=legendbox, prop={'size':legend_fontsize},
+        leg = ax.legend(lines,labels=legend_labels, loc="best",ncol=legend_cols,
+                   prop={'size':legend_fontsize},
                    fancybox=True)
-        leg.set_alpha(0.50)
+        leg.set_alpha(0.20)
 
         if fig is None: return # nothing to save, just a subplot
         fig.tight_layout()
