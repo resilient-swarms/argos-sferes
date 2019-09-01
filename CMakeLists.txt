@@ -201,6 +201,9 @@ else(NOT BASELINE)
     set(CONTROL "nn_controller")
 
     set(tag ${CVT_USE}${BD}D)
+    if(ANALYSIS)
+        set(tag ${tag}ANA)
+    endif()
 
     # process BO option
     if(BO)
@@ -410,7 +413,7 @@ endif()
 if(ANALYSIS)
     message("will perform analysis; changing executable to 'analysis'")
     message("make sure you are using 'analysis' descriptor")
-    add_definitions(-DANALYSIS)  
+    add_definitions(-DANALYSIS)
     set(EXECUTABLE analysis${tag})
     set(EXEC_FILE analysis.cpp)  
 

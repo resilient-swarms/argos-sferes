@@ -62,7 +62,7 @@ for FaultIndex in $(seq 0 4); do
 					DescriptorType=${key}
 					BD_DIMS=${descriptors[${key}]}
 					CVT=${voronoi[${DescriptorType}]}
-					tag=${CVT}${BD_DIMS}D
+					tag=${CVT}${BD_DIMS}DANA
 					echo "doing ${DescriptorType} now"
 					echo "has ${BD_DIMS} dimensions"
 					echo "tag is ${tag}"
@@ -130,7 +130,7 @@ for FaultIndex in $(seq 0 4); do
 						if [ "$2" = "best" ]; then
 							bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
 						else
-							sbatch submit_test.sh $2 # submit to iridis
+							bash submit_test.sh $2 # submit to iridis
 						fi
 					done
 				done

@@ -49,7 +49,7 @@ for FaultType in "FAULT_NONE"; do
 					DescriptorType=${key}
 					BD_DIMS=${descriptors[${key}]}
 					CVT=${voronoi[${DescriptorType}]}
-					tag=${CVT}${BD_DIMS}D
+					tag=${CVT}${BD_DIMS}DANA
 					echo "doing ${DescriptorType} now"
 					echo "has ${BD_DIMS} dimensions"
 					echo "tag is ${tag}"

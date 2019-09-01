@@ -445,7 +445,7 @@ def make_translation_table(tab_label,BD_dirs,runs):
 if __name__ == "__main__":
     
     
-    runs=range(1,3)
+    runs=range(1,6)
 
     fitfuns= ["Aggregation","Dispersion","Flocking","DecayCoverage","DecayBorderCoverage"] #,"DecayBorderCoverage","Flocking"]
     bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity",
@@ -471,7 +471,7 @@ if __name__ == "__main__":
                           ax = axs[:,i])
 
 
-    finish_fig(fig, RESULTSFOLDER +"/FinalBDComp/All_BD_metrics.pdf")
+    finish_fig(fig, RESULTSFOLDER +"/FinalBDComp/All_BD_metrics_allruns.pdf")
 
 
 
