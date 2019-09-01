@@ -250,7 +250,9 @@ SFERES_EVAL(ArgosParallelEnvir, Eval){
           assert(pop.size());
           assert(begin < pop.size());
           assert(end <= pop.size());
-
+#ifdef ANALYSIS
+          throw std::runtime_error("cannot use parallel while doing analysis");
+#endif
           _argos_parallel_envir<Phen,Params>(pop, fit_proto);
 
           this->_nb_evals += (end - begin);

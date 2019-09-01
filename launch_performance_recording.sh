@@ -5,8 +5,8 @@
 data=$1
 # the final generation until which to run FAULT_NONE
 
-MINGEN=5000 #
-MAXGEN=5000
+MINGEN=10000 #
+MAXGEN=10000
 STEP=500
 
 echo "doing generation ${MINGEN} to ${MAXGEN}"
@@ -54,7 +54,7 @@ for FaultType in "FAULT_NONE"; do
 					echo "has ${BD_DIMS} dimensions"
 					echo "tag is ${tag}"
 
-					for Replicates in $(seq 1 2); do
+					for Replicates in $(seq 1 5); do
 						for GEN in $(seq ${MINGEN} ${STEP} ${MAXGEN}); do
 							# Take template.argos and make an .argos file for this experiment
 							SUFFIX=${Replicates}

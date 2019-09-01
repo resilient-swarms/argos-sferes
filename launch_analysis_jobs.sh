@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 data=$1
-export FINALGEN_ARCHIVE=5000 # never forget zero-padding for generation file, not for archive file
-export FINALGEN_GENFILE=05000
+export FINALGEN_ARCHIVE=10000 # never forget zero-padding for generation file, not for archive file
+export FINALGEN_GENFILE=10000
 
 echo "doing generation ${FINALGEN_ARCHIVE}"
 sleep 2.5
@@ -67,7 +67,7 @@ for FaultIndex in $(seq 0 4); do
 					echo "has ${BD_DIMS} dimensions"
 					echo "tag is ${tag}"
 
-					for Replicates in $(seq 1 2); do
+					for Replicates in $(seq 1 5); do
 
 						# Take template.argos and make an .argos file for this experiment
 						SUFFIX=${Replicates}
@@ -130,7 +130,7 @@ for FaultIndex in $(seq 0 4); do
 						if [ "$2" = "best" ]; then
 							bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
 						else
-							bash submit_test.sh $2 # submit to iridis
+							sbatch submit_test.sh $2 # submit to iridis
 						fi
 					done
 				done

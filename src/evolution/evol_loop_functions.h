@@ -226,6 +226,11 @@ FIT_MAP(FitObstacleMapElites){
             
 
         #ifdef ANALYSIS
+            #if ARGOS_PARALLEL > 0  // if parallel then will be using the shared memory initialisations, so evolution would not give a segmentation fault
+                kill(getppid(), 9);
+                throw std::runtime_error("evol: cannot use parallel while doing analysis");
+                
+            #endif
             cLoopFunctions.analyse(fFitness);
             return;
         #endif
