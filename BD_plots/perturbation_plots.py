@@ -1,3 +1,4 @@
+from sklearn.neighbors import KernelDensity
 
 from dimensionality_plot import *
 from perturbance_metrics import *
@@ -6,6 +7,7 @@ from reduce_translated_archive import *
 HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
 from plots import *
+
 
 import pickle
 
@@ -82,6 +84,46 @@ def get_pca_result(pca,bd,bins=3):
         bd_cat.append(bin_single_point(datapoint, minima, bins, bin_sizes))
 
     return bd_cat
+
+def density_estimation(data,x_range,y_range):
+    """
+    :param data: list of observations
+    :return:
+    """
+
+    #     algorithm : string
+    #     The tree algorithm to use.  Valid options are
+    #     ['kd_tree'|'ball_tree'|'auto'].  Default is 'auto'.
+    # kernel : string
+    #     The kernel to use.  Valid kernels are
+    #     ['gaussian'|'tophat'|'epanechnikov'|'exponential'|'linear'|'cosine']
+    #     Default is 'gaussian'.
+    X=np.linspace(x_range[0],x_range[1],20)
+    Y = np.linspace(y_range[0], y_range[1], 20)
+    xy=[(x,y) for x in X for y in Y]
+    s_x = x_range[1] - x_range[0]
+    s_y = y_range[1] - y_range[0]
+    bandwidth=min(s_x,s_y)/20.0
+    X, Y = np.meshgrid(X, Y)
+
+    kde = KernelDensity(bandwidth=bandwidth,
+                  algorithm="kd_tree",
+                  kernel ="gaussian",
+                  metric ="euclidean",
+                  atol = 0,
+                  rtol = 0,
+                  breadth_first = True,
+                  leaf_size = 1,   # we will have a limited amount of data (+/- 1000 points)
+                  metric_params = None)
+
+    kde.fit(data)
+    Z = np.exp(kde.score_samples(xy))
+    Z = Z.reshape(X.shape)
+    print("Z="+str(Z))
+    # plot contours of the density
+    levels = np.linspace(0, Z.max(), 25)
+    plt.contourf(X, Y, Z, levels=levels, cmap=plt.cm.Reds)
+
 
 
 def scatter_plot(x,y,colors,area,filename):
