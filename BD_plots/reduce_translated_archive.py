@@ -124,8 +124,8 @@ if __name__ == "__main__":
         centroids_spirit = load_centroids("/home/david/argos-sferes/experiments/centroids/centroids_4096_1024.dat")
         for descriptor in ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]:
             print(descriptor)
-            for gen in range(5000,5500,500):
-                for run in range(1,3):
+            for gen in range(10000,10500,500):
+                for run in range(1,6):
                     print("run "+str(run))
                     input="/home/david/Data/ExperimentData/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_handcrafted.dat"
                     output="/home/david/Data/ExperimentData/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_handcraftedREDUCED.dat"

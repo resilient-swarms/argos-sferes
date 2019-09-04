@@ -331,12 +331,23 @@ CCI_RangeAndBearingSensor::TReadings BaseController::GetRABSensorReadings(bool b
     {
         for (size_t i = 0; i < sensor_readings.size(); ++i)
         {
+            //std::cout<<"range before:"<<sensor_readings[i].Range<<std::endl;
+            //std::cout<<"horizontal bearing before:"<<sensor_readings[i].HorizontalBearing<<std::endl;
             CVector2 tmp(sensor_readings[i].Range, sensor_readings[i].HorizontalBearing);
+            //std::cout<<"tmp variable: ("<<tmp.GetX()<<","<<tmp.GetY()<<")"<<std::endl;
             tmp += CVector2(m_pcRNG->Uniform(CRange<Real>(75.0f, 100.0f)),
                             m_pcRNG->Uniform(CRange<CRadians>(-CRadians::PI, CRadians::PI)));
 
+            //std::cout<<"tmp variable: ("<<tmp.GetX()<<","<<tmp.GetY()<<")"<<std::endl;
             sensor_readings[i].Range = tmp.Length();
+            if (sensor_readings[i].Range > max_rab_range)
+            {
+                sensor_readings[i].Range = max_rab_range;
+            }
             sensor_readings[i].HorizontalBearing = tmp.Angle();
+
+            //std::cout<<"range after:"<<sensor_readings[i].Range<<std::endl;
+            //std::cout<<"horizontal bearing after:"<<sensor_readings[i].HorizontalBearing<<std::endl;
         }
 
         return sensor_readings;

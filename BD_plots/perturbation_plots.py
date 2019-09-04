@@ -85,7 +85,8 @@ def get_pca_result(pca,bd,bins=3):
 
     return bd_cat
 
-def density_estimation(data,x_range,y_range):
+def density_estimation(stats,x,xlabel, ylabel,
+                   xlim, ylim,ax,title):
     """
     :param data: list of observations
     :return:
@@ -98,11 +99,12 @@ def density_estimation(data,x_range,y_range):
     #     The kernel to use.  Valid kernels are
     #     ['gaussian'|'tophat'|'epanechnikov'|'exponential'|'linear'|'cosine']
     #     Default is 'gaussian'.
-    X=np.linspace(x_range[0],x_range[1],20)
-    Y = np.linspace(y_range[0], y_range[1], 20)
-    xy=[(x,y) for x in X for y in Y]
-    s_x = x_range[1] - x_range[0]
-    s_y = y_range[1] - y_range[0]
+    data = np.array([[xx, ss] for ss in stats for xx in x ])
+    X=np.linspace(xlim[0],xlim[1],20)
+    Y = np.linspace(ylim[0], ylim[1], 20)
+    xy=np.array([[x,y] for y in Y for x in X] )
+    s_x = xlim[1] - xlim[0]
+    s_y = ylim[1] - ylim[0]
     bandwidth=min(s_x,s_y)/20.0
     X, Y = np.meshgrid(X, Y)
 
@@ -112,7 +114,7 @@ def density_estimation(data,x_range,y_range):
                   metric ="euclidean",
                   atol = 0,
                   rtol = 0,
-                  breadth_first = True,
+                  breadth_first = False,
                   leaf_size = 1,   # we will have a limited amount of data (+/- 1000 points)
                   metric_params = None)
 
@@ -122,7 +124,18 @@ def density_estimation(data,x_range,y_range):
     print("Z="+str(Z))
     # plot contours of the density
     levels = np.linspace(0, Z.max(), 25)
-    plt.contourf(X, Y, Z, levels=levels, cmap=plt.cm.Reds)
+    ax.contourf(X, Y, Z, levels=levels, cmap=plt.cm.Reds)
+
+    if title is not None:
+        ax.set_title(title, fontsize=46)
+    if ylim is not None:
+        ax.set_ylim(ylim)
+    if xlim is not None:
+        ax.set_xlim(xlim)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel, fontsize=36)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel, fontsize=36)
 
 
 
@@ -152,10 +165,10 @@ def gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,h
             prefix = datadir + "/" + title + "/" + bd
             ncds, performances, nofaultperfs, euclids, categories= gather_perturbation_data(prefix, generation, faults,
                                                                                 runs=runs, history_type=history_type,
-                                                                                translation_type="sdbc",centroids=centroids)
+                                                                                translation_type="sdbc",centroids=centroids,get_NCD=False)
             _, _, _, relative_ents,_= gather_perturbation_data(prefix, generation, faults,
                                                                                 runs=runs, history_type=history_type,
-                                                                                translation_type="spirit")
+                                                                                translation_type="spirit",get_NCD=False)
             dp_file,ncd_file, euclid_file, ent_file, category_file = filenames(fitfun,bd,history_type)
             pickle.dump((performances,nofaultperfs), open(dp_file, "wb"))
             pickle.dump(ncds, open(ncd_file, "wb"))
@@ -189,7 +202,7 @@ def filenames(fitfun,bd,history_type):
            prefix +"_euclids.pkl",prefix +"_relativeEnts.pkl", \
           prefix +  "_categories.pkl"
 
-def plot_by_fitfun(leg_labels,titles):
+def plot_by_fitfun(leg_labels,titles,plot_NCD=False):
     fig1, axs1 = plt.subplots(1, 5, figsize=(50, 10))
     fig2, axs2 = plt.subplots(1, 5, figsize=(50, 10))
     fig3, axs3 = plt.subplots(1, 5, figsize=(50, 10))
@@ -224,43 +237,44 @@ def plot_by_fitfun(leg_labels,titles):
         print(x)
         xlim2=xlim2_dict[fitfun]
         xlim=[-xlim2[1]/5.,+xlim2[1]/20.]
-        createPlot(stats, x, colors, markers, xlabel="$\Delta P$", ylabel="$NCD$",
-                   xlim=xlim, ylim=[0, 1], save_filename="results/FinalBDComp/NCD_DELTAP.pdf",
-                   legend_labels=leg_labels, scatter=True, force=True,
-                   ax=axs1[i],title=titles[i])
+        if plot_NCD:
+            createPlot(stats, x, colors, markers, xlabel="performance change", ylabel="$NCD$",
+                       xlim=xlim, ylim=[0, 1], save_filename="results/FinalBDComp/NCD_DELTAP.pdf",
+                       legend_labels=leg_labels, scatter=True, force=True,
+                       ax=axs1[i],title=titles[i])
 
-        createPlot(stats, x2, colors, markers, xlabel="$P$", ylabel="$NCD$",
-                   xlim=xlim2, ylim=[0, 1], save_filename="results/FinalBDComp/NCD_P.pdf",
-                   legend_labels=leg_labels, scatter=True, force=True,
-                   ax=axs2[i],title=titles[i])
+            createPlot(stats, x2, colors, markers, xlabel="performance", ylabel="$NCD$",
+                       xlim=xlim2, ylim=[0, 1], save_filename="results/FinalBDComp/NCD_P.pdf",
+                       legend_labels=leg_labels, scatter=True, force=True,
+                       ax=axs2[i],title=titles[i])
 
 
-        createPlot(stats2, x, colors, markers, xlabel="$\Delta P$", ylabel="Euclidian distance",
+        createPlot(stats2, x, colors, markers, xlabel="performance change", ylabel="Euclidian distance",
                    xlim=xlim, ylim=[0, 1], save_filename="results/FinalBDComp/Euclid_DELTAP.pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs3[i],title=titles[i])
 
-        createPlot(stats2, x2, colors, markers, xlabel="$P$", ylabel="Euclidian distance",
+        createPlot(stats2, x2, colors, markers, xlabel="performance", ylabel="Euclidian distance",
                    xlim=xlim2, ylim=[0, 1], save_filename="results/FinalBDComp/Euclid_P.pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs4[i],title=titles[i])
 
-        createPlot(stats3, x, colors, markers, xlabel="$\Delta P$", ylabel="maximum variation distance",
+        createPlot(stats3, x, colors, markers, xlabel="performance change", ylabel="maximum variation distance",
                    xlim=xlim,ylim=[0,1.0], save_filename="results/FinalBDComp/MAXVAR_DELTAP.pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs5[i],title=titles[i])
 
-        createPlot(stats3, x2, colors, markers, xlabel="$P$", ylabel="maximum variation distance",
+        createPlot(stats3, x2, colors, markers, xlabel="performance", ylabel="maximum variation distance",
                    xlim=xlim2, ylim=[0, 1.0], save_filename="results/FinalBDComp/MAXVAR_P.pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs6[i],title=titles[i])
 
-        createPlot(stats4, x, colors, markers, xlabel="$\Delta P$", ylabel="category",
+        createPlot(stats4, x, colors, markers, xlabel="performance change", ylabel="category",
                    xlim=xlim, ylim=[0, 10], save_filename="results/FinalBDComp/category_DELTAP.pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs7[i],title=titles[i])
 
-        createPlot(stats4, x2, colors, markers, xlabel="$P$", ylabel="category",
+        createPlot(stats4, x2, colors, markers, xlabel="performance", ylabel="category",
                    xlim=xlim2, ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs8[i],title=titles[i])
@@ -360,6 +374,161 @@ def plot_by_descriptor(leg_labels,titles,xlim):
     finish_fig(fig7, "results/FinalBDComp/Category_DELTAP_desc.pdf")
     finish_fig(fig8, "results/FinalBDComp/Category_P_desc.pdf")
 
+def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
+    fig1, axs1 = plt.subplots(1, 5, figsize=(50, 10))
+    fig2, axs2 = plt.subplots(1, 5, figsize=(50, 10))
+    fig3, axs3 = plt.subplots(1, 5, figsize=(50, 10))
+    fig4, axs4 = plt.subplots(1, 5, figsize=(50, 10))
+    fig5, axs5 = plt.subplots(1, 5, figsize=(50, 10))
+    fig6, axs6 = plt.subplots(1, 5, figsize=(50, 10))
+    fig7, axs7 = plt.subplots(1, 5, figsize=(50, 10))
+    fig8, axs8 = plt.subplots(1, 5, figsize=(50, 10))
+    xlim2_dict={"Aggregation":[0.60,1.0],"Dispersion":[0,0.25],"Flocking":[0,0.20],"Coverage":[0.60,1],"BorderCoverage":[0.60,1.0]}
+    for i, fitfun in enumerate(fitfuns):
+        stats = []
+        stats2=[]
+        stats3=[]
+        stats4=[]
+        x2=[]
+        x = []
+        for bd in bd_type:
+            dp_file, ncd_file, euclid_file, ent_file, category_file = filenames(fitfun, bd, history_type)
+            performances , nofaultperfs = pickle.load(open(dp_file, "rb"))
+            dps = np.array(performances) - np.array(nofaultperfs)
+            ncds = pickle.load(open(ncd_file, "rb"))
+            stats.append(ncds)
+            euclids = pickle.load(open(euclid_file,"rb"))
+            ents = pickle.load(open(ent_file,"rb"))
+            categories=pickle.load(open(category_file,"rb"))
+            stats2.append(euclids)
+            stats3.append(ents)
+            stats4.append(categories)
+            x2.append(np.array(performances))
+            x.append(np.array(dps)/np.array(nofaultperfs))
+        print(stats)
+        print(x)
+        xlim2=xlim2_dict[fitfun]
+        xlim=[-.25,.05]
+        if plot_NCD:
+            createPlot(stats, x, colors, markers, xlabel="proportional performance change", ylabel="$NCD$",
+                       xlim=xlim, ylim=[0, 1], save_filename="results/FinalBDComp/NCD_DELTAP.pdf",
+                       legend_labels=leg_labels, scatter=True, force=True,
+                       ax=axs1[i],title=titles[i])
+
+            createPlot(stats, x2, colors, markers, xlabel="performance", ylabel="$NCD$",
+                       xlim=xlim2, ylim=[0, 1], save_filename="results/FinalBDComp/NCD_P.pdf",
+                       legend_labels=leg_labels, scatter=True, force=True,
+                       ax=axs2[i],title=titles[i])
+
+
+        createPlot(stats2, x, colors, markers, xlabel="proportional performance change", ylabel="Euclidian distance",
+                   xlim=xlim, ylim=[0, 1], save_filename="results/FinalBDComp/Euclid_DELTAP.pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs3[i],title=titles[i])
+
+        createPlot(stats2, x2, colors, markers, xlabel="performance", ylabel="Euclidian distance",
+                   xlim=xlim2, ylim=[0, 1], save_filename="results/FinalBDComp/Euclid_P.pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs4[i],title=titles[i])
+
+        createPlot(stats3, x, colors, markers, xlabel="proportional performance change", ylabel="maximum variation distance",
+                   xlim=xlim,ylim=[0,1.0], save_filename="results/FinalBDComp/MAXVAR_DELTAP.pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs5[i],title=titles[i])
+
+        createPlot(stats3, x2, colors, markers, xlabel="performance", ylabel="maximum variation distance",
+                   xlim=xlim2, ylim=[0, 1.0], save_filename="results/FinalBDComp/MAXVAR_P.pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs6[i],title=titles[i])
+
+        createPlot(stats4, x, colors, markers, xlabel="proportional performance change", ylabel="category",
+                   xlim=xlim, ylim=[0, 10], save_filename="results/FinalBDComp/category_DELTAP.pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs7[i],title=titles[i])
+
+        createPlot(stats4, x2, colors, markers, xlabel="performance", ylabel="category",
+                   xlim=xlim2, ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs8[i],title=titles[i])
+    finish_fig(fig1, "results/FinalBDComp/proportional_NCD_DELTAP.pdf")
+    finish_fig(fig2, "results/FinalBDComp/proportional_NCD_P.pdf")
+    finish_fig(fig3, "results/FinalBDComp/proportional_Euclid_DELTAP.pdf")
+    finish_fig(fig4, "results/FinalBDComp/proportional_Euclid_P.pdf")
+    finish_fig(fig5, "results/FinalBDComp/proportional_MAXVAR_DELTAP.pdf")
+    finish_fig(fig6, "results/FinalBDComp/proportional_MAXVAR_P.pdf")
+    finish_fig(fig7, "results/FinalBDComp/proportional_Category_DELTAP.pdf")
+    finish_fig(fig8, "results/FinalBDComp/proportional_Category_P.pdf")
+
+
+def plot_density_bydescriptor(titles,plot_NCD=False):
+    fig1, axs1 = plt.subplots(1, 4, figsize=(40, 10))
+    fig2, axs2 = plt.subplots(1, 4, figsize=(40, 10))
+    fig3, axs3 = plt.subplots(1, 4, figsize=(40, 10))
+    fig4, axs4 = plt.subplots(1, 4, figsize=(40, 10))
+    fig5, axs5 = plt.subplots(1, 4, figsize=(40, 10))
+    fig6, axs6 = plt.subplots(1, 4, figsize=(40, 10))
+    fig7, axs7 = plt.subplots(1, 4, figsize=(40, 10))
+    fig8, axs8 = plt.subplots(1, 4, figsize=(40, 10))
+
+    for i, bd in enumerate(bd_type):
+        stats = []
+        stats2 = []
+        stats3 = []
+        stats4 = []
+        x2 = []
+        x = []
+        for fitfun in fitfuns:
+            dp_file, ncd_file, euclid_file, ent_file, category_file = filenames(fitfun, bd, history_type)
+            performances, nofaultperfs = pickle.load(open(dp_file, "rb"))
+            dps = np.array(performances) - np.array(nofaultperfs)
+            ncds = pickle.load(open(ncd_file, "rb"))
+            stats.append(ncds)
+            euclids = pickle.load(open(euclid_file, "rb"))
+            ents = pickle.load(open(ent_file, "rb"))
+            categories = pickle.load(open(category_file, "rb"))
+            stats2= np.append(stats2,euclids)
+            stats3= np.append(stats3,ents)
+            x2=np.append(x2,performances)
+            x=np.append(x,np.array(dps) / np.array(nofaultperfs))
+            stats4=np.append(stats4,categories)
+        print(stats)
+        print(x)
+        xlim = [-.25, .05]
+        xlim2 = [0,1]
+        ylim=[0,1]
+        if plot_NCD:
+            density_estimation(stats,x,xlabel="proportional performance change",
+                           ylabel="$NCD$", xlim=xlim, ylim=ylim,ax=axs1[i],title=titles[i])
+            density_estimation(stats,x2,xlabel="performance",
+                           ylabel="$NCD$", xlim=xlim2, ylim=ylim,ax=axs2[i],title=titles[i])
+        density_estimation(stats2, x,  xlabel="proportional performance change",
+                           ylabel="Euclidian distance", xlim=xlim, ylim=ylim, ax=axs3[i], title=titles[i])
+        density_estimation(stats2, x2,  xlabel="performance",
+                           ylabel="Euclidian distance", xlim=xlim2, ylim=ylim, ax=axs4[i], title=titles[i])
+
+        density_estimation(stats3, x,  xlabel="proportional performance change",
+                           ylabel="maximum variation distance", xlim=xlim, ylim=ylim, ax=axs5[i], title=titles[i])
+        density_estimation(stats3, x2,  xlabel="performance",
+                           ylabel="maximum variation distance", xlim=xlim2, ylim=ylim, ax=axs6[i], title=titles[i])
+
+
+        density_estimation(stats4, x,  xlabel="proportional performance change",
+                           ylabel="category", xlim=xlim, ylim=[0,9.5], ax=axs7[i], title=titles[i])
+        density_estimation(stats4, x2,  xlabel="performance",
+                           ylabel="category", xlim=xlim2, ylim=[0,9.5], ax=axs8[i], title=titles[i])
+        i += 1
+    if plot_NCD:
+        finish_fig(fig1, "results/FinalBDComp/Density_NCD_DELTAP_desc.pdf")
+        finish_fig(fig2, "results/FinalBDComp/Density_NCD_P_desc.pdf")
+    finish_fig(fig3, "results/FinalBDComp/Density_Euclid_DELTAP_desc.pdf")
+    finish_fig(fig4, "results/FinalBDComp/Density_Euclid_P_desc.pdf")
+    finish_fig(fig5, "results/FinalBDComp/Density_MAXVAR_DELTAP_desc.pdf")
+    finish_fig(fig6, "results/FinalBDComp/Density_MAXVAR_P_desc.pdf")
+    finish_fig(fig7, "results/FinalBDComp/Density_Category_DELTAP_desc.pdf")
+    finish_fig(fig8, "results/FinalBDComp/Density_Category_P_desc.pdf")
+
+
+
 def perturbed_vs_unperturbed_best(fitfuns,bd_type,bd_labels,save_file,ylim):
 
     data=[]
@@ -399,9 +568,9 @@ def perturbed_vs_unperturbed_archive(fitfuns,bd_type,runs,faults,time,bd_labels,
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
 
-    faults=range(5)
+    faults=range(10)
     F=len(faults)
-    runs=[1,2]
+    runs=range(1,6)
     bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]  # legend label
     legend_labels = ["handcrafted","SDBC","SPIRIT","QED"]  # labels for the legend
     fitfuns = ["Aggregation","Dispersion"]
@@ -410,13 +579,16 @@ if __name__ == "__main__":
     markers = [(2, 1, 0), (3, 1, 0),(2, 1, 1), (3, 1, 1)]
 
     datadir= HOME_DIR + "/Data/ExperimentData"
-    generation="5000"
+    generation="10000"
     history_type="xy"
     #datadir, generation, bd_type, fitfuns, faults, runs, history_type)
-    #gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults,runs=[1,2],history_type=history_type)
+    #gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults,runs=range(1,6),history_type=history_type)
     #gather_category_results(bd_type, fitfuns, faults, runs=[1])
 
-    plot_by_fitfun(legend_labels,titles=fitfuns)
-    plot_by_descriptor(fitfuns,titles=legend_labels,xlim=[-0.15,0.01])
-    time=5000
+    plot_by_fitfun(legend_labels,titles=fitfuns,plot_NCD=False)
+    #plot_by_descriptor(fitfuns,titles=legend_labels,xlim=[-0.15,0.01])
+    plot_proportional_byfitfun(legend_labels,titles=fitfuns,plot_NCD=False)
+
+    plot_density_bydescriptor(titles=legend_labels,plot_NCD=False)
+    time=10000
     perturbed_vs_unperturbed_archive(fitfuns, bd_type, runs,faults,time,legend_labels,"boxplots_all.pdf",ylim=[0,1])

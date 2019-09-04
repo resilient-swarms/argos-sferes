@@ -26,7 +26,7 @@ for dim in 1024 3 10; do   # 10 14 21 400
     cd build_${dim}DANA
     if [ $dim -gt 3 ]
     then
-    cmake DCMAKE_BUILD_TYPE=Debug  -DANALYSIS=ON -DCVT_USAGE=ON -DBD=${dim}  ..
+    cmake -DANALYSIS=ON -DCVT_USAGE=ON -DBD=${dim}  ..
     else
     cmake -DANALYSIS=ON -DBD=${dim} ..
     fi

@@ -356,7 +356,7 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
                 else:
                     raise Exception("")
             elif transfered:
-                recorded_time=5000
+                recorded_time=10000
                 directory = BD_directory+"/"+bd_type[i] + "/FAULT_NONE"
                 archive_file = "analysis" + str(recorded_time) + "_handcraftedREDUCED.dat"
             else:
@@ -406,7 +406,7 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
 def make_translation_table(tab_label,BD_dirs,runs):
 
     try:
-        time_index = times.index(5000)  # only last
+        time_index = times.index(10000)  # only last
 
         with open("coverage_table" + tab_label, "w") as f:
             targets = OrderedDict({"handcrafted": 4096, "sdbc": 4096, "spirit": 4096})
@@ -437,7 +437,6 @@ def make_translation_table(tab_label,BD_dirs,runs):
     except Exception as e:
         print(e)
 
-    i += 1
 
 
 
