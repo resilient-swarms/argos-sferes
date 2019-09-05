@@ -1,7 +1,6 @@
 
 import argparse
 from process_archive_data import *
-from distance_metrics import *
 
 parser = argparse.ArgumentParser(description='Process arguments.')
 parser.add_argument('-i', type=str,help='input archive path, with all the translated individuals')
@@ -15,16 +14,7 @@ def transform_bd_mapelites(bd,behav_shape):
         b = int(bd[i] * behav_shape[i])
         behav.append(min(b, behav_shape[i] - 1) / float(behav_shape[i]))
     return tuple(behav)
-def transform_bd_cvtmapelites(bd,centroids):
-    min_dist = float("inf")
-    min_index = None
-    for i in range(len(centroids)):
-        dist = Euclidian_dist(centroids[i], bd)
-        if (dist < min_dist):
-            min_dist = dist
-            min_centr = centroids[i]
-            min_index = i
-    return min_index,tuple(min_centr)
+
 
 
 def add_to_archive(individual,bd , fitness,new_archive, transformation,transformdata):

@@ -68,7 +68,7 @@ def colorFromBivariateData(Z1,Z2,cmap1 = plt.cm.YlOrRd, cmap2 = plt.cm.PuBuGn):
 
 
 def direct_scatter(data_path,runs, archive_file_path,bd_labels,savefile):
-    bd = np.array(get_combined_archive(data_path, runs, archive_file_path, by_bin=False, include_val=False))
+    bd = np.array(get_combined_archive(data_path, runs, archive_file_path, by_bin="list", include_val=False))
 
     #colors = np.linspace(0, 1, len(bd[:, 0]))
     colors = [0 for i in bd[:,0]]
@@ -130,7 +130,7 @@ def color_bar(N,scat):
     cb.set_label('Custom cbar')
 
 def reduce_tSNE(components,data_path,runs, archive_file_path,bd_labels,plot,savefile):
-    bd = np.array(get_combined_archive(data_path, runs, archive_file_path, by_bin=False, include_val=False))
+    bd = np.array(get_combined_archive(data_path, runs, archive_file_path, by_bin="list", include_val=False))
     if len(bd_labels)>400:
         df = reduce_PCA(components=400,data_path=data_path,runs=runs, archive_file_path=archive_file_path,
                         bd_labels=bd_labels,plot=False,savefile="")

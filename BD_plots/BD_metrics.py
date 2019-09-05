@@ -76,7 +76,7 @@ def _avg_performance(BD_directory, run,archive_file_path,max_performance,convers
     all_performances=get_all_performances(path,conversion_func,from_fitfile)
     return np.mean(all_performances)/max_performance
 
-def global_reliabilities(BD_directory,runs,archive_file_path):
+def global_reliabilities(BD_directory,runs,archive_file_path,by_bin):
     """
     averages the global reliability across the different maps in the combined archive
     :param BD_directory:
@@ -85,14 +85,14 @@ def global_reliabilities(BD_directory,runs,archive_file_path):
     :return:
     """
 
-    combined_archive=get_combined_archive(BD_directory, runs, archive_file_path)
+    combined_archive=get_combined_archive(BD_directory, runs, archive_file_path,by_bin=by_bin)
     stats = []
     for run in runs:
-        stats.append(_global_reliability(combined_archive,BD_directory, run, archive_file_path))
+        stats.append(_global_reliability(combined_archive,BD_directory, run, archive_file_path,by_bin))
     print("global reliabilities: "+str(stats))
     return stats
 
-def _global_reliability(combined_archive,BD_directory, run, archive_file_path):
+def _global_reliability(combined_archive,BD_directory, run, archive_file_path,by_bin):
 
     """
     For each run, the average across all cells of the highest-performing solution the algorithm found for each cell
@@ -116,7 +116,11 @@ def _global_reliability(combined_archive,BD_directory, run, archive_file_path):
     :return:
     """
     path = get_archive_filepath(BD_directory, run, archive_file_path)
-    all_non_empty_performances = get_bin_performances_uniquearchive(path)
+    if by_bin == "individual":
+        all_non_empty_performances = get_ind_performances_uniquearchive(path)
+
+    else:
+        all_non_empty_performances = get_bin_performances_uniquearchive(path, as_string=True)
 
     cell_performances = []
 
@@ -131,7 +135,7 @@ def _global_reliability(combined_archive,BD_directory, run, archive_file_path):
     mean = np.mean(cell_performances)
     return mean
 
-def precisions(BD_directory,runs,archive_file_path):
+def precisions(BD_directory,runs,archive_file_path,by_bin):
     """
     averages the precision of the different maps in the combined archive
     :param BD_directory:
@@ -139,7 +143,7 @@ def precisions(BD_directory,runs,archive_file_path):
     :param archive_file_path:
     :return:
     """
-    combined_archive=get_combined_archive(BD_directory, runs, archive_file_path)
+    combined_archive=get_combined_archive(BD_directory, runs, archive_file_path,by_bin=by_bin)
     stats = []
     for run in runs:
         stats.append(_precision(combined_archive,BD_directory, run, archive_file_path))
@@ -212,7 +216,7 @@ def _absolutecoverage(bd_shape,BD_directory, run, archive_file_path):
     num_filled=len(all_non_empty_performances)
     return float(num_filled)
 
-def globalcoverage(BD_directory,runs,archive_file_path):
+def globalcoverage(BD_directory,runs,archive_file_path,by_bin):
     """
     averages the precision of the different maps in the combined archive
     :param BD_directory:
@@ -220,7 +224,7 @@ def globalcoverage(BD_directory,runs,archive_file_path):
     :param archive_file_path:
     :return:
     """
-    combined_archive=get_combined_archive(BD_directory, runs, archive_file_path)
+    combined_archive=get_combined_archive(BD_directory, runs, archive_file_path,by_bin=by_bin)
     num_filled = len(combined_archive)
     return float(num_filled)
 def translated_coverages(t,BD_dir,runs, targets):
@@ -283,7 +287,7 @@ def print_best_individuals(BD_dir,outfile, number,generation):
             f.write("%s %s %.3f \n" % (indexes[i], array[0:-1], array[-1]))
             i += 1
 
-def try_add_performance_data(i,bd_shapes,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=False):
+def try_add_performance_data(i,bd_shapes,bybin_list,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=False):
     try:
         avg_perform = avg_performances(directory, runs, archive_file, 1.0,
                                        conversion_func=None,from_fitfile=from_fitfile)
@@ -300,16 +304,16 @@ def try_add_performance_data(i,bd_shapes,directory,runs,archive_file, y_bottom,y
             absolutecoverage = absolutecoverages(bd_shapes[i], directory, runs, archive_file)
             add_boxplotlike_data(absolutecoverage, y_bottom, y_mid, y_top, y_label="absolute_coverage", method_index=i)
 
-            globalcov = globalcoverage(directory, runs, archive_file)
+            globalcov = globalcoverage(directory, runs, archive_file,by_bin=bybin_list[i])
             add_boxplotlike_data([globalcov], y_bottom, y_mid, y_top, y_label="global_coverage", method_index=i)
 
-            global_reliability = global_reliabilities(directory, runs, archive_file)
+            global_reliability = global_reliabilities(directory, runs, archive_file,by_bin=bybin_list[i])
             add_boxplotlike_data(global_reliability, y_bottom, y_mid, y_top, y_label="global_reliability", method_index=i)
     except Exception as e:
         print(e)
 
 
-def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_labels,fig=None,ax=None):
+def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_labels,bybin_list,fig=None,ax=None):
 
     # bd_type = ["history","cvt_mutualinfo","cvt_mutualinfoact","cvt_spirit"]  #legend label
     #
@@ -366,12 +370,12 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
 
             #abs_coverage=absolutecoverages(bd_shapes[i], directory, runs, archive_file)
             #add_boxplotlike_data(abs_coverage, y_bottom, y_mid, y_top, y_label="absolute_coverage",method_index=i)
-            try_add_performance_data(i,bd_shapes,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=translated or transfered)
+            try_add_performance_data(i,bd_shapes,bybin_list,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=translated or transfered)
         # now add baseline
         i = len(bd_type) - 1
         directory = BD_directory + "/" + bd_type[i] + "/"
         archive_file = "fitness"
-        try_add_performance_data(i, bd_shapes, directory, runs, archive_file, y_bottom, y_mid, y_top,
+        try_add_performance_data(i, bd_shapes, bybin_list,directory, runs, archive_file, y_bottom, y_mid, y_top,
                                  from_fitfile=True)
             #precision=precisions(directory, runs, archive_file)
             #add_boxplotlike_data(precision, y_bottom, y_mid, y_top, y_label="precision",method_index=i)
@@ -450,7 +454,7 @@ if __name__ == "__main__":
     bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity",
                "environment_diversity", "baseline"]  # file system label for bd
     legend_labels=["handcrafted","SDBC","SPIRIT","QED","QED-transfer","baseline"]  # labels for the legend
-
+    bybin_list=["bd", "individual", "individual", "bd", "bd", ""]
     times=range(0,10500, 500)
 
     for fitfun in fitfuns:
@@ -466,7 +470,7 @@ if __name__ == "__main__":
     for i,fitfun in enumerate(fitfuns):
         development_plots(title=fitfun,runs=runs, times=times,
                           BD_directory=get_bd_dir(fitfun),title_tag="FinalBDComp/"+fitfun+"NOCORRECT",bd_type=bd_type,
-                          legend_labels=legend_labels,
+                          legend_labels=legend_labels,bybin_list=bybin_list,
                           ax = axs[:,i])
 
 

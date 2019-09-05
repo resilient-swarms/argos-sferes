@@ -8,6 +8,8 @@ import argparse
 import argparse
 from collections import OrderedDict
 
+from distance_metrics import *
+
 
 import matplotlib as mpl
 
@@ -50,11 +52,11 @@ def get_best_individuals(BD_directory, runs, archive_file_path,number, criterion
 
 
     if criterion=="fitness":
-        individuals, indexes = get_combined_archive(BD_directory, runs, archive_file_path, by_bin=True,
+        individuals, indexes = get_combined_archive(BD_directory, runs, archive_file_path, by_bin="bd",
                                                     include_val=True, include_ind=True)
         return get_best_fitness_individuals(individuals,number),indexes
     else:
-        individuals, indexes = get_combined_archive(BD_directory, runs, archive_file_path, by_bin=False,
+        individuals, indexes = get_combined_archive(BD_directory, runs, archive_file_path, by_bin="list",
                                                     include_val=True, include_ind=True)
         return get_best_diversity_individuals(individuals,indexes)
 
@@ -166,6 +168,14 @@ def get_best_individual(path, as_string=False, add_performance=False, add_all=Fa
 
         return maxind
 
+def get_ind_performances_uniquearchive(path):
+    parsed_file_list=read_spacedelimited(path)
+    bin_performance_dict=OrderedDict()
+    for item in parsed_file_list:
+        ind = item[0]
+        performance=float(item[-1])
+        bin_performance_dict[ind]=performance
+    return bin_performance_dict
 
 def get_bin_performances_uniquearchive(path,as_string=True, add_indiv=False,fitnessfile=False):
     """
@@ -234,19 +244,19 @@ def get_bd_dir(fitfun):
     title = fitfun + "range0.11"
     BD_dir = data_dir + "/" + title
     return BD_dir
-def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,include_val=True,include_ind=False):
+def get_combined_archive(BD_directory,runs, archive_file_path,by_bin="bd",include_val=True,include_ind=False,centroids=[]):
     """
     takes different runs, then combines the archives,
     filling cells filled by any of the runs, with a list of all found solutions across runs for each cell)
     :param BD_directory:
     :param runs:
     :param archive_file_path:
-    :param by_bin:
+    :param by_bin:  "bd", "individual" or "list" (use bd for mapelites, individual for cvtmapelites)
     :param include_val:
     :param include_ind:
     :return:
     """
-    if by_bin:
+    if by_bin != "list":
         combined_archive=OrderedDict({})
     else:
         combined_archive=[]
@@ -254,22 +264,26 @@ def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,includ
         individuals = []
     for run in runs:
         filepath=get_archive_filepath(BD_directory, run, archive_file_path)
-        if include_ind:
+        if by_bin=="individual":
+            bin_performance_dict=get_ind_performances_uniquearchive(filepath)
 
-            bin_performance_dict,indiv=get_bin_performances_uniquearchive(filepath,as_string=by_bin, add_indiv=True)
-            for ind in indiv:
-                individuals.append(ind)
         else:
-            bin_performance_dict = get_bin_performances_uniquearchive(filepath, as_string=by_bin)
+            if include_ind:
+
+                bin_performance_dict,indiv=get_bin_performances_uniquearchive(filepath,as_string=True, add_indiv=True)
+                for ind in indiv:
+                    individuals.append(ind)
+            else:
+                bin_performance_dict = get_bin_performances_uniquearchive(filepath, as_string=True)
         for key, value in bin_performance_dict.items():
-            if by_bin:
+            if by_bin != "list":
                 if key in combined_archive:
                     combined_archive[key].append(value)
                 else:
-                    combined_archive[key]=[value]
+                    combined_archive[key] = [value]
             else:
                 if include_val:
-                    a = np.array(key+(value,),dtype=float)
+                    a = np.array(key + (value,), dtype=float)
                 else:
                     a = np.array(key, dtype=float)
                 combined_archive.append(a)
@@ -278,7 +292,30 @@ def get_combined_archive(BD_directory,runs, archive_file_path,by_bin=True,includ
         return combined_archive, individuals
     return combined_archive
 
+def transform_bd_cvtmapelites(bd,centroids):
+    min_dist = float("inf")
+    min_index = None
+    for i in range(len(centroids)):
+        dist = Euclidian_dist(centroids[i], bd)
+        if (dist < min_dist):
+            min_dist = dist
+            min_centr = centroids[i]
+            min_index = i
+    return min_index,tuple(min_centr)
 
+def combine_archive_CVTMAPElites(combined_archive,key, value,centroids,by_bin, include_val):
+    min_index,min_centr = transform_bd_cvtmapelites(np.array(tuple(key),dtype=float), centroids)
+    if by_bin:
+        if min_index in combined_archive:
+            combined_archive[min_index].append(value)
+        else:
+            combined_archive[min_index] = [value]
+    else:
+        if include_val:
+            a = np.array(min_centr + (value,), dtype=float)
+        else:
+            a = np.array(min_centr, dtype=float)
+        combined_archive.append(a)
 def sorting_function(behaviour):
     """
     sorting function for a generic behavioural descriptor

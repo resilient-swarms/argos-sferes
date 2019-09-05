@@ -68,7 +68,7 @@ def bin_single_point(datapoint,minima, bins,bin_sizes):
     return category
 
 def get_pca(data_path, runs, archive_file_path,bd_labels,components=2):
-    bd = np.array(get_combined_archive(data_path, runs, archive_file_path,by_bin=False,include_val=False))
+    bd = np.array(get_combined_archive(data_path, runs, archive_file_path,by_bin="list",include_val=False))
     df = pd.DataFrame(bd, columns=bd_labels)
     pca = PCA(n_components=components)
     pca.fit(df[bd_labels].values)
