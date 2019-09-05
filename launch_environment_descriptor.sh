@@ -74,9 +74,11 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			if [[ "${RESUME_GENERATION}" == "${Outfolder}/gen_*" ]]; then
 				echo "no previous generation file found"
 				export GENERATION_FILE=""
+				DO_CONFIG="true"
 			else
 				echo "found last generation file: "${RESUME_GENERATION}
 				export GENERATION_FILE=${RESUME_GENERATION}
+				DO_CONFIG="false"
 			fi
 
 			if [[ "${DO_CONFIG}" == "true" ]]; then

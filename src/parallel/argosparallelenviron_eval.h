@@ -30,7 +30,6 @@
 
 
 
-
 namespace sferes
 {
 namespace eval
@@ -66,20 +65,20 @@ struct _argos_parallel_envir
   std::vector<pid_t> SlavePIDs;
 
   ~_argos_parallel_envir(){};
-  _argos_parallel_envir(pop_t &pop, const fit_t &fit) : _pop(pop),
+  _argos_parallel_envir(pop_t &pop, const fit_t &fit, size_t start, size_t end) : _pop(pop),
                                                      _fit(fit),
                                                      MasterPID(::getpid())
   {
     allocate_additional_memory();
-    create_processes();
+    create_processes(start, end);
     destroy_additional_memory();
   }
-  _argos_parallel_envir(const _argos_parallel_envir &ev) : _pop(ev.pop),
+  _argos_parallel_envir(const _argos_parallel_envir &ev, size_t start, size_t end) : _pop(ev.pop),
                                                      _fit(ev.fit),
                                                      MasterPID(::getpid())
   {
     allocate_additional_memory();
-    create_processes();
+    create_processes(start,end);
     destroy_additional_memory();
   }
   /* SIGTERM handler for slave processes */
@@ -114,11 +113,11 @@ struct _argos_parallel_envir
     //std::cout<<"erased memory: "<<shared_memory.size()<<std::endl;// this should happen only at the 0'th generation
   }
   /* create the different child processes */
-  void create_processes()
+  void create_processes(size_t start, size_t end)
   {
 
     /* Create slave processes */
-    for (size_t i = 0; i < _pop.size(); ++i)
+    for (size_t i = start; i < end; ++i)
     {
 
       /* initialise the fitmap */
@@ -133,10 +132,11 @@ struct _argos_parallel_envir
       }
     }
     /* Back in the parent, copy the scores into the population data */
-    for (size_t i = 0; i < _pop.size(); ++i)
+    for (size_t i = start; i < end; ++i)
     {
+      size_t k = i - start;// get the index of the SlavePID
       siginfo_t siginfo;
-      pid_t pid = SlavePIDs[i];
+      pid_t pid = SlavePIDs[k];
       ::waitid(P_PID, pid, &siginfo, WEXITED);// wait until the child finishes
       //argos::LOG << "parent finished waiting " << pid << std::endl;
       _pop[i]->fit().set_fitness(shared_memory[i]->getFitness());
@@ -168,7 +168,7 @@ struct _argos_parallel_envir
       /* Initialize ARGoS */
       /* Redirect LOG and argos::LOGERR to dedicated files to prevent clutter on the screen */
       /* append to the back of the file */
-      std::ofstream cLOGFile(std::string(redirect_dir + "/LOG_" + argos::ToString(getppid()) + "_" + std::to_string(slave_id)).c_str(), std::ios::app);
+      std::ofstream cLOGFile("/dev/null", std::ios::app);
       argos::LOG.DisableColoredOutput();
       argos::LOG.GetStream().rdbuf(cLOGFile.rdbuf());
       std::ofstream cLOGERRFile(std::string(redirect_dir + "/LOGERR_" + argos::ToString(getppid()) + "_" + std::to_string(slave_id)).c_str(), std::ios::app);
@@ -195,8 +195,7 @@ struct _argos_parallel_envir
           option = g.generate(Param_t::options.back());
           bd.push_back(bin_option(option,Param_t::options.back()));
           jobname = jobname + std::to_string(option) + ".argos";
-          argos::LOG << "loading " << jobname << std::endl;
-          //redirect(jobname,getppid());
+          //argos::LOG << "loading " << jobname << std::endl;
           // /* Set the .argos configuration file
           //  * This is a relative path which assumed that you launch the executable
           //  * from argos3-examples (as said also in the README) */
@@ -216,7 +215,7 @@ struct _argos_parallel_envir
       //argos::LOG << "child starting " << std::endl;
       // initialise the fitness function and the genotype
       _pop[slave_id]->develop();
-      assert(i < _pop.size());
+      assert(slave_id < _pop.size());
       // evaluate the individual
       _pop[slave_id]->fit().eval(*_pop[slave_id]);
 
@@ -225,8 +224,8 @@ struct _argos_parallel_envir
       shared_memory[slave_id]->setFitness(_pop[slave_id]->fit().objs()[0]); // ASSUME SINGLE OBJECTIVE
       shared_memory[slave_id]->setDescriptor(_pop[slave_id]->fit().desc());
       shared_memory[slave_id]->setDeath(_pop[slave_id]->fit().dead());
-      // argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
-      // argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
+      //argos::LOG << "child fitness " << slave_id << " " << _pop[slave_id]->fit().obj(0) << std::endl;
+      //argos::LOG << "child: descriptor for individual " << slave_id << std::endl;
 
       // for (size_t j = 0; j < _pop[slave_id]->fit().desc().size(); ++j)
       // {
@@ -253,7 +252,22 @@ SFERES_EVAL(ArgosParallelEnvir, Eval){
 #ifdef ANALYSIS
           throw std::runtime_error("cannot use parallel while doing analysis");
 #endif
-          _argos_parallel_envir<Phen,Params>(pop, fit_proto);
+          size_t start=0;
+          size_t stop;
+          while (true)
+          {
+            stop=std::min(pop.size(),start+NUM_CORES);
+            //std::cout<<"start="<<start<<" stop="<<stop<<std::endl;
+            _argos_parallel_envir<Phen,Params>(pop, fit_proto, start, stop);
+            start +=NUM_CORES;
+
+            if (start==pop.size())
+            {
+              //std::cout<<"STOP"<<std::endl;
+              break;
+            }
+          }
+          
 
           this->_nb_evals += (end - begin);
       } // namespace eval

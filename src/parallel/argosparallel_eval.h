@@ -55,6 +55,11 @@
 #include <fstream>
 #include <sys/stat.h> /* For mode constants */
 
+
+
+
+#define NUM_CORES 40
+
 // /* redirect the output streams */
 // void redirect(char* jobname, pid_t pid)
 // {
@@ -251,20 +256,20 @@ struct _argos_parallel
   std::vector<pid_t> SlavePIDs;
   
   ~_argos_parallel(){};
-  _argos_parallel(pop_t &pop, const fit_t &fit) : _pop(pop),
+  _argos_parallel(pop_t &pop, const fit_t &fit, size_t start, size_t stop) : _pop(pop),
                                                      _fit(fit),
                                                      MasterPID(::getpid())
   {
     allocate_additional_memory();
-    create_processes();
+    create_processes(start, stop);
     destroy_additional_memory();
   }
-  _argos_parallel(const _argos_parallel &ev) : _pop(ev.pop),
+  _argos_parallel(const _argos_parallel &ev,size_t start, size_t stop) : _pop(ev.pop),
                                                      _fit(ev.fit),
                                                      MasterPID(::getpid())
   {
     allocate_additional_memory();
-    create_processes();
+    create_processes(start,stop);
     destroy_additional_memory();
   }
   /* SIGTERM handler for slave processes */
@@ -313,7 +318,7 @@ struct _argos_parallel
 
     // initialise the fitness function and the genotype
     _pop[slave_id]->develop();
-    assert(i < _pop.size());
+    assert(slave_id < _pop.size());
     // evaluate the individual
     _pop[slave_id]->fit().eval(*_pop[slave_id]);
 
@@ -334,11 +339,11 @@ struct _argos_parallel
     quit();
   }
   /* create the different child processes */
-  void create_processes()
+  void create_processes(size_t start, size_t end)
   {
 
     /* Create slave processes */
-    for (size_t i = 0; i < _pop.size(); ++i)
+    for (size_t i = start; i < end; ++i)
     {
       /* initialise the fitmap */
       _pop[i]->fit() = _fit;
@@ -352,11 +357,12 @@ struct _argos_parallel
       }
     }
     /* Back in the parent, copy the scores into the population data */
-    for (size_t i = 0; i < _pop.size(); ++i)
+    for (size_t i = start; i < end; ++i)
     {
+      size_t k = i - start;// get the index of the SlavePID
       siginfo_t siginfo;
-      pid_t pid = SlavePIDs[i];
-      ::waitid(P_PID, pid, &siginfo, WEXITED); // wait until the child finishes
+      pid_t pid = SlavePIDs[k];
+      ::waitid(P_PID, pid, &siginfo, WEXITED);// wait until the child finishes
       // argos::LOG << "parent finished waiting " << pid << std::endl;
       _pop[i]->fit().set_fitness(shared_memory[i]->getFitness());
       bd = shared_memory[i]->getDescriptor();
@@ -389,7 +395,21 @@ SFERES_EVAL(ArgosParallel, Eval){
 #ifdef ANALYSIS
           throw std::runtime_error("cannot use parallel while doing analysis");
 #endif
-          _argos_parallel<Phen>(pop, fit_proto);
+          size_t start=0;
+          size_t stop;
+          while (true)
+          {
+            stop=std::min(pop.size(),start+NUM_CORES);
+            //std::cout<<"start="<<start<<" stop="<<stop<<std::endl;
+            _argos_parallel<Phen>(pop, fit_proto, start, stop);
+            start +=NUM_CORES;
+
+            if (start==pop.size())
+            {
+              //std::cout<<"STOP"<<std::endl;
+              break;
+            }
+          }
 
           this->_nb_evals += (end - begin);
       } // namespace eval

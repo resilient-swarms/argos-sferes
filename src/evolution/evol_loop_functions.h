@@ -220,6 +220,7 @@ FIT_MAP(FitObstacleMapElites){
             float fFitness = cLoopFunctions.run_all_trials(cSimulator);
             set_dead(cLoopFunctions.stop_eval);
             set_fitness(fFitness);
+            //std::cout<<"fitness: "<<fFitness<<std::endl;
         #ifdef RECORD_FIT
             cLoopFunctions.fitness_writer << fFitness << std::endl;
         #endif
