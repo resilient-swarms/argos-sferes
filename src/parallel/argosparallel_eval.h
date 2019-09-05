@@ -404,7 +404,7 @@ SFERES_EVAL(ArgosParallel, Eval){
             _argos_parallel<Phen>(pop, fit_proto, start, stop);
             start +=NUM_CORES;
 
-            if (start==pop.size())
+            if (start>=pop.size())
             {
               //std::cout<<"STOP"<<std::endl;
               break;
