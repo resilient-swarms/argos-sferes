@@ -55,10 +55,11 @@
 #include <fstream>
 #include <sys/stat.h> /* For mode constants */
 
+#include <chrono>
+#include <ctime> 
 
 
-
-#define NUM_CORES 40
+#define NUM_CORES 16
 
 // /* redirect the output streams */
 // void redirect(char* jobname, pid_t pid)
@@ -256,20 +257,20 @@ struct _argos_parallel
   std::vector<pid_t> SlavePIDs;
   
   ~_argos_parallel(){};
-  _argos_parallel(pop_t &pop, const fit_t &fit, size_t start, size_t stop) : _pop(pop),
+  _argos_parallel(pop_t &pop, const fit_t &fit) : _pop(pop),
                                                      _fit(fit),
                                                      MasterPID(::getpid())
   {
     allocate_additional_memory();
-    create_processes(start, stop);
+    create_processes();
     destroy_additional_memory();
   }
-  _argos_parallel(const _argos_parallel &ev,size_t start, size_t stop) : _pop(ev.pop),
+  _argos_parallel(const _argos_parallel &ev) : _pop(ev.pop),
                                                      _fit(ev.fit),
                                                      MasterPID(::getpid())
   {
     allocate_additional_memory();
-    create_processes(start,stop);
+    create_processes();
     destroy_additional_memory();
   }
   /* SIGTERM handler for slave processes */
@@ -338,47 +339,72 @@ struct _argos_parallel
 
     quit();
   }
+  
+  void wait_and_erase()
+  {
+    // wait for a new process to finish and erase it from the list
+      int *status;
+      pid_t pid = waitpid(-1,status,0);// -1: any child; status; 0: only children that exit
+      //std::cout<<"waited for pid "<<pid<<std::endl;
+      auto it = std::find(SlavePIDs.begin(),SlavePIDs.end(),pid);
+      SlavePIDs.erase(it);// remove the process from the list
+  }
+
   /* create the different child processes */
-  void create_processes(size_t start, size_t end)
+  void create_processes()
   {
 
-    /* Create slave processes */
-    for (size_t i = start; i < end; ++i)
+    /* Create and run slave processes until all individuals done; but never start more then NUM_CORES processes */
+    size_t i = 0;
+    while (i < _pop.size() )
     {
+      //std::cout<<"count "<< i << std::endl;
       /* initialise the fitmap */
       _pop[i]->fit() = _fit;
 
-      /* Perform fork */
-      SlavePIDs.push_back(::fork());
-      if (SlavePIDs.back() == 0)
+      if (SlavePIDs.size() < NUM_CORES)  // still need more
       {
-        /* We're in a slave */
-        LaunchSlave(i);
+        /* Perform fork */
+        SlavePIDs.push_back(::fork());
+        if (SlavePIDs.back() == 0)
+        {
+          /* We're in a slave */
+        this->LaunchSlave(i);
+        }
+        else{
+           ++i;// increment the parent's index
+        }
+       
       }
+      else{
+        wait_and_erase();
+      }
+      
+      
     }
-    /* Back in the parent, copy the scores into the population data */
-    for (size_t i = start; i < end; ++i)
+    // now wait for all the other child processes to finish
+    while (!SlavePIDs.empty())
     {
-      size_t k = i - start;// get the index of the SlavePID
-      siginfo_t siginfo;
-      pid_t pid = SlavePIDs[k];
-      ::waitid(P_PID, pid, &siginfo, WEXITED);// wait until the child finishes
-      // argos::LOG << "parent finished waiting " << pid << std::endl;
+        wait_and_erase();
+    };// keep performing waits until an error returns, meaning no more child existing
+
+    /* Back in the parent, copy the scores into the population data */
+    for (size_t i = 0; i < _pop.size(); ++i)
+    {
       _pop[i]->fit().set_fitness(shared_memory[i]->getFitness());
       bd = shared_memory[i]->getDescriptor();
       _pop[i]->fit().set_desc(bd);
       _pop[i]->fit().set_dead(shared_memory[i]->getDeath());
-      // argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
-      // argos::LOG << "parent: descriptor for individual " << i << std::endl;
-      // for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
-      // {
+      //   argos::LOG << "parent fitness " << i << " " << _pop[i]->fit().obj(0) << std::endl;
+      //  argos::LOG << "parent: descriptor for individual " << i << std::endl;
+      //  for (size_t j = 0; j < _pop[i]->fit().desc().size(); ++j)
+      //  {
       //   argos::LOG << "   " << _pop[i]->fit().desc()[j] << std::endl;
-      // }
-      // argos::LOG << "parent: death " << _pop[i]->fit().dead() << std::endl;
+      //  }
+      //  argos::LOG << "parent: death " << _pop[i]->fit().dead() << std::endl;
     }
     argos::LOG.Flush();
     argos::LOGERR.Flush();
-    SlavePIDs.clear();     // PIDs no longer exist
     //argos::LOG << "finished all processes "<< std::endl;
   }
 };
@@ -395,21 +421,18 @@ SFERES_EVAL(ArgosParallel, Eval){
 #ifdef ANALYSIS
           throw std::runtime_error("cannot use parallel while doing analysis");
 #endif
-          size_t start=0;
-          size_t stop;
-          while (true)
-          {
-            stop=std::min(pop.size(),start+NUM_CORES);
-            //std::cout<<"start="<<start<<" stop="<<stop<<std::endl;
-            _argos_parallel<Phen>(pop, fit_proto, start, stop);
-            start +=NUM_CORES;
-
-            if (start>=pop.size())
-            {
-              //std::cout<<"STOP"<<std::endl;
-              break;
-            }
-          }
+          /* if you want timer */
+          auto t1 = std::chrono::system_clock::now();
+          
+          
+          _argos_parallel<Phen>(pop, fit_proto);
+          
+          /* stop timer */
+          // Some computation here
+          auto t2 = std::chrono::system_clock::now();
+          std::chrono::duration<double> duration =t2 - t1;
+          argos::LOG <<"evaluation time: "<< duration.count() <<'\n';
+          argos::LOG.Flush();
 
           this->_nb_evals += (end - begin);
       } // namespace eval
