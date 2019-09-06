@@ -59,7 +59,7 @@
 #include <ctime> 
 
 
-#define NUM_CORES 16
+#define NUM_CORES 40
 
 // /* redirect the output streams */
 // void redirect(char* jobname, pid_t pid)
