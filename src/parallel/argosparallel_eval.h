@@ -422,17 +422,17 @@ SFERES_EVAL(ArgosParallel, Eval){
           throw std::runtime_error("cannot use parallel while doing analysis");
 #endif
           /* if you want timer */
-          auto t1 = std::chrono::system_clock::now();
+          //auto t1 = std::chrono::system_clock::now();
           
           
           _argos_parallel<Phen>(pop, fit_proto);
           
           /* stop timer */
           // Some computation here
-          auto t2 = std::chrono::system_clock::now();
-          std::chrono::duration<double> duration =t2 - t1;
-          argos::LOG <<"evaluation time: "<< duration.count() <<'\n';
-          argos::LOG.Flush();
+          //auto t2 = std::chrono::system_clock::now();
+          //std::chrono::duration<double> duration =t2 - t1;
+          //argos::LOG <<"evaluation time: "<< duration.count() <<'\n';
+          //argos::LOG.Flush();
 
           this->_nb_evals += (end - begin);
       } // namespace eval
