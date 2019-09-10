@@ -14,7 +14,9 @@ def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturba
 
 
     for fitfun in fitfuns:
+        print(fitfun)
         for desc in descriptors:
+            print(desc)
             filename = datadir + "/" + fitfun+"range0.11""/" + desc
             for run in runs:
                 unperturbed = filename + "/results" + str(run)+"/archive_"+str(finalgen)+".dat"
@@ -48,8 +50,8 @@ def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturba
 if __name__ == "__main__":
     check_archives_complete(10000,
                             "/home/david/Data/ExperimentData",
-                            ["Aggregation","Dispersion"],
-                            ["history","cvt_rab_spirit","environment_diversity","Gomes_sdbc_walls_and_robots_std"],
+                            ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage"],
+                            ["history","cvt_rab_spirit","Gomes_sdbc_walls_and_robots_std"],
                             range(1,6),
-                            range(0,20)
+                            range(0,40)
                             )

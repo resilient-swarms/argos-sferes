@@ -8,7 +8,12 @@ RESULTSFOLDER="results"
 
 import copy
 
+PRINT=False
 
+
+def print_conditional(some_string):
+    if PRINT:
+        print(some_string)
 
 def get_all_performances(path,conversion_func=None,from_fitfile=False):
     if conversion_func is not None:
@@ -21,7 +26,8 @@ def global_performances(BD_directory, runs, archive_file_path, max_performance,c
     stats = []
     for run in runs:
         stats.append(_global_performance(BD_directory, run, archive_file_path, max_performance,conversion_func,from_fitfile))
-    print("global performances: " + str(stats))
+
+    print_conditional("global performances: " + str(stats))
     return stats
 
 def _global_performance(BD_directory, run,archive_file_path,max_performance,conversion_func=None,from_fitfile=False):
@@ -51,7 +57,7 @@ def avg_performances(BD_directory, runs, archive_file_path, max_performance,conv
     stats = []
     for run in runs:
         stats.append(_avg_performance(BD_directory, run, archive_file_path, max_performance,conversion_func,from_fitfile))
-    print("avg performances: " + str(stats))
+    print_conditional("avg performances: " + str(stats))
     return stats
 
 def _avg_performance(BD_directory, run,archive_file_path,max_performance,conversion_func=None,from_fitfile=False):
@@ -89,7 +95,7 @@ def global_reliabilities(BD_directory,runs,archive_file_path,by_bin):
     stats = []
     for run in runs:
         stats.append(_global_reliability(combined_archive,BD_directory, run, archive_file_path,by_bin))
-    print("global reliabilities: "+str(stats))
+    print_conditional("global reliabilities: "+str(stats))
     return stats
 
 def _global_reliability(combined_archive,BD_directory, run, archive_file_path,by_bin):
@@ -147,7 +153,7 @@ def precisions(BD_directory,runs,archive_file_path,by_bin):
     stats = []
     for run in runs:
         stats.append(_precision(combined_archive,BD_directory, run, archive_file_path))
-    print("precisions"+str(stats))
+    print_conditional("precisions"+str(stats))
     return stats
 def _precision(combined_archive, BD_directory, run, archive_file_path):
 
@@ -181,7 +187,7 @@ def coverages(bd_shape,BD_directory, runs, archive_file_path):
     stats = []
     for run in runs:
         stats.append(_coverage(bd_shape,BD_directory, run, archive_file_path))
-    print("global coverages"+str(stats))
+    print_conditional("global coverages"+str(stats))
     return stats
 
 def _coverage(bd_shape,BD_directory, run, archive_file_path):
@@ -201,7 +207,7 @@ def absolutecoverages(bd_shape,BD_directory, runs, archive_file_path):
     stats = []
     for run in runs:
         stats.append(_absolutecoverage(bd_shape,BD_directory, run, archive_file_path))
-    print("global coverages"+str(stats))
+    print_conditional("global coverages"+str(stats))
     return stats
 
 def _absolutecoverage(bd_shape,BD_directory, run, archive_file_path):
@@ -235,7 +241,7 @@ def translated_coverages(t,BD_dir,runs, targets):
             archive_file = "analysis" + str(t) + "_" + target + "REDUCED.dat"
             cov = _absolutecoverage(shape, BD_dir, run, archive_file)
             d[target].append(cov)
-    print("translated coverages " + str(d))
+    print_conditional("translated coverages " + str(d))
     return d
 
 def add_boxplotlike_data(stats, y_bottom,y_mid,y_top, y_label,method_index,statistic="mean_SD"):

@@ -115,15 +115,17 @@ def density_estimation(stats,x,xlabel, ylabel,
                   atol = 0,
                   rtol = 0,
                   breadth_first = False,
-                  leaf_size = 1,   # we will have a limited amount of data (+/- 1000 points)
+                  leaf_size = 10,   # we will have a limited amount of data (+/- 1000 points)
                   metric_params = None)
-
+    print("fitting")
     kde.fit(data)
+    print("scoring")
     Z = np.exp(kde.score_samples(xy))
     Z = Z.reshape(X.shape)
-    print("Z="+str(Z))
+    #print("Z="+str(Z))
     # plot contours of the density
     levels = np.linspace(0, Z.max(), 25)
+    print("plotting contour")
     ax.contourf(X, Y, Z, levels=levels, cmap=plt.cm.Reds)
 
     if title is not None:
@@ -158,24 +160,29 @@ def get_delta_P(non_perturbed_path,perturbed_path):
 
 
 def gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,history_type):
-    centroids=load_centroids("centroids/centroids_10_10.dat")
+    centroids_sdbc=load_centroids("centroids/centroids_10_10.dat")
+    centroids=load_centroids("centroids/centroids_10_3.dat")
     for bd in bd_type:
         for fitfun in fitfuns:
             title = fitfun + "range0.11"
             prefix = datadir + "/" + title + "/" + bd
             ncds, performances, nofaultperfs, euclids, categories= gather_perturbation_data(prefix, generation, faults,
                                                                                 runs=runs, history_type=history_type,
-                                                                                translation_type="sdbc",centroids=centroids,get_NCD=False)
+                                                                                translation_type="sdbc",centroids=centroids_sdbc,get_NCD=False)
             _, _, _, relative_ents,_= gather_perturbation_data(prefix, generation, faults,
+                                                               runs=runs, history_type=history_type,
+                                                               translation_type="spirit",get_NCD=False)
+
+            _, _, _ , _, categories_handcrafted = gather_perturbation_data(prefix, generation, faults,
                                                                                 runs=runs, history_type=history_type,
-                                                                                translation_type="spirit",get_NCD=False)
-            dp_file,ncd_file, euclid_file, ent_file, category_file = filenames(fitfun,bd,history_type)
+                                                                                translation_type="handcrafted",centroids=centroids,get_NCD=False)
+            dp_file,ncd_file, euclid_file, ent_file, category_file, category_h_file = filenames(fitfun,bd,history_type)
             pickle.dump((performances,nofaultperfs), open(dp_file, "wb"))
             pickle.dump(ncds, open(ncd_file, "wb"))
             pickle.dump(euclids, open(euclid_file, "wb"))
             pickle.dump(relative_ents, open(ent_file, "wb"))
             pickle.dump(categories, open(category_file, "wb"))
-
+            pickle.dump(categories_handcrafted, open(category_h_file, "wb"))
 
 def gather_category_results(bd_type, fitfuns, faults, runs):
     for bd in bd_type:
@@ -200,7 +207,7 @@ def filenames(fitfun,bd,history_type):
     prefix= fitfun + bd + history_type
     return prefix + "_DeltaPs.pkl",prefix +"_ncds.pkl",\
            prefix +"_euclids.pkl",prefix +"_relativeEnts.pkl", \
-          prefix +  "_categories.pkl"
+          prefix +  "_categories.pkl", prefix +  "handcrafted_categories.pkl"
 
 def plot_by_fitfun(leg_labels,titles,plot_NCD=False):
     fig1, axs1 = plt.subplots(1, 5, figsize=(50, 10))
@@ -211,16 +218,19 @@ def plot_by_fitfun(leg_labels,titles,plot_NCD=False):
     fig6, axs6 = plt.subplots(1, 5, figsize=(50, 10))
     fig7, axs7 = plt.subplots(1, 5, figsize=(50, 10))
     fig8, axs8 = plt.subplots(1, 5, figsize=(50, 10))
-    xlim2_dict={"Aggregation":[0.60,1.0],"Dispersion":[0,0.25],"Flocking":[0,0.20],"Coverage":[0.60,1],"BorderCoverage":[0.60,1.0]}
+    fig9, axs9 = plt.subplots(1, 5, figsize=(50, 10))
+    fig10, axs10 = plt.subplots(1, 5, figsize=(50, 10))
+    xlim2_dict={"Aggregation":[0.60,1.0],"Dispersion":[0,0.25],"Flocking":[0,0.20],"DecayCoverage":[0.60,1],"DecayBorderCoverage":[0.60,1.0]}
     for i, fitfun in enumerate(fitfuns):
         stats = []
         stats2=[]
         stats3=[]
         stats4=[]
+        stats5=[]
         x2=[]
         x = []
         for bd in bd_type:
-            dp_file, ncd_file, euclid_file, ent_file, category_file = filenames(fitfun, bd, history_type)
+            dp_file, ncd_file, euclid_file, ent_file, category_file, category_h_file = filenames(fitfun, bd, history_type)
             performances , nofaultperfs = pickle.load(open(dp_file, "rb"))
             dps = np.array(performances) - np.array(nofaultperfs)
             ncds = pickle.load(open(ncd_file, "rb"))
@@ -228,13 +238,15 @@ def plot_by_fitfun(leg_labels,titles,plot_NCD=False):
             euclids = pickle.load(open(euclid_file,"rb"))
             ents = pickle.load(open(ent_file,"rb"))
             categories=pickle.load(open(category_file,"rb"))
+            categories_h = pickle.load(open(category_h_file, "rb"))
             stats2.append(euclids)
             stats3.append(ents)
             stats4.append(categories)
+            stats5.append(categories_h)
             x2.append(np.array(performances))
             x.append(np.array(dps))
-        print(stats)
-        print(x)
+        #print(stats)
+        #print(x)
         xlim2=xlim2_dict[fitfun]
         xlim=[-xlim2[1]/5.,+xlim2[1]/20.]
         if plot_NCD:
@@ -278,6 +290,17 @@ def plot_by_fitfun(leg_labels,titles,plot_NCD=False):
                    xlim=xlim2, ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs8[i],title=titles[i])
+
+
+        createPlot(stats5, x, colors, markers, xlabel="performance change", ylabel="category",
+                   xlim=xlim, ylim=[0, 10], save_filename="results/FinalBDComp/category_DELTAP.pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs9[i],title=titles[i])
+
+        createPlot(stats5, x2, colors, markers, xlabel="performance", ylabel="category",
+                   xlim=xlim2, ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs10[i],title=titles[i])
     finish_fig(fig1, "results/FinalBDComp/NCD_DELTAP.pdf")
     finish_fig(fig2, "results/FinalBDComp/NCD_P.pdf")
     finish_fig(fig3, "results/FinalBDComp/Euclid_DELTAP.pdf")
@@ -286,6 +309,8 @@ def plot_by_fitfun(leg_labels,titles,plot_NCD=False):
     finish_fig(fig6, "results/FinalBDComp/MAXVAR_P.pdf")
     finish_fig(fig7, "results/FinalBDComp/Category_DELTAP.pdf")
     finish_fig(fig8, "results/FinalBDComp/Category_P.pdf")
+    finish_fig(fig9, "results/FinalBDComp/CategoryH_DELTAP.pdf")
+    finish_fig(fig10, "results/FinalBDComp/CategoryH_P.pdf")
 
 def plot_by_descriptor(leg_labels,titles,xlim):
     fig1, axs1 = plt.subplots(1, 4, figsize=(40, 10))
@@ -296,6 +321,8 @@ def plot_by_descriptor(leg_labels,titles,xlim):
     fig6, axs6 = plt.subplots(1, 4, figsize=(40, 10))
     fig7, axs7 = plt.subplots(1, 4, figsize=(40, 10))
     fig8, axs8 = plt.subplots(1, 4, figsize=(40, 10))
+    fig9, axs9 = plt.subplots(1, 4, figsize=(40, 10))
+    fig10, axs10 = plt.subplots(1, 4, figsize=(40, 10))
 
     for i, bd in enumerate(bd_type):
 
@@ -303,10 +330,11 @@ def plot_by_descriptor(leg_labels,titles,xlim):
         stats2=[]
         stats3=[]
         stats4=[]
+        stats5=[]
         x2=[]
         x = []
         for fitfun in fitfuns:
-            dp_file, ncd_file, euclid_file, ent_file, category_file = filenames(fitfun, bd, history_type)
+            dp_file, ncd_file, euclid_file, ent_file, category_file, category_h_file = filenames(fitfun, bd, history_type)
             performances , nofaultperfs = pickle.load(open(dp_file, "rb"))
             dps = np.array(performances) - np.array(nofaultperfs)
             ncds = pickle.load(open(ncd_file, "rb"))
@@ -314,13 +342,15 @@ def plot_by_descriptor(leg_labels,titles,xlim):
             euclids = pickle.load(open(euclid_file,"rb"))
             ents = pickle.load(open(ent_file,"rb"))
             categories = pickle.load(open(category_file, "rb"))
+            categories_h = pickle.load(open(category_h_file, "rb"))
             stats2.append(euclids)
             stats3.append(ents)
             x2.append(np.array(performances))
             x.append(np.array(dps))
             stats4.append(categories)
-        print(stats)
-        print(x)
+            stats5.append(categories_h)
+        #print(stats)
+        #print(x)
 
         createPlot(stats, x, colors, markers, xlabel="$\Delta P$", ylabel="$NCD$",
                    xlim=xlim, ylim=[0, 1], save_filename="results/FinalBDComp/NCD_DELTAP_" + bd + ".pdf",
@@ -362,6 +392,16 @@ def plot_by_descriptor(leg_labels,titles,xlim):
                    xlim=[0,1], ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs8[i],title=titles[i])
+
+        createPlot(stats5, x, colors, markers, xlabel="performance change", ylabel="category",
+                   xlim=xlim, ylim=[0, 10], save_filename="results/FinalBDComp/category_DELTAP.pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs9[i],title=titles[i])
+
+        createPlot(stats5, x2, colors, markers, xlabel="performance", ylabel="category",
+                   xlim=[0,1], ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs10[i],title=titles[i])
         i += 1
 
 
@@ -373,6 +413,9 @@ def plot_by_descriptor(leg_labels,titles,xlim):
     finish_fig(fig6, "results/FinalBDComp/MAXVAR_P_desc.pdf")
     finish_fig(fig7, "results/FinalBDComp/Category_DELTAP_desc.pdf")
     finish_fig(fig8, "results/FinalBDComp/Category_P_desc.pdf")
+    finish_fig(fig9, "results/FinalBDComp/CategoryH_DELTAP_desc.pdf")
+    finish_fig(fig10, "results/FinalBDComp/CategoryH_P_desc.pdf")
+
 
 def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
     fig1, axs1 = plt.subplots(1, 5, figsize=(50, 10))
@@ -383,16 +426,19 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
     fig6, axs6 = plt.subplots(1, 5, figsize=(50, 10))
     fig7, axs7 = plt.subplots(1, 5, figsize=(50, 10))
     fig8, axs8 = plt.subplots(1, 5, figsize=(50, 10))
-    xlim2_dict={"Aggregation":[0.60,1.0],"Dispersion":[0,0.25],"Flocking":[0,0.20],"Coverage":[0.60,1],"BorderCoverage":[0.60,1.0]}
+    fig9, axs9 = plt.subplots(1, 4, figsize=(40, 10))
+    fig10, axs10 = plt.subplots(1, 4, figsize=(40, 10))
+    xlim2_dict={"Aggregation":[0.60,1.0],"Dispersion":[0,0.25],"Flocking":[0,0.20],"DecayCoverage":[0.60,1],"DecayBorderCoverage":[0.60,1.0]}
     for i, fitfun in enumerate(fitfuns):
         stats = []
         stats2=[]
         stats3=[]
         stats4=[]
+        stats5=[]
         x2=[]
         x = []
         for bd in bd_type:
-            dp_file, ncd_file, euclid_file, ent_file, category_file = filenames(fitfun, bd, history_type)
+            dp_file, ncd_file, euclid_file, ent_file, category_file, category_h_file = filenames(fitfun, bd, history_type)
             performances , nofaultperfs = pickle.load(open(dp_file, "rb"))
             dps = np.array(performances) - np.array(nofaultperfs)
             ncds = pickle.load(open(ncd_file, "rb"))
@@ -400,13 +446,15 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
             euclids = pickle.load(open(euclid_file,"rb"))
             ents = pickle.load(open(ent_file,"rb"))
             categories=pickle.load(open(category_file,"rb"))
+            categories_h = pickle.load(open(category_h_file,"rb"))
             stats2.append(euclids)
             stats3.append(ents)
             stats4.append(categories)
+            stats5.append(categories_h)
             x2.append(np.array(performances))
             x.append(np.array(dps)/np.array(nofaultperfs))
-        print(stats)
-        print(x)
+        #print(stats)
+        #print(x)
         xlim2=xlim2_dict[fitfun]
         xlim=[-.25,.05]
         if plot_NCD:
@@ -450,6 +498,15 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
                    xlim=xlim2, ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs8[i],title=titles[i])
+        createPlot(stats5, x, colors, markers, xlabel="performance change", ylabel="category",
+                   xlim=xlim, ylim=[0, 10], save_filename="results/FinalBDComp/category_DELTAP.pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs9[i],title=titles[i])
+
+        createPlot(stats5, x2, colors, markers, xlabel="performance", ylabel="category",
+                   xlim=[0,1], ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
+                   legend_labels=leg_labels, scatter=True, force=True,
+                   ax=axs10[i],title=titles[i])
     finish_fig(fig1, "results/FinalBDComp/proportional_NCD_DELTAP.pdf")
     finish_fig(fig2, "results/FinalBDComp/proportional_NCD_P.pdf")
     finish_fig(fig3, "results/FinalBDComp/proportional_Euclid_DELTAP.pdf")
@@ -458,6 +515,8 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
     finish_fig(fig6, "results/FinalBDComp/proportional_MAXVAR_P.pdf")
     finish_fig(fig7, "results/FinalBDComp/proportional_Category_DELTAP.pdf")
     finish_fig(fig8, "results/FinalBDComp/proportional_Category_P.pdf")
+    finish_fig(fig9, "results/FinalBDComp/proportional_CategoryH_DELTAP.pdf")
+    finish_fig(fig10, "results/FinalBDComp/proportional_CategoryH_P.pdf")
 
 
 def plot_density_bydescriptor(titles,plot_NCD=False):
@@ -469,16 +528,21 @@ def plot_density_bydescriptor(titles,plot_NCD=False):
     fig6, axs6 = plt.subplots(1, 4, figsize=(40, 10))
     fig7, axs7 = plt.subplots(1, 4, figsize=(40, 10))
     fig8, axs8 = plt.subplots(1, 4, figsize=(40, 10))
+    fig9, axs9 = plt.subplots(1, 4, figsize=(40, 10))
+    fig10, axs10 = plt.subplots(1, 4, figsize=(40, 10))
 
     for i, bd in enumerate(bd_type):
+        print(bd)
         stats = []
         stats2 = []
         stats3 = []
         stats4 = []
+        stats5 = []
         x2 = []
         x = []
         for fitfun in fitfuns:
-            dp_file, ncd_file, euclid_file, ent_file, category_file = filenames(fitfun, bd, history_type)
+            print(fitfun)
+            dp_file, ncd_file, euclid_file, ent_file, category_file, category_h_file = filenames(fitfun, bd, history_type)
             performances, nofaultperfs = pickle.load(open(dp_file, "rb"))
             dps = np.array(performances) - np.array(nofaultperfs)
             ncds = pickle.load(open(ncd_file, "rb"))
@@ -486,13 +550,15 @@ def plot_density_bydescriptor(titles,plot_NCD=False):
             euclids = pickle.load(open(euclid_file, "rb"))
             ents = pickle.load(open(ent_file, "rb"))
             categories = pickle.load(open(category_file, "rb"))
+            categories_h = pickle.load(open(category_h_file, "rb"))
             stats2= np.append(stats2,euclids)
             stats3= np.append(stats3,ents)
             x2=np.append(x2,performances)
             x=np.append(x,np.array(dps) / np.array(nofaultperfs))
             stats4=np.append(stats4,categories)
-        print(stats)
-        print(x)
+            stats5=np.append(stats5,categories_h)
+        #print(stats)
+        #print(x)
         xlim = [-.25, .05]
         xlim2 = [0,1]
         ylim=[0,1]
@@ -516,6 +582,11 @@ def plot_density_bydescriptor(titles,plot_NCD=False):
                            ylabel="category", xlim=xlim, ylim=[0,9.5], ax=axs7[i], title=titles[i])
         density_estimation(stats4, x2,  xlabel="performance",
                            ylabel="category", xlim=xlim2, ylim=[0,9.5], ax=axs8[i], title=titles[i])
+
+        density_estimation(stats5, x,  xlabel="proportional performance change",
+                           ylabel="category", xlim=xlim, ylim=[0,9.5], ax=axs9[i], title=titles[i])
+        density_estimation(stats5, x2,  xlabel="performance",
+                           ylabel="category", xlim=xlim2, ylim=[0,9.5], ax=axs10[i], title=titles[i])
         i += 1
     if plot_NCD:
         finish_fig(fig1, "results/FinalBDComp/Density_NCD_DELTAP_desc.pdf")
@@ -525,7 +596,9 @@ def plot_density_bydescriptor(titles,plot_NCD=False):
     finish_fig(fig5, "results/FinalBDComp/Density_MAXVAR_DELTAP_desc.pdf")
     finish_fig(fig6, "results/FinalBDComp/Density_MAXVAR_P_desc.pdf")
     finish_fig(fig7, "results/FinalBDComp/Density_Category_DELTAP_desc.pdf")
-    finish_fig(fig8, "results/FinalBDComp/Density_Category_P_desc.pdf")
+    finish_fig(fig8, "results/FinalBDComp/Density_CategoryH_P_desc.pdf")
+    finish_fig(fig9, "results/FinalBDComp/Density_CategoryH_DELTAP_desc.pdf")
+    finish_fig(fig10, "results/FinalBDComp/Density_CategoryH_P_desc.pdf")
 
 
 
@@ -565,15 +638,88 @@ def perturbed_vs_unperturbed_archive(fitfuns,bd_type,runs,faults,time,bd_labels,
     make_boxplot_pairswithin(data, fitfuns, bd_labels, save_file, xlabs=bd_labels, ylab="performance",
                         ylim=ylim)
 
+
+
+
+
+def significance_data(fitfuns,bd_type,runs,faults,time, by_fitfun=True):
+    """
+
+    performance: defined as the performance on all the perturbed environments
+    transfer: defined as each individuals' drop in performance
+    resilience: the best performance's drop in performance
+
+
+
+    :param fitfuns:
+    :param bd_type:
+    :param runs:
+    :param faults:
+    :param time:
+    :return:
+    """
+    performance_data = []
+    transfer_data = []
+    resilience_data = []
+
+    for i in range(len(bd_type)):
+        print(bd_type[i])
+        performance_data.append([])
+        transfer_data.append([])
+        resilience_data.append([])
+        for j in range(len(fitfuns)):
+            print(fitfuns[j])
+            BD_dir = get_bd_dir(fitfuns[j])
+            # get all the data from the archive: no fault
+
+            nofaultpath=BD_dir + "/" + bd_type[i] + "/FAULT_NONE/results"
+            nofaultperfs = [np.array(list(get_bin_performances_uniquearchive(nofaultpath+str(run)+"/analysis" + str(time) + "_handcrafted.dat").values())).flatten() for run in runs]
+
+            best_nofaultperfs = np.array([get_performance_data(nofaultpath+str(run), generation) for run in
+                                          runs])
+            # join all the data from all the fault archives:
+            performances = []
+            best_performances = []
+            resilience = []
+            transfer = []
+            for fault in range(len(faults)):
+                for r, run in enumerate(runs):
+                    print(run)
+                    path = BD_dir + "/" + bd_type[i] + "/run" + str(run) + "_p" + str(fault) + "/results" + str(
+                        run) + "/analysis" + str(time) + "_handcrafted.dat"
+                    temp = np.array(list(get_bin_performances_uniquearchive(path).values())).flatten()
+                    performances = np.append(performances, temp)
+
+                    maxind, best_performance = get_best_individual(path, add_performance=True)
+                    best_performances = np.append(best_performances, best_performance)
+                    # best performance vs best nofaultperf
+                    resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / nofaultperfs[r])
+                    # all performances vs all nofaultperformances
+                    transfer = np.append(transfer, (temp - nofaultperfs[r]) / nofaultperfs[r])
+
+            if by_fitfun:
+                performance_data[i].append((np.mean(performances),np.std(performances)))
+                transfer_data[i].append((np.mean(transfer),np.std(transfer)))
+                resilience_data[i].append((np.mean(resilience),np.std(resilience)))
+            else:
+                performance_data[i] = np.append(performance_data[i],performances)
+                transfer_data[i] = np.append(transfer_data[i], transfer)
+                resilience_data[i] = np.append(resilience_data[i],resilience)
+        if not by_fitfun:
+            performance_data[i] = (np.mean(performance_data[i]),np.std(performance_data[i]))
+            transfer_data[i] = (np.mean(transfer_data[i]), np.std(transfer_data[i]))
+            resilience_data[i] = (np.mean(resilience_data[i]), np.std(resilience_data[i]))
+    return performance_data, transfer_data, resilience_data
+
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
 
-    faults=range(10)
+    faults=range(40)
     F=len(faults)
     runs=range(1,6)
     bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]  # legend label
     legend_labels = ["handcrafted","SDBC","SPIRIT","QED"]  # labels for the legend
-    fitfuns = ["Aggregation","Dispersion"]
+    fitfuns = ["Aggregation","Dispersion","DecayCoverage"]
     #baseline_performances = {"Aggregation":0.9,"Dispersion":0.2, "Flocking":0.2}
     colors = ["C" + str(i) for i in range(len(bd_type))]
     markers = [(2, 1, 0), (3, 1, 0),(2, 1, 1), (3, 1, 1)]
@@ -585,10 +731,12 @@ if __name__ == "__main__":
     #gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults,runs=range(1,6),history_type=history_type)
     #gather_category_results(bd_type, fitfuns, faults, runs=[1])
 
-    plot_by_fitfun(legend_labels,titles=fitfuns,plot_NCD=False)
+    #plot_by_fitfun(legend_labels,titles=fitfuns,plot_NCD=False)
     #plot_by_descriptor(fitfuns,titles=legend_labels,xlim=[-0.15,0.01])
-    plot_proportional_byfitfun(legend_labels,titles=fitfuns,plot_NCD=False)
+    #plot_proportional_byfitfun(legend_labels,titles=fitfuns,plot_NCD=False)
 
-    plot_density_bydescriptor(titles=legend_labels,plot_NCD=False)
+    #plot_density_bydescriptor(titles=legend_labels,plot_NCD=False)
     time=10000
-    perturbed_vs_unperturbed_archive(fitfuns, bd_type, runs,faults,time,legend_labels,"boxplots_all.pdf",ylim=[0,1])
+    #perturbed_vs_unperturbed_archive(fitfuns, bd_type, runs,faults,time,legend_labels,"boxplots_all.pdf",ylim=[0,1])
+    #significance_data(fitfuns, bd_type, runs, faults, time, by_fitfun=True)
+    significance_data(fitfuns, bd_type, runs, faults, time, by_fitfun=False)
