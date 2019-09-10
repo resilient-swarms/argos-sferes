@@ -673,7 +673,7 @@ def significance_data(fitfuns,bd_type,runs,faults,time, by_fitfun=True):
             # get all the data from the archive: no fault
 
             nofaultpath=BD_dir + "/" + bd_type[i] + "/FAULT_NONE/results"
-            nofaultperfs = [np.array(list(get_bin_performances_uniquearchive(nofaultpath+str(run)+"/analysis" + str(time) + "_handcrafted.dat").values())).flatten() for run in runs]
+            nofaultperfs = [np.array(list(get_ind_performances_uniquearchive(nofaultpath+str(run)+"/analysis" + str(time) + "_handcrafted.dat").values())).flatten() for run in runs]
 
             best_nofaultperfs = np.array([get_performance_data(nofaultpath+str(run), generation) for run in
                                           runs])
@@ -687,7 +687,7 @@ def significance_data(fitfuns,bd_type,runs,faults,time, by_fitfun=True):
                     print(run)
                     path = BD_dir + "/" + bd_type[i] + "/run" + str(run) + "_p" + str(fault) + "/results" + str(
                         run) + "/analysis" + str(time) + "_handcrafted.dat"
-                    temp = np.array(list(get_bin_performances_uniquearchive(path).values())).flatten()
+                    temp = np.array(list(get_ind_performances_uniquearchive(path).values())).flatten()
                     performances = np.append(performances, temp)
 
                     maxind, best_performance = get_best_individual(path, add_performance=True)
