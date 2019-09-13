@@ -33,6 +33,86 @@ import matplotlib.pyplot as PLT
 #    _                hline marker
 # ================    ===============================
 
+def newline_latex(f,add_hline=False):
+
+    if add_hline:
+        f.write(r"\\ \hline")
+    else:
+        f.write(r"\\ ")
+    f.write("\n")
+def table_entry_rowcondition(f, rowlabel):
+    f.write(rowlabel)
+
+def table_entry_label(f, label):
+    f.write(r" & %s " % (label))
+
+def table_entry_meansd(f, stat , type="float3"):
+    if type=="float3":
+        f.write(r" & $%.3f \pm %.2f$ " % (np.mean(stat), np.std(stat)))
+    elif type=="float2":
+        f.write(r" & $%.2f \pm %.2f$ " % (np.mean(stat), np.std(stat)))
+    else:
+        f.write(r" & $%d \pm %d$ " % (np.mean(stat), np.std(stat)))
+def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[]):
+
+    n=len(conditionalcolumnlabels)
+
+    # top-level labels
+    if columnlabels:
+        for label in columnlabels:
+            f.write(r"   & \multicolumn{"+str(n)+"}{c}{%s}  " % (label))
+    newline_latex(f,add_hline=True)
+
+    # second-level labels
+    if columnlabels:
+        for i in range(len(columnlabels)):
+            for j in range(len(conditionalcolumnlabels)):
+                table_entry_label(f,conditionalcolumnlabels[j][0])
+    else:
+        for j in range(len(conditionalcolumnlabels)):
+                table_entry_label(f, conditionalcolumnlabels[j][0])
+
+    newline_latex(f)
+
+
+    # second-level labels
+
+    if columnlabels:
+        for i in range(len(rowlabels)):
+            table_entry_rowcondition(f,rowlabels[i])
+            for j in range(len(columnlabels)):
+                for k in range(len(conditionalcolumnlabels)): # needs some fix here
+                    stat = stats[k][i][j]
+                    table_entry_meansd(f,stat,conditionalcolumnlabels[k][1])
+            newline_latex(f)
+    else:
+        for i in range(len(rowlabels)):
+            table_entry_rowcondition(f,rowlabels[i])
+            for j in range(len(conditionalcolumnlabels)):
+                stat = stats[j][i]
+                table_entry_meansd(f,stat,conditionalcolumnlabels[j][1])
+            newline_latex(f)
+
+
+
+# def table_row(f,stats,labels,conditionallabels):
+#     """
+#
+#     :param f:
+#     :param stats:
+#     :param labels:
+#     :param conditionallabels:
+#     :return:
+#     """
+#     # second-level labels
+#     for _ in labels:
+#         for label in conditionallabels:
+#             f.write(r"   & %s  " % (label))
+#
+#     newline_latex(f)
+
+
+
 def createBarplot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,legend_labels,yscale="linear",
                legendbox=(.10,.10),legend_indexes=[]):
     print("prepare plotting barplot "+ylabel)
@@ -128,8 +208,14 @@ def get_plot(ax,index, xx, stats, colors, markers, markers_on,y_err=[],fill_betw
             ax.fill_between(xx, y_temp, y_temp2, where=y_temp2 >= y_temp, facecolor=colors[index], interpolate=True,alpha=0.5)
     return line
 
-def finish_fig(fig,save_filename):
-    fig.tight_layout()
+def finish_fig(fig,save_filename, colorbar=None):
+    if colorbar is not None:
+        cbaxes = fig.add_axes([0.92, 0.08, 0.03, 0.8])
+        cbar = fig.colorbar(colorbar,cax=cbaxes)
+        cbar.ax.tick_params(labelsize=20)
+        cbar.ax.set_ylabel('density', rotation=270,fontsize=29,labelpad=+28)
+    else:
+        fig.tight_layout()
     fig.savefig(save_filename)
 
 

@@ -85,8 +85,8 @@ def get_pca_result(pca,bd,bins=3):
 
     return bd_cat
 
-def density_estimation(stats,x,xlabel, ylabel,
-                   xlim, ylim,ax,title):
+def density_estimation(max_density,condition,stats,x,xlabel, ylabel,
+                   xlim, ylim,fig, ax,title,from_file=False):
     """
     :param data: list of observations
     :return:
@@ -98,35 +98,43 @@ def density_estimation(stats,x,xlabel, ylabel,
     # kernel : string
     #     The kernel to use.  Valid kernels are
     #     ['gaussian'|'tophat'|'epanechnikov'|'exponential'|'linear'|'cosine']
-    #     Default is 'gaussian'.
-    data = np.array([[xx, ss] for ss in stats for xx in x ])
-    X=np.linspace(xlim[0],xlim[1],20)
-    Y = np.linspace(ylim[0], ylim[1], 20)
-    xy=np.array([[x,y] for y in Y for x in X] )
-    s_x = xlim[1] - xlim[0]
-    s_y = ylim[1] - ylim[0]
-    bandwidth=min(s_x,s_y)/20.0
-    X, Y = np.meshgrid(X, Y)
+    #     Default is 'gau
 
-    kde = KernelDensity(bandwidth=bandwidth,
-                  algorithm="kd_tree",
-                  kernel ="gaussian",
-                  metric ="euclidean",
-                  atol = 0,
-                  rtol = 0,
-                  breadth_first = False,
-                  leaf_size = 10,   # we will have a limited amount of data (+/- 1000 points)
-                  metric_params = None)
-    print("fitting")
-    kde.fit(data)
-    print("scoring")
-    Z = np.exp(kde.score_samples(xy))
-    Z = Z.reshape(X.shape)
+    X = np.linspace(xlim[0], xlim[1], 20)
+    Y = np.linspace(ylim[0], ylim[1], 20)
+    if from_file:
+        Z=pickle.load(open(condition+"-"+xlabel+"-"+ylabel+".pkl","rb"))
+    else:
+        data = np.array([[xx, ss] for ss in stats for xx in x ])
+
+        xy=np.array([[x,y] for y in Y for x in X] )
+        s_x = xlim[1] - xlim[0]
+        s_y = ylim[1] - ylim[0]
+        bandwidth=min(s_x,s_y)/20.0
+
+        X, Y = np.meshgrid(X, Y)
+
+        kde = KernelDensity(bandwidth=bandwidth,
+                      algorithm="kd_tree",
+                      kernel ="gaussian",
+                      metric ="euclidean",
+                      atol = 0,
+                      rtol = 0,
+                      breadth_first = False,
+                      leaf_size = 10,   # we will have a limited amount of data (+/- 1000 points)
+                      metric_params = None)
+        print("fitting")
+        kde.fit(data)
+        print("scoring")
+        Z = np.exp(kde.score_samples(xy))
+        Z = Z.reshape(X.shape)
+        pickle.dump(Z,open(condition+"-"+xlabel+"-"+ylabel+".pkl","wb"))
     #print("Z="+str(Z))
     # plot contours of the density
-    levels = np.linspace(0, Z.max(), 25)
+    assert Z.max()<=max_density, "%.2f vs %.2f "%(Z.max(),max_density)
+    levels = np.linspace(0, max_density, 11)
     print("plotting contour")
-    ax.contourf(X, Y, Z, levels=levels, cmap=plt.cm.Reds)
+    CS=ax.contourf(X, Y, Z, levels=levels, cmap=plt.cm.Reds, vmin = 0, vmax = max_density)
 
     if title is not None:
         ax.set_title(title, fontsize=46)
@@ -134,10 +142,14 @@ def density_estimation(stats,x,xlabel, ylabel,
         ax.set_ylim(ylim)
     if xlim is not None:
         ax.set_xlim(xlim)
-    if xlabel is not None:
-        ax.set_xlabel(xlabel, fontsize=36)
-    if ylabel is not None:
-        ax.set_ylabel(ylabel, fontsize=36)
+    # if xlabel is not None:
+    #     ax.set_xlabel(xlabel, fontsize=36)
+    # if ylabel is not None:
+    #     ax.set_ylabel(ylabel, fontsize=36)
+    ax.tick_params(axis='both', which='major', labelsize=24)
+    ax.tick_params(axis='both', which='minor', labelsize=24)
+
+    return CS
 
 
 
@@ -402,7 +414,6 @@ def plot_by_descriptor(leg_labels,titles,xlim):
                    xlim=[0,1], ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs10[i],title=titles[i])
-        i += 1
 
 
     finish_fig(fig1, "results/FinalBDComp/NCD_DELTAP_desc.pdf")
@@ -450,7 +461,7 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
             stats2.append(euclids)
             stats3.append(ents)
             stats4.append(categories)
-            stats5.append(categories_h)
+            stats5.append(categories_h+1)
             x2.append(np.array(performances))
             x.append(np.array(dps)/np.array(nofaultperfs))
         #print(stats)
@@ -458,7 +469,7 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
         xlim2=xlim2_dict[fitfun]
         xlim=[-.25,.05]
         if plot_NCD:
-            createPlot(stats, x, colors, markers, xlabel="proportional performance change", ylabel="$NCD$",
+            createPlot(stats, x, colors, markers, xlabel="resilience", ylabel="$NCD$",
                        xlim=xlim, ylim=[0, 1], save_filename="results/FinalBDComp/NCD_DELTAP.pdf",
                        legend_labels=leg_labels, scatter=True, force=True,
                        ax=axs1[i],title=titles[i])
@@ -469,7 +480,7 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
                        ax=axs2[i],title=titles[i])
 
 
-        createPlot(stats2, x, colors, markers, xlabel="proportional performance change", ylabel="Euclidian distance",
+        createPlot(stats2, x, colors, markers, xlabel="resilience", ylabel="Euclidian distance",
                    xlim=xlim, ylim=[0, 1], save_filename="results/FinalBDComp/Euclid_DELTAP.pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs3[i],title=titles[i])
@@ -479,7 +490,7 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs4[i],title=titles[i])
 
-        createPlot(stats3, x, colors, markers, xlabel="proportional performance change", ylabel="maximum variation distance",
+        createPlot(stats3, x, colors, markers, xlabel="resilience", ylabel="maximum variation distance",
                    xlim=xlim,ylim=[0,1.0], save_filename="results/FinalBDComp/MAXVAR_DELTAP.pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs5[i],title=titles[i])
@@ -489,22 +500,22 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs6[i],title=titles[i])
 
-        createPlot(stats4, x, colors, markers, xlabel="proportional performance change", ylabel="category",
-                   xlim=xlim, ylim=[0, 10], save_filename="results/FinalBDComp/category_DELTAP.pdf",
+        createPlot(stats4, x, colors, markers, xlabel="resilience", ylabel="category",
+                   xlim=xlim, ylim=[0, 11], save_filename="results/FinalBDComp/category_DELTAP.pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs7[i],title=titles[i])
 
         createPlot(stats4, x2, colors, markers, xlabel="performance", ylabel="category",
-                   xlim=xlim2, ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
+                   xlim=xlim2, ylim=[0, 11], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs8[i],title=titles[i])
         createPlot(stats5, x, colors, markers, xlabel="performance change", ylabel="category",
-                   xlim=xlim, ylim=[0, 10], save_filename="results/FinalBDComp/category_DELTAP.pdf",
+                   xlim=xlim, ylim=[0, 11], save_filename="results/FinalBDComp/category_DELTAP.pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs9[i],title=titles[i])
 
         createPlot(stats5, x2, colors, markers, xlabel="performance", ylabel="category",
-                   xlim=[0,1], ylim=[0, 10], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
+                   xlim=[0,1], ylim=[0, 11], save_filename="results/FinalBDComp/category_P_" + bd + ".pdf",
                    legend_labels=leg_labels, scatter=True, force=True,
                    ax=axs10[i],title=titles[i])
     finish_fig(fig1, "results/FinalBDComp/proportional_NCD_DELTAP.pdf")
@@ -512,11 +523,11 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
     finish_fig(fig3, "results/FinalBDComp/proportional_Euclid_DELTAP.pdf")
     finish_fig(fig4, "results/FinalBDComp/proportional_Euclid_P.pdf")
     finish_fig(fig5, "results/FinalBDComp/proportional_MAXVAR_DELTAP.pdf")
-    finish_fig(fig6, "results/FinalBDComp/proportional_MAXVAR_P.pdf")
+    # finish_fig(fig6, "results/FinalBDComp/proportional_MAXVAR_P.pdf")
     finish_fig(fig7, "results/FinalBDComp/proportional_Category_DELTAP.pdf")
-    finish_fig(fig8, "results/FinalBDComp/proportional_Category_P.pdf")
+    # finish_fig(fig8, "results/FinalBDComp/proportional_Category_P.pdf")
     finish_fig(fig9, "results/FinalBDComp/proportional_CategoryH_DELTAP.pdf")
-    finish_fig(fig10, "results/FinalBDComp/proportional_CategoryH_P.pdf")
+    # finish_fig(fig10, "results/FinalBDComp/proportional_CategoryH_P.pdf")
 
 
 def plot_density_bydescriptor(titles,plot_NCD=False):
@@ -563,42 +574,47 @@ def plot_density_bydescriptor(titles,plot_NCD=False):
         xlim2 = [0,1]
         ylim=[0,1]
         if plot_NCD:
-            density_estimation(stats,x,xlabel="proportional performance change",
-                           ylabel="$NCD$", xlim=xlim, ylim=ylim,ax=axs1[i],title=titles[i])
-            density_estimation(stats,x2,xlabel="performance",
-                           ylabel="$NCD$", xlim=xlim2, ylim=ylim,ax=axs2[i],title=titles[i])
-        density_estimation(stats2, x,  xlabel="proportional performance change",
-                           ylabel="Euclidian distance", xlim=xlim, ylim=ylim, ax=axs3[i], title=titles[i])
-        density_estimation(stats2, x2,  xlabel="performance",
-                           ylabel="Euclidian distance", xlim=xlim2, ylim=ylim, ax=axs4[i], title=titles[i])
+            cs1=density_estimation(stats,x,xlabel="resilience",
+                           ylabel="$NCD$", xlim=xlim, ylim=ylim, fig=fig1, ax=axs1[i],title=titles[i])
+            # cs2=density_estimation(stats,x2,xlabel="performance",
+            #                ylabel="$NCD$", xlim=xlim2, ylim=ylim, fig=fig2, ax=axs2[i],title=titles[i])
+        #cs3=density_estimation(100,bd,stats2, x,  xlabel="resilience",
+        #                  ylabel="Euclidian distance", xlim=xlim, ylim=ylim, fig=fig3, ax=axs3[i], title=titles[i],from_file=True)
+        # cs4=density_estimation(stats2, x2,  xlabel="performance",
+        #                    ylabel="Euclidian distance", xlim=xlim2, ylim=ylim, fig=fig4, ax=axs4[i], title=titles[i])
 
-        density_estimation(stats3, x,  xlabel="proportional performance change",
-                           ylabel="maximum variation distance", xlim=xlim, ylim=ylim, ax=axs5[i], title=titles[i])
-        density_estimation(stats3, x2,  xlabel="performance",
-                           ylabel="maximum variation distance", xlim=xlim2, ylim=ylim, ax=axs6[i], title=titles[i])
-
-
-        density_estimation(stats4, x,  xlabel="proportional performance change",
-                           ylabel="category", xlim=xlim, ylim=[0,9.5], ax=axs7[i], title=titles[i])
-        density_estimation(stats4, x2,  xlabel="performance",
-                           ylabel="category", xlim=xlim2, ylim=[0,9.5], ax=axs8[i], title=titles[i])
-
-        density_estimation(stats5, x,  xlabel="proportional performance change",
-                           ylabel="category", xlim=xlim, ylim=[0,9.5], ax=axs9[i], title=titles[i])
-        density_estimation(stats5, x2,  xlabel="performance",
-                           ylabel="category", xlim=xlim2, ylim=[0,9.5], ax=axs10[i], title=titles[i])
-        i += 1
+        #cs5=density_estimation(50, bd,stats3, x,  xlabel="resilience",
+         #            ylabel="maximum variation distance", xlim=xlim, ylim=ylim, fig=fig5, ax=axs5[i], title=titles[i],from_file=True)
+        # # cs6=density_estimation(stats3, x2,  xlabel="performance",
+        # #                    ylabel="maximum variation distance", xlim=xlim2, ylim=ylim, fig=fig6, ax=axs6[i], title=titles[i])
+        #
+        #
+        #cs7=density_estimation(stats4+1, x,  xlabel="resilience",
+        #                  ylabel="category", xlim=xlim, ylim=[0,11], fig=fig7, ax=axs7[i], title=titles[i])
+        # # cs8=density_estimation(stats4+1, x2,  xlabel="performance",
+        # #                    ylabel="category", xlim=xlim2, ylim=[0,9.5], fig=fig8, ax=axs8[i], title=titles[i])
+        #
+        cs9=density_estimation(0.08,bd, stats5+1, x,  xlabel="resilience",
+                      ylabel="category", xlim=xlim, ylim=[0,11], fig=fig9, ax=axs9[i], title=titles[i],from_file=True)
+        # cs10=density_estimation(stats5+1, x2,  xlabel="performance",
+        #                    ylabel="category", xlim=xlim2, ylim=[0,9.5], fig=fig10, ax=axs10[i], title=titles[i])
     if plot_NCD:
-        finish_fig(fig1, "results/FinalBDComp/Density_NCD_DELTAP_desc.pdf")
-        finish_fig(fig2, "results/FinalBDComp/Density_NCD_P_desc.pdf")
-    finish_fig(fig3, "results/FinalBDComp/Density_Euclid_DELTAP_desc.pdf")
-    finish_fig(fig4, "results/FinalBDComp/Density_Euclid_P_desc.pdf")
-    finish_fig(fig5, "results/FinalBDComp/Density_MAXVAR_DELTAP_desc.pdf")
-    finish_fig(fig6, "results/FinalBDComp/Density_MAXVAR_P_desc.pdf")
-    finish_fig(fig7, "results/FinalBDComp/Density_Category_DELTAP_desc.pdf")
-    finish_fig(fig8, "results/FinalBDComp/Density_CategoryH_P_desc.pdf")
-    finish_fig(fig9, "results/FinalBDComp/Density_CategoryH_DELTAP_desc.pdf")
-    finish_fig(fig10, "results/FinalBDComp/Density_CategoryH_P_desc.pdf")
+        finish_fig(fig1, "results/FinalBDComp/Density_NCD_DELTAP_desc.pdf",cs1)
+        # finish_fig(fig2, "results/FinalBDComp/Density_NCD_P_desc.pdf",cs2)
+    #finish_fig(fig3, "results/FinalBDComp/Density_Euclid_DELTAP_desc.pdf",cs3)
+    #fig3.text(0.5, 0.01, 'resilience', ha='center',fontsize=36)
+    #fig3.text(0.09, 0.5, 'Euclidian distance', va='center', rotation='vertical',fontsize=36)
+    # finish_fig(fig4, "results/FinalBDComp/Density_Euclid_P_desc.pdf",cs4)
+    # fig5.text(0.5, 0.01, 'resilience', ha='center',fontsize=36)
+    # fig5.text(0.09, 0.5, 'maximum variation distance', va='center', rotation='vertical',fontsize=36)
+    # finish_fig(fig5, "results/FinalBDComp/Density_MAXVAR_DELTAP_desc.pdf",cs5)
+    # finish_fig(fig6, "results/FinalBDComp/Density_MAXVAR_P_desc.pdf",cs6)
+    #finish_fig(fig7, "results/FinalBDComp/Density_Category_DELTAP_desc.pdf",cs7)
+    # finish_fig(fig8, "results/FinalBDComp/Density_CategoryH_P_desc.pdf",cs8)
+    fig9.text(0.5, 0.01, 'resilience', ha='center', fontsize=36)
+    fig9.text(0.09, 0.5, 'category', va='center', rotation='vertical', fontsize=36)
+    finish_fig(fig9, "results/FinalBDComp/Density_CategoryH_DELTAP_desc.pdf",cs9)
+    # finish_fig(fig10, "results/FinalBDComp/Density_CategoryH_P_desc.pdf",cs10)
 
 
 
@@ -642,7 +658,7 @@ def perturbed_vs_unperturbed_archive(fitfuns,bd_type,runs,faults,time,bd_labels,
 
 
 
-def significance_data(fitfuns,bd_type,runs,faults,time, by_fitfun=True):
+def significance_data(fitfuns,bd_type,row_labels,runs,faults,time, by_fitfun=True, load_existing=False):
     """
 
     performance: defined as the performance on all the perturbed environments
@@ -658,58 +674,83 @@ def significance_data(fitfuns,bd_type,runs,faults,time, by_fitfun=True):
     :param time:
     :return:
     """
-    performance_data = []
-    transfer_data = []
-    resilience_data = []
 
-    for i in range(len(bd_type)):
-        print(bd_type[i])
-        performance_data.append([])
-        transfer_data.append([])
-        resilience_data.append([])
-        for j in range(len(fitfuns)):
-            print(fitfuns[j])
-            BD_dir = get_bd_dir(fitfuns[j])
-            # get all the data from the archive: no fault
+    if load_existing:
+        best_performance_data, performance_data,transfer_data,resilience_data = pickle.load(open("summary_statistics.pkl","rb"))
+    else:
+        best_performance_data = []
+        performance_data = []
+        transfer_data = []
+        resilience_data = []
 
-            nofaultpath=BD_dir + "/" + bd_type[i] + "/FAULT_NONE/results"
-            nofaultperfs = [np.array(list(get_ind_performances_uniquearchive(nofaultpath+str(run)+"/analysis" + str(time) + "_handcrafted.dat").values())).flatten() for run in runs]
+        for i in range(len(bd_type)):
+            print(bd_type[i])
+            best_performance_data.append([])
+            performance_data.append([])
+            transfer_data.append([])
+            resilience_data.append([])
+            for j in range(len(fitfuns)):
+                print(fitfuns[j])
+                BD_dir = get_bd_dir(fitfuns[j])
+                # get all the data from the archive: no fault
 
-            best_nofaultperfs = np.array([get_performance_data(nofaultpath+str(run), generation) for run in
-                                          runs])
-            # join all the data from all the fault archives:
-            performances = []
-            best_performances = []
-            resilience = []
-            transfer = []
-            for fault in range(len(faults)):
-                for r, run in enumerate(runs):
-                    print(run)
-                    path = BD_dir + "/" + bd_type[i] + "/run" + str(run) + "_p" + str(fault) + "/results" + str(
-                        run) + "/analysis" + str(time) + "_handcrafted.dat"
-                    temp = np.array(list(get_ind_performances_uniquearchive(path).values())).flatten()
-                    performances = np.append(performances, temp)
+                nofaultpath=BD_dir + "/" + bd_type[i] + "/FAULT_NONE/results"
+                nofaultperfs = [np.array(list(get_ind_performances_uniquearchive(nofaultpath+str(run)+"/analysis" + str(time) + "_handcrafted.dat").values())).flatten() for run in runs]
 
-                    maxind, best_performance = get_best_individual(path, add_performance=True)
-                    best_performances = np.append(best_performances, best_performance)
-                    # best performance vs best nofaultperf
-                    resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / nofaultperfs[r])
-                    # all performances vs all nofaultperformances
-                    transfer = np.append(transfer, (temp - nofaultperfs[r]) / nofaultperfs[r])
+                best_nofaultperfs = np.array([get_performance_data(nofaultpath+str(run), generation) for run in
+                                              runs])
+                # join all the data from all the fault archives:
+                performances = []
+                best_performances = []
+                resilience = []
+                transfer = []
+                for fault in range(len(faults)):
+                    print("fault %d"%(fault))
+                    for r, run in enumerate(runs):
+                        path = BD_dir + "/" + bd_type[i] + "/run" + str(run) + "_p" + str(fault) + "/results" + str(
+                            run) + "/analysis" + str(time) + "_handcrafted.dat"
+                        temp = np.array(list(get_ind_performances_uniquearchive(path).values())).flatten()
+                        performances = np.append(performances, temp)
 
-            if by_fitfun:
-                performance_data[i].append((np.mean(performances),np.std(performances)))
-                transfer_data[i].append((np.mean(transfer),np.std(transfer)))
-                resilience_data[i].append((np.mean(resilience),np.std(resilience)))
-            else:
-                performance_data[i] = np.append(performance_data[i],performances)
-                transfer_data[i] = np.append(transfer_data[i], transfer)
-                resilience_data[i] = np.append(resilience_data[i],resilience)
-        if not by_fitfun:
-            performance_data[i] = (np.mean(performance_data[i]),np.std(performance_data[i]))
-            transfer_data[i] = (np.mean(transfer_data[i]), np.std(transfer_data[i]))
-            resilience_data[i] = (np.mean(resilience_data[i]), np.std(resilience_data[i]))
-    return performance_data, transfer_data, resilience_data
+                        maxind, best_performance = get_best_individual(path, add_performance=True)
+                        best_performances = np.append(best_performances, best_performance)
+                        # best performance vs best nofaultperf
+                        resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / best_nofaultperfs[r])
+                        # all performances vs all nofaultperformances
+                        for k in range(len(nofaultperfs[r])):
+                            transfer = np.append(transfer,[(temp[k] - nofaultperfs[r][k])/baseline_performances[fitfuns[j]]])
+                            #otherwise transfer is undefined; we observe f=0 for some individuals in bordercoverage
+                            # print(transfer.max())
+                            # print(np.mean(transfer))
+                if by_fitfun:
+                    best_performance_data[i].append(best_performances)
+                    performance_data[i].append(performances)
+                    transfer_data[i].append(transfer)
+                    resilience_data[i].append(resilience)
+                else:
+                    best_performance_data[i] = np.append(best_performance_data[i],best_performances)
+                    performance_data[i] = np.append(performance_data[i],performances)
+                    transfer_data[i] = np.append(transfer_data[i], transfer)
+                    resilience_data[i] = np.append(resilience_data[i],resilience)
+    pickle.dump((best_performance_data,performance_data,transfer_data,resilience_data),open("summary_statistics.pkl","wb"))
+    from scipy.stats import mannwhitneyu
+    if by_fitfun:
+        with open("summary_table","w") as f:
+            make_table(f,[performance_data,transfer_data,resilience_data],
+                       rowlabels=legend_labels,
+                       columnlabels=fitfuns,
+                       conditionalcolumnlabels=[("performance","float3"),("transfer","float"),("resilience","float3")])
+    else:
+        with open("summary_table","w") as f:
+            make_table(f,[performance_data,transfer_data,resilience_data],
+                       rowlabels=legend_labels,
+                       columnlabels=[],
+                       conditionalcolumnlabels=[("performance","float3"),("transfer","float3"),("resilience","float3")])
+
+
+
+
+
 
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
@@ -719,8 +760,8 @@ if __name__ == "__main__":
     runs=range(1,6)
     bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]  # legend label
     legend_labels = ["handcrafted","SDBC","SPIRIT","QED"]  # labels for the legend
-    fitfuns = ["Aggregation","Dispersion","DecayCoverage"]
-    #baseline_performances = {"Aggregation":0.9,"Dispersion":0.2, "Flocking":0.2}
+    fitfuns = ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage"]
+    baseline_performances = {"Aggregation":0.95,"Dispersion":0.23, "DecayCoverage":0.84,"DecayBorderCoverage":0.93}
     colors = ["C" + str(i) for i in range(len(bd_type))]
     markers = [(2, 1, 0), (3, 1, 0),(2, 1, 1), (3, 1, 1)]
 
@@ -735,8 +776,8 @@ if __name__ == "__main__":
     #plot_by_descriptor(fitfuns,titles=legend_labels,xlim=[-0.15,0.01])
     #plot_proportional_byfitfun(legend_labels,titles=fitfuns,plot_NCD=False)
 
-    #plot_density_bydescriptor(titles=legend_labels,plot_NCD=False)
+    plot_density_bydescriptor(titles=legend_labels,plot_NCD=False)
     time=10000
     #perturbed_vs_unperturbed_archive(fitfuns, bd_type, runs,faults,time,legend_labels,"boxplots_all.pdf",ylim=[0,1])
     #significance_data(fitfuns, bd_type, runs, faults, time, by_fitfun=True)
-    significance_data(fitfuns, bd_type, runs, faults, time, by_fitfun=False)
+    #significance_data(fitfuns, bd_type, legend_labels, runs, faults, time, by_fitfun=False, load_existing=False)
