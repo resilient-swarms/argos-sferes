@@ -109,10 +109,10 @@ def test_cases():
 
 if __name__ == "__main__":
     #test_cases()
-    for fitfun in ["DecayBorderCoverage"]:
+    for fitfun in ["Flocking"]:
         centroids_sdbc = load_centroids("/home/david/argos-sferes/experiments/centroids/centroids_4096_10.dat")
         centroids_spirit = load_centroids("/home/david/argos-sferes/experiments/centroids/centroids_4096_1024.dat")
-        for descriptor in ["history","environment_diversity"]:
+        for descriptor in ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]:
             print(descriptor)
             for gen in range(10000,10500,500):
                 for run in range(1,6):

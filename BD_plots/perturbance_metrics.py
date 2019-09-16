@@ -26,7 +26,7 @@ def read_floats_from_file(file_in):
 #             axes[i,j].set_ylim([0,1])
 #     fig.tight_layout()
 #     fig.savefig(save_filename)
-def make_boxplot(data,row_conditions,col_conditions,save_filename,xlabs,ylab):
+def make_boxplots(data,row_conditions,save_filename,xlabs,ylab,ylim):
     n_rows = len(row_conditions)
 
     for i in range(n_rows):
@@ -35,20 +35,41 @@ def make_boxplot(data,row_conditions,col_conditions,save_filename,xlabs,ylab):
 
         axes.boxplot(y)
         axes.set_xticklabels(xlabs,rotation=0, fontsize=8)
-        axes.set_ylim([0,1])
+        axes.set_ylim(ylim)
         axes.set_ylabel(ylab)
         fig.suptitle(row_conditions[i])
         fig.tight_layout()
         fig.savefig(RESULTSFOLDER+"/"+row_conditions[i]+save_filename)
+
+def make_boxplots_from_dict(data,save_filename,
+                        xlabs,ylim):
+
+    for metric,value in data.items():
+        fig, axes = plt.subplots(1,1)
+        axes.boxplot(value)
+        axes.set_xticklabels(xlabs,rotation=0, fontsize=8)
+        axes.set_ylim(ylim)
+        axes.set_ylabel(metric)
+        fig.tight_layout()
+        fig.savefig(RESULTSFOLDER+"/"+save_filename+"_"+metric+".pdf")
+
 def make_boxplot_matrix(data,row_conditions,col_conditions,save_filename,xlabs,ylab,ylim):
     n_rows = len(row_conditions)
     n_cols=len(col_conditions)
     fig, axes = plt.subplots(n_rows, n_cols,figsize=(20,10))  # compare fault_none to perturbations
-    for j in range(n_cols):
-        axes[0,j].set_title(col_conditions[j],fontsize=15)
-        for i in range(n_rows):
-            axes[i, j].boxplot(data[i][j], ylim, widths=0.75)
-            axes[i,j].set_xticklabels(xlabs)
+    if n_rows==1:
+        for j in range(n_cols):
+            axes[j].set_title(col_conditions[j],fontsize=15)
+            axes[j].boxplot(data[j],widths=0.75)
+            axes[j].set_xticklabels(xlabs[j])
+            axes[j].set_ylim(ylim)
+    else:
+        for j in range(n_cols):
+            axes[0,j].set_title(col_conditions[j],fontsize=15)
+            for i in range(n_rows):
+                axes[i, j].boxplot(data[i][j], widths=0.75)
+                axes[i,j].set_xticklabels(xlabs[j])
+                axes[i,j].set_ylim(ylim)
     for ax in axes.flat:
         ax.set(ylabel=ylab)
         ax.yaxis.label.set_size(15)
@@ -64,11 +85,12 @@ def make_boxplot_pairswithin(data,row_conditions,col_conditions,save_filename,xl
         k=0
         axes[i].set_title(row_conditions[i],fontsize=24)
         for j in range(n_cols):
-            axes[i].boxplot(data[i][j], ylim, positions=[k+1,k+2],widths=0.75)
+            axes[i].boxplot(data[i][j], positions=[k+1,k+2],widths=0.75)
             k+=3
         axes[i].set_xticks([3*i + 1.5 for i in range(len(col_conditions))])
         axes[i].set_xticklabels(xlabs,fontsize=15)
         axes[i].set_ylabel(ylab,fontsize=15)
+        axes[i].set_ylim(ylim)
 
     fig.tight_layout()
     fig.savefig(RESULTSFOLDER+"/"+save_filename)

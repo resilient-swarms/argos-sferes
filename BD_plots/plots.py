@@ -1,6 +1,7 @@
 
 import numpy as np 
 import matplotlib.pyplot as PLT
+from scipy.stats import *
 
 # ================    ===============================
 # character           description
@@ -53,7 +54,16 @@ def table_entry_meansd(f, stat , type="float3"):
         f.write(r" & $%.2f \pm %.2f$ " % (np.mean(stat), np.std(stat)))
     else:
         f.write(r" & $%d \pm %d$ " % (np.mean(stat), np.std(stat)))
-def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[]):
+def IQR(x):
+    return np.quantile(x, 0.75) - np.quantile(x, 0.25)
+def table_entry_median(f, stat , type="float3"):
+    if type=="float3":
+        f.write(r" & $%.3f \pm %.2f$ " % (np.median(stat), IQR(stat)))#iqr(stat)))
+    elif type=="float2":
+        f.write(r" & $%.2f \pm %.2f$ " % (np.median(stat), IQR(stat))) #iqr(stat)))
+    else:
+        f.write(r" & $%d \pm %d$ " % (np.median(stat), IQR(stat)))#iqr(stat)))
+def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[],median=False):
 
     n=len(conditionalcolumnlabels)
 
@@ -83,14 +93,20 @@ def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[]):
             for j in range(len(columnlabels)):
                 for k in range(len(conditionalcolumnlabels)): # needs some fix here
                     stat = stats[k][i][j]
-                    table_entry_meansd(f,stat,conditionalcolumnlabels[k][1])
+                    if median:
+                        table_entry_median(f, stat, conditionalcolumnlabels[k][1])
+                    else:
+                        table_entry_meansd(f,stat,conditionalcolumnlabels[k][1])
             newline_latex(f)
     else:
         for i in range(len(rowlabels)):
             table_entry_rowcondition(f,rowlabels[i])
             for j in range(len(conditionalcolumnlabels)):
                 stat = stats[j][i]
-                table_entry_meansd(f,stat,conditionalcolumnlabels[j][1])
+                if median:
+                    table_entry_median(f, stat, conditionalcolumnlabels[j][1])
+                else:
+                    table_entry_meansd(f,stat,conditionalcolumnlabels[j][1])
             newline_latex(f)
 
 
@@ -210,9 +226,18 @@ def get_plot(ax,index, xx, stats, colors, markers, markers_on,y_err=[],fill_betw
 
 def finish_fig(fig,save_filename, colorbar=None):
     if colorbar is not None:
-        cbaxes = fig.add_axes([0.92, 0.08, 0.03, 0.8])
+        colorbar,labels = colorbar
+        off_x = 0.92
+        width = 0.03
+        off_y = 0.08
+        height = 0.8
+        cbaxes = fig.add_axes([off_x,off_y, width, height])  # left, bottom, width, height
         cbar = fig.colorbar(colorbar,cax=cbaxes)
         cbar.ax.tick_params(labelsize=20)
+
+        # for j, lab in enumerate(labels):
+        #     cbar.ax.text(1.0, off_y + j*height/float(len(labels)), lab, ha='center', va='center')
+        #cbar.set_yticklabels([mn, md, mx])  # add the labels
         cbar.ax.set_ylabel('density', rotation=270,fontsize=29,labelpad=+28)
     else:
         fig.tight_layout()

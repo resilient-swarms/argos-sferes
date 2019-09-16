@@ -372,18 +372,18 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
 
 
     for time in times:
-        for i in range(len(bd_type) - 1):
-
-            archive_file, directory = get_archiveplusdir(BD_directory,bd_type,i,generation,projected=legend_labels[i].endswith("projected"))
+        for i in range(len(bd_type)):
+            projected=legend_labels[i].endswith("projected")
+            archive_file, directory = get_archiveplusdir(BD_directory,bd_type,i,time,projected=projected)
             #abs_coverage=absolutecoverages(bd_shapes[i], directory, runs, archive_file)
             #add_boxplotlike_data(abs_coverage, y_bottom, y_mid, y_top, y_label="absolute_coverage",method_index=i)
-            try_add_performance_data(i,bd_shapes,bybin_list,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=translated or transfered)
+            try_add_performance_data(i,bd_shapes,bybin_list,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=projected)
         # now add baseline
-        i = len(bd_type) - 1
-        directory = BD_directory + "/" + bd_type[i] + "/"
-        archive_file = "fitness"
-        try_add_performance_data(i, bd_shapes, bybin_list,directory, runs, archive_file, y_bottom, y_mid, y_top,
-                                 from_fitfile=True)
+        # i = len(bd_type) - 1
+        # directory = BD_directory + "/" + bd_type[i] + "/"
+        # archive_file = "fitness"
+        # try_add_performance_data(i, bd_shapes, bybin_list,directory, runs, archive_file, y_bottom, y_mid, y_top,
+        #                          from_fitfile=True)
             #precision=precisions(directory, runs, archive_file)
             #add_boxplotlike_data(precision, y_bottom, y_mid, y_top, y_label="precision",method_index=i)
 
@@ -394,10 +394,10 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
         ylim=[0,4096] if label in ["absolute_coverage","global_coverage"]   else [0.0,1.0]
         axis = None if ax is None else ax[j]
         temp_labels = copy.copy(legend_labels)
-        if not label.endswith("performance"):
+        #if not label.endswith("performance"):
             #strip baseline and transfer
-            temp_labels.remove("baseline")
-            temp_labels.remove("QED-projected")
+            #temp_labels.remove("baseline")
+            #temp_labels.remove("QED-projected")
 
         # createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="generations",ylabel=label.replace("_"," "),ylim=ylim,
         #            save_filename=RESULTSFOLDER+"/"+title_tag+label+".pdf",legend_labels=legend_labels,
@@ -414,19 +414,19 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
                    ax=axis,title=title )
         j+=1
 
-def make_translation_table(tab_label,BD_dirs,runs):
+def make_translation_table(tab_label,BD_dirs,runs,times):
 
     try:
         time_index = times.index(10000)  # only last
 
-        with open("coverage_table" + tab_label, "w") as f:
+        with open("results/evolution/table/coverage_table" + tab_label, "w") as f:
             targets = OrderedDict({"handcrafted": 4096, "sdbc": 4096, "spirit": 4096})
-            labels = ["handcrafted", "SDBC", "SPIRIT"]
+            labels = ["HBD", "SDBC", "SPIRIT"]
 
             f.write(r"   & $\rightarrow$ %s & $\rightarrow$ %s & $\rightarrow$ %s \\ " % (
                 labels[0], labels[1], labels[2]))
             f.write("\n")
-            for i in range(len(bd_type) - 2):
+            for i in range(len(bd_type)):
                 numbers = {target: [] for target in targets} # gather all the translated coverages for all targets
                 for directory in BD_dirs:
                     temp = translated_coverages(times[time_index], directory + "/" + str(bd_type[i]) + "/FAULT_NONE",
@@ -469,7 +469,7 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
         """
         import pickle
         if load_existing:
-            best_performance_data, coverage_data = pickle.load(open("evolution_statistics.pkl","rb"))
+            best_performance_data, coverage_data = pickle.load(open("evolution/evolution_statistics.pkl","rb"))
         else:
             best_performance_data = []
             coverage_data = []
@@ -489,40 +489,39 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
 
                     archive_file, directory = get_archiveplusdir(BD_dir, bd_type, i, generation,
                                                                  projected=False)
-                    c=absolutecoverages(4096,directory,runs, archive_file)
+                    c=coverages(4096,directory,runs, archive_file)
 
                     best_performance_data[i].append(p)
                     coverage_data[i].append(c)
-
-        pickle.dump((best_performance_data, coverage_data), open("evolution_statistics.pkl","wb"))
+        if not load_existing:
+            pickle.dump((best_performance_data, coverage_data), open("data/evolution_data/evolution_statistics.pkl","wb"))
         from scipy.stats import mannwhitneyu
 
-        with open("evolution_table", "w") as f:
+        with open("results/evolution/table/evolution_table", "w") as f:
             make_table(f, [best_performance_data, coverage_data],
                            rowlabels=legend_labels,
                            columnlabels=fitfuns,
-                           conditionalcolumnlabels=[("perf.","float2"), ("cov.","integer")])
+                           conditionalcolumnlabels=[("perf.","float2"), ("cov.","float2")])
 
 
 
 def create_all_development_plots():
     runs=range(1,6)
 
-    fitfuns= ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage"] #,"DecayBorderCoverage","Flocking"]
-    bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity",
-               "environment_diversity", "baseline"]  # file system label for bd
-    legend_labels=["handcrafted","SDBC","SPIRIT","QED","QED-projected","baseline"]  # labels for the legend
+    fitfuns= ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"] #,"DecayBorderCoverage","Flocking"]
+    bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"]  # file system label for bd
+    legend_labels=["handcrafted","SDBC","SPIRIT","QED"]  # labels for the legend
     bybin_list=["bd", "individual", "individual", "bd", "bd", ""]
     times=range(0,10500, 500)
     fig, axs = plt.subplots(5, 5, figsize=(50, 40))  # coverage, avg perf., global perf., global reliability
     for i,fitfun in enumerate(fitfuns):
         development_plots(title=fitfun,runs=runs, times=times,
-                          BD_directory=get_bd_dir(fitfun),title_tag="FinalBDComp/"+fitfun+"NOCORRECT",bd_type=bd_type,
+                          BD_directory=get_bd_dir(fitfun),title_tag="/"+fitfun+"NOCORRECT",bd_type=bd_type,
                           legend_labels=legend_labels,bybin_list=bybin_list,
                           ax = axs[:,i])
 
 
-    finish_fig(fig, RESULTSFOLDER +"/FinalBDComp/All_BD_metrics_allruns.pdf")
+    finish_fig(fig, RESULTSFOLDER +"/evolution/development/All_BD_metrics_allruns.pdf")
 
 
 
@@ -538,25 +537,19 @@ if __name__ == "__main__":
         # global
     runs=range(1,6)
     fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
-               "DecayBorderCoverage"]  # ,"DecayBorderCoverage","Flocking"]
+               "DecayBorderCoverage","Flocking"]  # ,"DecayBorderCoverage","Flocking"]
     bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
              ]  # file system label for bd
-    legend_labels = ["handcrafted", "SDBC", "SPIRIT", "QED"]  # labels for the legend
+    legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
     generation=10000
 
-    make_translation_table("global", [get_bd_dir(f) for f in fitfuns], runs)
-        # print_best_individuals(
-        #     BD_dir="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
-        #     outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
+    make_translation_table("global", [get_bd_dir(f) for f in fitfuns], runs,times=[generation])
+         # print_best_individuals(
+         #     BD_dir="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
+         #     outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
 
 
     make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
 
 
-    # for fitfun in fitfuns:
-    #     data_dir = HOME_DIR + "/DataFinal/coll"
-    #     title=fitfun+"range11"
-    #     print_best_individuals(
-    #         BD_dir="/home/david/DataFinal/coll/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
-    #         outfile="best_solutions_"+fitfun+"COLLISIONSTOP", number=10, generation=1200)
-    #     development_plots(runs=range(1,6), times=range(0,1250, 50), BD_directory=data_dir + "/"+title,title_tag=fitfun+"COLLISIONSTOP",):q
+    #create_all_development_plots()

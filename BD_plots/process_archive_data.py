@@ -147,19 +147,22 @@ def run_best_individual(command, outputfolder, generation):
 #     compress_and_remove(outputfolder, outputfolder + "/xy_history" + str(maxind))
 
 
-def get_best_individual(path, as_string=False, add_performance=False, add_all=False):
+def get_best_individual(path, as_string=False, add_performance=False, add_all=False, index_based=False):
         best_performance=-float("inf")
         maxind=np.nan
         parsed_file_list = read_spacedelimited(path)
-        for item in parsed_file_list:
-            ind = item[0]
+        for index, item in enumerate(parsed_file_list):
+            indiv = item[0]
             b = tuple(item[1:-1])
             if as_string:
                 b = str(b)
             performance = float(item[-1])
             if performance > best_performance:
                 maxbd=b
-                maxind=ind
+                if index_based:
+                    maxind = index
+                else:
+                    maxind=indiv
                 best_performance = performance
         if add_all:
             return maxind, best_performance, maxbd
@@ -176,6 +179,15 @@ def get_ind_performances_uniquearchive(path):
         performance=float(item[-1])
         bin_performance_dict[ind]=performance
     return bin_performance_dict
+def get_individual_bd(path,ind):
+    parsed_file_list = read_spacedelimited(path)
+
+    for item in parsed_file_list:
+            individual = item[0]
+            if individual==ind:
+                return np.array(tuple(item[1:-1]),float)
+    raise Exception("individual not found")
+
 
 def get_bin_performances_uniquearchive(path,as_string=True, add_indiv=False,fitnessfile=False):
     """

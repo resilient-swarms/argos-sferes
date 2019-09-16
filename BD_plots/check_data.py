@@ -50,7 +50,7 @@ def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturba
 if __name__ == "__main__":
     check_archives_complete(10000,
                             "/home/david/Data/ExperimentData",
-                            ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage"],
+                            ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"],
                             ["history","cvt_rab_spirit","Gomes_sdbc_walls_and_robots_std","environment_diversity"],
                             range(1,6),
                             range(0,40)

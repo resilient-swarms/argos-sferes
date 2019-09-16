@@ -27,6 +27,13 @@ def get_help_data(outputdirectory,generation,history_type,translation_type="hand
     bd = np.array(bd,float)
     return history_file, performance, bd
 
+def get_help_data_unperturbed(prefix,fault_dir,nofault_dir,generation,translation_type="handcrafted"):
+    file = prefix+fault_dir+"/analysis"+generation+"_"+translation_type+".dat"
+    best_indiv, _, _ = get_best_individual(file,add_all=True)
+    nofaultfile=  prefix+nofault_dir+"/analysis"+generation+"_"+translation_type+".dat"
+    bd=get_individual_bd(nofaultfile,best_indiv)
+    return bd
+
 def read_history_file(filename,from_gz=True):
     if from_gz:
         print("opening "+str(filename)+".tar.gz")
