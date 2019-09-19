@@ -63,9 +63,11 @@ def table_entry_median(f, stat , type="float3"):
         f.write(r" & $%.2f \pm %.2f$ " % (np.median(stat), IQR(stat))) #iqr(stat)))
     else:
         f.write(r" & $%d \pm %d$ " % (np.median(stat), IQR(stat)))#iqr(stat)))
-def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[],median=False):
+def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[],median=False,transpose=False):
 
     n=len(conditionalcolumnlabels)
+
+
 
     # top-level labels
     if columnlabels:
@@ -92,7 +94,10 @@ def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[],median
             table_entry_rowcondition(f,rowlabels[i])
             for j in range(len(columnlabels)):
                 for k in range(len(conditionalcolumnlabels)): # needs some fix here
-                    stat = stats[k][i][j]
+                    if transpose:
+                        stat = stats[k][j][i]
+                    else:
+                        stat = stats[k][i][j]
                     if median:
                         table_entry_median(f, stat, conditionalcolumnlabels[k][1])
                     else:
@@ -102,7 +107,10 @@ def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[],median
         for i in range(len(rowlabels)):
             table_entry_rowcondition(f,rowlabels[i])
             for j in range(len(conditionalcolumnlabels)):
-                stat = stats[j][i]
+                if transpose:
+                    stat = stats[j][i]
+                else:
+                    stat = stats[i][j]
                 if median:
                     table_entry_median(f, stat, conditionalcolumnlabels[j][1])
                 else:

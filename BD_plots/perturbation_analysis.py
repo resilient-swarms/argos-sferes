@@ -146,8 +146,8 @@ def estimation(max_density,condition,stats,x,xlabel, ylabel,
     num_x=int(np.ceil(s_x/bandwidth))
     print("num_cells" + str(num_x*num_y))
     print("maxprob=" + str(1 / float(num_x*num_y)))
-    X = np.linspace(xlim[0], xlim[1], num_x)
-    Y = np.linspace(ylim[0], ylim[1], num_y)
+    X = np.linspace(xlim[0], xlim[1], 100)
+    Y = np.linspace(ylim[0], ylim[1], 100)
     if from_file:
         Z=pickle.load(open("data/combined/density/"+condition+"-"+xlabel+"-"+ylabel+".pkl","rb"))
     else:
@@ -605,6 +605,22 @@ def plot_proportional_byfitfun(leg_labels,titles,plot_NCD=False):
     # finish_fig(fig10, "results/fault/density/proportional_CategoryH_P.pdf")
 
 
+def convert_resilience_data_for_check(resilience_data):
+
+    new_array=np.zeros(1000)
+    j=0
+    for fitfun in range(5):
+        fitfun_offset = fitfun*200
+        for run in range(5):
+            for fault in range(0,40):
+                fault_offset = fault*5
+                i = fitfun_offset + fault_offset + run
+
+                new_array[j] = resilience_data[i]
+                j+=1
+    return new_array
+
+
 def plot_density_bydescriptor(titles,plot_NCD=False):
     fig1, axs1 = plt.subplots(1, 4, figsize=(40, 10))
     fig2, axs2 = plt.subplots(1, 4, figsize=(40, 10))
@@ -616,7 +632,8 @@ def plot_density_bydescriptor(titles,plot_NCD=False):
     fig8, axs8 = plt.subplots(1, 4, figsize=(40, 10))
     fig9, axs9 = plt.subplots(1, 4, figsize=(40, 10))
     fig10, axs10 = plt.subplots(1, 4, figsize=(40, 10))
-
+    best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(
+        open("data/combined/summary_statistics.pkl", "rb"))
     for i, bd in enumerate(bd_type):
         print(bd)
         stats = []
@@ -643,8 +660,9 @@ def plot_density_bydescriptor(titles,plot_NCD=False):
             x=np.append(x,np.array(dps) / np.array(nofaultperfs))
             stats4=np.append(stats4,categories)
             stats5=np.append(stats5,categories_h)
-        #print(stats)
-        #print(x)
+
+        newarray=convert_resilience_data_for_check(resilience_data[i])
+        assert np.allclose(newarray,x)
         xlim = [-0.30,0.0]
         xlim2 = [0,1]
         ylim=[0,1.0]
@@ -653,13 +671,13 @@ def plot_density_bydescriptor(titles,plot_NCD=False):
                            ylabel="$NCD$", xlim=xlim, ylim=ylim, fig=fig1, ax=axs1[i],title=titles[i])
             # cs2=estimation(stats,x2,xlabel="performance",
             #                ylabel="$NCD$", xlim=xlim2, ylim=ylim, fig=fig2, ax=axs2[i],title=titles[i])
-        cs3=estimation(20,bd,stats2, x,  xlabel="resilience",
+        cs3=estimation(40,bd,stats2, resilience_data[i],  xlabel="resilience",
                         ylabel="Euclidian distance", xlim=xlim, ylim=ylim, fig=fig3, ax=axs3[i], title=titles[i],from_file=False)
         # cs4=estimation(stats2, x2,  xlabel="performance",
         #                    ylabel="Euclidian distance", xlim=xlim2, ylim=ylim, fig=fig4, ax=axs4[i], title=titles[i])
 
-        cs5=estimation(20, bd,stats3, x,  xlabel="resilience",
-                   ylabel="maximum variation distance", xlim=xlim, ylim=ylim, fig=fig5, ax=axs5[i], title=titles[i],from_file=False)
+        #cs5=estimation(20, bd,stats3, x,  xlabel="resilience",
+        #           ylabel="maximum variation distance", xlim=xlim, ylim=ylim, fig=fig5, ax=axs5[i], title=titles[i],from_file=False)
         # # cs6=estimation(stats3, x2,  xlabel="performance",
         # #                    ylabel="maximum variation distance", xlim=xlim2, ylim=ylim, fig=fig6, ax=axs6[i], title=titles[i])
         #
@@ -678,12 +696,12 @@ def plot_density_bydescriptor(titles,plot_NCD=False):
         # finish_fig(fig2, "results/fault/density/NCD_P_desc.pdf",cs2)
     fig3.text(0.5, 0.01, 'resilience', ha='center', fontsize=36)
     fig3.text(0.09, 0.5, 'diversity', va='center', rotation='vertical', fontsize=36)
-    finish_fig(fig3, "results/fault/density/Euclid_DELTAP_desc.pdf",(cs3,[r"$0\%$","$0.04\%$","$0.08\%$"]))
+    finish_fig(fig3, "results/fault/density/CHECKEuclid_DELTAP_desc.pdf",(cs3,[r"$0\%$","$0.04\%$","$0.08\%$"]))
 
     # finish_fig(fig4, "results/fault/density/Euclid_P_desc.pdf",cs4)
-    fig5.text(0.5, 0.01, 'resilience', ha='center',fontsize=36)
-    fig5.text(0.09, 0.5, 'diversity', va='center', rotation='vertical',fontsize=36)
-    finish_fig(fig5, "results/fault/density/MAXVAR_DELTAP_desc.pdf",(cs5,[r"$0\%$","$0.04\%$","$0.08\%$"]))
+    #fig5.text(0.5, 0.01, 'resilience', ha='center',fontsize=36)
+    #fig5.text(0.09, 0.5, 'diversity', va='center', rotation='vertical',fontsize=36)
+    #finish_fig(fig5, "results/fault/density/MAXVAR_DELTAP_desc.pdf",(cs5,[r"$0\%$","$0.04\%$","$0.08\%$"]))
     # finish_fig(fig6, "results/fault/density/MAXVAR_P_desc.pdf",cs6)
     #finish_fig(fig7, "results/fault/density/Category_DELTAP_desc.pdf",cs7)
     # finish_fig(fig8, "results/fault/density/CategoryH_P_desc.pdf",cs8)
@@ -703,6 +721,8 @@ def plot_density_bydescriptor_unperturbed(titles,plot_NCD=False):
     fig8, axs8 = plt.subplots(1, 4, figsize=(40, 10))
     fig9, axs9 = plt.subplots(1, 4, figsize=(40, 10))
     fig10, axs10 = plt.subplots(1, 4, figsize=(40, 10))
+
+
 
     for i, bd in enumerate(bd_type):
         print(bd)
@@ -729,6 +749,7 @@ def plot_density_bydescriptor_unperturbed(titles,plot_NCD=False):
             x=np.append(x,np.array(dps) / np.array(nofaultperfs))
             stats4=np.append(stats4,categories)
             stats5=np.append(stats5,categories_h)
+
         #print(stats)
         #print(x)
         xlim = [-0.30,0.0]
@@ -971,15 +992,17 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
                         open(loadfilename, "wb"))
         with open("results/fault/summary_table_fitfun","w") as f:
             make_table(f,all_data,
-                       rowlabels=legend_labels,
-                       columnlabels=fitfunlabels,
-                       conditionalcolumnlabels=[("bestperformance","float3"),("performance","float3"),("besttransfer","float3"),("transfer","float3"),("resilience","float3")])
+                       rowlabels=fitfunlabels,
+                       columnlabels=legend_labels,
+                       conditionalcolumnlabels=[("bestperformance","float3"),("besttransfer","float3"),("resilience","float3")],
+                       transpose=True)
         with open("results/fault/summary_table_fitfun_median","w") as f:
             make_table(f,all_data,
-                       rowlabels=legend_labels,
-                       columnlabels=fitfunlabels,
-                       conditionalcolumnlabels=[("bestperformance","float3"),("performance","float3"),("besttransfer","float3"),("transfer","float3"),("resilience","float3")],
-                       median=True)
+                       rowlabels=fitfunlabels,
+                       columnlabels=legend_labels,
+                       conditionalcolumnlabels=[("bestperformance","float3"),("besttransfer","float3"),("resilience","float3")],
+                       median=True,
+                       transpose=True)
     else:
         if not load_existing:
             pickle.dump(all_data,
@@ -1037,26 +1060,36 @@ def make_significance_table(fitfunlabels,conditionlabels,table_type="resilience"
     else:
         qed=transfer_data[-1]
     with open("results/fault/table/significance_table","w") as f:
-        f.write(r"& \multicolumn{9}{c}{\textbf{Condition}}")
+        f.write(r"& \multicolumn{6}{c}{\textbf{Condition}}")
         newline_latex(f,add_hline=True)
         f.write(r"\textbf{Swarm task}")
         for condition in conditionlabels:
-            f.write(r"& \multicolumn{3}{c|}{"+str(condition)+"}")
+            f.write(r"& \multicolumn{2}{c|}{"+str(condition)+"}")
         newline_latex(f,add_hline=True)
         for condition in conditionlabels:
-            f.write(r"& $U$ & $p$ & $\Delta$")
+            f.write(r"& significance & effect size")
         newline_latex(f,add_hline=True)
 
+        m=len(fitfuns)*3 # number of comparisons
+        alpha_weak=.05/float(m)
+        print("will use alpha=" + str(alpha_weak))
+        alpha_best=.001/float(m) #
+        print("will use alpha="+str(alpha_best))
         for k,fitfun in enumerate(fitfunlabels):
             f.write(fitfun)
             x = qed[k]
             for j, condition in enumerate(conditionlabels):
                 y = resilience_data[j][k]
                 U, p = ranksums(x, y)
-                p_value = "%.3f"%(p) if p>0.001 else r"<.001"
+                p_value = "p=%.3f"%(p) if p>0.001 else r"p<0.001"
+                if p < alpha_best:
+                    p_value+="^{**}"
+                else:
+                    if p < alpha_weak:
+                        p_value+="^{*}"
                 delta,label = cliffs_delta(U, x, y)
                 delta_value = r"\mathbf{%.3f}"%(delta) if label == "large" else r"%.3f"%(delta)
-                f.write(r"& $%.2f$ & $%s$ & $%s$"%(U,p_value,delta_value))
+                f.write(r"& $%s$ & $%s$"%(p_value,delta_value))
             newline_latex(f)
 
 
@@ -1079,11 +1112,11 @@ def cliffs_delta(U,x,y):
     count=float(sum(z>0) - sum(z<0))/float(m*n)
     # assert count==delta, "delta:%.3f  count:%.3f"%(delta,count)
     label = None
-    if count < 0.147:
-        label="neglegible"
-    elif count < 0.33:
+    if count < 0.11:
+        label="negligible"
+    elif count < 0.28:
         label="small"
-    elif count < 0.474:
+    elif count < 0.43:
         label="medium"
     else:
         label="large"
@@ -1142,8 +1175,10 @@ if __name__ == "__main__":
     #significance_data(fitfuns, fitfunlabels,bd_type, runs, faults, time=10000, by_fitfun=False, load_existing=False)
     #significance_data(fitfuns, fitfunlabels, bd_type, runs, faults, time=10000, by_fitfun=False, load_existing=False)
 
+    #plot_density_bydescriptor(legend_labels)
+
     # #fitfuns, bd_type, bd_labels, save_file, ylim
-    summarystatistic_boxplots(legend_labels)
+    #summarystatistic_boxplots(legend_labels)
 
     # #significance_data(fitfuns, bd_type, legend_labels, runs, faults, time, by_fitfun=True,load_existing=True)
     #
@@ -1156,6 +1191,5 @@ if __name__ == "__main__":
     #plot_histogram(bd_type)
 
 
-    #make_significance_table(fitfunlabels,legend_labels[0:-1])
-
-    significance_data(fitfuns, fitfunlabels, bd_type, runs, faults, time, by_fitfun=False, load_existing=True)
+    significance_data(fitfuns, fitfunlabels, bd_type, runs, faults, time, by_fitfun=True, load_existing=True)
+    #significance_data(fitfuns, fitfunlabels, bd_type, runs, faults, time, by_fitfun=False, load_existing=True)
