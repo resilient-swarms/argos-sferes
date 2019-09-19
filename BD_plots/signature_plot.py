@@ -58,7 +58,7 @@ def plot(xs,ys,name,titles,type="maxvar"):
                          vmax=21)  # ,vmax=10 'auto'
         ax.tick_params(axis='both', which='major', labelsize=28)
         ax.tick_params(axis='both', which='minor', labelsize=28)
-        ax.set_title(titles[i],fontsize=40)cd
+        ax.set_title(titles[i],fontsize=40)
 
 
 
