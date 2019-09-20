@@ -63,8 +63,9 @@ def plot(xs,ys,name,titles,type="maxvar"):
 
 
     num_squares=100.0*100.0
+    area_size=(ymax-ymin)*(xmax-xmin)/num_squares
     rounded_max=20.0
-    print("chosen % = " +str(100*rounded_max/num_squares))
+    print("chosen % = " +str(100*rounded_max*area_size))
     # vmax=50 or whatever is max across all plots, the max. colorbar tick label is then set to '> vmax/max sum * 100 '
 
     # plt.plot(m1, m2, 'k.', markersize=2)
@@ -80,7 +81,7 @@ def plot(xs,ys,name,titles,type="maxvar"):
     cbar = plt.colorbar(img,cax=cb_ax)
     cbar.ax.set_ylabel('% of solutions',fontsize=36)
     cbar.set_ticks([0, rounded_max/2.0, rounded_max])
-    cbar.ax.set_yticklabels(['0%', '0.1%', ">0.2%"],fontsize=25)
+    cbar.ax.set_yticklabels(['0%', '0.05%', ">0.1%"],fontsize=25)
 
     fig.text(0.43, 0.015, 'resilience', ha='center', fontsize=36)
     fig.text(0.095, 0.5, 'diversity', va='center', rotation='vertical', fontsize=36)
