@@ -1136,6 +1136,7 @@ def plot_histogram(bd_type,by_fitfun=True):
             plt.figure()
             n, bins, patches = plt.hist(x, num_bins, facecolor='blue', alpha=0.5,range=(-0.30, 0))
             plt.savefig("HIST"+bd_type[i]+fitfuns[f]+".pdf")
+
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
 
@@ -1189,6 +1190,7 @@ if __name__ == "__main__":
     #test_significance(legend_labels, by_fitfun=True)
 
     #plot_histogram(bd_type)
+
 
 
     significance_data(fitfuns, fitfunlabels, bd_type, runs, faults, time, by_fitfun=True, load_existing=True)

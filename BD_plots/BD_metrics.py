@@ -2,7 +2,7 @@ from plots import *
 from dimensionality_plot import *
 # behavioural metrics defined in Mouret, J., & Clune, J. (2015). Illuminating search spaces by mapping elites. 1–15.
 import os
-
+import operator
 HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
 
@@ -222,6 +222,44 @@ def _absolutecoverage(bd_shape,BD_directory, run, archive_file_path):
     num_filled=len(all_non_empty_performances)
     return float(num_filled)
 
+def _spread(bd_shape,BD_directory, run, archive_file_path,
+            individuals=[],distance_metric=norm_Euclidian_dist,
+            bd_start=1,comp=[]):
+    """
+    Measures how many cells of the feature space a run of an algorithm
+    is able to fill
+    :return:
+    """
+
+    path = get_archive_filepath(BD_directory, run, archive_file_path)
+    bd_list  = get_individual_bds(path,individuals,bd_start)
+    temp=0.0
+    comps=0.0
+
+
+
+
+    if not comp:
+        for i,bd1 in enumerate(bd_list):
+            for j,bd2 in enumerate(bd_list):
+                if i!=j:
+                    temp+=distance_metric(bd1,bd2)
+                    comps+=1.0
+        temp/=comps
+        assert comps==len(bd_list)*(len(bd_list)-1)
+        return temp
+    else:
+        comp =  get_individual_bds(path,comp,bd_start)[0]
+
+
+        for i,bd1 in enumerate(bd_list):
+            temp+=distance_metric(bd1,comp)  # no need to check for equality since if comp==bd1 this should be penalised
+            comps+=1.0
+        temp/=comps
+        assert comps==len(bd_list)
+        return temp
+
+
 def globalcoverage(BD_directory,runs,archive_file_path,by_bin):
     """
     averages the precision of the different maps in the combined archive
@@ -235,13 +273,28 @@ def globalcoverage(BD_directory,runs,archive_file_path,by_bin):
     return float(num_filled)
 def translated_coverages(t,BD_dir,runs, targets):
     d={target:[] for target in targets}
-    relative={target:[] for target in targets}
     for run in runs:
         for target, shape in targets.items():
             archive_file = "analysis" + str(t) + "_" + target + "REDUCED.dat"
             cov = _absolutecoverage(shape, BD_dir, run, archive_file)
             d[target].append(cov)
     print_conditional("translated coverages " + str(d))
+    return d
+
+def translated_spreads(t,BD_dir,runs,targets,bd_start,dists,individuals,comp):
+    d = {target: [] for target in targets}
+    for run in runs:
+        for target, shape in targets.items():
+            if individuals[run-1]:  # look for the unreduced archive
+                archive_file = "analysis" + str(t) + "_" + target + ".dat"
+            else: # look for the reduced archive individuals
+                archive_file = "analysis" + str(t) + "_" + target + "REDUCED.dat"
+            s = _spread(shape, BD_dir, run, archive_file,bd_start=bd_start.get(target,1),
+                        distance_metric=dists[target],
+                        individuals=individuals[run-1],
+                        comp=comp[run-1])
+            d[target].append(s)
+    print_conditional("translated spreads " + str(d))
     return d
 
 def add_boxplotlike_data(stats, y_bottom,y_mid,y_top, y_label,method_index,statistic="mean_SD"):
@@ -476,39 +529,149 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
                    ax=axis,title=title )
         j+=1
 
-def make_translation_table(tab_label,BD_dirs,runs,times):
+def get_all_best_individuals(BD_dir,runs,faults,gen,types=None):
+    """
+    get all the best individuals: FAULT_NONE, run1_p0..p39, run2_p0..p39, etc, and make a unique list of them
+    :param BD_dir:
+    :return:
+    """
+    all=[]
+    for run in runs:
+        if types!="only_fault":
+            maxind = get_best_individual(BD_dir+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_handcrafted.dat",
+                                                      as_string=False, add_performance=False, add_all=False, index_based=False)
+            all.append(maxind)
 
-    try:
+        if types!="only_comp":
+            for fault in faults:
+                maxind = get_best_individual(
+                    BD_dir + "/run" + str(run) + "_p"+str(fault)+"/results"+str(run)+"/analysis" + str(gen) + "_handcrafted.dat",
+                    as_string=False, add_performance=False, add_all=False, index_based=False)
+
+                all.append(maxind)
+
+    return all
+
+def get_spread(source, directory, gener, targets,bd_starts,dists):
+    if source == "all":
+        return translated_spreads(gener, directory  + "/FAULT_NONE",
+                                   runs,
+                                   targets=targets,
+                                   bd_start=bd_starts,  # bd_start is only required when using the reduced archive
+                                   dists=dists,
+                                   individuals=[[] for i in runs],
+                                   comp=[[] for i in runs]
+                                  )
+    elif source == "best_comp":
+        individuals = [
+            get_all_best_individuals(directory , [run], range(40), gener, types="only_fault")
+            for run
+            in runs]
+        comp = [
+            get_all_best_individuals(directory , [run], range(40), gener, types="only_comp") for
+            run
+            in runs]
+        return  translated_spreads(gener, directory + "/FAULT_NONE",
+                                   runs,
+                                   targets=targets,
+                                   bd_start={}, # bd_start is only required when using the reduced archive
+                                   dists=dists,
+                                   individuals=individuals,
+                                   comp=comp)
+    else:
+        individuals = [get_all_best_individuals(directory, [run], range(40), 10000) for run in
+                       runs]
+        return translated_spreads(gener, directory + "/FAULT_NONE",
+                                   runs,
+                                   targets=targets,
+                                   bd_start={}, # bd_start is only required when using the reduced archive
+                                   dists=dists,
+                                   individuals=individuals,
+                                  comp=[[] for i in runs])
+
+
+def apply_star_and_bold(text,descriptor,target,max_descriptor,second_max_descriptor):
+    if descriptor==max_descriptor:
+        text=text+r"^{*}"
+        if target == descriptor:
+            text=r"$"+text+r"$"
+        else:
+            text=r"$\mathbf{"+text+"}$"
+    else:
+        if descriptor==second_max_descriptor:
+            text = r"$\mathbf{" + text + "}$"
+    return text
+
+def make_translation_table(tab_label,BD_dirs,runs,times,source="all"):
+
+
         time_index = times.index(10000)  # only last
-
-        with open("results/evolution/table/coverage_table" + tab_label, "w") as f:
+        gener=times[time_index]
+        with open("results/evolution/table/coverage_table" + tab_label+source, "w") as f:
             targets = OrderedDict({"handcrafted": 4096, "sdbc": 4096, "spirit": 4096})
             labels = ["HBD", "SDBC", "SPIRIT"]
+            bd_starts = {"handcrafted":1,"sdbc":2,"spirit":2}
 
-            f.write(r"   & $\rightarrow$ %s & $\rightarrow$ %s & $\rightarrow$ %s \\ " % (
+            def mv(p1,p2):
+                return avg_variation_distance(p1,p2,16)
+
+            dists = {"handcrafted": norm_Euclidian_dist, "sdbc": norm_Euclidian_dist, "spirit": mv}
+            f.write(r"   & \multicolumn{4}{c}{$\rightarrow$ %s} & \multicolumn{4}{c}{$\rightarrow$ %s} & \multicolumn{4}{c}{$\rightarrow$ %s} \\ " % (
                 labels[0], labels[1], labels[2]))
             f.write("\n")
+            #f.write(r"   & coverage & spread & coverage & spread & coverage & spread \\ ")
+            f.write("\n")
             for i in range(len(bd_type)):
+                print(bd_type[i])
                 numbers = {target: [] for target in targets} # gather all the translated coverages for all targets
+                numbers2 = {target: [] for target in targets} # gather all the translated spreads for all targets
+                numbers3 = {target: [] for target in targets}  # gather all the translated spreads for all targets
+                numbers4 = {target: [] for target in targets}  # gather all the translated spreads for all targets
                 for directory in BD_dirs:
-                    temp = translated_coverages(times[time_index], directory + "/" + str(bd_type[i]) + "/FAULT_NONE",
+                    dirdir=directory + "/" + str(bd_type[i])
+                    temp = translated_coverages(gener, dirdir + "/FAULT_NONE",
                                                runs,
                                                targets=targets)
+                    print("finished 1")
+                    temp2 = get_spread("all",dirdir,gener,targets,bd_starts,dists)
+                    print("finished 2")
+                    temp3 = get_spread("best", dirdir, gener, targets, bd_starts, dists)
+                    print("finished 3")
+                    temp4 = get_spread("best_comp", dirdir, gener, targets, bd_starts, dists)
+                    print("finished 4")
                     for bd in targets:
                         numbers[bd] = np.append(numbers[bd], temp[bd])
+                        numbers2[bd] = np.append(numbers2[bd],temp2[bd])
+                        numbers3[bd] = np.append(numbers3[bd], temp3[bd])
+                        numbers4[bd] = np.append(numbers4[bd], temp4[bd])
                 avg_cov = {bd: np.mean(numbers[bd]) for bd in numbers}
                 std_cov = {bd: np.std(numbers[bd]) for bd in numbers}
+
+
+
+                avg_spread = {bd: np.mean(numbers2[bd]) for bd in numbers2}
+                std_spread = {bd: np.std(numbers2[bd]) for bd in numbers2}
+
+
+                avg_bspread = {bd: np.mean(numbers3[bd]) for bd in numbers3}
+                std_bspread = {bd: np.std(numbers3[bd]) for bd in numbers3}
+
+                avg_bcspread = {bd: np.mean(numbers4[bd]) for bd in numbers4}
+                std_bcspread = {bd: np.std(numbers4[bd]) for bd in numbers4}
                 # base_coverage = float(y_mid["absolute_coverage"][i][time_index])
                 # relative_tl_cv=avg_cov/base_coverage # % of solutions maintained
                 f.write(legend_labels[i])
                 for tg in targets:
-                    f.write(r" & $%d \pm %d$ " % (avg_cov[tg], std_cov[tg]))
+                    f.write(r" & $%d \pm %d$ & $%.3f \pm %.2f$ & $%.3f \pm %.2f$ & $%.3f \pm %.2f$" % (
+                    avg_cov[tg], std_cov[tg],
+                    avg_spread[tg], std_spread[tg],
+                    avg_bspread[tg], std_bspread[tg],
+                    avg_bcspread[tg], std_bcspread[tg]))
 
                     # f.write(r"& %d "%(relcov))
                 f.write(r"\\ ")
                 f.write("\n")
-    except Exception as e:
-        print(e)
+
 
 
 
@@ -601,6 +764,8 @@ def create_coverage_development_plots():
 
     finish_fig(fig, RESULTSFOLDER +"/evolution/development/CoverageLOGSCALE_allruns.pdf")
 
+
+
 if __name__ == "__main__":
     
     
@@ -614,20 +779,20 @@ if __name__ == "__main__":
     runs=range(1,6)
     fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
                "DecayBorderCoverage","Flocking"]  # ,"DecayBorderCoverage","Flocking"]
-    bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
+    bd_type = ["history","Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
              ]  # file system label for bd
     legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
     generation=10000
 
-    ##make_translation_table("global", [get_bd_dir(f) for f in fitfuns], runs,times=[generation])
+    make_translation_table("DEBUG", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
          # print_best_individuals(
          #     BD_dir="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
          #     outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
 
 
-    make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
+    #make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
 
 
-    #create_coverage_development_plots()
+    create_coverage_development_plots()
 
     #create_all_development_plots()

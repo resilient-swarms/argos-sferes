@@ -23,12 +23,14 @@ def add_to_archive(individual,bd , fitness,new_archive, transformation,transform
     if bin is not None:
         new_archive[bin] = (individual, fitness)
 
-def reduce_translated_archive(archive_file,transform_condition,new_archive_file,transform_data):
+def reduce_translated_archive(archive_file,transform_condition,new_archive_file,transform_data,individuals=[]):
     """
     from a translated archive, reduce it such that it only contains the best for each bin
     :return:
     """
-    new_archive=get_bin_performances_duplicatearchive(archive_file,transform_condition,transform_data,as_string=False, add_indiv=True)
+
+    new_archive = get_bin_performances_duplicatearchive(archive_file, transform_condition, transform_data,
+                                                            as_string=False,match_individuals=individuals)
     # finally print the new archive to file
     f=open(new_archive_file,"w")
     for bd, entry in new_archive.items():

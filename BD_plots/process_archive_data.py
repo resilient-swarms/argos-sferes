@@ -179,15 +179,24 @@ def get_ind_performances_uniquearchive(path):
         performance=float(item[-1])
         bin_performance_dict[ind]=performance
     return bin_performance_dict
-def get_individual_bd(path,ind):
+def get_individual_bd(path,ind,bd_start=1):
     parsed_file_list = read_spacedelimited(path)
 
     for item in parsed_file_list:
-            individual = item[0]
+            individual = item[bd_start-1]
             if individual==ind:
-                return np.array(tuple(item[1:-1]),float)
+                return np.array(tuple(item[bd_start:-1]),float)
     raise Exception("individual not found")
 
+def get_individual_bds(path,ind=[],bd_start=1):
+    parsed_file_list = read_spacedelimited(path)
+    temp=[]
+    if ind:
+        return [get_individual_bd(path, i, bd_start) for i in ind]
+    else:
+        for item in parsed_file_list:
+            temp.append(np.array(tuple(item[bd_start:-1]),float))
+    return temp
 
 def get_bin_performances_uniquearchive(path,as_string=True, add_indiv=False,fitnessfile=False):
     """
@@ -222,7 +231,7 @@ def get_bin_performances_uniquearchive(path,as_string=True, add_indiv=False,fitn
         return bin_performance_dict, individuals
 
 
-def get_bin_performances_duplicatearchive(path,add_function,helper_data,as_string=True, add_indiv=False):
+def get_bin_performances_duplicatearchive(path,add_function,helper_data,as_string=True,match_individuals=[]):
     """
     get the bin performance dict assuming the archive includes duplicate bins
     """
@@ -230,6 +239,9 @@ def get_bin_performances_duplicatearchive(path,add_function,helper_data,as_strin
     bin_performance_dict={}
     for item in parsed_file_list:
         ind = item[0]
+        if match_individuals:
+            if ind not in match_individuals:  # only add specific individuals
+                continue
         b=tuple(item[1:-1])
         if as_string:
             b=str(b)
