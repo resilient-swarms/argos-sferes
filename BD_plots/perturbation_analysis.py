@@ -912,13 +912,14 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
     """
     loadfilename = "data/fitfun/summary_statistics_fitfun.pkl" if by_fitfun else "data/combined/summary_statistics.pkl"
     if load_existing:
-        best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(open(loadfilename,"rb"))
+        best_performance_data, performance_data, best_transfer_data, transfer_data, recovery_data, resilience_data = pickle.load(open(loadfilename,"rb"))
     else:
         best_performance_data = []
         performance_data = []
         transfer_data = []
         best_transfer_data = []
         resilience_data = []
+        recovery_data = []
 
         for i in range(len(bd_type)):
             print(bd_type[i])
@@ -927,6 +928,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
             best_transfer_data.append([])
             transfer_data.append([])
             resilience_data.append([])
+            recovery_data.append([])
             for j in range(len(fitfuns)):
                 print(fitfuns[j])
                 BD_dir = get_bd_dir(fitfuns[j])
@@ -946,6 +948,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
                 # join all the data from all the fault archives:
                 performances = []
                 best_performances = []
+                recovery = []
                 resilience = []
                 transfer = []
                 best_transfer = []
@@ -960,7 +963,8 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
                         maxind, best_performance = get_best_individual(path, add_performance=True,index_based=True)
 
                         best_performances = np.append(best_performances, best_performance)
-                        # best performance vs best nofaultperf
+
+                        recovery = np.append(recovery, [(best_performance - best_nofaultperfs[r])/baseline_performances[fitfuns[j]]])                        # best performance vs best nofaultperf
                         resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / best_nofaultperfs[r])
                         # all performances vs all nofaultperformances
                         for k in range(len(nofaultperfs[r])):
@@ -976,6 +980,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
                     transfer_data[i].append(transfer)
                     best_transfer_data[i].append(best_transfer)
                     resilience_data[i].append(resilience)
+                    recovery_data[i].append(recovery)
                 else:
                     # normalise by maximal fitness (make different performance data comparable)
                     best_performance_data[i] = np.append(best_performance_data[i],best_performances/baseline_performances[fitfuns[j]])
@@ -983,9 +988,10 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
                     transfer_data[i] = np.append(transfer_data[i], transfer)
                     best_transfer_data[i] = np.append(best_transfer_data[i],best_transfer)
                     resilience_data[i] = np.append(resilience_data[i],resilience)
+                    recovery_data[i] = np.append(recovery_data[i],recovery)
 
     from scipy.stats import mannwhitneyu
-    all_data = (best_performance_data, performance_data, best_transfer_data, transfer_data,resilience_data)
+    all_data = (best_performance_data, performance_data, best_transfer_data, transfer_data,recovery_data,resilience_data)
     if by_fitfun:
         if not load_existing:
             pickle.dump(all_data,
@@ -994,13 +1000,13 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
             make_table(f,all_data,
                        rowlabels=fitfunlabels,
                        columnlabels=legend_labels,
-                       conditionalcolumnlabels=[("bestperformance","float3"),("besttransfer","float3"),("resilience","float3")],
+                       conditionalcolumnlabels=[("bestperformance","float3"),("besttransfer","float3"),("recovery","float3"),("resilience","float3")],
                        transpose=True)
         with open("results/fault/summary_table_fitfun_median","w") as f:
             make_table(f,all_data,
                        rowlabels=fitfunlabels,
                        columnlabels=legend_labels,
-                       conditionalcolumnlabels=[("bestperformance","float3"),("besttransfer","float3"),("resilience","float3")],
+                       conditionalcolumnlabels=[("bestperformance","float3"),("besttransfer","float3"),("recovery","float3"),("resilience","float3")],
                        median=True,
                        transpose=True)
     else:
@@ -1011,12 +1017,12 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
             make_table(f,all_data,
                        rowlabels=legend_labels,
                        columnlabels=[],
-                       conditionalcolumnlabels=[("bestperformance","float3"),("performance","float3"),("besttransfer","float3"),("transfer","float3"),("resilience","float3")])
+                       conditionalcolumnlabels=[("bestperformance","float3"),("performance","float3"),("besttransfer","float3"),("transfer","float3"),("recovery","float3"),("resilience","float3")])
         with open("results/summary_table_median", "w") as f:
             make_table(f, all_data,
                            rowlabels=legend_labels,
                            columnlabels=[],
-                           conditionalcolumnlabels=[("bestperformance","float3"),("performance","float3"),("besttransfer","float3"),("transfer","float3"),("resilience","float3")],
+                           conditionalcolumnlabels=[("bestperformance","float3"),("performance","float3"),("besttransfer","float3"),("transfer","float3"),("recovery","float3"),("resilience","float3")],
                             median=True)
 
 
@@ -1185,7 +1191,7 @@ if __name__ == "__main__":
     #
 
     #
-    #test_significance(legend_labels,by_fitfun=False)
+    #test_significance(legend_labels,by_fitfun=False)besttransfer
     #
     #test_significance(legend_labels, by_fitfun=True)
 
@@ -1193,5 +1199,5 @@ if __name__ == "__main__":
 
 
 
-    significance_data(fitfuns, fitfunlabels, bd_type, runs, faults, time, by_fitfun=True, load_existing=True)
+    significance_data(fitfuns, fitfunlabels, bd_type, runs, faults,10000, by_fitfun=False, load_existing=True)
     #significance_data(fitfuns, fitfunlabels, bd_type, runs, faults, time, by_fitfun=False, load_existing=True)

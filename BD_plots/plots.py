@@ -94,7 +94,7 @@ def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[],median
             table_entry_rowcondition(f,rowlabels[i])
             for j in range(len(columnlabels)):
                 for k in range(len(conditionalcolumnlabels)): # needs some fix here
-                    if transpose:
+                    if not transpose:
                         stat = stats[k][j][i]
                     else:
                         stat = stats[k][i][j]
@@ -107,7 +107,7 @@ def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[],median
         for i in range(len(rowlabels)):
             table_entry_rowcondition(f,rowlabels[i])
             for j in range(len(conditionalcolumnlabels)):
-                if transpose:
+                if not transpose:
                     stat = stats[j][i]
                 else:
                     stat = stats[i][j]

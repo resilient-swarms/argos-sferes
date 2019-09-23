@@ -33,13 +33,13 @@ def get_data(metric,bd,fitfuns,history_type):
                 raise Exception("not implemented")
             x = np.append(x, np.array(dps) / np.array(nofaultperfs))
         return x,y
-def plot(xs,ys,name,titles,type="maxvar"):
+def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False):
     ## Axis limits for plots of generation 8000
 
-    xmin = -0.40  # m1.min()
-    xmax = 0.10  # m1.max()
-    ymin = 0  # m2.min()
-    ymax = 1  # m2.max()
+    xmin = xlim[0]  # m1.min()
+    xmax = xlim[1]  # m1.max()
+    ymin = ylim[0]  # m2.min()
+    ymax = ylim[1]  # m2.max()
     # xmin = m1.min()
     # xmax = m1.max()
     # ymin = m2.min()
@@ -47,6 +47,7 @@ def plot(xs,ys,name,titles,type="maxvar"):
     X, Y = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
     positions = np.vstack([X.ravel(), Y.ravel()])
     fig = plt.figure(figsize=(50,10))
+    plt.rc('grid', linestyle="dashdot", color='black',alpha=0.50)
     for i in range(len(xs)):
         values = np.vstack([xs[i],ys[i]])
         kernel = gaussian_kde(values)
@@ -54,6 +55,7 @@ def plot(xs,ys,name,titles,type="maxvar"):
         print("max=%.3f  sum=%.3f"%(np.max(Z), np.sum(Z)))
 
         ax = fig.add_subplot(1,len(xs)+1,i+1)
+        ax.grid(grid)
         img = ax.imshow(np.rot90(Z), cmap=plt.cm.gist_earth_r, extent=[xmin, xmax, ymin, ymax], aspect='auto',
                          vmax=21)  # ,vmax=10 'auto'
         ax.tick_params(axis='both', which='major', labelsize=28)
@@ -62,10 +64,12 @@ def plot(xs,ys,name,titles,type="maxvar"):
 
 
 
+
     num_squares=100.0*100.0
     area_size=(ymax-ymin)*(xmax-xmin)/num_squares
     rounded_max=20.0
     print("chosen % = " +str(100*rounded_max*area_size))
+
     # vmax=50 or whatever is max across all plots, the max. colorbar tick label is then set to '> vmax/max sum * 100 '
 
     # plt.plot(m1, m2, 'k.', markersize=2)
@@ -83,8 +87,8 @@ def plot(xs,ys,name,titles,type="maxvar"):
     cbar.set_ticks([0, rounded_max/2.0, rounded_max])
     cbar.ax.set_yticklabels(['0%', '0.05%', ">0.1%"],fontsize=25)
 
-    fig.text(0.43, 0.015, 'resilience', ha='center', fontsize=36)
-    fig.text(0.095, 0.5, 'diversity', va='center', rotation='vertical', fontsize=36)
+    fig.text(0.43, 0.015, axis_names[0], ha='center', fontsize=36)
+    fig.text(0.095, 0.5, axis_names[1], va='center', rotation='vertical', fontsize=36)
     plt.savefig("results/fault/density/"+name+".pdf")
     plt.close()
 
@@ -96,4 +100,6 @@ if __name__ == "__main__":
         x,y=get_data("maxvar",bd,["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage"],"xy")
         xs.append(x)
         ys.append(y)
-    plot(xs,ys,"maxvar",titles=["HBD","SDBC","SPIRIT","QED"])
+    plot(xs,ys,"maxvar_blackgrid",titles=["HBD","SDBC","SPIRIT","QED"],
+         axis_names=["resilience","diversity"],
+         xlim=[-0.4,0.1],ylim=[0,1],grid=True)
