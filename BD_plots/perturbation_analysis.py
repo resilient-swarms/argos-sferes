@@ -1026,54 +1026,72 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
                             median=True)
 
 
-def test_significance(bd_type,by_fitfun):
+def test_significance(bd_type,by_fitfun,data_type):
 
    if not by_fitfun:
-       best_performance_data, performance_data, best_transfer_data,transfer_data, resilience_data = pickle.load(open("data/combined/summary_statistics.pkl", "rb"))
+       best_performance_data, performance_data, best_transfer_data,transfer_data, recovery_data, resilience_data = pickle.load(open("data/combined/summary_statistics.pkl", "rb"))
    else:
        best_performance_data, performance_data, best_transfer_data , transfer_data, resilience_data = pickle.load(open("data/fitfun/summary_statistics_fitfun.pkl", "rb"))
 
+   if data_type=="resilience":
+       data=resilience_data
+   elif data_type == "recovery":
+       data = recovery_data
+   elif data_type=="best_performance":
+       data=best_performance_data
+   elif data_type=="best_transfer":
+       data=best_transfer_data
+   elif data_type == "transfer":
+       data = transfer_data
+   elif data_type == "performance":
+       data = performance_data
+   else:
+       raise Exception("specify data_type")
 
    if by_fitfun:
        for f in range(len(fitfuns)):
            print(fitfuns[f])
            for i in range(len(bd_type)):
-               x=resilience_data[i][f]
+               x=data[i][f]
                for j in range(0,len(bd_type)):
-                   y=resilience_data[j][f]
+                   y=data[j][f]
                    stat,p = ranksums(x,y)
                    print("%s vs %s : U=%.2f, p=%.6f"%(bd_type[i],bd_type[j],stat,p))
                    if i != j:
-                       delta = cliffs_delta(stat,x,y)
-                       print("Cliffs delta: %.3f"%(delta))
+                       delta, label= cliffs_delta(stat,x,y)
+                       print("Cliffs delta: %.3f   %s"%(delta,label))
    else:
        print("OVERALL")
        for i in range(len(bd_type)):
-           x = resilience_data[i]
+           x = data[i]
            for j in range(0, len(bd_type)):
-               y = resilience_data[j]
+               y = data[j]
                stat, p = ranksums(x, y)
                print("%s vs %s : U=%.2f, p=%.6f" % (bd_type[i], bd_type[j], stat, p))
                if i != j:
-                   delta = cliffs_delta(stat, x, y)
-                   print("Cliffs delta: %.3f" % (delta))
+                   delta, label = cliffs_delta(stat, x, y)
+                   print("Cliffs delta: %.3f   %s"%(delta,label))
 def make_significance_table(fitfunlabels,conditionlabels,table_type="resilience"):
 
     best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(
             open("data/fitfun/summary_statistics_fitfun.pkl", "rb"))
     if table_type=="resilience":
         qed=resilience_data[-1] # QED
+        data=resilience_data
     else:
-        qed=transfer_data[-1]
-    with open("results/fault/table/significance_table","w") as f:
-        f.write(r"& \multicolumn{6}{c}{\textbf{Condition}}")
+        qed=best_performance_data[-1]
+        data=best_performance_data
+    with open("results/fault/table/significance_table"+table_type,"w") as f:
+        f.write(r"& \multicolumn{9}{c}{\textbf{Condition}}")
         newline_latex(f,add_hline=True)
         f.write(r"\textbf{Swarm task}")
+        f.write(r"& QED")
         for condition in conditionlabels:
-            f.write(r"& \multicolumn{2}{c|}{"+str(condition)+"}")
+            f.write(r"& \multicolumn{3}{c|}{"+str(condition)+"}")
         newline_latex(f,add_hline=True)
+        f.write(r"& %s " % (table_type))
         for condition in conditionlabels:
-            f.write(r"& significance & effect size")
+            f.write(r"& %s & significance & effect"%(table_type))
         newline_latex(f,add_hline=True)
 
         m=len(fitfuns)*3 # number of comparisons
@@ -1084,8 +1102,15 @@ def make_significance_table(fitfunlabels,conditionlabels,table_type="resilience"
         for k,fitfun in enumerate(fitfunlabels):
             f.write(fitfun)
             x = qed[k]
+            # first write QED's resilience score
+            mx = np.mean(x)
+            iqrx = np.quantile(x, 0.75) - np.quantile(x, 0.25)
+            f.write(r"& $%.2f \pm %.1f$" % (mx,iqrx))
+            # now write other's resilience score and significance values
             for j, condition in enumerate(conditionlabels):
-                y = resilience_data[j][k]
+                y = data[j][k]
+                m=np.mean(y)
+                iqr=np.quantile(y,0.75) - np.quantile(y,0.25)
                 U, p = ranksums(x, y)
                 p_value = "p=%.3f"%(p) if p>0.001 else r"p<0.001"
                 if p < alpha_best:
@@ -1094,8 +1119,8 @@ def make_significance_table(fitfunlabels,conditionlabels,table_type="resilience"
                     if p < alpha_weak:
                         p_value+="^{*}"
                 delta,label = cliffs_delta(U, x, y)
-                delta_value = r"\mathbf{%.3f}"%(delta) if label == "large" else r"%.3f"%(delta)
-                f.write(r"& $%s$ & $%s$"%(p_value,delta_value))
+                delta_value = r"\mathbf{%.2f}"%(delta) if label == "large" else r"%.2f"%(delta)
+                f.write(r"& $%.2f \pm %.1f$ & $%s$ & $%s$"%(m,iqr,p_value,delta_value))
             newline_latex(f)
 
 
@@ -1113,16 +1138,36 @@ def cliffs_delta(U,x,y):
     n=len(y)
 
     # delta =  2.0*U/float(m*n) - 1.0
+    if len(x) > 2000 or len(y)>2000:   # avoid memory issues
+        print("starting with lengths %d %d "%(m,n))
+        print("digitising samples")
+        xspace=np.linspace(x.min(),x.max(),500)
+        yspace = np.linspace(x.min(), x.max(), 500)
+        freq_x=np.histogram(x, bins=xspace)[0]
+        freq_y=np.histogram(y, bins=yspace)[0]
 
-    z=np.array([xx - yy for xx in x for yy in y]) # consider all pairs of data
-    count=float(sum(z>0) - sum(z<0))/float(m*n)
+        count=0
+        for i in range(len(freq_x)):
+            for j in range(len(freq_y)):
+                num_combos=freq_x[i]*freq_y[j]
+                xx=xspace[i]
+                yy=yspace[j]
+                if xx > yy:
+                    count+=num_combos
+                else:
+                    count-=num_combos
+        count/=float(m*n)
+    else:
+        z=np.array([xx - yy for xx in x for yy in y]) # consider all pairs of data
+        count=float(sum(z>0) - sum(z<0))/float(m*n)
     # assert count==delta, "delta:%.3f  count:%.3f"%(delta,count)
     label = None
-    if count < 0.11:
+    magn=abs(count)
+    if magn < 0.11:
         label="negligible"
-    elif count < 0.28:
+    elif magn < 0.28:
         label="small"
-    elif count < 0.43:
+    elif magn < 0.43:
         label="medium"
     else:
         label="large"
@@ -1199,5 +1244,12 @@ if __name__ == "__main__":
 
 
 
-    significance_data(fitfuns, fitfunlabels, bd_type, runs, faults,10000, by_fitfun=False, load_existing=True)
+    #significance_data(fitfuns, fitfunlabels, bd_type, runs, faults,10000, by_fitfun=False, load_existing=True)
     #significance_data(fitfuns, fitfunlabels, bd_type, runs, faults, time, by_fitfun=False, load_existing=True)
+
+    #test_significance(legend_labels,
+    #                      by_fitfun=False,
+    #                      data_type="transfer"
+    #                  )
+
+    #make_significance_table(fitfunlabels, legend_labels[:-1], table_type="best_performance")
