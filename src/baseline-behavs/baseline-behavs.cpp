@@ -56,8 +56,7 @@ void CBaselineBehavs::ExperimentToRun::Init(TConfigurationNode& t_node)
         SBehavior = SWARM_STOP;
     else
     {
-        std::cerr << "invalid swarm behavior";
-        assert(-1);
+        std::runtime_error("invalid swarm behavior:"+swarmbehav);
     }
 
 

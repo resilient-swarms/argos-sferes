@@ -157,4 +157,4 @@ CColor CBaselineBehavsLoopFunctions::GetFloorColor(const CVector2 &c_position_on
 /****************************************/
 /****************************************/
 
-REGISTER_LOOP_FUNCTIONS(CBaselineBehavsLoopFunctions, "baseline-behavs-loop-functions")
+REGISTER_LOOP_FUNCTIONS(CBaselineBehavsLoopFunctions, "baseline-behavs-loopfunctions")

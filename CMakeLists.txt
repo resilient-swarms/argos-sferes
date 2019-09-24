@@ -160,7 +160,7 @@ if(BASELINE)
         src/baseline-behavs/flockingbehavior.cpp
         src/baseline-behavs/circlebehavior.h
         src/baseline-behavs/circlebehavior.cpp)
-     set(LOOPFUN baseline-behavs-loopfunc)
+     set(LOOPFUN baseline-behavs-loopfunctions)
      set(baseline-behavs-loopfunc-SOURCES src/baseline-behavs/baseline-behavs-loopfunc.cpp)
      if(ARGOS_COMPILE_QTOPENGL)
         set(baseline-behavs-loopfunc-SOURCES
@@ -168,13 +168,13 @@ if(BASELINE)
             src/core/robotid_vis.cpp)
      endif(ARGOS_COMPILE_QTOPENGL)
 
-     add_library(baseline-behavs-loopfunc SHARED
+     add_library(baseline-behavs-loopfunctions SHARED
         ${baseline-behavs-loopfunc-SOURCES})
 
     message("LF SOURCES is " ${baseline-behavs-loopfunc-SOURCES})
 
     if(ARGOS_COMPILE_QTOPENGL)
-        target_link_libraries(baseline-behavs-loopfunc argos3plugin_simulator_qtopengl)
+        target_link_libraries(baseline-behavs-loopfunctions argos3plugin_simulator_qtopengl)
     endif(ARGOS_COMPILE_QTOPENGL)
 
     set(EXECUTABLE baseline_behaviour) 

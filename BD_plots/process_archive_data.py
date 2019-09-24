@@ -198,6 +198,17 @@ def get_individual_bds(path,ind=[],bd_start=1):
             temp.append(np.array(tuple(item[bd_start:-1]),float))
     return temp
 
+
+def parse_bins(path,bin_index):
+    parsed_file_list=read_spacedelimited(path)
+    bins=[]
+    for item in parsed_file_list:
+        b=str(tuple([item[i] for i in bin_index]))
+        bins.append(b)
+    return bins
+
+
+
 def get_bin_performances_uniquearchive(path,as_string=True, add_indiv=False,fitnessfile=False):
     """
     get the bin performance dict assuming the archive includes no duplicate bins

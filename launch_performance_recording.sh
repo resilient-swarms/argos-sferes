@@ -16,20 +16,32 @@ sleep 2.5
 mkdir -p $data
 declare -A descriptors
 declare -A voronoi
+declare -A behav
+behav["Aggregation"]="SWARM_AGGREGATION"
+behav["Dispersion"]="SWARM_DISPERSION"
+behav["DecayCoverage"]="SWARM_COVERAGE"
+behav["DecayBorderCoverage"]="SWARM_BORDERCOVERAGE"
+behav["Flocking"]="SWARM_FLOCKING"
 
 command="bin/analysis" # note: cvt and 10D does not really matter since we are not evolving
 
-descriptors["environment_diversity"]=6
-voronoi["environment_diversity"]=""
+# descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+# voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
-descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+# descriptors["environment_diversity"]=6
+# voronoi["environment_diversity"]=""
 
-descriptors["history"]=3
-voronoi["history"]=""
 
-descriptors["cvt_rab_spirit"]=1024
-voronoi["cvt_rab_spirit"]="cvt"
+# descriptors["history"]=3
+# voronoi["history"]=""
+
+# descriptors["cvt_rab_spirit"]=1024
+# voronoi["cvt_rab_spirit"]="cvt"
+
+descriptors["baseline"]=""
+voronoi["baseline"]=""
+
+
 
 time["DecayCoverage"]=400
 time["DecayBorderCoverage"]=400
@@ -41,7 +53,7 @@ for FaultType in "FAULT_NONE"; do
 	SimTime=${time[${FitfunType}]}
 	echo "simtime"${SimTime}
 	for FaultID in "-1"; do
-		for FitfunType in Aggregation Dispersion Flocking; do
+		for FitfunType in Flocking; do
 			echo 'Fitfun'${FitFunType}
 			for SensorRange in 0.11; do
 				echo 'sens'${SensorRange}
@@ -49,7 +61,16 @@ for FaultType in "FAULT_NONE"; do
 					DescriptorType=${key}
 					BD_DIMS=${descriptors[${key}]}
 					CVT=${voronoi[${DescriptorType}]}
-					tag=${CVT}${BD_DIMS}DANA
+					if [ "$DescriptorType" = "baseline" ]; then
+						tag=""
+						SwarmBehaviour=${behav[${FitfunType}]}
+						echo "SwarmBehaviour = "${SwarmBehaviour}
+						sleep 5
+						
+					else
+						tag=${CVT}${BD_DIMS}DANA
+						SwarmBehaviour="/"
+					fi
 					echo "doing ${DescriptorType} now"
 					echo "has ${BD_DIMS} dimensions"
 					echo "tag is ${tag}"
@@ -85,8 +106,21 @@ for FaultType in "FAULT_NONE"; do
 								-e "s|BEHAVIOUR_TAG|${tag}|" \
 								-e "s|FAULT_TYPE|${FaultType}|" \
 								-e "s|FAULT_ID|${FaultID}|" \
+								-e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
 								experiments/experiment_template_perturbation.argos \
 								>${ConfigFile}
+						    if [ "$DescriptorType" = "baseline" ]; then
+								echo "changing loopfunction"
+								sed -i "s|evolution_loop|baseline-behavs-loop|" ${ConfigFile}
+								sed -i "s|nn_controller|baseline-behavs|" ${ConfigFile}
+								sed -i "s|tnn|bb|" ${ConfigFile}
+								if [ "$FitfunType" = "Flocking" ]; then
+									# halve speeds and double simtime
+									sed -i 's|ticks_per_second="5"|ticks_per_second="10"|' ${ConfigFile}
+									sed -i 's|max_speed="10"|max_speed="5"|' ${ConfigFile}
+									sed -i 's|iterations="5"|iterations="10"|' ${ConfigFile}
+								fi
+							fi
 							if [ ! -z "${CVT}" ]; then
 								echo ${CVT}
 								#python sferes2/modules/cvt_map_elites/cvt.py -k 1000 -d ${BD_DIMS} -p 100000 -f ${Outfolder}
@@ -117,13 +151,16 @@ for FaultType in "FAULT_NONE"; do
 
 							echo "submitting job"
 							bash zero_padding_data.sh ${Base}/results${SUFFIX} # make sure everything is zero-padded
-							
-							if [ "$2" = "best" ]; then
-								bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
+							if [ "$DescriptorType" = "baseline" ]; then
+								echo "will submit baseline job"
+								bash submit_baseline_job.sh   # just record the performance of the baseline controllers in the faulty environment
 							else
-								sbatch submit_test.sh $2 # submit to iridis
+								if [ "$2" = "best" ]; then
+									bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
+								else
+									sbatch submit_test.sh $2 # submit to iridis
+								fi
 							fi
-
 						done
 					done
 				done

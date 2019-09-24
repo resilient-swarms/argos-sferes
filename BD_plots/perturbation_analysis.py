@@ -1238,7 +1238,7 @@ if __name__ == "__main__":
     #
     #test_significance(legend_labels,by_fitfun=False)besttransfer
     #
-    #test_significance(legend_labels, by_fitfun=True)
+    test_significance(legend_labels, by_fitfun=True)
 
     #plot_histogram(bd_type)
 

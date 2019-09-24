@@ -259,6 +259,30 @@ def _spread(bd_shape,BD_directory, run, archive_file_path,
         assert comps==len(bd_list)
         return temp
 
+def uniqueness(BD_directory,runs, gener,targets, bin_indexes):
+    """
+    calculates uniqueness values, for combined archive and single archive
+    :param BD_directory:
+    :param runs:
+    :param archive_file_path:
+    :param bin_indexes
+    :return:
+    """
+    ub_dict={}
+    comb_ub_dict={}
+    for target in targets:
+        comb_unique_bins=set([])
+        unique_bins=[]
+        for run in runs:
+
+            u=set(parse_bins(BD_directory+"/results"+str(run)+"/analysis"+str(gener)+"_"+target+"REDUCED.dat",bin_indexes[target]))
+            unique_bins.append(u)
+            comb_unique_bins = comb_unique_bins | u
+        ub_dict[target]=unique_bins
+        comb_ub_dict[target]=comb_unique_bins
+
+    return ub_dict,comb_ub_dict
+
 
 def globalcoverage(BD_directory,runs,archive_file_path,by_bin):
     """
@@ -611,6 +635,7 @@ def make_translation_table(tab_label,BD_dirs,runs,times,source="all"):
             targets = OrderedDict({"handcrafted": 4096, "sdbc": 4096, "spirit": 4096})
             labels = ["HBD", "SDBC", "SPIRIT"]
             bd_starts = {"handcrafted":1,"sdbc":2,"spirit":2}
+            bin_indexes = {"handcrafted":range(1,4),"sdbc":[1],"spirit":[1]}
 
             def mv(p1,p2):
                 return avg_variation_distance(p1,p2,16)
@@ -621,24 +646,50 @@ def make_translation_table(tab_label,BD_dirs,runs,times,source="all"):
             f.write("\n")
             #f.write(r"   & coverage & spread & coverage & spread & coverage & spread \\ ")
             f.write("\n")
+
+
+            combo_u=[]
+            for i in range(len(bd_type)):
+                combo_u.append({target: set([]) for target in targets})
+                for directory in BD_dirs:
+                    dirdir = directory + "/" + str(bd_type[i])
+                    u,combined_u= uniqueness(dirdir + "/FAULT_NONE", runs, gener, targets, bin_indexes)
+                    combo_u[i]={target: combined_u[target] | combo_u[i][target] for target in targets}
+
+            print("computing uniqueness scores")
+            for target in targets:
+                for i in range(len(bd_type)):
+                    print(bd_type[i] + " : target ->"+str(target))
+                    unique_score=0
+                    for j in range(len(bd_type)):
+                        if i!=j:
+                            # count the number of elements not contained
+                            difference = combo_u[i][target] - combo_u[j][target]
+                            unique_score+=len(difference)
+                    unique_score/=float(len(bd_type) - 1)
+                    print(unique_score)
+
+
             for i in range(len(bd_type)):
                 print(bd_type[i])
                 numbers = {target: [] for target in targets} # gather all the translated coverages for all targets
                 numbers2 = {target: [] for target in targets} # gather all the translated spreads for all targets
                 numbers3 = {target: [] for target in targets}  # gather all the translated spreads for all targets
                 numbers4 = {target: [] for target in targets}  # gather all the translated spreads for all targets
+                numbers5 = {target: [] for target in targets}
                 for directory in BD_dirs:
                     dirdir=directory + "/" + str(bd_type[i])
-                    temp = translated_coverages(gener, dirdir + "/FAULT_NONE",
-                                               runs,
-                                               targets=targets)
-                    print("finished 1")
-                    temp2 = get_spread("all",dirdir,gener,targets,bd_starts,dists)
-                    print("finished 2")
-                    temp3 = get_spread("best", dirdir, gener, targets, bd_starts, dists)
-                    print("finished 3")
-                    temp4 = get_spread("best_comp", dirdir, gener, targets, bd_starts, dists)
-                    print("finished 4")
+                    # temp = translated_coverages(gener, dirdir + "/FAULT_NONE",
+                    #                            runs,
+                    #                            targets=targets)
+                    # print("finished 1")
+                    # temp2 = get_spread("all",dirdir,gener,targets,bd_starts,dists)
+                    # print("finished 2")
+                    # temp3 = get_spread("best", dirdir, gener, targets, bd_starts, dists)
+                    # print("finished 3")
+                    # temp4 = get_spread("best_comp", dirdir, gener, targets, bd_starts, dists)
+                    # print("finished 4")
+
                     for bd in targets:
                         numbers[bd] = np.append(numbers[bd], temp[bd])
                         numbers2[bd] = np.append(numbers2[bd],temp2[bd])
@@ -658,6 +709,8 @@ def make_translation_table(tab_label,BD_dirs,runs,times,source="all"):
 
                 avg_bcspread = {bd: np.mean(numbers4[bd]) for bd in numbers4}
                 std_bcspread = {bd: np.std(numbers4[bd]) for bd in numbers4}
+
+
                 # base_coverage = float(y_mid["absolute_coverage"][i][time_index])
                 # relative_tl_cv=avg_cov/base_coverage # % of solutions maintained
                 f.write(legend_labels[i])
