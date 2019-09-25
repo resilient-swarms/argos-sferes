@@ -171,6 +171,12 @@ def get_best_individual(path, as_string=False, add_performance=False, add_all=Fa
 
         return maxind
 
+def get_baseline_fitness(path):
+    parsed_file_list=read_spacedelimited(path)
+    for item in parsed_file_list:
+        performance = float(item[0])
+        return performance
+
 def get_ind_performances_uniquearchive(path):
     parsed_file_list=read_spacedelimited(path)
     bin_performance_dict=OrderedDict()

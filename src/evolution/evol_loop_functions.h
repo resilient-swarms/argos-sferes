@@ -20,6 +20,7 @@
 
 #include <src/evolution/nn_controller.h>
 #include <src/core/base_loop_functions.h>
+#include <src/evolution/serialisation_functions.hpp>
 /****************************************/
 /****************************************/
 
@@ -214,8 +215,13 @@ FIT_MAP(FitObstacleMapElites){
             for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
                 cLoopFunctions.m_pcvecController[j]->nn = ind.nn_cpy();
         #ifdef PRINTING
+	    std::cout<<"writing individual to .dot file"<<std::endl;
             std::ofstream ofs("nn.dot");
             ind.nn().write(ofs);
+
+            NNSerialiser ser = NNSerialiser();
+            ser.Save<Indiv>(ind);
+
         #endif
             float fFitness = cLoopFunctions.run_all_trials(cSimulator);
             set_dead(cLoopFunctions.stop_eval);

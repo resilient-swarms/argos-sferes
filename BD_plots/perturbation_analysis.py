@@ -890,11 +890,73 @@ def get_max_performances(bd_type,fitfuns,generation):
 
 
 
+def get_baseline_performances(nofaultpath):
+        nofaultfilenames = [nofaultpath + str(run) + "/fitness" for run in runs]
+        nofaultperfs = [get_baseline_fitness(f) for f in
+                        nofaultfilenames]
+
+        return nofaultperfs
+
+def add_fault_performance(j, r, nofaultperfs,best_nofaultperfs,maxindsnofault,faultpath,
+                          best_performances,performances,best_transfer,transfer,recovery,resilience, baseline=False):
+    """
+
+    :param j: fitfun index
+    :param r: run index
+    :param best_nofaultperfs:
+    :param maxindsnofault:
+    :param faultpath:
+    :param best_performances:
+    :param performances:
+    :param best_transfer:
+    :param transfer:
+    :param recovery:
+    :param resilience:
+    :param baseline:
+    :return:
+    """
+    path=faultpath+"/fitness" if baseline else faultpath+"/analysis" + str(time) + "_handcrafted.dat"
+    if baseline:
+
+        best_performance=get_baseline_fitness(path)
+    else:
+        temp = np.array(list(get_ind_performances_uniquearchive(path).values())).flatten()
+        performances = np.append(performances, temp)
+
+        maxind, best_performance = get_best_individual(path, add_performance=True, index_based=True)
+
+        # all performances vs all nofaultperformances
+        for k in range(len(nofaultperfs[r])):
+            transfer = np.append(transfer, [(temp[k] - nofaultperfs[r][k]) / baseline_performances[fitfuns[j]]])
+
+        best_transfer = np.append(best_transfer,
+                                  (temp[maxindsnofault[r]] - best_nofaultperfs[r]) / best_nofaultperfs[r])
+
+    best_performances = np.append(best_performances, best_performance)
+
+    recovery = np.append(recovery, [(best_performance - best_nofaultperfs[r]) / baseline_performances[
+        fitfuns[j]]])  # best performance vs best nofaultperf
+    resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / best_nofaultperfs[r])
+
+    return best_performances, performances, best_transfer, transfer, recovery,resilience
 
 
+def get_nofault_performances(nofaultpath):
 
+        nofaultfilenames = [nofaultpath + str(run) + "/analysis" + str(time) + "_handcrafted.dat" for run in runs]
+        nofaultperfs = [np.array(list(get_ind_performances_uniquearchive(f).values())).flatten() for f in nofaultfilenames]
 
-def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=True, load_existing=False):
+        best_nofaultperfs = np.array([get_performance_data(nofaultpath + str(run), generation) for run in
+                                      runs])
+        maxindsnofault = []
+        for f in range(len(nofaultfilenames)):
+            maxindnofault, best_performance = get_best_individual(nofaultfilenames[f], add_performance=True,
+                                                                  index_based=True)
+            maxindsnofault.append(maxindnofault)
+            assert best_performance == best_nofaultperfs[f]
+        return nofaultperfs,best_nofaultperfs,maxindsnofault
+
+def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=True, load_existing=False,title_tag=""):
     """
 
     performance: defined as the performance on all the perturbed environments
@@ -910,7 +972,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
     :param time:
     :return:
     """
-    loadfilename = "data/fitfun/summary_statistics_fitfun.pkl" if by_fitfun else "data/combined/summary_statistics.pkl"
+    loadfilename = "data/fitfun/summary_statistics_fitfun"+title_tag+".pkl" if by_fitfun else "data/combined/summary_statistics"+title_tag+".pkl"
     if load_existing:
         best_performance_data, performance_data, best_transfer_data, transfer_data, recovery_data, resilience_data = pickle.load(open(loadfilename,"rb"))
     else:
@@ -935,16 +997,13 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
                 # get all the data from the archive: no fault
 
                 nofaultpath=BD_dir + "/" + bd_type[i] + "/FAULT_NONE/results"
-                nofaultfilenames=[nofaultpath+str(run)+"/analysis" + str(time) + "_handcrafted.dat" for run in runs]
-                nofaultperfs = [np.array(list(get_ind_performances_uniquearchive(f).values())).flatten() for f in nofaultfilenames]
+                if bd_type[i]=="baseline":
+                    best_nofaultperfs = get_baseline_performances(nofaultpath)
+                    nofaultperfs=None
+                    maxindsnofault=None
+                else:
+                    nofaultperfs, best_nofaultperfs, maxindsnofault = get_nofault_performances(nofaultpath)
 
-                best_nofaultperfs = np.array([get_performance_data(nofaultpath+str(run), generation) for run in
-                                              runs])
-                maxindsnofault = []
-                for f in range(len(nofaultfilenames)):
-                    maxindnofault, best_performance= get_best_individual(nofaultfilenames[f], add_performance=True, index_based=True)
-                    maxindsnofault.append(maxindnofault)
-                    assert best_performance == best_nofaultperfs[f]
                 # join all the data from all the fault archives:
                 performances = []
                 best_performances = []
@@ -955,21 +1014,11 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,time, by_fitfun=T
                 for fault in range(len(faults)):
                     print("fault %d"%(fault))
                     for r, run in enumerate(runs):
-                        path = BD_dir + "/" + bd_type[i] + "/run" + str(run) + "_p" + str(fault) + "/results" + str(
-                            run) + "/analysis" + str(time) + "_handcrafted.dat"
-                        temp = np.array(list(get_ind_performances_uniquearchive(path).values())).flatten()
-                        performances = np.append(performances, temp)
-
-                        maxind, best_performance = get_best_individual(path, add_performance=True,index_based=True)
-
-                        best_performances = np.append(best_performances, best_performance)
-
-                        recovery = np.append(recovery, [(best_performance - best_nofaultperfs[r])/baseline_performances[fitfuns[j]]])                        # best performance vs best nofaultperf
-                        resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / best_nofaultperfs[r])
-                        # all performances vs all nofaultperformances
-                        for k in range(len(nofaultperfs[r])):
-                            transfer = np.append(transfer,[(temp[k] - nofaultperfs[r][k])/baseline_performances[fitfuns[j]]])
-                        best_transfer = np.append(best_transfer,(temp[maxindsnofault[r]] - best_nofaultperfs[r])/best_nofaultperfs[r])
+                        faultpath = BD_dir + "/" + bd_type[i] + "/run" + str(run) + "_p" + str(fault) + "/results" + str(
+                            run)
+                        best_performances, performances, best_transfer, transfer, recovery,resilience = add_fault_performance(j, r, nofaultperfs, best_nofaultperfs, maxindsnofault, faultpath,
+                                              best_performances, performances, best_transfer, transfer, recovery,
+                                              resilience, baseline=bd_type[i]=="baseline")
                             #otherwise transfer is undefined; we observe f=0 for some individuals in bordercoverage
                             # print(transfer.max())
                             # print(np.mean(transfer))
@@ -1232,19 +1281,19 @@ if __name__ == "__main__":
     # #fitfuns, bd_type, bd_labels, save_file, ylim
     #summarystatistic_boxplots(legend_labels)
 
-    # #significance_data(fitfuns, bd_type, legend_labels, runs, faults, time, by_fitfun=True,load_existing=True)
+    #significance_data(fitfuns, ["baseline"], legend_labels, runs, faults, generation, by_fitfun=True,load_existing=False, title_tag="baseline")
     #
 
     #
     #test_significance(legend_labels,by_fitfun=False)besttransfer
     #
-    test_significance(legend_labels, by_fitfun=True)
+    #test_significance(legend_labels, by_fitfun=True)
 
     #plot_histogram(bd_type)
 
 
 
-    #significance_data(fitfuns, fitfunlabels, bd_type, runs, faults,10000, by_fitfun=False, load_existing=True)
+    significance_data(fitfuns, fitfunlabels, ["baseline"], runs, faults,10000, by_fitfun=True, load_existing=False,title_tag="baseline")
     #significance_data(fitfuns, fitfunlabels, bd_type, runs, faults, time, by_fitfun=False, load_existing=True)
 
     #test_significance(legend_labels,

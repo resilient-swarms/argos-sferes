@@ -314,6 +314,9 @@ float Entity::distance(const Entity &e1, const Entity &e2)
 	return StatFuns::get_minkowski_distance(e1.position, e2.position);
 }
 
+
+
+
 /******************************************************************/
 
 SDBC::SDBC(EvolutionLoopFunctions *cLoopFunctions, std::string init_type, size_t bd) : Descriptor(bd)
