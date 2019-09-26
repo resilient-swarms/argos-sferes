@@ -94,7 +94,7 @@ for FaultIndex in $(seq 10 11); do
 						Base=${data}/${FitfunType}range${SensorRange}/${DescriptorType}
 						# look at archive dir at FAULT_NONE; config includes perturbations
 
-						mkdir -p $Outfolder
+						
 						#write data to these folders
 						if [ "$2" = "best" ]; then
 							echo "will look for perturbations at run${Replicates}_p${FaultIndex}"
@@ -113,7 +113,7 @@ for FaultIndex in $(seq 10 11); do
 							export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
 							Outfolder=${ConfigFolder}/results${SUFFIX}
 						fi
-
+						mkdir -p $Outfolder
 						echo "config ${ConfigFile}"
 						touch ${ConfigFile}
 						sed -e "s|THREADS|0|" \

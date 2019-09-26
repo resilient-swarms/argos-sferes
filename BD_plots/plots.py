@@ -91,9 +91,14 @@ def make_table(f,stats,rowlabels,columnlabels, conditionalcolumnlabels=[],median
 
     if columnlabels:
         for i in range(len(rowlabels)):
+            print(rowlabels[i])
             table_entry_rowcondition(f,rowlabels[i])
             for j in range(len(columnlabels)):
+                print(columnlabels[j])
                 for k in range(len(conditionalcolumnlabels)): # needs some fix here
+                    print(conditionalcolumnlabels[k])
+
+
                     if not transpose:
                         stat = stats[k][j][i]
                     else:

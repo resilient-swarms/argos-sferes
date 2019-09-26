@@ -100,6 +100,6 @@ if __name__ == "__main__":
         x,y=get_data("maxvar",bd,["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage"],"xy")
         xs.append(x)
         ys.append(y)
-    plot(xs,ys,"maxvar_blackgrid",titles=["HBD","SDBC","SPIRIT","QED"],
+    plot(xs,ys,"maxvar_blackgridnew",titles=["HBD","SDBC","SPIRIT","QED"],
          axis_names=["resilience","distance"],
          xlim=[-0.4,0.1],ylim=[0,1],grid=True)
