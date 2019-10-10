@@ -281,7 +281,7 @@ def get_archive_filepath(BD_directory,run, archive_file_path):
     return BD_directory + "/results" + str(run) + "/" + archive_file_path
 
 def get_bd_dir(fitfun):
-    data_dir = HOME_DIR + "/Data/ExperimentData"
+    data_dir = HOME_DIR + "/Data/"
     title = fitfun + "range0.11"
     BD_dir = data_dir + "/" + title
     return BD_dir

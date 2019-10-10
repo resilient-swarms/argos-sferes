@@ -63,6 +63,7 @@ struct Params
 
         struct classcomp
         {
+            /* to sort the std::map */
             bool operator()(const std::vector<double>& lhs, const std::vector<double>& rhs) const
             {
                 assert(lhs.size() == global::behav_dim && rhs.size() == global::behav_dim);
@@ -194,7 +195,7 @@ std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archi
 
                 if (i >=1 && i <= global::behav_dim)
                 {
-                    candidate[i] = data;
+                    candidate[i-1] = data;
                     elem.behav_descriptor.push_back(data);
                 }
                 if (i == (global::behav_dim+1))

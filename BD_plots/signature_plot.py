@@ -101,5 +101,5 @@ if __name__ == "__main__":
         xs.append(x)
         ys.append(y)
     plot(xs,ys,"maxvar_blackgridnew",titles=["HBD","SDBC","SPIRIT","QED"],
-         axis_names=["resilience","distance"],
+         axis_names=["resilience","distance to normal behaviour"],
          xlim=[-0.4,0.1],ylim=[0,1],grid=True)
