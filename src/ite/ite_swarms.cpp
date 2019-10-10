@@ -193,14 +193,17 @@ std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archi
                 if (i==0)
                     elem.controller = (size_t) data;
 
-                if (i >=1 && i <= global::behav_dim)
+                else if (i >=1 && i <= global::behav_dim)
                 {
                     candidate[i-1] = data;
                     elem.behav_descriptor.push_back(data);
                 }
-                if (i == (global::behav_dim+1))
+                else if (i == (global::behav_dim+1))
                 {
                     elem.fit = data;
+                }
+                else{
+                    throw std::runtime_error("not possible value of i");
                 }
             }
             archive[candidate] = elem;
