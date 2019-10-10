@@ -9,7 +9,7 @@ for dim in 3 10 ; do
     then
     cmake -DBO=ON -DRECORD_FITNESS=ON -DCVT_USAGE=ON -DBD=${dim} -DDEFINE_PRINT=OFF ..
     else
-    cmake -DBO=ON -DRECORD_FITNESS=ON -DBD=${dim}  -DDEFINE_PRINT=OFF ..
+    cmake -DBO=ON -DCMAKE_BUILD_TYPE=Debug -DRECORD_FITNESS=ON -DBD=${dim}  -DDEFINE_PRINT=OFF ..
     fi
    make -j 8
 

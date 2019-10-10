@@ -429,7 +429,7 @@ add_library(statistics SHARED
     src/core/statistics.h
     src/core/statistics.cpp)
 
-add_library(base_loopfunctions SHARED
+add_library(base_loopfunctions${tag} SHARED
     src/core/base_loop_functions.h
     src/core/base_loop_functions.cpp
     src/core/fitness_functions.h # added as error argos3: symbol lookup error: [path removed]/libbase_loopfunctions.so: undefined symbol: _ZN11AggregationC1Ev
@@ -477,7 +477,7 @@ target_link_libraries(${CONTROL}
 
 # link the loop functions
 target_link_libraries(${LOOPFUN}
-    base_loopfunctions
+    base_loopfunctions${tag}
     ${CONTROL}
     base_controller
     argos3core_simulator
@@ -498,7 +498,7 @@ target_link_libraries(${LOOPFUN}
 if(BASELINE)      
     target_link_libraries(${EXECUTABLE}
         ${LOOPFUN}
-        base_loopfunctions
+        base_loopfunctions${tag}
         ${CONTROL}
         fitness_functions${tag}
         arena_utils${tag}
@@ -513,7 +513,7 @@ if(BASELINE)
 else(NOT BASELINE)
    target_link_libraries(${EXECUTABLE}
         ${LOOPFUN}
-        base_loopfunctions
+        base_loopfunctions${tag}
         ${CONTROL}
         descriptors${tag}
         fitness_functions${tag}

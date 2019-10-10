@@ -113,7 +113,7 @@ struct Eval
         }
 
         std::cout << "Loading fitness" << ctrl_index << " file " << std::endl;
-        std::ifstream monFlux((global::results_path + "/fitness" + std::to_string(ctrl_index)+ ".dat").c_str());
+        std::ifstream monFlux((global::results_path + "/fitness" + std::to_string(ctrl_index)+ ".dat").c_str(), std::ios::out);
         double fitness;
         if (monFlux)
         {

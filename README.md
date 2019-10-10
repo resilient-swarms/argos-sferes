@@ -104,6 +104,7 @@ To try out an evolved solution
 
      ./bin/behaviour_evol2D experiments/history.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
 
-To try out an evolved solution with Bayesian Optimisation, e.g. for individual 18:
+To try out Bayesian Optimisation do:
 
-     ./bin/BO2D experiments/history_BO.argos fitness18 --load <path to generation file>/gen_<number> -o <output file> -n 18
+     bin/ite_swarms_3D -m <data_directory> 20000 -e bin/BO3D 
+     experiments/history_BO.argos

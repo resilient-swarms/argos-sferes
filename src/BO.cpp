@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     std::string fitfile = argv[2];
     // override the usual fitness file
     cLoopFunctions.fitness_writer.close();
-    cLoopFunctions.fitness_writer.open(fitfile);
+    cLoopFunctions.fitness_writer.open(fitfile,std::ios::out);
 #ifndef RECORD_FIT
     throw std::runtime_error("need to set RECORD_FIT true if using BO");
 #endif
