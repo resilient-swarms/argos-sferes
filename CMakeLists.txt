@@ -108,7 +108,7 @@ option(ANALYSIS "Perturbations" OFF)
 option(BO "Bayesian Optimisation" OFF)
 option(ARGOS_PAR "Parallelisation" OFF)
 option(CAFFE "caffe neural networks" OFF)
-option(RAB_CONTROL "control RAB" OFF)
+option(NN_INPUT_TYPE "control RAB" OFF)
 
 #add_definitions(-DCOLLISION_STOP)  
 
@@ -198,11 +198,50 @@ else(NOT BASELINE)
         endif()
     endif()
 
-    set(CONTROL "nn_controller")
+    
 
     set(tag ${CVT_USE}${BD}D)
     if(ANALYSIS)
         set(tag ${tag}ANA)
+    endif()
+
+
+    # process NN_INPUT_TYPE
+    if(${NN_INPUT_TYPE} EQUAL 0)
+        set(CONTROL "nn_controller")
+        message("using proximity and RAB (NN_INPUT_TYPE=0)")
+        set(exec_prefix "behaviour_evol")
+            # Descend into the controllers directory
+        add_library(nn_controller SHARED
+            src/evolution/nn_controller.h
+            src/evolution/nn_controller.cpp)
+
+        
+        add_definitions(-DNN_DIM_TYPE=0)
+
+    elseif(${NN_INPUT_TYPE} EQUAL 1)
+        set(CONTROL "realthymio_nn_controller")
+        message("using real-thymio: proximity and ground (NN_INPUT_TYPE=1)")
+        set(exec_prefix "behaviour_evol")
+        add_definitions(-DNN_DIM_TYPE=1)
+            # Descend into the controllers directory
+        add_library(realthymio_nn_controller SHARED
+            src/evolution/realthymio_nn_controller.h
+            src/evolution/realthymio_nn_controller.cpp)
+    elseif(${NN_INPUT_TYPE} EQUAL 2)
+        set(CONTROL "nn_controller")
+        message("using rab-control (NN_INPUT_TYPE=2)")
+        set(exec_prefix "behaviour_evol")
+        add_definitions(-DNN_DIM_TYPE=2)
+        add_library(nn_controller SHARED
+            src/evolution/nn_controller.h
+            src/evolution/nn_controller.cpp)
+        add_library(station_controller SHARED
+        src/core/station_controller.cpp
+         src/core/station_controller.h)
+        list(APPEND CONTROL "station_controller")
+    else()
+         MESSAGE( FATAL_ERROR "Please choose an input type for the neural network (NN_DIM_TYPE={0,1,2})")
     endif()
 
     # process BO option
@@ -259,14 +298,7 @@ else(NOT BASELINE)
         message("Bayesian Optimisation is NOT defined")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
 	    message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
-        if(${RAB_CONTROL})
-            message("using additional RAB control")
-            set(exec_prefix "behaviour_evol")
-            add_definitions(-DRAB_CONTROL)
-        else(NOT ${RAB_CONTROL})
-            message("not using additional RAB control")
-            set(exec_prefix "behaviour_evol")
-        endif()
+
         if(${ARGOS_PAR} EQUAL 1)
             message("using parallel (1)")
             add_definitions(-DARGOS_PARALLEL) 
@@ -304,16 +336,7 @@ else(NOT BASELINE)
         src/evolution/descriptors.cpp
     )
 
-    # Descend into the controllers directory
-    add_library(nn_controller SHARED
-        src/evolution/nn_controller.h
-        src/evolution/nn_controller.cpp)
-    
-    add_library(station_controller SHARED
-        src/core/station_controller.cpp
-         src/core/station_controller.h)
 
-    list(APPEND CONTROL "station_controller")
 
     set(LOOPFUN evolution_loopfunctions${tag})
     

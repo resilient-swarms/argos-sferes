@@ -47,10 +47,13 @@ struct ParamsDnn
     /* use only the proximity sensors */
     struct dnn
     {
-    #ifdef RAB_CONTROL
+    #if NN_DIM_TYPE==2
         static constexpr size_t nb_inputs = 24; // ! 7 ir sensors + 8 RAB sensors + 8 RAB data + bias input at +1
         static constexpr size_t nb_outputs = 3; // 2 motors: left and right wheel + rab output
-    #else
+    #elif NN_DIM_TYPE==1        
+        static constexpr size_t nb_inputs = 10; // ! 7 ir sensors + 2 ground sensor + bias input at +1
+        static constexpr size_t nb_outputs = 2; // 2 motors: left and right wheel
+    #else 
         static constexpr size_t nb_inputs = 16; // ! 7 ir sensors + 8 RAB sensors + bias input at +1
         static constexpr size_t nb_outputs = 2; // 2 motors: left and right wheel
     #endif

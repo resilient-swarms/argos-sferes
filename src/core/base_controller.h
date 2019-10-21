@@ -154,7 +154,7 @@ public:
     /* turn speed normalised to [0,1]*/
     float turn_speed_01();
 
-
+    virtual void init_sensact();
 
 };
 #endif

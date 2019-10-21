@@ -45,42 +45,8 @@ void BaseController::Init(TConfigurationNode &t_node)
     * Create the random number generator
     */
     m_pcRNG = CRandom::CreateRNG("argos");
-    /*
-    * Get sensor/actuator handles
-    */
-    try
-    {
-        m_pcWheels = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
-        m_pcWheelsEncoder = GetSensor<CCI_DifferentialSteeringSensor>("differential_steering");
-        m_pcLeds = GetActuator<CCI_ThymioLedsActuator>("thymio_led");
-        m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
-        m_pcGround = GetSensor<CCI_ThymioGroundSensor>("Thymio_ground");
-        m_pcRABA = GetActuator<CCI_RangeAndBearingActuator>("range_and_bearing");
-        m_pcRABS = GetSensor<CCI_RangeAndBearingSensor>("range_and_bearing");
-        only_proximity = false;
-
-        rab_cones.push_back(ToRadians(CDegrees(0.0))); // going counter-clock wise
-        rab_cones.push_back(ToRadians(CDegrees(45.0)));
-        rab_cones.push_back(ToRadians(CDegrees(90.0)));
-        rab_cones.push_back(ToRadians(CDegrees(135.0)));
-        rab_cones.push_back(ToRadians(CDegrees(180.0)));
-        rab_cones.push_back(ToRadians(CDegrees(-135.0)));
-        rab_cones.push_back(ToRadians(CDegrees(-90.0)));
-        rab_cones.push_back(ToRadians(CDegrees(-45.0)));
- 
-    }
-    catch (CARGoSException &ex1)
-    {
-        try{
-            // assume the user just wants to use only proximity sensors
-            m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
-
-            only_proximity = true;
-        }
-        catch (CARGoSException &ex2){
-            THROW_ARGOSEXCEPTION_NESTED("Error initializing sensors/actuators", ex2);
-        }
-    }
+    
+    init_sensact();
     Reset();
 
     /* Experiment to run */
@@ -499,6 +465,49 @@ float BaseController::turn_speed_01()
     return std::abs(m_fLeftSpeed - m_fRightSpeed) / (2.0*m_sWheelTurningParams.MaxSpeed);        // in [0,1]
 }
 
+
+
+
+
+void BaseController::init_sensact()
+{
+    /*
+    * Get sensor/actuator handles
+    */
+    try
+    {
+        m_pcWheels = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
+        m_pcWheelsEncoder = GetSensor<CCI_DifferentialSteeringSensor>("differential_steering");
+        m_pcLeds = GetActuator<CCI_ThymioLedsActuator>("thymio_led");
+        m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
+        m_pcGround = GetSensor<CCI_ThymioGroundSensor>("Thymio_ground");
+        m_pcRABA = GetActuator<CCI_RangeAndBearingActuator>("range_and_bearing");
+        m_pcRABS = GetSensor<CCI_RangeAndBearingSensor>("range_and_bearing");
+        only_proximity = false;
+
+        rab_cones.push_back(ToRadians(CDegrees(0.0))); // going counter-clock wise
+        rab_cones.push_back(ToRadians(CDegrees(45.0)));
+        rab_cones.push_back(ToRadians(CDegrees(90.0)));
+        rab_cones.push_back(ToRadians(CDegrees(135.0)));
+        rab_cones.push_back(ToRadians(CDegrees(180.0)));
+        rab_cones.push_back(ToRadians(CDegrees(-135.0)));
+        rab_cones.push_back(ToRadians(CDegrees(-90.0)));
+        rab_cones.push_back(ToRadians(CDegrees(-45.0)));
+ 
+    }
+    catch (CARGoSException &ex1)
+    {
+        try{
+            // assume the user just wants to use only proximity sensors
+            m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
+
+            only_proximity = true;
+        }
+        catch (CARGoSException &ex2){
+            THROW_ARGOSEXCEPTION_NESTED("Error initializing sensors/actuators", ex2);
+        }
+    }
+}
 /****************************************/
 /****************************************/
 

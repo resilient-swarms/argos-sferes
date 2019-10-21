@@ -202,7 +202,7 @@ void EvolutionLoopFunctions::init_robots(TConfigurationNode &t_node)
     m_pcvecController.clear();
     for (size_t robotindex = 0; robotindex < m_pcvecRobot.size(); ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
-        m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
+        m_pcvecController.push_back(&dynamic_cast<ControllerType &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
     }
 }
 
@@ -212,7 +212,7 @@ void EvolutionLoopFunctions::create_new_agents()
     BaseLoopFunctions::create_new_agents();
     for (size_t robotindex = 0; robotindex < m_unNumberRobots; ++robotindex) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
     {
-        m_pcvecController.push_back(&dynamic_cast<CThymioNNController &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
+        m_pcvecController.push_back(&dynamic_cast<ControllerType &>(m_pcvecRobot[robotindex]->GetControllableEntity().GetController()));
         Real max_rab = m_pcvecRobot[robotindex]->GetRABEquippedEntity().GetRange();
         m_pcvecController[robotindex]->max_rab_range = max_rab * 100.0; //convert to cm
     }
