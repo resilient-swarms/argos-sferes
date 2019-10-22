@@ -250,22 +250,9 @@ class Foraging : public FitFun
      *
      */
 public:
-  struct VisionOutData
-  {
-    size_t num_robots;
-    float meanSpeed;
-    std::vector<CVector3> projected_centres;
-    VisionOutData(){};
-    VisionOutData(size_t num_robs) : num_robots(num_robs)
-    {
-      for (size_t i = 0; i < num_robots; ++i)
-      {
-        projected_centres.push_back(CVector3(0.0f, 0.0f, 0.0f));
-      }
-    }
-  } data;
+
   float reward;
-  Foraging(size_t num_r) : data(num_r) {};
+  Foraging(){};
   const float nest_x = -1;
   const float m_fFoodSquareRadius = 0.25;
   const size_t num_food = 10;
@@ -290,11 +277,11 @@ public:
   size_t numfoodCollected = 0;
   float trial_performance = 0;
 
-  virtual void before_trial();
+  virtual void before_trial(BaseLoopFunctions &cLoopFunctions);
   /*after completing trial, calc fitness*/
-  virtual void apply();
+  virtual void apply(BaseLoopFunctions &cLoopFunctions);
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
   /*after a single step of all agents */
-  virtual void after_robotloop();
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
 };

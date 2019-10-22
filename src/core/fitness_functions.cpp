@@ -577,11 +577,11 @@ float Chaining::after_trials()
 /***********************************************************/
 
 
-void Foraging::before_trial()
+void Foraging::before_trial(BaseLoopFunctions &cLoopFunctions)
 {
 
     m_bRobotsHoldingFood.clear();
-    for (size_t i=0; i < data.num_robots; i++) {
+    for (size_t i=0; i < cLoopFunctions.curr_pos.size(); i++) {
         m_bRobotsHoldingFood.push_back(false);
     }
     m_cVisitedFood.clear();
@@ -593,12 +593,12 @@ void Foraging::before_trial()
     /// Calculate max fitness
 }
 
-void Foraging::after_robotloop()
+void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
-    for(size_t i = 0; i < data.num_robots; i++)
+    for(size_t i = 0; i < cLoopFunctions.curr_pos.size(); i++)
     {
         /* Get the position of the thymio on the ground as a CVector2 */
-        CVector3 cPos = data.projected_centres[i];
+        CVector3 cPos = cLoopFunctions.curr_pos[i];
 
         /* The thymio has a food item */
         if(m_bRobotsHoldingFood[i])
@@ -643,7 +643,7 @@ void Foraging::after_robotloop()
     num_updates++;
 }
 
-void Foraging::apply()
+void Foraging::apply(BaseLoopFunctions &cLoopFunctions)
 {
     float fitness = trial_performance / (float(num_updates));
     std::cout << trial_performance << " / " << num_updates << std::endl;
