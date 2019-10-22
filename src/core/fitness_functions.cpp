@@ -610,7 +610,9 @@ void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
                 m_bRobotsHoldingFood[i] = false;
                 /* Increase the food count */
                 numfoodCollected++;
+#ifdef PRINTING
                 std::cout << "thymio" << i << " dropped off food. Total collected: " << numfoodCollected << std::endl;
+#endif
             }
         }
         else {
@@ -646,7 +648,9 @@ void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 void Foraging::apply(BaseLoopFunctions &cLoopFunctions)
 {
     float fitness = trial_performance / (float(num_updates));
+#ifdef PRINTING
     std::cout << trial_performance << " / " << num_updates << std::endl;
+#endif
     fitness_per_trial.push_back(fitness);
     trial_performance = 0;
 }
