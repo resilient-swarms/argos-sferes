@@ -49,42 +49,7 @@ void BaseController::Init(TConfigurationNode &t_node)
     init_sensact();
     Reset();
 
-    /* Experiment to run */
-    TConfigurationNode sub_node = GetNode(t_node, "experiment_run");
-    std::string errorbehav, id_FaultyRobotInSwarm;
-    try
-    {
-        GetNodeAttribute(sub_node, "fault_behavior", errorbehav);
-        GetNodeAttribute(sub_node, "id_faulty_robot", id_FaultyRobotInSwarm);
-    }
-    catch (CARGoSException &ex)
-    {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing type of experiment to run, and fault to simulate.", ex);
-    }
 
-    process_faultbehaviour(errorbehav);
-
-    /* Wheel turning */
-    m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
-
-    if(this->GetId().compare("thymio"+id_FaultyRobotInSwarm) == 0)  //process by ID
-    {
-        
-        b_damagedrobot = true;
-        //std::cout<<"robot "<<id_FaultyRobotInSwarm<<"is damaged";
-    }
-    else if(id_FaultyRobotInSwarm.back()=='%')   // process by proportion; assuming homogenous robots, can just do the first N robots
-    {
-        id_FaultyRobotInSwarm.pop_back();
-        damage_probability = 0.01f * std::stoi(id_FaultyRobotInSwarm);// e.g. 99% 
-        // damage the first number_damaged robots
-        //std::cout<<"will damage robots randomly, with probability "<< damage_probability<<std::endl;
-        
-    }
-    else{
-        // nothing: proceed as usual undamaged
-        //std::cout<<"no damage "<<damage_probability<<std::endl;
-    }
 }
 
 void BaseController::parse_perturbation_set(std::string filename)
@@ -506,6 +471,47 @@ void BaseController::init_sensact()
         catch (CARGoSException &ex2){
             THROW_ARGOSEXCEPTION_NESTED("Error initializing sensors/actuators", ex2);
         }
+    }
+}
+
+
+void BaseController::init_fault_config(TConfigurationNode &t_node)
+{
+        /* Experiment to run */
+    TConfigurationNode sub_node = GetNode(t_node, "experiment_run");
+    std::string errorbehav, id_FaultyRobotInSwarm;
+    try
+    {
+        GetNodeAttribute(sub_node, "fault_behavior", errorbehav);
+        GetNodeAttribute(sub_node, "id_faulty_robot", id_FaultyRobotInSwarm);
+    }
+    catch (CARGoSException &ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing type of experiment to run, and fault to simulate.", ex);
+    }
+
+    process_faultbehaviour(errorbehav);
+
+    /* Wheel turning */
+    m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
+
+    if(this->GetId().compare("thymio"+id_FaultyRobotInSwarm) == 0)  //process by ID
+    {
+        
+        b_damagedrobot = true;
+        //std::cout<<"robot "<<id_FaultyRobotInSwarm<<"is damaged";
+    }
+    else if(id_FaultyRobotInSwarm.back()=='%')   // process by proportion; assuming homogenous robots, can just do the first N robots
+    {
+        id_FaultyRobotInSwarm.pop_back();
+        damage_probability = 0.01f * std::stoi(id_FaultyRobotInSwarm);// e.g. 99% 
+        // damage the first number_damaged robots
+        //std::cout<<"will damage robots randomly, with probability "<< damage_probability<<std::endl;
+        
+    }
+    else{
+        // nothing: proceed as usual undamaged
+        //std::cout<<"no damage "<<damage_probability<<std::endl;
     }
 }
 /****************************************/

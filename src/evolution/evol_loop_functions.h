@@ -224,8 +224,8 @@ FIT_MAP(FitObstacleMapElites){
             static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
             for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
                 cLoopFunctions.m_pcvecController[j]->nn = ind.nn_cpy();
-        #ifdef PRINTING
-	    std::cout<<"writing individual to .dot file"<<std::endl;
+        #if PRINTING==1 || BAYESIAN_OPT==1
+	        std::cout<<"writing individual to .dot file"<<std::endl;
             std::ofstream ofs("nn.dot");
             ind.nn().write(ofs);
 

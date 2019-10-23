@@ -8,29 +8,10 @@
 /****************************************/
 /****************************************/
 
-RealThymioNN::RealThymioNN() :
-   m_sWheelTurningParams(),
-   m_pcLeds(NULL),
-   m_pcWheels(NULL),
-   m_pcProximity(NULL),
-   m_pcGround(NULL),
-   m_fLeftSpeed(0.0f),
-   m_fRightSpeed(0.0f)
-   {
-   }
-
-/****************************************/
-/****************************************/
-
-void RealThymioNN::SWheelTurningParams::Init(TConfigurationNode &t_node)
+RealThymioNN::RealThymioNN()
 {
-    try
-    {
-        GetNodeAttribute(t_node, "max_speed", MaxSpeed);
-    }
-    catch(CARGoSException& ex)
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing controller wheel turning parameters.", ex)
 }
+
 
 /****************************************/
 /****************************************/
@@ -41,11 +22,11 @@ void RealThymioNN::Init(TConfigurationNode& t_node)
 
     Reset();
 
-    /* Wheel turning */
-    m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
     NNSerialiser ser = NNSerialiser();
     nn = ser.Load();
     nn.init();
+
+    init_fault_config(t_node);
 }
 
 /****************************************/
@@ -66,7 +47,7 @@ void RealThymioNN::ControlStep()
     m_fLeftSpeed = m_sWheelTurningParams.MaxSpeed * nn.get_outf()[0];
     m_fRightSpeed = m_sWheelTurningParams.MaxSpeed * nn.get_outf()[1];
 
-    m_pcWheels->SetLinearVelocity(m_fLeftSpeed,m_fRightSpeed);
+    BaseController::ControlStep();// needed to actually move and inject faults
 }
 
 RealThymioNN::~RealThymioNN()

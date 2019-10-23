@@ -24,13 +24,6 @@ using namespace argos;
  * A controller is simply an implementation of the CCI_Controller class.
  */
 class RealThymioNN : public BaseController {
-public:
-
-    struct SWheelTurningParams
-    {
-        Real MaxSpeed;
-        void Init(TConfigurationNode &t_tree);
-    } m_sWheelTurningParams;
 
 public:
    RealThymioNN();
@@ -41,20 +34,6 @@ public:
    virtual void Reset() {};
    virtual void Destroy(){};
    virtual void init_sensact();
-
-
-   /* Pointer to the LEDs */
-    CCI_ThymioLedsActuator*   m_pcLeds;
-   /* Pointer to the differential steering actuator */
-   CCI_DifferentialSteeringActuator* m_pcWheels;
-   /* Pointer to the Thymio proximity sensor */
-   CCI_ThymioProximitySensor* m_pcProximity;
-   /* Pointer to the Thymio ground sensors */
-   CCI_ThymioGroundSensor* m_pcGround;
-
-    /* Wheel speeds */
-    Real m_fLeftSpeed, m_fRightSpeed;
-
     std::vector<Real> GetNormalizedSensorReadings();
 
     std::vector<float> inputs;

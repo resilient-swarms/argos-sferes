@@ -15,13 +15,30 @@ namespace global
     std::string results_path;
     std::string argossim_bin_name;
     std::string argossim_config_name;
-    std::string archive_path;    
+    std::string archive_path;   
+    float original_max = - std::numeric_limits<float>::infinity(); 
     unsigned gen_to_load;
     unsigned behav_dim = BEHAV_DIM; // number of dimensions of MAP
 } // namespace global
 
+
+template <typename Params>
+struct PercentageMax{
+    PercentageMax() {}
+
+    template <typename BO, typename AggregatorFunction>
+    bool operator()(const BO& bo, const AggregatorFunction& afun)
+    {
+        return afun(bo.best_observation(afun)) > 0.90*global::original_max;
+    }
+};
+
+
 struct Params
 {
+
+    
+
     struct bayes_opt_boptimizer : public defaults::bayes_opt_boptimizer
     {};
 
@@ -44,7 +61,14 @@ struct Params
     struct stop_maxiterations
     {
         //BO_DYN_PARAM(int, iterations);
-        BO_PARAM(int, iterations, 100);
+        BO_PARAM(int, iterations, 20);
+    };
+
+
+    struct stop_maxpredictedvalue
+    {
+        //BO_DYN_PARAM(int, iterations);
+        BO_PARAM(double, ratio, 0.9);
     };
 
     struct acqui_ucb : public defaults::acqui_ucb
@@ -130,6 +154,8 @@ struct Eval
                     std::cerr << "Warning ... we were expecting a single number in the fitness file " << " and not " << numbers.size();
 
                 fitness = numbers[0];
+                if (fitness > global::original_max)
+                    global::original_max = fitness;
 
                 line_count++;
             }
@@ -219,6 +245,34 @@ std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archi
     return archive;
 }
 
+void print_individual_to_network(std::vector<double> bd,
+            std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archiveparams::classcomp> archive
+            )
+{
+
+    /*size_t lastindex = archive_name.find_last_of(".");
+    std::string extension = archive_name.substr(lastindex + 1);*/
+
+    Params::archiveparams::elem_archive elem = archive[bd];// get the element in the archive
+    // get the controller id
+    size_t ctrl_index = elem.controller;
+    std::string sim_cmd = global::argossim_bin_name + " " +
+                              global::argossim_config_name + " " +
+                              global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat "+
+                              "--load " + global::archive_path + "/gen_" + std::to_string(global::gen_to_load) + " " +
+                              "-n " + std::to_string(ctrl_index) + " " +
+                              "-o " + global::results_path + "/nn" + std::to_string(ctrl_index) + ".dot " +
+                              "-d " + global::results_path;
+
+    if(system(sim_cmd.c_str())!=0)
+    {
+        std::cerr << "Error executing simulation " << std::endl << sim_cmd << std::endl;
+        exit(-1);
+    }
+}
+
+
+
 Params::archiveparams::archive_t Params::archiveparams::archive;
 //BO_DECLARE_DYN_PARAM(int, Params::stop_maxiterations, iterations);
 
@@ -276,6 +330,9 @@ int main(int argc, char** argv)
 
     typedef kernel::MaternFiveHalves<Params> Kernel_t;
     typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
+
+    // note: MaxPredictedValue just stops immediately (seems like maximal predicted value is set to initial value)
+    // ,PercentageMax<Params>
     typedef boost::fusion::vector<stop::MaxIterations<Params>> Stop_t;
     typedef mean::MeanArchive<Params> Mean_t;
     typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>, stat::ConsoleSummary<Params>> Stat_t;
@@ -294,6 +351,14 @@ int main(int argc, char** argv)
     Eigen::VectorXd result = opt.best_sample().transpose();
 
     std::cout << val << " res  " << result.transpose() << std::endl;
+
+
+    std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+
+
+    // now look up the behaviour descriptor in the archive file 
+    // and save to BOOST_SERIALISATION_NVP
+    print_individual_to_network(bd,Params::archiveparams::archive);
 
     return 0;
 }

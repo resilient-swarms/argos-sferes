@@ -29,7 +29,7 @@
       <params>
         <wheel_turning max_speed="10"/>
  	<experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_NONE" 
+			fault_behavior="FAULT_ACTUATOR_BWHEELS_SETHALF"
 	                id_faulty_robot="0" />
         
       </params>      
@@ -101,7 +101,7 @@
   <!-- ****************** -->
   <!-- * Visualization * -->
   <!-- ****************** -->
- <!-- <visualization>
+ <!--<visualization>
     <qt-opengl />
   </visualization>-->
 
