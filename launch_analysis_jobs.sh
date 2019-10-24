@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 data=$1
-export FINALGEN_ARCHIVE=10000 # never forget zero-padding for generation file, not for archive file
-export FINALGEN_GENFILE=10000
+export FINALGEN_ARCHIVE=30000 # never forget zero-padding for generation file, not for archive file
+export FINALGEN_GENFILE=30000
 
 echo "doing generation ${FINALGEN_ARCHIVE}"
 sleep 2.5
