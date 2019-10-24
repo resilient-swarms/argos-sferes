@@ -46,10 +46,10 @@ void BaseController::Init(TConfigurationNode &t_node)
     */
     m_pcRNG = CRandom::CreateRNG("argos");
     
-    init_sensact();
+    init_sensact(t_node);
     Reset();
 
-
+    init_fault_config(t_node);
 }
 
 void BaseController::parse_perturbation_set(std::string filename)
@@ -434,7 +434,7 @@ float BaseController::turn_speed_01()
 
 
 
-void BaseController::init_sensact()
+void BaseController::init_sensact(TConfigurationNode &t_node)
 {
     /*
     * Get sensor/actuator handles
@@ -472,12 +472,17 @@ void BaseController::init_sensact()
             THROW_ARGOSEXCEPTION_NESTED("Error initializing sensors/actuators", ex2);
         }
     }
+
+
+
+    /* Wheel turning */
+    m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
 }
 
 
 void BaseController::init_fault_config(TConfigurationNode &t_node)
 {
-        /* Experiment to run */
+    /* Experiment to run */
     TConfigurationNode sub_node = GetNode(t_node, "experiment_run");
     std::string errorbehav, id_FaultyRobotInSwarm;
     try
@@ -492,8 +497,7 @@ void BaseController::init_fault_config(TConfigurationNode &t_node)
 
     process_faultbehaviour(errorbehav);
 
-    /* Wheel turning */
-    m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
+
 
     if(this->GetId().compare("thymio"+id_FaultyRobotInSwarm) == 0)  //process by ID
     {

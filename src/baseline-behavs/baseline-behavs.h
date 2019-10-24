@@ -71,7 +71,8 @@ public:
             SWARM_CHAINING1,
             SWARM_DYNAMIC_CHAINING,
             SWARM_STOP,
-            SWARM_NONE
+            SWARM_NONE,
+            SWARM_RANDOMPOSITIONING
         };
         enum SwarmBehavior SBehavior;
 
