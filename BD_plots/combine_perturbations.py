@@ -33,6 +33,6 @@ def write_superset(filename,basic_perturbations,num_agents,elements):
 
 if __name__ == "__main__":
     for run in range(1,6):
-        write_superset(home+"/argos-sferes/experiments/perturbations/run"+str(run)+"_",BASIC_PERTURBATIONS,10,range(40,100))
+        write_superset(home+"/argos-sferes/experiments/perturbations/run"+str(run)+"_",BASIC_PERTURBATIONS,10,range(0,100))
 
 
