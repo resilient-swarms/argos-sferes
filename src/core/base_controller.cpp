@@ -47,6 +47,8 @@ void BaseController::Init(TConfigurationNode &t_node)
     m_pcRNG = CRandom::CreateRNG("argos");
     
     init_sensact(t_node);
+    /* Wheel turning */
+    m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
     Reset();
 
     init_fault_config(t_node);
@@ -475,8 +477,7 @@ void BaseController::init_sensact(TConfigurationNode &t_node)
 
 
 
-    /* Wheel turning */
-    m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
+
 }
 
 

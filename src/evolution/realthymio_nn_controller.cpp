@@ -16,19 +16,14 @@ RealThymioNN::RealThymioNN()
 /****************************************/
 /****************************************/
 
-void RealThymioNN::Init(TConfigurationNode& t_node)
+
+
+void RealThymioNN::init_network()
 {
-    init_sensact();
-
-    Reset();
-
     NNSerialiser ser = NNSerialiser();
     nn = ser.Load();
     nn.init();
-
-    init_fault_config(t_node);
 }
-
 /****************************************/
 /****************************************/
 
@@ -83,7 +78,7 @@ std::vector<Real> RealThymioNN::GetNormalizedSensorReadings()
 }
 
 
-void RealThymioNN::init_sensact()
+void RealThymioNN::init_sensact(TConfigurationNode& t_node)
 {
     /*
     * Get sensor/actuator handles

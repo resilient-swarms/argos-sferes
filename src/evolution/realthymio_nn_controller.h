@@ -29,11 +29,11 @@ public:
    RealThymioNN();
    virtual ~RealThymioNN();
 
-   virtual void Init(TConfigurationNode& t_node);
    virtual void ControlStep();
    virtual void Reset() {};
    virtual void Destroy(){};
-   virtual void init_sensact();
+   virtual void init_sensact(TConfigurationNode& t_node);
+   void init_network();
     std::vector<Real> GetNormalizedSensorReadings();
 
     std::vector<float> inputs;
