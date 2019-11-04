@@ -38,7 +38,7 @@
       <params>
       <wheel_turning max_speed="10" />
       <experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_NONE" 
+			fault_behavior="FILE:experiments/perturbations/run1_p10.txt"
 	                id_faulty_robot="-1" />
         
       </params>      
@@ -52,11 +52,11 @@
   <!-- ****************** -->
   <loop_functions library="lib/libevolution_loopfunctionsBO3D.so"
                   label="evolution_loopfunctionsBO3D"
-                  trials="50"
+                  trials="5"
                   robots="10"
                   descriptortype="history"  
                   fitfuntype="Aggregation"
-		  output_folder="experiments"
+		  output_folder="experiments/ITE_Check"
         centroids_folder="experiments/centroids"
                     />
 

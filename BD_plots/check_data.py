@@ -29,38 +29,38 @@ def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturba
                         print(filename)
                     continue
                 unperturbed = filename + "/results" + str(run)+"/archive_"+str(finalgen)+".dat"
-                fault_none = filename + "/FAULT_NONE/results" + str(run)+"/analysis"+str(finalgen)+"_"+translation+".dat"
-                file_length=len(read_spacedelimited(unperturbed))
-                file_length2=len(read_spacedelimited(fault_none))
-
-                if file_length!=file_length2:
-                    print(fault_none)
-                    print("file length not equal")
+                # fault_none = filename + "/FAULT_NONE/results" + str(run)+"/analysis"+str(finalgen)+"_"+translation+".dat"
+                # file_length=len(read_spacedelimited(unperturbed))
+                # file_length2=len(read_spacedelimited(fault_none))
+                #
+                # if file_length!=file_length2:
+                #     print(fault_none)
+                #     print("file length not equal")
 
                 U_list = set(get_ind_performances_uniquearchive(unperturbed).keys())
-                F_list = set(get_ind_performances_uniquearchive(fault_none).keys())
-
-                missing = U_list - F_list
-                if missing:
-                    # find missing individuals
-                    print(fault_none)
-                    print("missing : " + str(missing))
-                too_much = F_list - U_list
-                if too_much:
-                    print(fault_none)
-                    print("too much : " + str(too_much))
+                # F_list = set(get_ind_performances_uniquearchive(fault_none).keys())
+                #
+                # missing = U_list - F_list
+                # if missing:
+                #     # find missing individuals
+                #     print(fault_none)
+                #     print("missing : " + str(missing))
+                # too_much = F_list - U_list
+                # if too_much:
+                #     print(fault_none)
+                #     print("too much : " + str(too_much))
 
                 for perturbation in perturbations:
                     if desc == "baseline":
-                        if len(read_spacedelimited(filename + "/run"+str(run)+"_p"+str(perturbation)+"/results"+str(run)+"/fitness")) != 1:
+                        if len(read_spacedelimited(filename + "/faultyrun"+str(run)+"_p"+str(perturbation)+"/results"+str(run)+"/fitness")) != 1:
                             print(filename)
                         continue
 
-                    perturbed = filename + "/run"+str(run)+"_p"+str(perturbation)+"/results"+str(run)+"/analysis"+str(finalgen)+"_"+translation+".dat"
+                    perturbed = filename + "/faultyrun"+str(run)+"_p"+str(perturbation)+"/results"+str(run)+"/analysis"+str(finalgen)+"_"+translation+".dat"
                     P_list = set(get_ind_performances_uniquearchive(perturbed).keys())
                     file_length3 = len(read_spacedelimited(perturbed))
-                    if file_length!=file_length3:
-                        print(perturbed)
+                    #if file_length!=file_length3:
+                    #    print(perturbed)
                     missing =  U_list - P_list
                     if missing:
                         # find missing individuals
@@ -71,11 +71,11 @@ def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturba
                         print(perturbed)
                         print("too much : "+str(too_much))
 if __name__ == "__main__":
-    check_archives_complete(10000,
-                            "/home/david/Data/ExperimentData",
+    check_archives_complete(30000,
+                            "/home/david/Data",
                             ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"],
-                            ["baseline"],
+                            ["cvt_rab_spirit","history"],
                             range(1,6),
-                            range(0,40),
+                            range(40,69),
                             translation="spirit"
                             )
