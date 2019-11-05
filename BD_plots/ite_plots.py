@@ -10,9 +10,11 @@ import numpy as np
 DATAPATH="/home/david/Data"
 GEN="30000"
 
-def get_last_performance(filename):
+def get_BO_performance(filename):
     parsed_file_list = read_spacedelimited(filename)
-    return parsed_file_list[-1][-1] # last column of the last line in the file
+    best_performance = parsed_file_list[-1][-1] # last column of the last line in the file
+    number_of_tries = len(parsed_file_list) - 1 # length -1 as the number of function evaluations
+    return best_performance, number_of_tries
 
 
 
@@ -35,9 +37,11 @@ def impact_of_fault(fitfun,descriptor,runs,faults):
     # now create data for each fault
     faultperformances={}
     recoveryperformances={}
+    evaluations={}
     for f, fault in enumerate(faults):
         faultperformances[fault]=[]
         recoveryperformances[fault] = []
+        evaluations[fault] = []
         for i,run in enumerate(runs):
             # transfer the original individual to the faulty environment
             faultpath = DATAPATH + "/" + fitfun + "range0.11/" + descriptor + "/faultyrun" + str(run) + "_p" + str(f) + "/results" + str(run) + "/analysis" + GEN + "_handcrafted.dat"
@@ -49,9 +53,11 @@ def impact_of_fault(fitfun,descriptor,runs,faults):
             BOpath = DATAPATH + "/" + fitfun + "range0.11/" + descriptor + "/faultyrun" + str(run) + "_p" + str(
                 f) + "/BOresults" + str(
                 run) + "/BO_output/best_observations.dat"
-            recoveryperformances[fault].append(get_last_performance(BOpath))
+            performance, tries = get_BO_performance(BOpath)
+            recoveryperformances[fault].append(performance)
+            evaluations[fault].append(tries)
 
-    print()
+    print(evaluations)
 
 
 
