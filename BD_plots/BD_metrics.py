@@ -797,7 +797,7 @@ def create_all_development_plots():
     bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity","baseline"]  # file system label for bd
     legend_labels=["handcrafted","SDBC","SPIRIT","QED","baseline"]  # labels for the legend
     bybin_list=["bd", "individual", "individual", "bd", ""]
-    times=range(0,30000, 500)
+    times=range(0,30500, 500)
     fig, axs = plt.subplots(5, 5, figsize=(50, 40))  # coverage, avg perf., global perf., global reliability
     for i,fitfun in enumerate(fitfuns):
         development_plots(title=fitfun,runs=runs, times=times,

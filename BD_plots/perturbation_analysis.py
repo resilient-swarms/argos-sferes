@@ -30,7 +30,7 @@ def gather_perturbation_data(BD_DIRECTORY,generation,faults, runs, get_NCD=True,
                                                        history_type,translation_type)
         for fault in faults:
             history_file, performance, bd = \
-                get_help_data(BD_DIRECTORY+"/run"+str(run)+"_p"+str(fault)+"/results"+str(run),generation,history_type,translation_type)
+                get_help_data(BD_DIRECTORY+"/faultyrun"+str(run)+"_p"+str(fault)+"/results"+str(run),generation,history_type,translation_type)
             if get_NCD:
                 # get ncd
                 ncd = NCD(history_comp,history_file,perform_lzma, from_zip=True)
@@ -1030,7 +1030,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,gener, by_fitfun=
                 for fault in range(len(faults)):
                     print("fault %d"%(fault))
                     for r, run in enumerate(runs):
-                        faultpath = BD_dir + "/" + bd_type[i] + "/run" + str(run) + "_p" + str(fault) + "/results" + str(
+                        faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_p" + str(fault) + "/results" + str(
                             run)
                         best_performances, performances, best_transfer, transfer, recovery,resilience = add_fault_performance(j, r, gener, nofaultperfs, best_nofaultperfs, maxindsnofault, faultpath,
                                               best_performances, performances, best_transfer, transfer, recovery,
