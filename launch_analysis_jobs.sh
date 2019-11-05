@@ -105,8 +105,8 @@ for FaultIndex in $(seq 10 11); do
 							FaultType=FAULT_NONE
 						else
 							# look at archive dir at previous perturbation results; config is at FAULT_NONE
-							FaultType="FILE:${perturbations_folder}/run${Replicates}_p${FaultIndex}.txt"
-							ConfigFolder=${Base}/run${Replicates}_p${FaultIndex}
+                            FaultType="FILE:${perturbations_folder}/run${Replicates}_p${FaultIndex}.txt"
+                            ConfigFolder=${Base}/faultyrun${Replicates}_p${FaultIndex}
 							mkdir -p ${ConfigFolder}
 							ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 							export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive

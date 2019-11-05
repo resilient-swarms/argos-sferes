@@ -6,7 +6,7 @@
 
 #include <exhaustive_search_archive.hpp>
 #include <mean_archive.hpp>
-
+#include <stdio.h>
 
 using namespace limbo;
 
@@ -68,7 +68,7 @@ struct Params
     struct stop_maxpredictedvalue
     {
         //BO_DYN_PARAM(int, iterations);
-        BO_PARAM(double, ratio, 0.9);
+        BO_PARAM(double, ratio, 0.99);
     };
 
     struct acqui_ucb : public defaults::acqui_ucb
@@ -256,6 +256,7 @@ void print_individual_to_network(std::vector<double> bd,
     Params::archiveparams::elem_archive elem = archive[bd];// get the element in the archive
     // get the controller id
     size_t ctrl_index = elem.controller;
+    std::cout << "will now evaluate individual="+std::to_string(ctrl_index)<<std::endl;
     std::string sim_cmd = global::argossim_bin_name + " " +
                               global::argossim_config_name + " " +
                               global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat "+
@@ -269,18 +270,30 @@ void print_individual_to_network(std::vector<double> bd,
         std::cerr << "Error executing simulation " << std::endl << sim_cmd << std::endl;
         exit(-1);
     }
+
+
 }
 
-
+void rename_folder(std::string oldname, std::string newname)
+{
+    int result;
+    result= rename( oldname.c_str() , newname.c_str() );
+    if ( result == 0 )
+        puts ( "File successfully renamed" );
+    else
+        perror( "Error renaming file" );
+}
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
 //BO_DECLARE_DYN_PARAM(int, Params::stop_maxiterations, iterations);
 
 /* ite_swarms requires arguments in the following order:
+ * 0. -f outputfolder
  * a. -m MAP-ELITES path of MAP
  * b.    Generation to load
  * c. -e Binary file to execute the argos simulator <with path>
  * d.    ARGoS configuration file for c. <with path>
+
 */
 int main(int argc, char** argv)
 {
@@ -290,6 +303,7 @@ int main(int argc, char** argv)
 
     std::vector<std::string>::iterator map_it = std::find(cmd_args.begin(), cmd_args.end(), "-m");
     std::vector<std::string>::iterator eval_it = std::find(cmd_args.begin(), cmd_args.end(), "-e");
+    std::vector<std::string>::iterator folder_it = std::find(cmd_args.begin(), cmd_args.end(), "-f");
 
     if(map_it == cmd_args.end())
     {
@@ -328,12 +342,26 @@ int main(int argc, char** argv)
         global::argossim_config_name = *(eval_it+2);
     }
 
+
+
+    std::string newname;
+    // Results directory
+    if((folder_it+1 > cmd_args.end()) || (folder_it+1 == map_it))
+    {
+        std::cerr << "Argument -f is to be followed by the outputfolder of the bayesian optimisation. Exiting ..." << std::endl;
+        exit(-1);
+    }
+    else
+    {
+        newname = *(folder_it+1);
+    }
+
     typedef kernel::MaternFiveHalves<Params> Kernel_t;
     typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
 
     // note: MaxPredictedValue just stops immediately (seems like maximal predicted value is set to initial value)
     // ,PercentageMax<Params>
-    typedef boost::fusion::vector<stop::MaxIterations<Params>> Stop_t;
+    //typedef boost::fusion::vector<stop_maxiterations> Stop_t;
     typedef mean::MeanArchive<Params> Mean_t;
     typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>, stat::ConsoleSummary<Params>> Stat_t;
 
@@ -341,7 +369,7 @@ int main(int argc, char** argv)
     typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
     typedef acqui::UCB<Params, GP_t> Acqui_t;
 
-    bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>, stopcrit<Stop_t>> opt;
+    bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> opt;
     global::results_path = opt.res_dir();
 
     opt.optimize(Eval());
@@ -359,6 +387,6 @@ int main(int argc, char** argv)
     // now look up the behaviour descriptor in the archive file 
     // and save to BOOST_SERIALISATION_NVP
     print_individual_to_network(bd,Params::archiveparams::archive);
-
+    rename_folder(global::results_path,newname);
     return 0;
 }
