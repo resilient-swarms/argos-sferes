@@ -65,7 +65,7 @@ time["Flocking"]=400
 perturbations_folder="experiments/perturbations"
 # for FaultType in "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" \
 # "FAULT_ACTUATOR_LWHEEL_SETHALF" "FAULT_ACTUATOR_RWHEEL_SETHALF" "FAULT_ACTUATOR_BWHEELS_SETHALF"; do
-for FaultIndex in $(seq 0 0); do
+for FaultIndex in $(seq 2 2); do
 	SimTime=${time[${FitfunType}]}
 	echo "simtime"${SimTime}
 	for FaultID in "-1"; do
@@ -77,16 +77,12 @@ for FaultIndex in $(seq 0 0); do
 					DescriptorType=${key}
 					BD_DIMS=${descriptors[${key}]}
 					CVT=${voronoi[${DescriptorType}]}
-					if [ "$DescriptorType" = "baseline" ]; then
-						tag=""
-						SwarmBehaviour=${behav[${FitfunType}]}
-						echo "SwarmBehaviour = "${SwarmBehaviour}
-						sleep 5
-					else
-						tag=${CVT}${BD_DIMS}D
-						SwarmBehaviour="/"
-						sleep 5
-					fi
+
+					tag=${CVT}${BD_DIMS}D
+					SwarmBehaviour="/"
+					sleep 5
+
+					
 					echo "doing ${DescriptorType} now"
 					echo "has ${BD_DIMS} dimensions"
 					echo "tag is ${tag}"
@@ -129,18 +125,7 @@ for FaultIndex in $(seq 0 0); do
 							-e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
 							experiments/experiment_template_perturbation.argos \
 							>${ConfigFile}
-						if [ "$DescriptorType" = "baseline" ]; then
-								echo "changing loopfunction"
-								sed -i "s|evolution_loop|baseline-behavs-loop|" ${ConfigFile}
-								sed -i "s|nn_controller|baseline-behavs|" ${ConfigFile}
-								sed -i "s|tnn|bb|" ${ConfigFile}
-								if [ "$FitfunType" = "Flocking" ]; then
-									# halve speeds and double simtime
-									sed -i 's|ticks_per_second="5"|ticks_per_second="10"|' ${ConfigFile}
-									sed -i 's|max_speed="10"|max_speed="5"|' ${ConfigFile}
-									sed -i 's|iterations="5"|iterations="10"|' ${ConfigFile}
-								fi
-						fi
+
 						if [ ! -z "${CVT}" ]; then
 							echo ${CVT}
 						fi
