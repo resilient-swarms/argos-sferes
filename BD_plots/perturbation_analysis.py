@@ -69,7 +69,7 @@ def gather_unperturbed_diversity(BD_DIRECTORY,generation,faults, runs, get_NCD=T
             bd = get_help_data_unperturbed(BD_DIRECTORY,
                                            "/run"+str(run)+"_p"+str(fault)+"/results"+str(run),
                                            "/FAULT_NONE/results" + str(run),
-                                           generation="10000",
+                                           generation="30000",
                                            translation_type=translation_type)
 
 
@@ -867,26 +867,7 @@ def summarystatistic_boxplots(labels):
 #
 # def besttransfer_boxplot(best_transfer_data):
 
-def get_max_performances(bd_type,fitfuns,generation):
-    maximum={fitfun: 0.0 for fitfun in fitfuns}
-    for j in range(len(fitfuns)):
-        for i in range(len(bd_type)):
 
-            print(fitfuns[j])
-            BD_dir = get_bd_dir(fitfuns[j])
-            # get all the data from the archive: no fault
-
-            nofaultpath = BD_dir + "/" + bd_type[i] + "/FAULT_NONE/results"
-
-            best_nofaultperfs = np.array([get_performance_data(nofaultpath + str(run), generation) for run in
-                                          runs])
-            max_performance = max(best_nofaultperfs)
-
-            if max_performance>maximum[fitfuns[j]]:
-                maximum[fitfuns[j]]=max_performance
-
-
-    pickle.dump(maximum,open("data/fitfun/maximal_fitness.pkl","wb"))
 
 
 
@@ -1260,7 +1241,26 @@ def plot_histogram(bd_type,by_fitfun=True):
             plt.figure()
             n, bins, patches = plt.hist(x, num_bins, facecolor='blue', alpha=0.5,range=(-0.30, 0))
             plt.savefig("HIST"+bd_type[i]+fitfuns[f]+".pdf")
+def get_max_performances(bd_type,fitfuns,generation):
+    maximum={fitfun: 0.0 for fitfun in fitfuns}
+    for j in range(len(fitfuns)):
+        for i in range(len(bd_type)):
 
+            print(fitfuns[j])
+            BD_dir = get_bd_dir(fitfuns[j])
+            # get all the data from the archive: no fault
+
+            nofaultpath = BD_dir + "/" + bd_type[i] + "/FAULT_NONE/results"
+
+            best_nofaultperfs = np.array([get_performance_data(nofaultpath + str(run), generation) for run in
+                                          runs])
+            max_performance = max(best_nofaultperfs)
+
+            if max_performance>maximum[fitfuns[j]]:
+                maximum[fitfuns[j]]=max_performance
+
+
+    pickle.dump(maximum,open("data/fitfun/maximal_fitness.pkl","wb"))
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
 
@@ -1271,13 +1271,13 @@ if __name__ == "__main__":
     legend_labels = ["HBD","SDBC","SPIRIT","QED"]  # labels for the legend
     fitfuns = ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
     fitfunlabels = ["Aggregation","Dispersion","Patrolling","Border-patrolling","Flocking"]
-    #get_max_performances(bd_type, fitfuns,"10000")
+    #get_max_performances(bd_type, fitfuns,"30000")
     baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl","rb"))
     colors = ["C" + str(i) for i in range(len(bd_type))]
     markers = [(2, 1, 0), (3, 1, 0),(2, 1, 1), (3, 1, 1)]
 
     datadir= HOME_DIR + "/Data/ExperimentData"
-    generation="10000"
+    generation="30000"
     history_type="xy"
 
 

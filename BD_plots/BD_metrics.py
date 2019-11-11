@@ -5,7 +5,7 @@ import os
 import operator
 HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
-
+import pickle
 import copy
 
 PRINT=False
@@ -423,7 +423,7 @@ def get_archiveplusdir(BD_directory,bd_type,i,generation,projected=False):
         else:
             raise Exception("")
     elif projected:
-        recorded_generation = 10000
+        recorded_generation = 30000
         directory = BD_directory + "/" + bd_type[i] + "/FAULT_NONE"
         archive_file = "analysis" + str(recorded_generation) + "_handcraftedREDUCED.dat"
     else:
@@ -436,7 +436,7 @@ def coverage_development_plots(title,runs,times,BD_directory,title_tag, bd_type,
 
     colors=["C0","C1","C2","C3","C3","C4"]  # colors for the lines
     # (numsides, style, angle)
-    markers=[(1,1,0),(1,2,0),(1,3,0),(3,1,0),(3,2,0),(3,3,0),(4,1,0),(4,2,0),(4,3,0)] # markers for the lines
+    markers=[(3,1,0),(3,2,0),(4,1,0),(4,2,0)] # markers for the lines
     bd_shapes =[4096, 4096, 4096,4096, 4096, 4096,4096,4096, 4096]  # shape of the characterisation
     y_labels=["absolute_coverage"]
 
@@ -635,7 +635,7 @@ def apply_star_and_bold(text,descriptor,target,max_descriptor,second_max_descrip
 def make_translation_table(tab_label,BD_dirs,runs,times,source="all"):
 
 
-        time_index = times.index(10000)  # only last
+        time_index = times.index(30000)  # only last
         gener=times[time_index]
         with open("results/evolution/table/coverage_table" + tab_label+source, "w") as f:
             targets = OrderedDict({"handcrafted": 4096, "sdbc": 4096, "spirit": 4096})
@@ -769,7 +769,7 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
                     BD_dir = get_bd_dir(fitfuns[j])
                     archive_file,directory=get_archiveplusdir(BD_dir,bd_type,i,generation,projected=bd_type[i]=="environment_diversity")
                     # get all the data from the archive: no fault
-                    p=global_performances(directory,runs,archive_file,max_performance=1,conversion_func=None)
+                    p=global_performances(directory,runs,archive_file,max_performance=1,conversion_func=None)/ baseline_performances[fitfuns[j]]
 
                     archive_file, directory = get_archiveplusdir(BD_dir, bd_type, i, generation,
                                                                  projected=False)
@@ -786,7 +786,7 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
                            rowlabels=fitfuns,
                            columnlabels=legend_labels,
                            conditionalcolumnlabels=[("perf.","float2"), ("cov.","float2")],
-                       transpose=True)
+                       transpose=False)
 
 
 
@@ -794,8 +794,8 @@ def create_all_development_plots():
     runs=range(1,6)
 
     fitfuns= ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"] #,"DecayBorderCoverage","Flocking"]
-    bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity","baseline"]  # file system label for bd
-    legend_labels=["handcrafted","SDBC","SPIRIT","QED","baseline"]  # labels for the legend
+    bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"]  # file system label for bd
+    legend_labels=["handcrafted","SDBC","SPIRIT","QED","Subsump"]  # labels for the legend
     bybin_list=["bd", "individual", "individual", "bd", ""]
     times=range(0,30500, 500)
     fig, axs = plt.subplots(5, 5, figsize=(50, 40))  # coverage, avg perf., global perf., global reliability
@@ -812,7 +812,7 @@ def create_coverage_development_plots():
     runs=range(1,6)
 
     bybin_list=["bd", "individual", "individual", "bd", "bd", ""]
-    times=range(0,20200, 200)
+    times=range(0,30500, 500)
     fig, axs = plt.subplots(1,1, figsize=(15, 10))  # coverage, avg perf., global perf., global reliability
     coverage_development_plots(title="",runs=runs, times=times,
                           BD_directory=[get_bd_dir(fitfun) for fitfun in fitfuns],
@@ -826,9 +826,6 @@ def create_coverage_development_plots():
 
 
 if __name__ == "__main__":
-    
-    
-
 
     # for fitfun in fitfuns:
     #     # fitness-specific
@@ -838,9 +835,9 @@ if __name__ == "__main__":
     runs=range(1,6)
     fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
                "DecayBorderCoverage","Flocking"]  # ,"DecayBorderCoverage","Flocking"]
-    bd_type = ["history","Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity","baseline"
+    bd_type = ["history","Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
              ]  # file system label for bd
-    legend_labels = ["HBD", "SDBC", "SPIRIT", "QED","BASE"]  # labels for the legend
+    legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
     generation=15000
 
     #make_translation_table("DEBUG", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
@@ -848,10 +845,10 @@ if __name__ == "__main__":
          #     BD_dir="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
          #     outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
 
+    baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl", "rb"))
+    make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
 
-    #make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
 
-
-    #create_coverage_development_plots()
+    create_coverage_development_plots()
 
     create_all_development_plots()

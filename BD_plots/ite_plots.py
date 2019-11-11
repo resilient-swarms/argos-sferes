@@ -39,23 +39,23 @@ def impact_of_fault(fitfun,descriptor,runs,faults):
     recoveryperformances=[]
     recoveryBOperformances = []
     evaluations=[]
-    for f, fault in enumerate(faults):
-        for i,run in enumerate(runs):
+    for fault in faults:
+        for i, run in enumerate(runs):
             # transfer the original individual to the faulty environment
-            faultpath = DATAPATH + "/" + fitfun + "range0.11/" + descriptor + "/faultyrun" + str(run) + "_p" + str(f) + "/results" + str(run) + "/analysis" + GEN + "_handcrafted.dat"
+            faultpath = DATAPATH + "/" + fitfun + "range0.11/" + descriptor + "/faultyrun" + str(run) + "_p" + str(fault) + "/results" + str(run) + "/analysis" + GEN + "_handcrafted.dat"
             temp = np.array(list(get_ind_performances_uniquearchive(faultpath).values())).flatten()
             fperformance = temp[best_individuals[i]]
             faultperformances.append(fperformance)
 
             # obtain the best solution in the faulty environment
             faultypath = DATAPATH + "/" + fitfun + "range0.11/" + descriptor + "/faultyrun" + str(run) + "_p" + str(
-                f) + "/results" + str(run) + "/analysis" + GEN + "_handcrafted.dat"
+                fault) + "/results" + str(run) + "/analysis" + GEN + "_handcrafted.dat"
             best_individual, best_performance = get_best_individual(faultypath, add_performance=True, index_based=True)
             recoveryperformances.append(best_performance)
 
             # obtain the best solution from BO in the faulty environment
             BOpath = DATAPATH + "/" + fitfun + "range0.11/" + descriptor + "/faultyrun" + str(run) + "_p" + str(
-                f) + "/BOresults" + str(
+                fault) + "/BOresults" + str(
                 run) + "/BO_output/best_observations.dat"
             performance, tries = get_BO_performance(BOpath)
             recoveryBOperformances.append(performance)
@@ -100,5 +100,5 @@ def impact_of_fault(fitfun,descriptor,runs,faults):
 
 
 if __name__ == "__main__":
-    impact_of_fault(fitfun="Aggregation", descriptor="history", runs=[1,2,3,4,5], faults=[0])
+    impact_of_fault(fitfun="Flocking", descriptor="history", runs=[1,2,3,4,5], faults=[0,1,2])
 

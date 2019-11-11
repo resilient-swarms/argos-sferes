@@ -65,11 +65,11 @@ time["Flocking"]=400
 perturbations_folder="experiments/perturbations"
 # for FaultType in "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" \
 # "FAULT_ACTUATOR_LWHEEL_SETHALF" "FAULT_ACTUATOR_RWHEEL_SETHALF" "FAULT_ACTUATOR_BWHEELS_SETHALF"; do
-for FaultIndex in $(seq 2 2); do
+for FaultIndex in $(seq 0 2); do
 	SimTime=${time[${FitfunType}]}
 	echo "simtime"${SimTime}
 	for FaultID in "-1"; do
-		for FitfunType in Aggregation; do
+		for FitfunType in Flocking; do
 			echo 'Fitfun'${FitFunType}
 			for SensorRange in 0.11; do
 				echo 'sens'${SensorRange}
@@ -82,7 +82,7 @@ for FaultIndex in $(seq 2 2); do
 					SwarmBehaviour="/"
 					sleep 5
 
-					
+
 					echo "doing ${DescriptorType} now"
 					echo "has ${BD_DIMS} dimensions"
 					echo "tag is ${tag}"
