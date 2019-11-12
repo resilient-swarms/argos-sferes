@@ -135,8 +135,8 @@ def run_best_individual(command, outputfolder, generation):
     maxind = get_best_individual(outputfolder + "/analysis"+generation+"_handcrafted.dat")
     print("start run best individual: "+str(maxind))
     run_individual(command, maxind)
-    for analysis_suffix in ["sa_history", "xy_history"]:
-        compress_and_remove_lzma(outputfolder, analysis_suffix + str(maxind)+".temp")
+    #for analysis_suffix in ["sa_history", "xy_history"]:
+    #    compress_and_remove_lzma(outputfolder, analysis_suffix + str(maxind)+".temp")
 
 # def compress_histories(outputfolder):
 #     print("looking for " + outputfolder + "/analysis_sdbc.dat")

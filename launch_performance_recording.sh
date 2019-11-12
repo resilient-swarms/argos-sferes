@@ -3,10 +3,19 @@
 # run environment_diversity on generation START:END by STEP
 
 data=$1
+
+video=$4
+
+if [ ${video} = "video" ]; then	
+	template_file="experiments/experiment_template_perturbation_with_visual.argos"
+else
+	template_file="experiments/experiment_template_perturbation.argos"
+fi
+echo "will use template file ${template_file}"
 # the final generation until which to run FAULT_NONE
 
-MINGEN=10000 #
-MAXGEN=10000
+MINGEN=30000 #
+MAXGEN=30000
 STEP=500
 
 echo "doing generation ${MINGEN} to ${MAXGEN}"
@@ -32,14 +41,14 @@ command="bin/analysis" # note: cvt and 10D does not really matter since we are n
 # voronoi["environment_diversity"]=""
 
 
-# descriptors["history"]=3
-# voronoi["history"]=""
+descriptors["history"]=3
+voronoi["history"]=""
 
 # descriptors["cvt_rab_spirit"]=1024
 # voronoi["cvt_rab_spirit"]="cvt"
 
-descriptors["baseline"]=""
-voronoi["baseline"]=""
+#descriptors["baseline"]=""
+#voronoi["baseline"]=""
 
 
 
@@ -85,13 +94,19 @@ for FaultType in "FAULT_NONE"; do
 							ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
 
 							#write data to these folders
-							ConfigFolder=${Base}/${FaultType}
+							ConfigFolder=${Base}/${FaultType}/${video}
 							ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
-							Outfolder=${ConfigFolder}/results${SUFFIX}
+							Outfolder=${ConfigFolder}/results${SUFFIX}   # where to drop the results
+							export Searchfolder=${Base}/${FaultType}/results${SUFFIX}  # where to search for best indiv
 
 							mkdir -p $Outfolder
 							echo "config ${ConfigFile}"
 							touch ${ConfigFile}
+
+
+
+
+
 							sed -e "s|THREADS|0|" \
 								-e "s|TRIALS|${3}|" \
 								-e "s|ROBOTS|10|" \
@@ -107,7 +122,7 @@ for FaultType in "FAULT_NONE"; do
 								-e "s|FAULT_TYPE|${FaultType}|" \
 								-e "s|FAULT_ID|${FaultID}|" \
 								-e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
-								experiments/experiment_template_perturbation.argos \
+								${template_file} \
 								>${ConfigFile}
 						    if [ "$DescriptorType" = "baseline" ]; then
 								echo "changing loopfunction"
@@ -121,6 +136,10 @@ for FaultType in "FAULT_NONE"; do
 									sed -i 's|iterations="5"|iterations="10"|' ${ConfigFile}
 								fi
 							fi
+
+
+							
+
 							if [ ! -z "${CVT}" ]; then
 								echo ${CVT}
 								#python sferes2/modules/cvt_map_elites/cvt.py -k 1000 -d ${BD_DIMS} -p 100000 -f ${Outfolder}
@@ -148,14 +167,20 @@ for FaultType in "FAULT_NONE"; do
 							fi
 							export generationfile="${Base}/results${SUFFIX}/gen_${FINALGEN_GENFILE}"
 							export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
-
+							 
 							echo "submitting job"
 							bash zero_padding_data.sh ${Base}/results${SUFFIX} # make sure everything is zero-padded
 							if [ "$DescriptorType" = "baseline" ]; then
 								echo "will submit baseline job"
 								bash submit_baseline_job.sh   # just record the performance of the baseline controllers in the faulty environment
 							else
-								if [ "$2" = "best" ]; then
+								if [ "${video}" = "video" ]; then
+								
+									export VIDEOFILE="/home/david/Videos/${FitfunType}_${DescriptorType}_NOFAULT_run${Replicates}"   #
+									echo "exporting video file ${VIDEOFILE}"
+									echo "submitting video-test"
+									bash submit_test.sh "video"
+								elif [ "$2" = "best" ]; then
 									bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
 								else
 									sbatch submit_test.sh $2 # submit to iridis

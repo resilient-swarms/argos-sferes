@@ -575,7 +575,7 @@ def get_all_best_individuals(BD_dir,runs,faults,gen,types=None):
         if types!="only_comp":
             for fault in faults:
                 maxind = get_best_individual(
-                    BD_dir + "/run" + str(run) + "_p"+str(fault)+"/results"+str(run)+"/analysis" + str(gen) + "_handcrafted.dat",
+                    BD_dir + "/faultyrun" + str(run) + "_p"+str(fault)+"/results"+str(run)+"/analysis" + str(gen) + "_handcrafted.dat",
                     as_string=False, add_performance=False, add_all=False, index_based=False)
 
                 all.append(maxind)
@@ -594,11 +594,11 @@ def get_spread(source, directory, gener, targets,bd_starts,dists):
                                   )
     elif source == "best_comp":
         individuals = [
-            get_all_best_individuals(directory , [run], range(40), gener, types="only_fault")
+            get_all_best_individuals(directory , [run], faults, gener, types="only_fault")
             for run
             in runs]
         comp = [
-            get_all_best_individuals(directory , [run], range(40), gener, types="only_comp") for
+            get_all_best_individuals(directory , [run], faults, gener, types="only_comp") for
             run
             in runs]
         return  translated_spreads(gener, directory + "/FAULT_NONE",
@@ -609,7 +609,7 @@ def get_spread(source, directory, gener, targets,bd_starts,dists):
                                    individuals=individuals,
                                    comp=comp)
     else:
-        individuals = [get_all_best_individuals(directory, [run], range(40), 10000) for run in
+        individuals = [get_all_best_individuals(directory, [run], faults, 30000) for run in
                        runs]
         return translated_spreads(gener, directory + "/FAULT_NONE",
                                    runs,
@@ -685,16 +685,16 @@ def make_translation_table(tab_label,BD_dirs,runs,times,source="all"):
                 numbers5 = {target: [] for target in targets}
                 for directory in BD_dirs:
                     dirdir=directory + "/" + str(bd_type[i])
-                    # temp = translated_coverages(gener, dirdir + "/FAULT_NONE",
-                    #                            runs,
-                    #                            targets=targets)
-                    # print("finished 1")
-                    # temp2 = get_spread("all",dirdir,gener,targets,bd_starts,dists)
-                    # print("finished 2")
-                    # temp3 = get_spread("best", dirdir, gener, targets, bd_starts, dists)
-                    # print("finished 3")
-                    # temp4 = get_spread("best_comp", dirdir, gener, targets, bd_starts, dists)
-                    # print("finished 4")
+                    temp = translated_coverages(gener, dirdir + "/FAULT_NONE",
+                                               runs,
+                                               targets=targets)
+                    print("finished 1")
+                    temp2 = get_spread("all",dirdir,gener,targets,bd_starts,dists)
+                    print("finished 2")
+                    temp3 = get_spread("best", dirdir, gener, targets, bd_starts, dists)
+                    print("finished 3")
+                    temp4 = get_spread("best_comp", dirdir, gener, targets, bd_starts, dists)
+                    print("finished 4")
 
                     for bd in targets:
                         numbers[bd] = np.append(numbers[bd], temp[bd])
@@ -757,10 +757,12 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
         else:
             best_performance_data = []
             coverage_data = []
+            avg_performance_data = []
 
             for i in range(len(bd_type)):
                 print(bd_type[i])
                 best_performance_data.append([])
+                avg_performance_data.append([])
                 coverage_data.append([])
 
 
@@ -775,17 +777,26 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
                                                                  projected=False)
                     c=coverages(4096,directory,runs, archive_file)
 
+                    a_p = avg_performances(directory,runs,archive_file,max_performance=1,conversion_func=None,from_fitfile=False)/ baseline_performances[fitfuns[j]]
                     best_performance_data[i].append(p)
+                    avg_performance_data[i].append(a_p)
                     coverage_data[i].append(c)
         if not load_existing:
-            pickle.dump((best_performance_data, coverage_data), open("data/evolution_data/evolution_statistics.pkl","wb"))
+            pickle.dump((best_performance_data, avg_performance_data, coverage_data), open("data/evolution_data/evolution_statistics.pkl","wb"))
         from scipy.stats import mannwhitneyu
 
         with open("results/evolution/table/evolution_table", "w") as f:
             make_table(f, [best_performance_data, coverage_data],
                            rowlabels=fitfuns,
                            columnlabels=legend_labels,
-                           conditionalcolumnlabels=[("perf.","float2"), ("cov.","float2")],
+                           conditionalcolumnlabels=[("performance","float2"), ("coverage","float2")],
+                       transpose=False)
+
+        with open("results/evolution/table/evolution_table_with_avg", "w") as f:
+            make_table(f, [best_performance_data, avg_performance_data,coverage_data],
+                           rowlabels=fitfuns,
+                           columnlabels=legend_labels,
+                           conditionalcolumnlabels=[("best perf.","float2"), ("average perf.","float2"),("coverage","float2")],
                        transpose=False)
 
 
@@ -827,23 +838,23 @@ def create_coverage_development_plots():
 
 if __name__ == "__main__":
 
-    # for fitfun in fitfuns:
-    #     # fitness-specific
-    #     make_translation_table(fitfun, [get_bd_dir(fitfun)], runs)
+
+
+
+
 
         # global
+    faults=range(20)
     runs=range(1,6)
     fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
                "DecayBorderCoverage","Flocking"]  # ,"DecayBorderCoverage","Flocking"]
     bd_type = ["history","Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
              ]  # file system label for bd
     legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
-    generation=15000
+    generation=30000
 
-    #make_translation_table("DEBUG", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
-         # print_best_individuals(
-         #     BD_dir="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
-         #     outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
+    make_translation_table("DEBUG", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
+
 
     baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl", "rb"))
     make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)

@@ -67,7 +67,7 @@ def gather_unperturbed_diversity(BD_DIRECTORY,generation,faults, runs, get_NCD=T
                                                        history_type,translation_type)
         for fault in faults:
             bd = get_help_data_unperturbed(BD_DIRECTORY,
-                                           "/run"+str(run)+"_p"+str(fault)+"/results"+str(run),
+                                           "/faultyrun"+str(run)+"_p"+str(fault)+"/results"+str(run),
                                            "/FAULT_NONE/results" + str(run),
                                            generation="30000",
                                            translation_type=translation_type)
@@ -1264,7 +1264,7 @@ def get_max_performances(bd_type,fitfuns,generation):
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
 
-    faults=range(40)
+    faults=range(20)
     F=len(faults)
     runs=range(1,6)
     bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]  # legend label
@@ -1276,12 +1276,16 @@ if __name__ == "__main__":
     colors = ["C" + str(i) for i in range(len(bd_type))]
     markers = [(2, 1, 0), (3, 1, 0),(2, 1, 1), (3, 1, 1)]
 
-    datadir= HOME_DIR + "/Data/ExperimentData"
+    datadir= HOME_DIR + "/Data/"
     generation="30000"
     history_type="xy"
 
 
     # legend_labels.append("baseline")
-    # significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=True, load_existing=True,
-    #                   title_tag="")
-    make_significance_table(fitfunlabels, legend_labels, qed_index=-2,table_type="resilience")
+    #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=True, load_existing=True,
+     #                 title_tag="")
+    #make_significance_table(fitfunlabels, legend_labels, qed_index=-2,table_type="resilience")
+
+    #gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,history_type,perturbed=True)
+
+    gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults, runs, history_type, perturbed=False)

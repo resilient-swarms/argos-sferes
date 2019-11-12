@@ -28,6 +28,10 @@ Descriptor* init_analysis_descriptor(EvolutionLoopFunctions& cLoopFunctions, siz
         slaves["handcrafted"] = new IntuitiveHistoryDescriptor(&cLoopFunctions,3);
         slaves["spirit"] = new CVT_RAB_Spirit(1024);
     }
+    else if (!strcmp(best,"video"))  // remember, strcmp returns 0 if they are equal
+    {
+        // do nothing; no descriptor needed and saves some time
+    }
     else{
         throw std::runtime_error("not supported option");
     }

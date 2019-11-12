@@ -1,8 +1,19 @@
 #!/bin/bash -e
 
 data=$1
-export FINALGEN_ARCHIVE=10000 # never forget zero-padding for generation file, not for archive file
-export FINALGEN_GENFILE=10000
+video=$4
+if [ $video = "video" ]; then	
+	template_file="experiments/experiment_template_perturbation_with_visual.argos"
+else
+	template_file="experiments/experiment_template_perturbation.argos"
+fi
+echo "will use template file ${template_file}"
+
+
+
+
+export FINALGEN_ARCHIVE=30000 # never forget zero-padding for generation file, not for archive file
+export FINALGEN_GENFILE=30000
 
 echo "doing generation ${FINALGEN_ARCHIVE}"
 sleep 2.5
@@ -40,14 +51,14 @@ command="bin/analysis" # note: cvt and 10D does not really matter since we are n
 # voronoi["environment_diversity"]=""
 
 
-# descriptors["history"]=3
-# voronoi["history"]=""
+descriptors["history"]=3
+voronoi["history"]=""
 
 # descriptors["cvt_rab_spirit"]=1024
 # voronoi["cvt_rab_spirit"]="cvt"
 
-descriptors["baseline"]=""
-voronoi["baseline"]=""
+#descriptors["baseline"]=""
+#voronoi["baseline"]=""
 
 
 time["DecayCoverage"]=400
@@ -100,8 +111,9 @@ for FaultIndex in $(seq 10 11); do
 							echo "will look for perturbations at run${Replicates}_p${FaultIndex}"
 							ConfigFolder=${Base}
 							ConfigFile=${ConfigFolder}/history_exp_${Replicates}_p${FaultIndex}.argos # just to write the history
-							ArchiveDir=${ConfigFolder}/run${Replicates}_p${FaultIndex}/results${SUFFIX}
-							export Outfolder=${ArchiveDir} # where to look for the best result and to output the results
+							ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_p${FaultIndex}/
+							export Outfolder=${ArchiveDir}/${video}/results${SUFFIX} # where to output the results
+							export Searchfolder=${ArchiveDir}/results${SUFFIX}  # where to search for best indiv
 							FaultType=FAULT_NONE
 						else
 							# look at archive dir at previous perturbation results; config is at FAULT_NONE
@@ -131,7 +143,7 @@ for FaultIndex in $(seq 10 11); do
 							-e "s|FAULT_TYPE|${FaultType}|" \
 							-e "s|FAULT_ID|${FaultID}|" \
 							-e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
-							experiments/experiment_template_perturbation.argos \
+							${template_file} \
 							>${ConfigFile}
 						if [ "$DescriptorType" = "baseline" ]; then
 								echo "changing loopfunction"
@@ -161,7 +173,10 @@ for FaultIndex in $(seq 10 11); do
 							echo "will submit baseline job"
 							bash submit_baseline_job.sh   # just record the performance of the baseline controllers in the faulty environment
 						else
-							if [ "$2" = "best" ]; then
+							if [ "${video}" = "video" ]; then
+								export VIDEOFILE="/home/david/Videos/${FitfunType}_${DescriptorType}_FAULT${FaultIndex}_run${Replicates}"   #
+								bash submit_test.sh "video"
+							elif [ "$2" = "best" ]; then
 								bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
 							else
 								sbatch submit_test.sh $2 # submit to iridis
