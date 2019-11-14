@@ -11,6 +11,24 @@ from plots import *
 from scipy.stats import *
 import pickle
 
+baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl", "rb"))
+
+faults = range(2)
+F = len(faults)
+runs = range(1, 6)
+bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"]  # legend label
+legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
+fitfuns = ["Aggregation", "Dispersion", "DecayCoverage", "DecayBorderCoverage", "Flocking"]
+fitfunlabels = ["Aggregation", "Dispersion", "Patrolling", "Border-patrolling", "Flocking"]
+# get_max_performances(bd_type, fitfuns,"30000")
+
+colors = ["C" + str(i) for i in range(len(bd_type))]
+markers = [(2, 1, 0), (3, 1, 0), (2, 1, 1), (3, 1, 1)]
+
+datadir = HOME_DIR + "/Data/"
+generation = "30000"
+history_type = "xy"
+
 
 def gather_perturbation_data(BD_DIRECTORY,generation,faults, runs, get_NCD=True,
                              history_type="sa",translation_type="handcrafted",centroids=[]):
@@ -922,12 +940,12 @@ def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnof
     return best_performances, performances, best_transfer, transfer, recovery,resilience
 
 
-def get_nofault_performances(nofaultpath,gener):
+def get_nofault_performances(nofaultpath,gener,runs):
 
         nofaultfilenames = [nofaultpath + str(run) + "/analysis" + str(gener) + "_handcrafted.dat" for run in runs]
         nofaultperfs = [np.array(list(get_ind_performances_uniquearchive(f).values())).flatten() for f in nofaultfilenames]
 
-        best_nofaultperfs = np.array([get_performance_data(nofaultpath + str(run), generation) for run in
+        best_nofaultperfs = np.array([get_performance_data(nofaultpath + str(run), gener) for run in
                                       runs])
         maxindsnofault = []
         for f in range(len(nofaultfilenames)):
@@ -999,7 +1017,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,gener, by_fitfun=
                     nofaultperfs=None
                     maxindsnofault=None
                 else:
-                    nofaultperfs, best_nofaultperfs, maxindsnofault = get_nofault_performances(nofaultpath,gener)
+                    nofaultperfs, best_nofaultperfs, maxindsnofault = get_nofault_performances(nofaultpath,gener,runs)
 
                 # join all the data from all the fault archives:
                 performances = []
@@ -1264,21 +1282,7 @@ def get_max_performances(bd_type,fitfuns,generation):
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
 
-    faults=range(20)
-    F=len(faults)
-    runs=range(1,6)
-    bd_type = ["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]  # legend label
-    legend_labels = ["HBD","SDBC","SPIRIT","QED"]  # labels for the legend
-    fitfuns = ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
-    fitfunlabels = ["Aggregation","Dispersion","Patrolling","Border-patrolling","Flocking"]
-    #get_max_performances(bd_type, fitfuns,"30000")
-    baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl","rb"))
-    colors = ["C" + str(i) for i in range(len(bd_type))]
-    markers = [(2, 1, 0), (3, 1, 0),(2, 1, 1), (3, 1, 1)]
 
-    datadir= HOME_DIR + "/Data/"
-    generation="30000"
-    history_type="xy"
 
 
     # legend_labels.append("baseline")
@@ -1286,6 +1290,6 @@ if __name__ == "__main__":
      #                 title_tag="")
     #make_significance_table(fitfunlabels, legend_labels, qed_index=-2,table_type="resilience")
 
-    #gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,history_type,perturbed=True)
+    gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,history_type,perturbed=True)
 
     gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults, runs, history_type, perturbed=False)

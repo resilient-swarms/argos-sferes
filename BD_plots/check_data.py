@@ -76,6 +76,6 @@ if __name__ == "__main__":
                             ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"],
                             ["Gomes_sdbc_walls_and_robots_std", "environment_diversity"],
                             range(1,6),
-                            range(0,20),
+                            range(30,40),
                             translation="spirit"
                             )

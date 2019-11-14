@@ -34,18 +34,18 @@ behav["Flocking"]="SWARM_FLOCKING"
 
 command="bin/analysis" # note: cvt and 10D does not really matter since we are not evolving
 
-# descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-# voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
 # descriptors["environment_diversity"]=6
 # voronoi["environment_diversity"]=""
 
 
-descriptors["history"]=3
-voronoi["history"]=""
+#descriptors["history"]=3
+#voronoi["history"]=""
 
-# descriptors["cvt_rab_spirit"]=1024
-# voronoi["cvt_rab_spirit"]="cvt"
+descriptors["cvt_rab_spirit"]=1024
+voronoi["cvt_rab_spirit"]="cvt"
 
 #descriptors["baseline"]=""
 #voronoi["baseline"]=""
@@ -62,7 +62,7 @@ for FaultType in "FAULT_NONE"; do
 	SimTime=${time[${FitfunType}]}
 	echo "simtime"${SimTime}
 	for FaultID in "-1"; do
-		for FitfunType in Flocking; do
+		for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking; do
 			echo 'Fitfun'${FitFunType}
 			for SensorRange in 0.11; do
 				echo 'sens'${SensorRange}
