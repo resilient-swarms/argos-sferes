@@ -390,7 +390,14 @@ def get_bins(bd_shape):
     else:
         # assume you are doing cvt , just return the shape=number of centroids
         return bd_shape
-
+def convert_QED_rep(individual):
+    s=""
+    individual=int(individual)
+    for num in range(5,-1,-1):
+        number=individual//(4**(num))
+        individual-=number*4**num
+        s+=str(number+1) + ","
+    return s[:-1]
 
 if __name__ == "__main__":
     # sys.path.append("/home/david/DataFinal/ExperimentData")

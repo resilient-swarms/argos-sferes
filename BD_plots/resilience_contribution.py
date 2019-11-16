@@ -28,6 +28,7 @@ def gather_individual_data(gener,runs):
                     transfer = []
                     best_transfer = []
                     for i in range(len(bd_type)):
+                        print(bd_type[i])
                         nofaultpath = BD_dir + "/" + bd_type[i] + "/FAULT_NONE/results"
                         if bd_type[i] == "baseline":
                             best_nofaultperfs = get_baseline_performances(nofaultpath)
@@ -45,16 +46,14 @@ def gather_individual_data(gener,runs):
                             resilience, baseline=bd_type[i] == "baseline")
 
 
-                    diff_resilience = resilience[QED_index] - np.mean(resilience[1:QED_index])  # look at cases that contribute most to resilience advantage
-                    differences[(r,fault)]=diff_resilience
-                    impacts[(r,fault)] = np.mean(best_transfer) # look at cases with worst transfer (biggest impact of fault)
+                    diff_resilience = (resilience[QED_index] - np.max(resilience[1:QED_index]), best_performances/baseline_performances[fitfuns[j]],
+                                       np.mean(best_transfer))  # look at cases that contribute most to resilience advantage
+                    differences[(run,fault)]=diff_resilience
 
             diff_resilience_sorted[fitfuns[j]] = sorted(differences.items(), key=operator.itemgetter(1),reverse=True)
 
-            impacts_sorted[fitfuns[j]] = sorted(impacts.items(), key=operator.itemgetter(1))
 
         pickle.dump(diff_resilience_sorted,open("data/fitfun/resilience_differences.pkl","wb"))
-        pickle.dump(impacts_sorted, open("data/fitfun/impacts.pkl","wb"))
 
 
 
@@ -62,7 +61,9 @@ def gather_individual_data(gener,runs):
 
 
 if __name__ == "__main__":
-    gather_individual_data(gener=generation,runs=runs)
+
+    # note 2:2 flocking swirling behaviour
+    #gather_individual_data(gener=generation,runs=runs)
     diff_res = pickle.load(open("data/fitfun/resilience_differences.pkl","rb"))
-    impacts = pickle.load(open("data/fitfun/impacts.pkl", "rb"))
     print()
+

@@ -3,7 +3,12 @@
 data=$1
 video=$4
 if [ $video = "video" ]; then	
-	template_file="experiments/experiment_template_perturbation_with_visual.argos"
+	if [ "$2" = "best" ] || [ "$2" = "impact" ]; then   # testing faulty best or normal best on faulty scenario  -> give numbers to track faults
+		template_file="experiments/experiment_template_perturbation_with_visual_numbered.argos"
+	else
+		template_file="experiments/experiment_template_perturbation_with_visual.argos"   # testing on normal environment; no need to track
+	fi
+	
 else
 	template_file="experiments/experiment_template_perturbation.argos"
 fi
@@ -44,18 +49,18 @@ behav["Flocking"]="SWARM_FLOCKING"
 
 command="bin/analysis" # note: cvt and 10D does not really matter since we are not evolving
 
-# descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-# voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
-# descriptors["environment_diversity"]=6
-# voronoi["environment_diversity"]=""
+descriptors["environment_diversity"]=6
+voronoi["environment_diversity"]=""
 
 
 descriptors["history"]=3
 voronoi["history"]=""
 
-# descriptors["cvt_rab_spirit"]=1024
-# voronoi["cvt_rab_spirit"]="cvt"
+descriptors["cvt_rab_spirit"]=1024
+voronoi["cvt_rab_spirit"]="cvt"
 
 #descriptors["baseline"]=""
 #voronoi["baseline"]=""
@@ -70,11 +75,11 @@ time["Flocking"]=400
 perturbations_folder="experiments/perturbations"
 # for FaultType in "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" \
 # "FAULT_ACTUATOR_LWHEEL_SETHALF" "FAULT_ACTUATOR_RWHEEL_SETHALF" "FAULT_ACTUATOR_BWHEELS_SETHALF"; do
-for FaultIndex in $(seq 10 11); do
+for FaultIndex in $(seq 12 12); do
 	SimTime=${time[${FitfunType}]}
 	echo "simtime"${SimTime}
 	for FaultID in "-1"; do
-		for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking; do
+		for FitfunType in Aggregation; do
 			echo 'Fitfun'${FitFunType}
 			for SensorRange in 0.11; do
 				echo 'sens'${SensorRange}
@@ -96,7 +101,7 @@ for FaultIndex in $(seq 10 11); do
 					echo "has ${BD_DIMS} dimensions"
 					echo "tag is ${tag}"
 
-					for Replicates in $(seq 1 5); do
+					for Replicates in $(seq 4 4); do
 
 						# Take template.argos and make an .argos file for this experiment
 						SUFFIX=${Replicates}
@@ -114,11 +119,28 @@ for FaultIndex in $(seq 10 11); do
 							ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_p${FaultIndex}/
 							export Outfolder=${ArchiveDir}/${video}/results${SUFFIX} # where to output the results
 							export Searchfolder=${ArchiveDir}/results${SUFFIX}  # where to search for best indiv
-							FaultType=FAULT_NONE
+							FaultType="FILE:${perturbations_folder}/run${Replicates}_p${FaultIndex}.txt"
+                        			elif [ "$2" = "best_compare" ]; then   # compare the best one but evaluate it in the no-fault environment
+							echo "will look for perturbations at run${Replicates}_p${FaultIndex}"
+							ConfigFolder=${Base}
+							ConfigFile=${ConfigFolder}/history_exp_${Replicates}_p${FaultIndex}.argos # just to write the history
+							ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_p${FaultIndex}/
+							export Outfolder=${ArchiveDir}/${video}/results${SUFFIX} # where to output the results
+							export Searchfolder=${ArchiveDir}/results${SUFFIX}  # where to search for best indiv
+							FaultType="FAULT_NONE"
+                        			elif [ "$2" = "impact" ]; then  # assess impact of fault on the normal individual
+							echo "will look for perturbations at run${Replicates}_p${FaultIndex}"
+							FaultType="FILE:${perturbations_folder}/run${Replicates}_p${FaultIndex}.txt"
+						    	ConfigFolder=${Base}/faultyrun${Replicates}_p${FaultIndex}
+							mkdir -p ${ConfigFolder}
+							ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
+							ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_p${FaultIndex}/
+							export Outfolder=${ArchiveDir}/${video}/results${SUFFIX} # where to output the results
+							export Searchfolder=${Base}/FAULT_NONE/results${SUFFIX}  # where to search for best indiv (here search for the FAULT_NONE)					
 						else
 							# look at archive dir at previous perturbation results; config is at FAULT_NONE
-                            FaultType="FILE:${perturbations_folder}/run${Replicates}_p${FaultIndex}.txt"
-                            ConfigFolder=${Base}/faultyrun${Replicates}_p${FaultIndex}
+						    	FaultType="FILE:${perturbations_folder}/run${Replicates}_p${FaultIndex}.txt"
+						    	ConfigFolder=${Base}/faultyrun${Replicates}_p${FaultIndex}
 							mkdir -p ${ConfigFolder}
 							ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 							export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
@@ -174,7 +196,14 @@ for FaultIndex in $(seq 10 11); do
 							bash submit_baseline_job.sh   # just record the performance of the baseline controllers in the faulty environment
 						else
 							if [ "${video}" = "video" ]; then
-								export VIDEOFILE="/home/david/Videos/${FitfunType}_${DescriptorType}_FAULT${FaultIndex}_run${Replicates}"   #
+								if [ "$2" = "best" ]; then
+									export VIDEOFILE="/home/david/Videos/${FitfunType}_${DescriptorType}_FAULT${FaultIndex}_run${Replicates}"   #
+								elif [ "$2" = "best_compare" ]; then
+									export VIDEOFILE="/home/david/Videos/${FitfunType}_${DescriptorType}_FAULT${FaultIndex}_run${Replicates}_NORMAL"   #
+								elif [ "$2" = "impact" ]; then
+									export VIDEOFILE="/home/david/Videos/${FitfunType}_${DescriptorType}_FAULT${FaultIndex}_run${Replicates}_IMPACT"   #
+									
+								fi
 								bash submit_test.sh "video"
 							elif [ "$2" = "best" ]; then
 								bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
