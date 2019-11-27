@@ -897,7 +897,7 @@ def get_baseline_performances(nofaultpath):
         return nofaultperfs
 
 def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnofault,faultpath,
-                          best_performances,performances,best_transfer,transfer,recovery,resilience, baseline=False):
+                          best_performances,performances,best_transfer,transfer,recovery,resilience, baseline=False, add_faultperf=False):
     """
 
     :param j: fitfun index
@@ -926,18 +926,22 @@ def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnof
 
         # all performances vs all nofaultperformances
         for k in range(len(nofaultperfs[r])):
-            transfer = np.append(transfer, [(temp[k] - nofaultperfs[r][k]) / baseline_performances[fitfuns[j]]])
+            transfer = np.append(transfer, [(temp[k] - nofaultperfs[r][k]) / baseline_performances[fitfuns[j]]])  # avoid NANs
 
         best_transfer = np.append(best_transfer,
                                   (temp[maxindsnofault[r]] - best_nofaultperfs[r]) / best_nofaultperfs[r])
+        if add_faultperf:
+            best_faultperf=temp[maxindsnofault[r]]
 
     best_performances = np.append(best_performances, best_performance)
 
     recovery = np.append(recovery, [(best_performance - best_nofaultperfs[r]) / baseline_performances[
         fitfuns[j]]])  # best performance vs best nofaultperf
     resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / best_nofaultperfs[r])
-
-    return best_performances, performances, best_transfer, transfer, recovery,resilience
+    if add_faultperf:
+        return best_performances, performances, best_transfer, transfer, recovery, resilience, best_faultperf
+    else:
+        return best_performances, performances, best_transfer, transfer, recovery,resilience
 
 
 def get_nofault_performances(nofaultpath,gener,runs):
@@ -1085,12 +1089,12 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,gener, by_fitfun=
                         open(loadfilename, "wb"))
         part_data = [best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data]
         with open("results/summary_table"+title_tag,"w") as f:
-            make_table(f,all_data,
+            make_table(f,part_data,
                        rowlabels=legend_labels,
                        columnlabels=[],
                        conditionalcolumnlabels=[("bestperformance","float3"),("performance","float3"),("besttransfer","float3"),("transfer","float3"),("resilience","float3")])
         with open("results/summary_table_median"+title_tag, "w") as f:
-            make_table(f, all_data,
+            make_table(f, part_data,
                            rowlabels=legend_labels,
                            columnlabels=[],
                            conditionalcolumnlabels=[("bestperformance","float3"),("performance","float3"),("besttransfer","float3"),("transfer","float3"),("resilience","float3")],
@@ -1150,6 +1154,9 @@ def make_significance_table(fitfunlabels,conditionlabels,qed_index,table_type="r
         qed=resilience_data[qed_index] # QED
         data=resilience_data
     else:
+        for i, fitfun in enumerate(fitfunlabels):
+            for j in range(len(best_performance_data)):
+                best_performance_data[j][i]/=baseline_performances[fitfun]
         qed=best_performance_data[qed_index]
         data=best_performance_data
     with open("results/fault/table/significance_table"+table_type,"w") as f:
@@ -1291,12 +1298,14 @@ if __name__ == "__main__":
     # legend_labels.append("baseline")
 
     # set by_fitfun true
-    significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=True, load_existing=True,
-                     title_tag="")
-
-    #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=True,
+    #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=True, load_existing=True,
     #                 title_tag="")
-    #make_significance_table(fitfunlabels, legend_labels, qed_index=-2,table_type="resilience")
+
+    #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=True, load_existing=False,
+    #                 title_tag="")
+    make_significance_table(fitfunlabels, legend_labels, qed_index=-2,table_type="performance")
+
+    make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="resilience")
 
     #gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,history_type,perturbed=True)
 

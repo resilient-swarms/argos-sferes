@@ -7,9 +7,11 @@ HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
 import pickle
 import copy
-
+from perturbance_metrics import *
+import numpy as np
 PRINT=False
 
+baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl", "rb"))
 
 def print_conditional(some_string):
     if PRINT:
@@ -241,12 +243,11 @@ def _spread(bd_shape,BD_directory, run, archive_file_path,
 
     if not comp:
         for i,bd1 in enumerate(bd_list):
-            for j,bd2 in enumerate(bd_list):
-                if i!=j:
-                    temp+=distance_metric(bd1,bd2)
+            for j in range(i+1,len(bd_list)):
+                    temp+=distance_metric(bd1,bd_list[j])
                     comps+=1.0
         temp/=comps
-        assert comps==len(bd_list)*(len(bd_list)-1)
+        assert comps==len(bd_list)*(len(bd_list)-1)/2
         return temp
     else:
         comp =  get_individual_bds(path,comp,bd_start)[0]
@@ -467,6 +468,13 @@ def coverage_development_plots(title,runs,times,BD_directory,title_tag, bd_type,
 
     j=0
     maximum_line = (times,[4096 for i in times])
+    cov=y_mid["absolute_coverage"]
+    top_cov=y_top["absolute_coverage"]
+    for i in range(len(cov)):
+        print(bd_type[i])
+        print(cov[i][-1])
+        sd_cov = top_cov[i][-1] - cov[i][-1]
+        print(sd_cov)
     annots = {"text": "maximal coverage=4096","xy":(5000,4400),"xytext":(5000,4400),
               "fontsize":22,"align": "center"}
     for label in y_labels:
@@ -638,7 +646,7 @@ def make_translation_table(tab_label,BD_dirs,runs,times,source="all"):
         time_index = times.index(30000)  # only last
         gener=times[time_index]
         with open("results/evolution/table/coverage_table" + tab_label+source, "w") as f:
-            targets = OrderedDict({"handcrafted": 4096, "sdbc": 4096, "spirit": 4096})
+            targets = OrderedDict({"spirit": 4096})
             labels = ["HBD", "SDBC", "SPIRIT"]
             bd_starts = {"handcrafted":1,"sdbc":2,"spirit":2}
             bin_indexes = {"handcrafted":range(1,4),"sdbc":[1],"spirit":[1]}
@@ -735,7 +743,7 @@ def make_translation_table(tab_label,BD_dirs,runs,times,source="all"):
 
 
 
-def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False):
+def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False,by_fitfun=True):
         """
 
         performance: defined as the performance on all the perturbed environments
@@ -778,9 +786,14 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
                     c=coverages(4096,directory,runs, archive_file)
 
                     a_p = avg_performances(directory,runs,archive_file,max_performance=1,conversion_func=None,from_fitfile=False)/ baseline_performances[fitfuns[j]]
-                    best_performance_data[i].append(p)
-                    avg_performance_data[i].append(a_p)
-                    coverage_data[i].append(c)
+                    if by_fitfun:
+                        best_performance_data[i].append(p)
+                        avg_performance_data[i].append(a_p)
+                        coverage_data[i].append(c)
+                    else:
+                        best_performance_data[i] = np.append(best_performance_data[i],p)
+                        avg_performance_data[i] = np.append(avg_performance_data[i], a_p)
+                        coverage_data[i] = np.append(coverage_data[i], c)
         if not load_existing:
             pickle.dump((best_performance_data, avg_performance_data, coverage_data), open("data/evolution_data/evolution_statistics.pkl","wb"))
         from scipy.stats import mannwhitneyu
@@ -799,6 +812,18 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
                            conditionalcolumnlabels=[("best perf.","float2"), ("average perf.","float2"),("coverage","float2")],
                        transpose=False)
 
+        # make_boxplots(best_performance_data, row_conditions=legend_labels,
+        #               save_filename="boxplot.png", xlabs=[], ylab="best performance", ylim=[0,1])
+        fig, axes = plt.subplots(1, 1, figsize=(10, 10))  # compare fault_none to perturbations
+        plt.boxplot(best_performance_data, positions=np.array(range(len(best_performance_data))) * 2.0, sym='', widths=0.6)
+        plt.xticks(np.array(range(len(best_performance_data))) * 2.0, legend_labels,fontsize=26)
+        axes.tick_params(axis='both', which='major', labelsize=20)
+        axes.tick_params(axis='both', which='minor', labelsize=20)
+        axes.set_ylim([0.9,1.0])
+        plt.ylabel("best performance",fontsize=26)
+        plt.tight_layout()
+        plt.savefig(RESULTSFOLDER + "/bestperformance_boxplot.pdf")
+
 
 
 def create_all_development_plots():
@@ -806,8 +831,8 @@ def create_all_development_plots():
 
     fitfuns= ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"] #,"DecayBorderCoverage","Flocking"]
     bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"]  # file system label for bd
-    legend_labels=["handcrafted","SDBC","SPIRIT","QED","Subsump"]  # labels for the legend
-    bybin_list=["bd", "individual", "individual", "bd", ""]
+    legend_labels=["handcrafted","SDBC","SPIRIT","QED"]  # labels for the legend
+    bybin_list=["bd", "individual", "individual", "bd"]
     times=range(0,30500, 500)
     fig, axs = plt.subplots(5, 5, figsize=(50, 40))  # coverage, avg perf., global perf., global reliability
     for i,fitfun in enumerate(fitfuns):
@@ -844,22 +869,23 @@ if __name__ == "__main__":
 
 
         # global
-    faults=range(20)
+    faults=range(50)
     runs=range(1,6)
-    fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
+    fitfuns = ["Aggregation", "DecayCoverage","Dispersion",
                "DecayBorderCoverage","Flocking"]  # ,"DecayBorderCoverage","Flocking"]
     bd_type = ["history","Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
              ]  # file system label for bd
     legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
     generation=30000
 
-    make_translation_table("DEBUG", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
+    make_translation_table("CORRECT", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
 
 
-    baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl", "rb"))
-    make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
+    #baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl", "rb"))
+
+    #make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False,by_fitfun=False)
 
 
-    create_coverage_development_plots()
+    #create_coverage_development_plots()
 
-    create_all_development_plots()
+    #create_all_development_plots()
