@@ -1,38 +1,13 @@
 
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from perturbation_analysis import *
+from signature_plot import *
 
-def get_data(metric,bd,fitfuns,history_type):
-        print(bd)
-        y = []
-        x = []
-        for fitfun in fitfuns:
-            print(fitfun)
-            dp_file, _, _, _, _, _ = filenames(fitfun, bd, history_type)
-            euclid_file, maxvar_file, category_file, category_h_file = unperturbed_filenames(fitfun, bd, history_type)
-            performances, nofaultperfs = pickle.load(open(dp_file, "rb"))
-            dps = np.array(performances) - np.array(nofaultperfs)
+loadfilename="data/combined/summary_statistics.pkl"
+best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(
+            open(loadfilename, "rb"))
 
 
-            categories = pickle.load(open(category_file, "rb"))
-            categories_h = pickle.load(open(category_h_file, "rb"))
-
-            if metric=="euclid":
-                euclids = pickle.load(open(euclid_file, "rb"))
-                y = np.append(y, euclids)
-            elif metric=="maxvar":
-                mv = pickle.load(open(maxvar_file, "rb"))
-                y = np.append(y, mv)
-            elif metric=="category_h":
-                ch = pickle.load(open(category_h_file, "rb"))
-                y = np.append(y, ch)
-            elif metric=="category":
-                c = pickle.load(open(category_file, "rb"))
-                y = np.append(y, c)
-            else:
-                raise Exception("not implemented")
-            x = np.append(x, np.array(dps) / np.array(nofaultperfs))
-        return x,y
 def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False):
     ## Axis limits for plots of generation 8000
 
@@ -96,10 +71,11 @@ if __name__ == "__main__":
     bds=["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]
     xs=[]
     ys=[]
-    for bd in bds:
-        x,y=get_data("maxvar",bd,["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"],"xy")
-        xs.append(x)
+    for i, bd in enumerate(bds):
+        _notneeded, y = get_data("maxvar", bd, ["Aggregation", "Dispersion", "DecayCoverage", "DecayBorderCoverage", "Flocking"],
+                        "xy")
+        xs.append(best_transfer_data[i])
         ys.append(y)
-    plot(xs,ys,"maxvar_blackgridnew",titles=["HBD","SDBC","SPIRIT","QED"],
-         axis_names=["resilience","distance to normal behaviour"],
-         xlim=[-0.4,0.1],ylim=[0,1],grid=True)
+    plot(xs,ys,"impact_signature",titles=["HBD","SDBC","SPIRIT","QED"],
+         axis_names=["impact","distance to normal behaviour"],
+         xlim=[-1.0,0.0],ylim=[0,1],grid=True)

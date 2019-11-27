@@ -1298,6 +1298,8 @@ if __name__ == "__main__":
     # legend_labels.append("baseline")
 
     # set by_fitfun true
+    significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=True,
+                     title_tag="")
     #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=True, load_existing=True,
     #                 title_tag="")
 
