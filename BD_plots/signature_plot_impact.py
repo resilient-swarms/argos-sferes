@@ -2,13 +2,11 @@
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from perturbation_analysis import *
 from signature_plot import *
-
-loadfilename="data/combined/summary_statistics.pkl"
-best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(
-            open(loadfilename, "rb"))
+from plots import add_line
 
 
-def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False):
+
+def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False,add_unit_line=False):
     ## Axis limits for plots of generation 8000
 
     xmin = xlim[0]  # m1.min()
@@ -37,6 +35,10 @@ def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False):
         ax.tick_params(axis='both', which='minor', labelsize=28)
         ax.set_title(titles[i],fontsize=40)
 
+        if add_unit_line:
+            x = np.linspace(xmin, xmax, 100)
+            y = x
+            add_line(x, y, ax)
 
 
 
@@ -69,13 +71,26 @@ def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False):
 
 if __name__ == "__main__":
     bds=["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]
-    xs=[]
-    ys=[]
+    impacts=[]
+    dists=[]
+    resiliences=[]
+    self_dists=[]
     for i, bd in enumerate(bds):
-        _notneeded, y = get_data("maxvar", bd, ["Aggregation", "Dispersion", "DecayCoverage", "DecayBorderCoverage", "Flocking"],
-                        "xy")
-        xs.append(best_transfer_data[i])
-        ys.append(y)
-    plot(xs,ys,"impact_signature",titles=["HBD","SDBC","SPIRIT","QED"],
+        resilience, dist, self_dist = get_data("maxvar", bd, ["Aggregation", "Dispersion", "DecayCoverage", "DecayBorderCoverage", "Flocking"],
+                        "xy",add_self_dist=True)
+        assert np.allclose(resilience, resilience_data[i])
+        impacts.append(best_transfer_data[i])
+        resiliences.append(resilience)
+        dists.append(dist)
+        self_dists.append(self_dist)
+    plot(impacts,dists,"impact_distance_signature",titles=["HBD","SDBC","SPIRIT","QED"],
          axis_names=["impact","distance to normal behaviour"],
          xlim=[-1.0,0.0],ylim=[0,1],grid=True)
+
+    plot(impacts,resiliences,"impact_resilience_signature",titles=["HBD","SDBC","SPIRIT","QED"],
+         axis_names=["impact","resilience"],
+         xlim=[-0.8,0.2],ylim=[-0.4,0.1],grid=True,add_unit_line=True)
+
+    plot(self_dists, dists, "projection_signature", titles=["HBD", "SDBC", "SPIRIT", "QED"],
+         axis_names=["distance in own space","distance in projected space"],
+         xlim=[0, 1], ylim=[0, 1], grid=True)

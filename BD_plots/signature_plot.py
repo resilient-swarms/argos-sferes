@@ -2,14 +2,19 @@
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from perturbation_analysis import *
 
-def get_data(metric,bd,fitfuns,history_type):
+loadfilename="data/combined/summary_statistics.pkl"
+best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(
+            open(loadfilename, "rb"))
+
+def get_data(metric,bd,fitfuns,history_type,add_self_dist=False):
         print(bd)
         y = []
         x = []
+        self_dists=[]
         for fitfun in fitfuns:
             print(fitfun)
-            dp_file, _, _, _, _, _ = filenames(fitfun, bd, history_type)
-            euclid_file, maxvar_file, category_file, category_h_file = unperturbed_filenames(fitfun, bd, history_type)
+            dp_file, _, _, _, _, _,_ = filenames(fitfun, bd, history_type)
+            euclid_file, maxvar_file, category_file, category_h_file, selfdistfile = unperturbed_filenames(fitfun, bd, history_type)
             performances, nofaultperfs = pickle.load(open(dp_file, "rb"))
             dps = np.array(performances) - np.array(nofaultperfs)
 
@@ -32,7 +37,12 @@ def get_data(metric,bd,fitfuns,history_type):
             else:
                 raise Exception("not implemented")
             x = np.append(x, np.array(dps) / np.array(nofaultperfs))
-        return x,y
+
+            if add_self_dist:
+                self_d = pickle.load(open(selfdistfile,"rb"))
+                self_dists = np.append(self_dists, self_d)
+
+        return x,y,self_dists
 def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False):
     ## Axis limits for plots of generation 8000
 
@@ -96,8 +106,9 @@ if __name__ == "__main__":
     bds=["history","Gomes_sdbc_walls_and_robots_std","cvt_rab_spirit","environment_diversity"]
     xs=[]
     ys=[]
-    for bd in bds:
-        x,y=get_data("maxvar",bd,["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"],"xy")
+    for i, bd in enumerate(bds):
+        x,y,_unused=get_data("maxvar",bd,["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"],"xy")
+        assert np.allclose(x,resilience_data[i])
         xs.append(x)
         ys.append(y)
     plot(xs,ys,"maxvar_blackgridnew",titles=["HBD","SDBC","SPIRIT","QED"],
