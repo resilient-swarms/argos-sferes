@@ -5,7 +5,18 @@ from perturbation_analysis import *
 loadfilename="data/combined/summary_statistics.pkl"
 best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(
             open(loadfilename, "rb"))
+def bin_distances(fitfun,bd,history_type):
+    """
+    print normal_bd_self
+    then bin distances of other bds and look at the different clusters
+    :return:
+    """
+    normal_bd_file, normal_bd_self_file, faulty_bd_file, faulty_bd_self_file = bd_filenames(fitfun, bd, history_type)
+    normal_bd_self = pickle.load(open(normal_bd_self_file,"rb"))
 
+    faulty_bd_self = pickle.load(open(faulty_bd_self_file,"rb"))
+
+    print()
 def get_data(metric,bd,fitfuns,history_type,add_self_dist=False):
         print(bd)
         y = []
@@ -41,7 +52,7 @@ def get_data(metric,bd,fitfuns,history_type,add_self_dist=False):
             if add_self_dist:
                 self_d = pickle.load(open(selfdistfile,"rb"))
                 self_dists = np.append(self_dists, self_d)
-
+            bin_distances(fitfun,bd,history_type)
         return x,y,self_dists
 def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False):
     ## Axis limits for plots of generation 8000
@@ -112,5 +123,5 @@ if __name__ == "__main__":
         xs.append(x)
         ys.append(y)
     plot(xs,ys,"maxvar_blackgridnew",titles=["HBD","SDBC","SPIRIT","QED"],
-         axis_names=["resilience","distance to normal behaviour"],
+         axis_names=["Map resilience","Behavioural diversity"],
          xlim=[-0.4,0.1],ylim=[0,1],grid=True)

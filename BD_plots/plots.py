@@ -221,13 +221,13 @@ def add_line(x,y,plt):
     l.set_dashes([2, 2, 10, 2])
     return l
 
-def get_plot(ax,index, xx, stats, colors, markers, markers_on,y_err=[],fill_between=[]):
+def get_plot(ax,index, xx, stats, colors, markers, markers_on,y_err=[],fill_between=[],legend_label=None):
     if y_err:
         line = ax.errorbar(xx, stats[index],yerr=y_err[index], color=colors[index], marker=markers[index], markevery=markers_on, ms=16,
-                    linewidth=4)
+                    linewidth=4,label=legend_label)
     else:
         line, = ax.plot(xx, stats[index], color=colors[index], marker=markers[index], markevery=markers_on, ms=16,
-                            linewidth=4)
+                            linewidth=4,label=legend_label)
 
 
         if fill_between:
@@ -262,7 +262,7 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
                legendbox=(.10,.10),annotations=[],xticks=[],yticks=[],task_markers=[],scatter=False,
                legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[],index_x=[],
                xaxis_style="plain",y_err=[],force=False,fill_between=[],
-               ax=None, title=None
+               ax=None, title=None, skip_legend=False
                ):
     print("prepare plotting "+ylabel)
     if not force:
@@ -312,7 +312,7 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
                 else:
                     xx= x if len(stats[index])==len(x) else x[0:len(stats[index])]
                 markers_on = range(0, len(xx), interval_width)
-                line=get_plot(ax,index,xx,stats,colors,markers,markers_on,y_err, fill_between)
+                line=get_plot(ax,index,xx,stats,colors,markers,markers_on,y_err, fill_between,legend_labels[index])
 
             lines.append(line)
         #axes = PLT.gca()
@@ -345,20 +345,20 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
                     count=0
                     for xy in annot["xy"]:
                         text = "" if count > 0 else annot["text"]
-                        PLT.annotate("", xy=xy, xytext=annot["xytext"],textcoords="data",xycoords="data",
+                        ax.annotate("", xy=xy, xytext=annot["xytext"],textcoords="data",xycoords="data",
                                 arrowprops=dict(facecolor='black', shrink=0.05), verticalalignment="bottom",horizontalalignment=annot["align"], fontsize=annot["fontsize"] )
                         count+=1
                 else:
-                    PLT.annotate(annot["text"], xy=annot["xy"], xytext=annot["xytext"],textcoords="data",xycoords="data",
+                    ax.annotate(annot["text"], xy=annot["xy"], xytext=annot["xytext"],textcoords="data",xycoords="data",
                         arrowprops=dict(facecolor='black', shrink=0.05),verticalalignment="bottom",horizontalalignment=annot["align"],fontsize=annot["fontsize"])
             else:
-                PLT.annotate(annot["text"], xy=annot["xy"],textcoords="data",xycoords="data",verticalalignment="bottom",horizontalalignment=annot["align"],fontsize=annot["fontsize"])
+                ax.annotate(annot["text"], xy=annot["xy"],textcoords="data",xycoords="data",verticalalignment="bottom",horizontalalignment=annot["align"],fontsize=annot["fontsize"])
         # loc=3,ncol=1,bbox_to_anchor=(0.10, 0.70),
-        PLT.yscale(yscale)
+        ax.set_yscale(yscale)
         if isinstance(xscale,dict):
             PLT.xscale(**xscale)
         else:
-            PLT.xscale(xscale)
+            ax.set_xscale(xscale)
 
         if xticks:
             if isinstance(xticks, dict):
@@ -375,11 +375,11 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
             ax.set_yticks(yticks)
 
         ax.grid(True)
-
-        leg = ax.legend(lines,labels=legend_labels, loc="best",ncol=legend_cols,
-                   prop={'size':legend_fontsize},
-                   fancybox=True)
-        leg.set_alpha(0.20)
+        if not skip_legend:
+            leg = ax.legend(lines,labels=legend_labels, loc="best",ncol=legend_cols,
+                       prop={'size':legend_fontsize},
+                       fancybox=True)
+            leg.set_alpha(0.20)
 
         if fig is None: return # nothing to save, just a subplot
         fig.tight_layout()

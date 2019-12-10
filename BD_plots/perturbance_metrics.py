@@ -149,7 +149,7 @@ def get_performance_data(outputdirectory, generation):
     file = outputdirectory + "/analysis" + generation + "_handcrafted.dat"
     best_indiv, performance = get_best_individual(file, add_performance=True)
     return performance
-def get_data(base_path,fitfun,descriptors,faults,runs, sens_range, fault_id):
+def get_data_old(base_path,fitfun,descriptors,faults,runs, sens_range, fault_id):
     """
     look up the data in a folder
     :param labels:

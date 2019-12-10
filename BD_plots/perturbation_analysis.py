@@ -8,7 +8,7 @@ HOME_DIR = os.environ["HOME"]
 RESULTSFOLDER="results"
 from plots import *
 
-from scipy.stats import *
+from significance import *
 import pickle
 
 baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl", "rb"))
@@ -19,7 +19,7 @@ runs = range(1, 6)
 bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit","environment_diversity"]  # legend label
 legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
 fitfuns = ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
-fitfunlabels = ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
+fitfunlabels = ["Aggregation","Dispersion","Patrolling","Border-patrolling","Flocking"]
 # get_max_performances(bd_type, fitfuns,"30000")
 
 colors = ["C" + str(i) for i in range(len(bd_type))]
@@ -28,6 +28,39 @@ markers = [(2, 1, 0), (3, 1, 0), (2, 1, 1), (3, 1, 1)]
 datadir = HOME_DIR + "/Data/"
 generation = "30000"
 history_type = "xy"
+
+def gather_bd_data(BD_DIRECTORY,generation,faults, runs,
+                             history_type="sa",translation_type="handcrafted"):
+    """
+    use existing state/observation-action trajectory files and calculate pair-wise NCDs for all individuals within the sa;e run
+    the average is returned
+    :return:
+    """
+    normal_bd=[]
+    normal_bd_self=[]
+    faulty_bd=[]
+    faulty_bd_self=[]
+
+
+    for fault in faults:
+        for run in runs:
+            nofault_dir = BD_DIRECTORY + "/FAULT_NONE/results" + str(run)
+            self_dir = BD_DIRECTORY + "/results"+str(run)
+            history_comp, performance_comp, bd_comp, self_bd_comp = get_help_data(nofault_dir, generation,
+                                                                                  history_type, translation_type,
+                                                                                  self_dir=self_dir)
+            normal_bd.append(bd_comp)
+            normal_bd_self.append(self_bd_comp)
+
+            history_file, performance, bd, self_bd = \
+                get_help_data(BD_DIRECTORY + "/faultyrun" + str(run) + "_p" + str(fault) + "/results" + str(run),
+                              generation, history_type, translation_type, self_dir=self_dir)
+            faulty_bd.append(bd)
+            faulty_bd_self.append(self_bd)
+
+
+    return normal_bd,normal_bd_self,faulty_bd,faulty_bd_self
+
 
 
 def gather_perturbation_data(BD_DIRECTORY,generation,faults, runs, get_NCD=True,
@@ -172,6 +205,29 @@ def get_delta_P(non_perturbed_path,perturbed_path,max):
     _index, p_performance = get_best_individual(perturbed_path,add_performance=True)
     return p_performance - np_performance
 
+# def gather_bds(datadir,generation,bd_type,fitfuns,faults,runs,history_type)
+#     for bd in bd_type:
+#         for fitfun in fitfuns:
+#             title = fitfun + "range0.11"
+#             prefix = datadir + "/" + title + "/" + bd
+#             gather_bds(prefix,generation,bd_type,fitfuns,faults,runs,history_type)
+def gather_bd_results(datadir,generation,bd_type,fitfuns,faults,runs,history_type):
+
+
+    for bd in bd_type:
+        for fitfun in fitfuns:
+            title = fitfun + "range0.11"
+            prefix = datadir + "/" + title + "/" + bd
+
+            #
+            normal_bd,normal_bd_self,faulty_bd,faulty_bd_self = gather_bd_data(prefix, generation, faults, runs,
+                           history_type="sa", translation_type="handcrafted")
+            normal_bd_file, normal_bd_self_file, faulty_bd_file, faulty_bd_self_file = bd_filenames(fitfun,bd,history_type)
+            pickle.dump(normal_bd, open(normal_bd_file, "wb"))
+            pickle.dump(normal_bd_self, open(normal_bd_self_file, "wb"))
+            pickle.dump(faulty_bd, open(faulty_bd_file, "wb"))
+            pickle.dump(faulty_bd_self, open(faulty_bd_self_file, "wb"))
+
 
 def gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,history_type,perturbed=True):
     centroids_sdbc=load_centroids("centroids/centroids_10_10.dat")
@@ -236,6 +292,8 @@ def gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,h
                 pickle.dump(categories, open(category_file, "wb"))
                 pickle.dump(self_dists, open(selfdist_file, "wb"))
                 #pickle.dump(categories_handcrafted, open(categoryh_file, "wb"))
+
+
 def gather_category_results(bd_type, fitfuns, faults, runs):
     for bd in bd_type:
         data_dir = HOME_DIR + "/DataFinal/datanew"
@@ -260,6 +318,12 @@ def filenames(fitfun,bd,history_type):
     return prefix + "_DeltaPs.pkl",prefix +"_ncds.pkl",\
            prefix +"_euclids.pkl",prefix +"_maxvars.pkl", \
           prefix +  "_categories.pkl", prefix +  "handcrafted_categories.pkl", prefix+"selfdists.pkl"
+
+def bd_filenames(fitfun,bd,history_type):
+    #dp_file, ncd_file, euclid_file, ent_file, category_file
+    prefix = "data/fitfun/" + fitfun + "/" + bd + history_type
+    return prefix + "_normal_bd.pkl",prefix +"_normal_bd_self_.pkl",\
+           prefix +"_faulty_bd.pkl",prefix +"_faulty_bd_self.pkl"
 def unperturbed_filenames(fitfun,bd,history_type):
     #dp_file, ncd_file, euclid_file, ent_file, category_file
     prefix= "data/fitfun/"+fitfun+"/"+ bd + history_type
@@ -583,55 +647,60 @@ def make_significance_table(fitfunlabels,conditionlabels,qed_index,table_type="r
                 f.write(r"& $%.2f \pm %.1f$ & $%s$ & $%s$"%(m,iqr,p_value,delta_value))
             newline_latex(f)
 
+def make_significance_table_compact(fitfunlabels,conditionlabels,qed_index,table_type="resilience"):
 
-def cliffs_delta(U,x,y):
-    """
+    best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(
+            open("data/fitfun/summary_statistics_fitfun.pkl", "rb"))
+    if table_type=="resilience":
+        qed=resilience_data[qed_index] # QED
+        data=resilience_data
+    else:
+        for i, fitfun in enumerate(fitfunlabels):
+            for j in range(len(best_performance_data)):
+                best_performance_data[j][i]/=baseline_performances[fitfun]
+        qed=best_performance_data[qed_index]
+        data=best_performance_data
+    with open("results/fault/table/significance_table_compact"+table_type,"w") as f:
+        f.write(r"& \multicolumn{6}{c}{\textbf{Condition}}")
+        newline_latex(f,add_hline=True)
+        f.write(r"\textbf{Swarm task}")
+        f.write(r"& QED")
+        for condition in conditionlabels:
+            if condition != "QED":
+                f.write(r"& \multicolumn{2}{c|}{"+str(condition)+"}")
+        newline_latex(f,add_hline=True)
+        f.write(r"& %s " % (table_type))
+        for condition in conditionlabels:
+            if condition != "QED":
+                f.write(r"& effect & significance "%(table_type))
+        newline_latex(f,add_hline=True)
 
-    meaning: proportion x>y minus proportion y>x
-    |d|<0.147 "negligible", |d|<0.33 "small", |d|<0.474 "medium", otherwise "large"
-
-    here calculate based on relation with the rank-sum test
-    :param U: the result of the Wilcoxon rank-test/Mann-Withney U-test
-    :return:
-    """
-    m=len(x)
-    n=len(y)
-
-    # delta =  2.0*U/float(m*n) - 1.0
-    if len(x) > 2000 or len(y)>2000:   # avoid memory issues
-        print("starting with lengths %d %d "%(m,n))
-        print("digitising samples")
-        xspace=np.linspace(x.min(),x.max(),500)
-        yspace = np.linspace(x.min(), x.max(), 500)
-        freq_x=np.histogram(x, bins=xspace)[0]
-        freq_y=np.histogram(y, bins=yspace)[0]
-
-        count=0
-        for i in range(len(freq_x)):
-            for j in range(len(freq_y)):
-                num_combos=freq_x[i]*freq_y[j]
-                xx=xspace[i]
-                yy=yspace[j]
-                if xx > yy:
-                    count+=num_combos
+        m=len(fitfuns)*3 # number of comparisons
+        alpha_weak=.05/float(m)
+        print("will use alpha=" + str(alpha_weak))
+        alpha_best=.001/float(m) #
+        print("will use alpha="+str(alpha_best))
+        for k,fitfun in enumerate(fitfunlabels):
+            f.write(fitfun)
+            x = qed[k]
+            # now write other's resilience score and significance values
+            for j, condition in enumerate(conditionlabels):
+                if condition == "QED":
+                    continue
+                y = data[j][k]
+                U, p = ranksums(x, y)
+                p_value = "p=%.3f"%(p) if p>0.001 else r"p<0.001"
+                if p < alpha_best:
+                    p_value+="^{**}"
                 else:
-                    count-=num_combos
-        count/=float(m*n)
-    else:
-        z=np.array([xx - yy for xx in x for yy in y]) # consider all pairs of data
-        count=float(sum(z>0) - sum(z<0))/float(m*n)
-    # assert count==delta, "delta:%.3f  count:%.3f"%(delta,count)
-    label = None
-    magn=abs(count)
-    if magn < 0.11:
-        label="negligible"
-    elif magn < 0.28:
-        label="small"
-    elif magn < 0.43:
-        label="medium"
-    else:
-        label="large"
-    return count, label
+                    if p < alpha_weak:
+                        p_value+="^{*}"
+                delta,label = cliffs_delta(U, x, y)
+                delta_value = r"\mathbf{%.2f}"%(delta) if label == "large" else r"%.2f"%(delta)
+                f.write(r" & $%s$ & $%s$"%(delta_value,p_value))
+            newline_latex(f)
+
+
 def plot_histogram(bd_type,by_fitfun=True):
     if not by_fitfun:
         best_performance_data, performance_data, transfer_data, resilience_data = pickle.load(
@@ -667,6 +736,9 @@ def get_max_performances(bd_type,fitfuns,generation):
 
 
     pickle.dump(maximum,open("data/fitfun/maximal_fitness.pkl","wb"))
+
+
+
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
 
@@ -676,17 +748,19 @@ if __name__ == "__main__":
     # legend_labels.append("baseline")
 
     # set by_fitfun true
-    significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=True,
-                     title_tag="")
+    #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=True,
+    #                 title_tag="")
     #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=True, load_existing=True,
     #                 title_tag="")
 
     #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=True, load_existing=False,
     #                 title_tag="")
-    #make_significance_table(fitfunlabels, legend_labels, qed_index=-2,table_type="performance")
+    make_significance_table_compact(fitfunlabels, legend_labels, qed_index=-2,table_type="performance")
 
-    #make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="resilience")
+    make_significance_table_compact(fitfunlabels, legend_labels, qed_index=-2, table_type="resilience")
 
     #gather_perturbation_results(datadir,generation,bd_type,fitfuns,faults,runs,history_type,perturbed=False)
-    gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults, runs, history_type, perturbed=True)
+    #gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults, runs, history_type, perturbed=True)
     #gather_perturbation_results(datadir, generation, bd_type, fitfuns, faults, runs, history_type, perturbed=False)
+
+    gather_bd_results(datadir, generation, bd_type, fitfuns, faults, runs, history_type)

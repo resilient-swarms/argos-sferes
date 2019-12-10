@@ -117,4 +117,23 @@ if __name__ == "__main__":
     #gather_individual_data(gener=generation,runs=runs)
     diff_res = pickle.load(open("data/fitfun/resilience_differences.pkl","rb"))
     print()
+    run=2
+    fault=15
+    for bd in bd_type:
+        print(bd)
+        BD_DIRECTORY="/home/david/Data/DecayBorderCoveragerange0.11/"+bd
+        nofault_dir = BD_DIRECTORY + "/FAULT_NONE/results"+str(run)
+        self_dir = BD_DIRECTORY + "/results"+str(run)
+        translation_type="spirit"
+        history_comp, performance_comp, bd_comp, self_bd_comp = get_help_data(nofault_dir, generation,
+                                                                              history_type, translation_type,
+                                                                              self_dir=self_dir)
 
+
+        history_file, performance, bd, self_bd = \
+            get_help_data(BD_DIRECTORY + "/faultyrun" + str(run) + "_p" + str(fault) + "/results" + str(run),
+                          generation, history_type, translation_type, self_dir=self_dir)
+
+        dist= avg_variation_distance(bd_comp,bd,num_actions=16)
+        print(dist)
+        print(self_bd)
