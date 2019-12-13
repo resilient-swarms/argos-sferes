@@ -920,13 +920,15 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False,
                     BD_dir = get_bd_dir(fitfuns[j])
                     archive_file,directory=get_archiveplusdir(BD_dir,bd_type,i,generation,projected=bd_type[i]=="environment_diversity")
                     # get all the data from the archive: no fault
-                    p=global_performances(directory,runs,archive_file,max_performance=1,conversion_func=None)/ baseline_performances[fitfuns[j]]
+                    p=global_performances(BD_dir + "/" + bd_type[i] + "/FAULT_NONE/",runs,"analysis30000_handcrafted.dat",max_performance=1,conversion_func=None)/ baseline_performances[fitfuns[j]]
 
                     archive_file, directory = get_archiveplusdir(BD_dir, bd_type, i, generation,
                                                                  projected=False)
+
+
                     c=coverages(4096,directory,runs, archive_file)
 
-                    a_p = avg_performances(directory,runs,archive_file,max_performance=1,conversion_func=None,from_fitfile=False)/ baseline_performances[fitfuns[j]]
+                    a_p = avg_performances(BD_dir + "/" + bd_type[i] + "/FAULT_NONE/",runs,"analysis30000_handcrafted.dat",max_performance=1,conversion_func=None,from_fitfile=False)/ baseline_performances[fitfuns[j]]
                     if by_fitfun:
                         best_performance_data[i].append(p)
                         avg_performance_data[i].append(a_p)
@@ -960,7 +962,7 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False,
         plt.xticks(np.array(range(len(best_performance_data))) * 2.0, legend_labels,fontsize=26)
         axes.tick_params(axis='both', which='major', labelsize=20)
         axes.tick_params(axis='both', which='minor', labelsize=20)
-        axes.set_ylim([0.9,1.0])
+        axes.set_ylim([0.0,1.0])
         plt.ylabel("best performance",fontsize=26)
         plt.tight_layout()
         plt.savefig(RESULTSFOLDER + "/bestperformance_boxplot.pdf")
@@ -1037,9 +1039,9 @@ if __name__ == "__main__":
 
     #baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl", "rb"))
 
-    #make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False,by_fitfun=False)
+    make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False,by_fitfun=True)
 
 
     #create_coverage_development_plots()
 
-    create_all_development_plots()
+    #create_all_development_plots()
