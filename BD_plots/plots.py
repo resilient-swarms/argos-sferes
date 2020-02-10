@@ -316,9 +316,9 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
 
             lines.append(line)
         #axes = PLT.gca()
-        ax.set_xlabel(xlabel, fontsize=36)
+        ax.set_xlabel(xlabel, fontsize=42)
 
-        ax.set_ylabel(ylabel, fontsize=36)
+        ax.set_ylabel(ylabel, fontsize=42)
 
         if ylim is not None:
             ax.set_ylim(ylim)
@@ -326,13 +326,13 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
             ax.set_xlim(xlim)
 
         if title:
-            ax.set_title(title, fontsize=46)
+            ax.set_title(title, fontsize=50)
 
 
-        ax.tick_params(axis='both', which='major', labelsize=28)
-        ax.tick_params(axis='both', which='minor', labelsize=28)
-        ax.xaxis.offsetText.set_fontsize(28)
-        ax.yaxis.offsetText.set_fontsize(28)
+        ax.tick_params(axis='both', which='major', labelsize=34)
+        ax.tick_params(axis='both', which='minor', labelsize=34)
+        ax.xaxis.offsetText.set_fontsize(36)
+        ax.yaxis.offsetText.set_fontsize(36)
 
 
         for (xc,F) in task_markers:

@@ -626,7 +626,7 @@ void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
                 {
                     float dx = pow(cPos.GetX(), 2) - pow(m_cFoodPos[f].GetX(), 2);
                     float dy = pow(cPos.GetY(), 2) - pow(m_cFoodPos[f].GetY(), 2);
-                    if(dx + dy < m_fFoodSquareRadius && !m_cVisitedFood[f])
+                    if(dx + dy < m_fFoodSquareRadius[f] && !m_cVisitedFood[f])
                     {
                         /* The thymio is now carrying an item */
                         m_bRobotsHoldingFood[i] = true;

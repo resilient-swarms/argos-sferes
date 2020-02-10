@@ -114,14 +114,14 @@ if __name__ == "__main__":
     for fitfun in ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]:
         centroids_sdbc = load_centroids("/home/david/argos-sferes/experiments/centroids/centroids_4096_10.dat")
         centroids_spirit = load_centroids("/home/david/argos-sferes/experiments/centroids/centroids_4096_1024.dat")
-        for descriptor in ["environment_diversity"]:
+        for descriptor in ["history"]:
             print(descriptor)
             for gen in range(30000,30500,500):
                 for run in range(1,6):
                     print("run "+str(run))
-                    input="/home/david/Data/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_handcrafted.dat"
-                    output="/home/david/Data/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_handcraftedREDUCED.dat"
-                    reduce_translated_archive(input,mapelites_bd_add,output,transform_data=(16,16,16))
+                    # input="/home/david/Data/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_handcrafted.dat"
+                    # output="/home/david/Data/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_handcraftedREDUCED.dat"
+                    # reduce_translated_archive(input,mapelites_bd_add,output,transform_data=(16,16,16))
 
 
                     input="/home/david/Data/"+fitfun+"range0.11/"+descriptor+"/FAULT_NONE/results"+str(run)+"/analysis"+str(gen)+"_sdbc.dat"

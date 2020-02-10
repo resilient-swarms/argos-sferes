@@ -20,7 +20,7 @@ runs = range(1, 6)
 bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit","environment_diversity"]  # legend label
 legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
 fitfuns = ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
-fitfunlabels = ["Aggregation","Dispersion","Patrolling","Border-patrolling","Flocking"]
+fitfunlabels = ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"]
 
 
 colors = ["C" + str(i) for i in range(len(bd_type))]
@@ -530,17 +530,17 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,faults,gener, by_fitfun=
         if not load_existing:
             pickle.dump(all_data,
                         open(loadfilename, "wb"))
-        part_data = [best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data]
+        part_data = [best_transfer_data, best_performance_data, resilience_data]
         with open("results/summary_table"+title_tag,"w") as f:
             make_table(f,part_data,
                        rowlabels=legend_labels,
                        columnlabels=[],
-                       conditionalcolumnlabels=[("bestperformance","float3"),("performance","float3"),("besttransfer","float3"),("transfer","float3"),("resilience","float3")])
+                       conditionalcolumnlabels=[("besttransfer","float2"),("bestperformance","float2"),("resilience","float2")])
         with open("results/summary_table_median"+title_tag, "w") as f:
             make_table(f, part_data,
                            rowlabels=legend_labels,
                            columnlabels=[],
-                           conditionalcolumnlabels=[("bestperformance","float3"),("performance","float3"),("besttransfer","float3"),("transfer","float3"),("resilience","float3")],
+                           conditionalcolumnlabels=[("besttransfer","float2"),("bestperformance","float2"),("resilience","float2")],
                             median=True)
 
 
@@ -749,8 +749,8 @@ if __name__ == "__main__":
     # legend_labels.append("baseline")
 
     # set by_fitfun true
-    #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=True,
-    #                 title_tag="")
+    significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=True,
+                     title_tag="")
     #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=True, load_existing=True,
     #                 title_tag="")
 
@@ -766,4 +766,7 @@ if __name__ == "__main__":
 
     #gather_bd_results(datadir, generation, bd_type, fitfuns, faults, runs, history_type)
 
-    get_max_performances(bd_type, fitfuns,"30000")
+    #get_max_performances(bd_type, fitfuns,"30000")
+
+    make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="resilience")
+    make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="recovered-performance")

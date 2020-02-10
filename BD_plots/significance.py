@@ -39,6 +39,7 @@ def cliffs_delta(U,x,y):
         z=np.array([xx - yy for xx in x for yy in y]) # consider all pairs of data
         count=float(sum(z>0) - sum(z<0))/float(m*n)
     # assert count==delta, "delta:%.3f  count:%.3f"%(delta,count)
+    assert np.sign(U) == np.sign(count)
     label = None
     magn=abs(count)
     if magn < 0.11:

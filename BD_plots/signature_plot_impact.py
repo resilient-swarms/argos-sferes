@@ -55,9 +55,9 @@ def get_all_fault_proportions(fault_type):
     return np.array(proportions)
 
 
-def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False,add_unit_line=False,all=False):
+def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False,add_unit_line=False,all=False,vmax=8.0,rounded_max=5.0,cbarlabels=['0%', '0.025%', ">0.050%"]):
     ## Axis limits for plots of generation 8000
-
+    print("plotting "+name)
     xmin = xlim[0]  # m1.min()
     xmax = xlim[1]  # m1.max()
     ymin = ylim[0]  # m2.min()
@@ -102,7 +102,7 @@ def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False,add_unit_line=False,a
             ax = fig.add_subplot(1,len(xs)+1,i+1)
             ax.grid(grid)
             img = ax.imshow(np.rot90(Z), cmap=plt.cm.gist_earth_r, extent=[xmin, xmax, ymin, ymax], aspect='auto',
-                             vmax=8)  # ,vmax=10 'auto'
+                             vmax=vmax)  # ,vmax=10 'auto'
             ax.tick_params(axis='both', which='major', labelsize=28)
             ax.tick_params(axis='both', which='minor', labelsize=28)
             ax.set_title(titles[i],fontsize=40)
@@ -116,7 +116,7 @@ def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False,add_unit_line=False,a
 
     num_squares=100.0*100.0
     area_size=(ymax-ymin)*(xmax-xmin)/num_squares
-    rounded_max=5.0
+
     print("chosen % = " +str(100*rounded_max*area_size))
 
     # vmax=50 or whatever is max across all plots, the max. colorbar tick label is then set to '> vmax/max sum * 100 '
@@ -134,11 +134,11 @@ def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False,add_unit_line=False,a
     cbar = plt.colorbar(img,cax=cb_ax)
     cbar.ax.set_ylabel('% of solutions',fontsize=36)
     cbar.set_ticks([0.05, rounded_max/2.0, rounded_max])
-    cbar.ax.set_yticklabels(['0%', '0.025%', ">0.050%"],fontsize=25)
+    cbar.ax.set_yticklabels(cbarlabels,fontsize=25)
 
     fig.text(0.43, 0.010, axis_names[0], ha='center', fontsize=36)
     fig.text(0.090, 0.5, axis_names[1], va='center', rotation='vertical', fontsize=36)
-    plt.savefig("results/fault/density/"+name+".pdf")
+    plt.savefig("results/fault/density/"+name+".pdf",bbox_inches='tight')
     plt.close()
 
 if __name__ == "__main__":
@@ -364,11 +364,11 @@ if __name__ == "__main__":
 
     plot(impacts,dists,"impact_distance_signature",titles=["HBD","SDBC","SPIRIT","QED"],
          axis_names=["Impact of fault","Behavioural diversity"],
-         xlim=[-0.5,0.0],ylim=[0,1],grid=True)
+         xlim=[-0.5,0.0],ylim=[0,1],grid=True,vmax=10.0,rounded_max=8.0,cbarlabels=['0%', '0.02%', ">0.04%"])
 
     plot(impacts,resiliences,"impact_resilience_signature",titles=["HBD","SDBC","SPIRIT","QED"],
          axis_names=["Impact of fault","Map resilience"],
-         xlim=[-0.5,0.0],ylim=[-1.0,0.02],grid=True,add_unit_line=True)
+         xlim=[-0.5,0.0],ylim=[-0.5,0.0],grid=True,add_unit_line=True,vmax=50.0,rounded_max=40.0,cbarlabels=['0%', '0.10%', ">0.20%"])
 
     plot(self_dists, dists, "projection_signature", titles=["HBD", "SDBC", "SPIRIT", "QED"],
          axis_names=["distance in own space","distance in projected space"],
@@ -376,4 +376,4 @@ if __name__ == "__main__":
 
     plot(resiliences, dists, "diversity_resilience_signature", titles=["HBD", "SDBC", "SPIRIT", "QED"],
          axis_names=["Map resilience","Behavioural diversity"],
-         xlim=[-0.5, 0.0], ylim=[0,1], grid=True, add_unit_line=False)
+         xlim=[-0.5, 0.0], ylim=[0,1], grid=True, add_unit_line=False,vmax=20,rounded_max=16.0,cbarlabels=['0%', '0.05%', ">0.10%"])

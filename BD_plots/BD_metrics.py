@@ -402,20 +402,29 @@ def print_best_individuals(BD_dir,outfile, number,generation):
 
 def try_add_performance_data(i,bd_shapes,bybin_list,directory,runs,archive_file, y_bottom,y_mid,y_top,from_fitfile=False):
     try:
+        if "Dispersion" in directory:
+            print("dispersion")
+            def diagonal_to_halfarena(fitness):
+                return fitness*2
+            conversion_func = diagonal_to_halfarena
+
+        else:
+            conversion_func=None
         avg_perform = avg_performances(directory, runs, archive_file, 1.0,
-                                       conversion_func=None,from_fitfile=from_fitfile)
-        add_boxplotlike_data(avg_perform, y_bottom, y_mid, y_top, y_label="Average_performance", method_index=i)
+                                       conversion_func=conversion_func,from_fitfile=from_fitfile)
+        print(avg_perform)
+        add_boxplotlike_data(avg_perform, y_bottom, y_mid, y_top, y_label="Average_performance\nin map", method_index=i)
 
         global_perform = global_performances(directory, runs, archive_file, 1.0,
-                                             conversion_func=None,from_fitfile=from_fitfile)
-        add_boxplotlike_data(global_perform, y_bottom, y_mid, y_top, y_label="Best_performance", method_index=i)
+                                             conversion_func=conversion_func,from_fitfile=from_fitfile)
+        add_boxplotlike_data(global_perform, y_bottom, y_mid, y_top, y_label="Best_performance\nin map", method_index=i)
 
         if not from_fitfile:
         #    coverage = coverages(bd_shapes[i], directory, runs, archive_file)
         #    add_boxplotlike_data(coverage, y_bottom, y_mid, y_top, y_label="coverage", method_index=i)
 
              absolutecoverage = absolutecoverages(bd_shapes[i], directory, runs, archive_file)
-             add_boxplotlike_data(absolutecoverage, y_bottom, y_mid, y_top, y_label="Map_coverage", method_index=i)
+             add_boxplotlike_data(absolutecoverage, y_bottom, y_mid, y_top, y_label="Map_coverage\n ", method_index=i)
         #
         #     globalcov = globalcoverage(directory, runs, archive_file,by_bin=bybin_list[i])
         #     add_boxplotlike_data([globalcov], y_bottom, y_mid, y_top, y_label="global_coverage", method_index=i)
@@ -530,7 +539,7 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
     # (numsides, style, angle)
     markers=[(1,1,0),(1,2,0),(1,3,0),(3,1,0),(3,2,0),(3,3,0),(4,1,0),(4,2,0),(4,3,0)] # markers for the lines
     bd_shapes =[4096, 4096, 4096,4096, 4096, 4096,4096,4096, 4096]  # shape of the characterisation
-    y_labels=["Best_performance","Average_performance","Map_coverage"]#,"absolute_coverage","global_coverage","global_reliability"]
+    y_labels=["Best_performance\nin map","Average_performance\nin map","Map_coverage\n "]#,"absolute_coverage","global_coverage","global_reliability"]
 
 
     boxes=[(.10,.40),(.10,.60),(.10,.60),(.45,.15),(0.20,0.20),(0.20,0.20)] # where to place the legend box
@@ -563,11 +572,11 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
     for j, label in enumerate(y_labels):
         axis = None if ax is None else ax[j]
         temp_labels = copy.copy(legend_labels)
-        if label == "Map_coverage":
+        if label == "Map_coverage\n ":
 
             maximum_line = (times, [4096 for i in times])
             annots = {"text": "maximal coverage=4096 solutions", "xy": (15000, 4800), "xytext": (15000, 4800),
-                      "fontsize": 22, "align": "center"}
+                      "fontsize": 25, "align": "center"}
 
 
             createPlot(y_mid[label], x_values=np.array(times),
@@ -958,12 +967,12 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False,
         # make_boxplots(best_performance_data, row_conditions=legend_labels,
         #               save_filename="boxplot.png", xlabs=[], ylab="best performance", ylim=[0,1])
         fig, axes = plt.subplots(1, 1, figsize=(10, 10))  # compare fault_none to perturbations
-        plt.boxplot(best_performance_data, positions=np.array(range(len(best_performance_data))) * 2.0, sym='', widths=0.6)
-        plt.xticks(np.array(range(len(best_performance_data))) * 2.0, legend_labels,fontsize=26)
+        plt.boxplot(best_performance_data, positions=np.array(range(len(best_performance_data))) * 1.0, sym='', widths=0.6)
+        plt.xticks(np.array(range(len(best_performance_data))) * 1.0, legend_labels,fontsize=26)
         axes.tick_params(axis='both', which='major', labelsize=20)
         axes.tick_params(axis='both', which='minor', labelsize=20)
-        axes.set_ylim([0.0,1.0])
-        plt.ylabel("best performance",fontsize=26)
+        axes.set_ylim([0.6,1.0])
+        plt.ylabel("Best performance in map",fontsize=26)
         plt.tight_layout()
         plt.savefig(RESULTSFOLDER + "/bestperformance_boxplot.pdf")
 
@@ -1039,7 +1048,7 @@ if __name__ == "__main__":
 
     #baseline_performances = pickle.load(open("data/fitfun/maximal_fitness.pkl", "rb"))
 
-    make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False,by_fitfun=True)
+    make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False,by_fitfun=False)
 
 
     #create_coverage_development_plots()

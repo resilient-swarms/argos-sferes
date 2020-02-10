@@ -253,23 +253,23 @@ public:
 
   float reward;
   Foraging(){};
-  const float nest_x = 0.5;
-  const float m_fFoodSquareRadius = 0.25;
-  const size_t num_food = 10;
+  const float nest_x = 0.32;
+  const size_t num_food = 6;
   /*
 
      */
+  const std::vector<float> m_fFoodRadius = {
+      0.10,0.10,0.20,0.20,0.30
+  };
   const std::vector<CVector3> m_cFoodPos = {
-      CVector3(0.65,0.65,0.0),
-      CVector3(0.65,0.55,0.0),
-      CVector3(0.80,1.0,0.0),
-      CVector3(1.0,1.5,0.0),
-      CVector3(1.0,1.1,0.0),
-      CVector3(1.5,0.80,0.0),
-      CVector3(1.5,1.5,0.0),
-      CVector3(1.0,1.0,0.0),
-      CVector3(1.0,1.5,0.0),
-      CVector3(1.5,0.8,0.0)};
+      
+    CVector3(0.80, 1.20, 0.0),
+    CVector3(0.80, 0.50, 0.0),
+    CVector3(1.3 , 1.0, 0.0 ),
+    CVector3(1.5 , 0.5, 0.0),
+    CVector3(1.6 , 1.70, 0.0) 
+
+  };
 
   size_t num_updates = 0;
   std::vector<bool> m_cVisitedFood = {};
