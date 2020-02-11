@@ -255,7 +255,7 @@ public:
   Foraging(){};
   const float nest_x = 0.32;
   const size_t num_food = 6;
-  const size_t HARVEST_TIME=50;// 50 time steps (or 50*num_robots updates)
+  const size_t HARVEST_TIME=50;// 50 time steps 
   /*
 
      */

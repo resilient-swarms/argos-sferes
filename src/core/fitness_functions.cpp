@@ -639,7 +639,7 @@ void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
                         /* The thymio is now carrying an item */
                         m_bRobotsHoldingFood[i] = true;
                         /* the food has now been visited */
-                        m_cVisitedFood[f] = HARVEST_TIME * cLoopFunctions.curr_pos.size();
+                        m_cVisitedFood[f] = HARVEST_TIME;
 #ifdef PRINTING
                         std::cout << "thymio" << i << " picked up food " << f << std::endl;
                         std::cout << "harvesting time is now " << HARVEST_TIME << std::endl;
