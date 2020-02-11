@@ -624,9 +624,9 @@ void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
                 bool bDone = false;
                 for(size_t f = 0; f < num_food && !bDone; ++f)
                 {
-                    float dx = pow(cPos.GetX(), 2) - pow(m_cFoodPos[f].GetX(), 2);
-                    float dy = pow(cPos.GetY(), 2) - pow(m_cFoodPos[f].GetY(), 2);
-                    if(dx + dy < m_fFoodSquareRadius[f] && !m_cVisitedFood[f])
+                    float dx = pow(cPos.GetX() - m_cFoodPos[f].GetX(), 2);// squared dist
+                    float dy = pow(cPos.GetY() - m_cFoodPos[f].GetY(), 2);// squared dist
+                    if(dx + dy < m_fFoodSquareRadius[f] && !m_cVisitedFood[f]) // check squared dist smaller than squared radius
                     {
                         /* The thymio is now carrying an item */
                         m_bRobotsHoldingFood[i] = true;
@@ -634,6 +634,7 @@ void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
                         m_cVisitedFood[f] = true;
                         /* We are done */
                         bDone = true;
+                        break;
                         //std::cout << "thymio" << i << " picked up food " << f << std::endl;
                     }
                 }

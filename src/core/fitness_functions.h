@@ -258,8 +258,8 @@ public:
   /*
 
      */
-  const std::vector<float> m_fFoodRadius = {
-      0.10,0.10,0.20,0.20,0.30
+  const std::vector<float> m_fFoodSquareRadius = {
+      0.10*0.10,0.10*0.10,0.20*0.20,0.20*0.20,0.30*0.30
   };
   const std::vector<CVector3> m_cFoodPos = {
       
