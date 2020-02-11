@@ -255,6 +255,7 @@ public:
   Foraging(){};
   const float nest_x = 0.32;
   const size_t num_food = 6;
+  const size_t HARVEST_TIME=50;// 50 time steps (or 50*num_robots updates)
   /*
 
      */
@@ -272,7 +273,7 @@ public:
   };
 
   size_t num_updates = 0;
-  std::vector<bool> m_cVisitedFood = {};
+  std::vector<size_t> m_cVisitedFood = {};// how much time steps left until harvestable
   std::vector<bool> m_bRobotsHoldingFood = {};
   size_t numfoodCollected = 0;
   float trial_performance = 0;

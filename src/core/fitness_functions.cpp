@@ -586,7 +586,7 @@ void Foraging::before_trial(BaseLoopFunctions &cLoopFunctions)
     }
     m_cVisitedFood.clear();
     for (size_t i=0; i < m_cFoodPos.size(); i++) {
-        m_cVisitedFood.push_back(false);
+        m_cVisitedFood.push_back(0);
     }
     numfoodCollected = 0;
     num_updates = 0;
@@ -595,6 +595,15 @@ void Foraging::before_trial(BaseLoopFunctions &cLoopFunctions)
 
 void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
+    for(size_t f = 0; f < num_food; ++f)
+    {
+        m_cVisitedFood[f] = std::max(0 , m_cVisitedFood[f] - 1);
+#ifdef PRINTING
+
+        std::cout<< "Harvesting time is now for food  "<< f << " on location " <<  m_cFoodPos[f] <<
+         "\n is now" <<m_cVisitedFood[f] << std::endl;
+#endif
+    }
     for(size_t i = 0; i < cLoopFunctions.curr_pos.size(); i++)
     {
         /* Get the position of the thymio on the ground as a CVector2 */
@@ -621,26 +630,29 @@ void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
             if(cPos.GetX() > nest_x)
             {
                 /* Check whether the thymio is on a food item that has not already been collected*/
-                bool bDone = false;
-                for(size_t f = 0; f < num_food && !bDone; ++f)
+                for(size_t f = 0; f < num_food; ++f)
                 {
                     float dx = pow(cPos.GetX() - m_cFoodPos[f].GetX(), 2);// squared dist
                     float dy = pow(cPos.GetY() - m_cFoodPos[f].GetY(), 2);// squared dist
-                    if(dx + dy < m_fFoodSquareRadius[f] && !m_cVisitedFood[f]) // check squared dist smaller than squared radius
+                    if(dx + dy < m_fFoodSquareRadius[f] && m_cVisitedFood[f]==0) // check squared dist smaller than squared radius
                     {
                         /* The thymio is now carrying an item */
                         m_bRobotsHoldingFood[i] = true;
                         /* the food has now been visited */
-                        m_cVisitedFood[f] = true;
+                        m_cVisitedFood[f] = HARVEST_TIME * cLoopFunctions.curr_pos.size();
+#ifdef PRINTING
+                        std::cout << "thymio" << i << " picked up food " << f << std::endl;
+                        std::cout << "harvesting time is now " << HARVEST_TIME << std::endl;
+#endif
                         /* We are done */
-                        bDone = true;
                         break;
-                        //std::cout << "thymio" << i << " picked up food " << f << std::endl;
+                        
                     }
                 }
             }
         }
     }
+
     reward = numfoodCollected / (float) num_food;
     trial_performance += reward;
     num_updates++;
