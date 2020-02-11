@@ -3,7 +3,6 @@
 #include <src/core/base_loop_functions.h>
 #include <src/core/fitness_functions.h>
 #include <src/core/statistics.h>
-#include <algorithm>
 
 FloreanoMondada::FloreanoMondada() : FitFun()
 {
@@ -598,7 +597,7 @@ void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 {
     for(size_t f = 0; f < num_food; ++f)
     {
-        m_cVisitedFood[f] = std::max((size_t)0 , m_cVisitedFood[f] - 1);
+        m_cVisitedFood[f] = std::max(0 , m_cVisitedFood[f] - 1);
 #ifdef PRINTING
 
         std::cout<< "Harvesting time is now for food  "<< f << " on location " <<  m_cFoodPos[f] <<

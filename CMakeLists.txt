@@ -35,7 +35,7 @@ set(BOOST_INCLUDEDIR "/usr/include/boost/") # hint location to search for boost 
 set(BOOST_LIBRARYDIR "/usr/lib/x86_64-linux-gnu/") # hint location to search for boost libs
 #find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph mpi python thread REQUIRED)
 #find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph thread REQUIRED)
-find_package(Boost 1.65 COMPONENTS system serialization graph program_options filesystem  REQUIRED)
+find_package(Boost 1.65 COMPONENTS serialization graph program_options filesystem  REQUIRED)
 # system unit_test_framework thread REQUIRED)
 if(Boost_FOUND)
     link_directories(${Boost_LIBRARY_DIRS})
@@ -72,7 +72,7 @@ ELSE()
     add_definitions( -DEIGEN3_ENABLED )
 ENDIF()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lboost_system")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 add_definitions( -DNDEBUG ) # non-debug mode
 add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
@@ -323,7 +323,7 @@ else(NOT BASELINE)
     endif()
     
     add_definitions(-DTAG="${tag}")
-    message("TAG" ${tag})
+
     if(ARGOS_COMPILE_QTOPENGL)
         add_library(evolution_loopfunctions${tag} SHARED
             src/evolution/params.h
