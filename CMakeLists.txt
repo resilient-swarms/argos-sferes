@@ -222,6 +222,7 @@ else(NOT BASELINE)
     elseif(${NN_INPUT_TYPE} EQUAL 1)
         set(CONTROL "realthymio_nn_controller")
         message("using real-thymio: proximity and ground (NN_INPUT_TYPE=1)")
+        set(tag ${tag}REAL)
         set(exec_prefix "behaviour_evol")
         add_definitions(-DNN_DIM_TYPE=1)
             # Descend into the controllers directory
