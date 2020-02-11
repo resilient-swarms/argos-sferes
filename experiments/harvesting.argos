@@ -39,8 +39,8 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libevolution_loopfunctions3DREAL.so"
-                  label="evolution_loopfunctions3DREAL"
+  <loop_functions library="lib/libevolution_loopfunctions3D.so"
+                  label="evolution_loopfunctions3D"
                   trials="10"
                   robots="6"
                   descriptortype="history"    
