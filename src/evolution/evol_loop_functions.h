@@ -18,7 +18,11 @@
 #endif 
 //#include <src/evolution/base_classes.h>
 
-#include <src/evolution/nn_controller.h>
+#if NN_DIM_TYPE==1 
+    #include "realthymio_nn_controller.h"
+#else
+    #include "nn_controller.h"
+#endif
 #include <src/core/base_loop_functions.h>
 #include <src/evolution/serialisation_functions.hpp>
 /****************************************/
@@ -39,6 +43,12 @@ class EvolutionLoopFunctions : public BaseLoopFunctions
 {
 
 public:
+#if NN_DIM_TYPE==1   // use realthymio_nn_controller
+    typedef RealThymioNN ControllerType;
+#else
+    typedef CThymioNNController ControllerType;
+#endif
+
     EvolutionLoopFunctions();
     virtual ~EvolutionLoopFunctions();
     virtual std::string get_controller_id()
@@ -73,7 +83,7 @@ public:
     std::string centroids_folder;
 #endif
 
-    std::vector<CThymioNNController *> m_pcvecController;
+    std::vector<ControllerType *> m_pcvecController;
     bool stop_eval;
     Real stand_still, maxIRSensor;
     Descriptor *descriptor;
@@ -116,7 +126,7 @@ public:
 
     bool check_BD_choice(const std::string choice);
 
-    Real get_Max_Sens(CThymioNNController &controller);
+    Real get_Max_Sens(ControllerType &controller);
     
 
     /* get bin for sensory probabilities  */
@@ -214,8 +224,8 @@ FIT_MAP(FitObstacleMapElites){
             static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
             for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
                 cLoopFunctions.m_pcvecController[j]->nn = ind.nn_cpy();
-        #ifdef PRINTING
-	    std::cout<<"writing individual to .dot file"<<std::endl;
+        #if PRINTING==1 || BAYESIAN_OPT==1
+	        std::cout<<"writing individual to .dot file"<<std::endl;
             std::ofstream ofs("nn.dot");
             ind.nn().write(ofs);
 

@@ -154,7 +154,8 @@ public:
     /* turn speed normalised to [0,1]*/
     float turn_speed_01();
 
-
+    virtual void init_sensact(TConfigurationNode &t_node);
+    void init_fault_config(TConfigurationNode &t_node);
 
 };
 #endif

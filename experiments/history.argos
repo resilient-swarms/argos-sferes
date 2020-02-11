@@ -14,7 +14,7 @@
   <framework>
     <system threads="0" />
     <!-- Each experimental run is 120 seconds long -->
-    <experiment length="120"
+    <experiment length="5"
                 ticks_per_second="10"
                  random_seed="56" />  <!-- if we want a different random seed each time the reset button is pressed -->
   </framework>
@@ -46,10 +46,10 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libevolution_loopfunctions2D.so"
-                  label="evolution_loopfunctions2D"
+  <loop_functions library="lib/libevolution_loopfunctions3D.so"
+                  label="evolution_loopfunctions3D"
                   trials="5"
-                  robots="1"
+                  robots="10"
                   descriptortype="history"  
                   fitfuntype="Coverage"
 		  output_folder="experiments"
@@ -58,51 +58,37 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="4, 4, 2" center="2.0,2.0,1">
+ <arena size="6.0, 6.0, 1" center="2.0,2.0,0.5">
 
-    <!--
-        Here we just put the static elements of the environment (the walls).
-        The dynamic ones, in this case the foot-bot, are placed by the
-        loop functions at the beginning of each experimental run.
-    -->
+    <floor id="floor"
+           source="loop_functions"
+           pixels_per_meter="50" />
 
-    <box id="wall_north" size="4,0.1,0.5" movable="false">
-      <body position="2.0,4,0" orientation="0,0,0" />
+   <box id="wall_north" size="6,1.0,0.5" movable="false">
+      <body position="2,4.5,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_south" size="6,1.0,0.5" movable="false">
+      <body position="2,-0.5,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_east" size="1.0,6,0.5" movable="false">
+      <body position="4.5,2,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_west" size="1.0,6,0.5" movable="false">
+      <body position="-0.5,2,0" orientation="0,0,0" />
     </box>
 
-    <box id="wall_south" size="4,0.1,0.5" movable="false">
-      <body position="2.0,0,0" orientation="0,0,0" />
-    </box>
 
-    <box id="wall_east" size="0.1,4,0.5" movable="false">
-      <body position="0,2.0,0" orientation="0,0,0" />
-    </box>
-
-    <box id="wall_west" size="0.1,4,0.5" movable="false">
-      <body position="4,2.0,0" orientation="0,0,0" />
-    </box>
-     <!--
-        We distribute cylinders uniformly in position and with
-        constant rotation (rotating a cylinder around Z does not
-        matter)
-    -->
-   <distribute>
-      <position method="uniform" min="0,0,0" max="4,4,0" />
-      <orientation method="constant" values="0,0,0" />
-      <entity quantity="10" max_trials="200">
-        <cylinder id="c" height="0.5" radius="0.1500" movable="false" />
-      </entity>
-    </distribute>
-            <distribute>
-      <position method="uniform" min="0,0,0" max="4,4,0" />
+        <distribute>
+      <position method="uniform" min="0.5,0.5,0" max="3.5,3.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="1" max_trials="1000">
-        <Thymio id="thymio">    <!-- data size in bytes; range in m -->
+      <entity quantity="10" max_trials="1000">
+        <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
           <controller config="tnn" />
         </Thymio>
       </entity>
 </distribute>
-  </arena>
+
+</arena>
 
   <!-- ******************* -->
   <!-- * Physics engines * -->

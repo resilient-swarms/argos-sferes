@@ -106,5 +106,4 @@ To try out an evolved solution
 
 To try out Bayesian Optimisation do:
 
-     bin/ite_swarms_3D -m <data_directory> 20000 -e bin/BO3D 
-     experiments/history_BO.argos
+     bin/ite_swarms_3D -m <data_directory> <generation> -e bin/BO3D experiments/realrobot_testBO.argos

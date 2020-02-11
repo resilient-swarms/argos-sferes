@@ -50,11 +50,11 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libevolution_loopfunctionscvt10D.so"
-                  label="evolution_loopfunctionscvt10D"
+  <loop_functions library="lib/libevolution_loopfunctions2D.so"
+                  label="evolution_loopfunctions2D"
                   trials="3"
                   robots="2"
-                  descriptortype="cvt_Gomes_sdbc_walls_and_robots_std"  
+                  descriptortype="history"  
                   fitfuntype="Flocking"
 		  output_folder="experiments"
         centroids_folder="experiments/centroids"

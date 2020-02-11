@@ -52,13 +52,18 @@ def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturba
 
                 for perturbation in perturbations:
                     if desc == "baseline":
-                        if len(read_spacedelimited(filename + "/run"+str(run)+"_p"+str(perturbation)+"/results"+str(run)+"/fitness")) != 1:
+                        if len(read_spacedelimited(filename + "/faultyrun"+str(run)+"_p"+str(perturbation)+"/results"+str(run)+"/fitness")) != 1:
                             print(filename)
                         continue
 
-                    perturbed = filename + "/run"+str(run)+"_p"+str(perturbation)+"/results"+str(run)+"/analysis"+str(finalgen)+"_"+translation+".dat"
-                    P_list = set(get_ind_performances_uniquearchive(perturbed).keys())
-                    file_length3 = len(read_spacedelimited(perturbed))
+                    perturbed = filename + "/faultyrun"+str(run)+"_p"+str(perturbation)+"/results"+str(run)+"/analysis"+str(finalgen)+"_"+translation+".dat"
+                    try:
+                        P_list = set(get_ind_performances_uniquearchive(perturbed).keys())
+                        file_length3 = len(read_spacedelimited(perturbed))
+                    except Exception as e:
+                        print(e)
+                        P_list=set([])
+                        file_length3=0
                     if file_length!=file_length3:
                         print(perturbed)
                     missing =  U_list - P_list
@@ -71,11 +76,11 @@ def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturba
                         print(perturbed)
                         print("too much : "+str(too_much))
 if __name__ == "__main__":
-    check_archives_complete(10000,
-                            "/home/david/Data/ExperimentData",
+    check_archives_complete(30000,
+                            "/home/david/Data",
                             ["Aggregation","Dispersion","DecayCoverage","DecayBorderCoverage","Flocking"],
-                            ["baseline"],
+                            ["Gomes_sdbc_walls_and_robots_std", "environment_diversity"],
                             range(1,6),
-                            range(0,40),
-                            translation="spirit"
+                            range(50),
+                            translation="handcrafted"
                             )

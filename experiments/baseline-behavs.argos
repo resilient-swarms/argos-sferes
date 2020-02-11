@@ -32,7 +32,7 @@
       </sensors>
       <params>
       <wheel_turning max_speed="5" />
-      <experiment_run swarm_behavior="SWARM_FLOCKING"
+      <experiment_run swarm_behavior="SWARM_RANDOMPOSITIONING"
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" />
         
@@ -43,8 +43,8 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libbaseline-behavs-loopfunc.so"
-                  label="baseline-behavs-loop-functions"
+  <loop_functions library="lib/libbaseline-behavs-loopfunctions.so"
+                  label="baseline-behavs-loopfunctions"
                   trials="3"
                   robots="10"
                   fitfuntype="DecayCoverage"

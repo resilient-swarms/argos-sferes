@@ -35,7 +35,7 @@ set(BOOST_INCLUDEDIR "/usr/include/boost/") # hint location to search for boost 
 set(BOOST_LIBRARYDIR "/usr/lib/x86_64-linux-gnu/") # hint location to search for boost libs
 #find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph mpi python thread REQUIRED)
 #find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph thread REQUIRED)
-find_package(Boost 1.65 COMPONENTS serialization graph program_options filesystem  REQUIRED)
+find_package(Boost 1.65 COMPONENTS system serialization graph program_options filesystem  REQUIRED)
 # system unit_test_framework thread REQUIRED)
 if(Boost_FOUND)
     link_directories(${Boost_LIBRARY_DIRS})
@@ -72,7 +72,7 @@ ELSE()
     add_definitions( -DEIGEN3_ENABLED )
 ENDIF()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lboost_system")
 add_definitions( -DNDEBUG ) # non-debug mode
 add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
@@ -108,7 +108,7 @@ option(ANALYSIS "Perturbations" OFF)
 option(BO "Bayesian Optimisation" OFF)
 option(ARGOS_PAR "Parallelisation" OFF)
 option(CAFFE "caffe neural networks" OFF)
-option(RAB_CONTROL "control RAB" OFF)
+option(NN_INPUT_TYPE "control RAB" OFF)
 
 #add_definitions(-DCOLLISION_STOP)  
 
@@ -198,11 +198,50 @@ else(NOT BASELINE)
         endif()
     endif()
 
-    set(CONTROL "nn_controller")
+    
 
     set(tag ${CVT_USE}${BD}D)
     if(ANALYSIS)
         set(tag ${tag}ANA)
+    endif()
+
+
+    # process NN_INPUT_TYPE
+    if(${NN_INPUT_TYPE} EQUAL 0)
+        set(CONTROL "nn_controller")
+        message("using proximity and RAB (NN_INPUT_TYPE=0)")
+        set(exec_prefix "behaviour_evol")
+            # Descend into the controllers directory
+        add_library(nn_controller SHARED
+            src/evolution/nn_controller.h
+            src/evolution/nn_controller.cpp)
+
+        
+        add_definitions(-DNN_DIM_TYPE=0)
+
+    elseif(${NN_INPUT_TYPE} EQUAL 1)
+        set(CONTROL "realthymio_nn_controller")
+        message("using real-thymio: proximity and ground (NN_INPUT_TYPE=1)")
+        set(exec_prefix "behaviour_evol")
+        add_definitions(-DNN_DIM_TYPE=1)
+            # Descend into the controllers directory
+        add_library(realthymio_nn_controller SHARED
+            src/evolution/realthymio_nn_controller.h
+            src/evolution/realthymio_nn_controller.cpp)
+    elseif(${NN_INPUT_TYPE} EQUAL 2)
+        set(CONTROL "nn_controller")
+        message("using rab-control (NN_INPUT_TYPE=2)")
+        set(exec_prefix "behaviour_evol")
+        add_definitions(-DNN_DIM_TYPE=2)
+        add_library(nn_controller SHARED
+            src/evolution/nn_controller.h
+            src/evolution/nn_controller.cpp)
+        add_library(station_controller SHARED
+        src/core/station_controller.cpp
+         src/core/station_controller.h)
+        list(APPEND CONTROL "station_controller")
+    else()
+         MESSAGE( FATAL_ERROR "Please choose an input type for the neural network (NN_DIM_TYPE={0,1,2})")
     endif()
 
     # process BO option
@@ -246,6 +285,12 @@ else(NOT BASELINE)
             ${Boost_LIBRARIES}
             ${TBB_LIBRARIES})
 
+        #add_executable(tuning${BD}D
+        #    src/ite/tuning.cpp)
+        #target_link_libraries(tuning${BD}D
+        #    ${Boost_LIBRARIES}
+        #    ${TBB_LIBRARIES})
+
         set(CMAKE_CXX_FLAGS ${TMP_CMAKE_CXX_FLAGS} CACHE STRING "" FORCE)
         message("${PROJECT_SOURCE_DIR} " ${PROJECT_SOURCE_DIR})
         #######################################################################
@@ -259,14 +304,7 @@ else(NOT BASELINE)
         message("Bayesian Optimisation is NOT defined")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
 	    message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
-        if(${RAB_CONTROL})
-            message("using additional RAB control")
-            set(exec_prefix "behaviour_evol")
-            add_definitions(-DRAB_CONTROL)
-        else(NOT ${RAB_CONTROL})
-            message("not using additional RAB control")
-            set(exec_prefix "behaviour_evol")
-        endif()
+
         if(${ARGOS_PAR} EQUAL 1)
             message("using parallel (1)")
             add_definitions(-DARGOS_PARALLEL) 
@@ -285,7 +323,7 @@ else(NOT BASELINE)
     endif()
     
     add_definitions(-DTAG="${tag}")
-
+    message("TAG" ${tag})
     if(ARGOS_COMPILE_QTOPENGL)
         add_library(evolution_loopfunctions${tag} SHARED
             src/evolution/params.h
@@ -304,16 +342,7 @@ else(NOT BASELINE)
         src/evolution/descriptors.cpp
     )
 
-    # Descend into the controllers directory
-    add_library(nn_controller SHARED
-        src/evolution/nn_controller.h
-        src/evolution/nn_controller.cpp)
-    
-    add_library(station_controller SHARED
-        src/core/station_controller.cpp
-         src/core/station_controller.h)
 
-    list(APPEND CONTROL "station_controller")
 
     set(LOOPFUN evolution_loopfunctions${tag})
     

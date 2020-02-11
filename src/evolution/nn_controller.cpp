@@ -47,7 +47,7 @@ void CThymioNNController::ControlStep()
 #endif
     m_fLeftSpeed = m_sWheelTurningParams.MaxSpeed * nn.get_outf()[0];
     m_fRightSpeed = m_sWheelTurningParams.MaxSpeed * nn.get_outf()[1];
-    BaseController::ControlStep();// needed to actually move
+    BaseController::ControlStep();// needed to actually move and inject faults
 
 }
 

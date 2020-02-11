@@ -13,13 +13,18 @@ echo ${CONFIG}
 sleep 5
 
 
-if [ "$1" = "best" ]; then
+if [ "$1" != "all" ]; then
     # now get the history of the best solution
-    jobtocome="${COMMAND} ${CONFIG} best ${FINALGEN_ARCHIVE} -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
-    echo "Getting the best:\nStarting the following command: "${jobtocome}""
+    jobtocome="${COMMAND} ${CONFIG} ${1} ${FINALGEN_ARCHIVE} -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
+    echo "Getting the ${1}:\nStarting the following command: "${jobtocome}""
     echo 
     echo "Looking for individuals at: "${archivefile}
-    python BD_plots/process_archive_data.py -c "${jobtocome}" -o "${OUTPUTDIR}" -g "${FINALGEN_ARCHIVE}" -b "best"
+    python BD_plots/process_archive_data.py -c "${jobtocome}" -o "${Searchfolder}" -g "${FINALGEN_ARCHIVE}" -b "best"
+    if [ "${1}" = "video" ]; then
+        echo "compiling video"
+        bash compile_video.sh ${VIDEOFILE}
+        echo "video compiled . Done."
+    fi
     exit 1
 fi 
 

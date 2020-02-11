@@ -45,80 +45,13 @@ void BaseController::Init(TConfigurationNode &t_node)
     * Create the random number generator
     */
     m_pcRNG = CRandom::CreateRNG("argos");
-    /*
-    * Get sensor/actuator handles
-    */
-    try
-    {
-        m_pcWheels = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
-        m_pcWheelsEncoder = GetSensor<CCI_DifferentialSteeringSensor>("differential_steering");
-        m_pcLeds = GetActuator<CCI_ThymioLedsActuator>("thymio_led");
-        m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
-        m_pcGround = GetSensor<CCI_ThymioGroundSensor>("Thymio_ground");
-        m_pcRABA = GetActuator<CCI_RangeAndBearingActuator>("range_and_bearing");
-        m_pcRABS = GetSensor<CCI_RangeAndBearingSensor>("range_and_bearing");
-        only_proximity = false;
-
-        rab_cones.push_back(ToRadians(CDegrees(0.0))); // going counter-clock wise
-        rab_cones.push_back(ToRadians(CDegrees(45.0)));
-        rab_cones.push_back(ToRadians(CDegrees(90.0)));
-        rab_cones.push_back(ToRadians(CDegrees(135.0)));
-        rab_cones.push_back(ToRadians(CDegrees(180.0)));
-        rab_cones.push_back(ToRadians(CDegrees(-135.0)));
-        rab_cones.push_back(ToRadians(CDegrees(-90.0)));
-        rab_cones.push_back(ToRadians(CDegrees(-45.0)));
- 
-    }
-    catch (CARGoSException &ex1)
-    {
-        try{
-            // assume the user just wants to use only proximity sensors
-            m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
-
-            only_proximity = true;
-        }
-        catch (CARGoSException &ex2){
-            THROW_ARGOSEXCEPTION_NESTED("Error initializing sensors/actuators", ex2);
-        }
-    }
-    Reset();
-
-    /* Experiment to run */
-    TConfigurationNode sub_node = GetNode(t_node, "experiment_run");
-    std::string errorbehav, id_FaultyRobotInSwarm;
-    try
-    {
-        GetNodeAttribute(sub_node, "fault_behavior", errorbehav);
-        GetNodeAttribute(sub_node, "id_faulty_robot", id_FaultyRobotInSwarm);
-    }
-    catch (CARGoSException &ex)
-    {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing type of experiment to run, and fault to simulate.", ex);
-    }
-
-    process_faultbehaviour(errorbehav);
-
+    
+    init_sensact(t_node);
     /* Wheel turning */
     m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
+    Reset();
 
-    if(this->GetId().compare("thymio"+id_FaultyRobotInSwarm) == 0)  //process by ID
-    {
-        
-        b_damagedrobot = true;
-        //std::cout<<"robot "<<id_FaultyRobotInSwarm<<"is damaged";
-    }
-    else if(id_FaultyRobotInSwarm.back()=='%')   // process by proportion; assuming homogenous robots, can just do the first N robots
-    {
-        id_FaultyRobotInSwarm.pop_back();
-        damage_probability = 0.01f * std::stoi(id_FaultyRobotInSwarm);// e.g. 99% 
-        // damage the first number_damaged robots
-        //std::cout<<"will damage robots randomly, with probability "<< damage_probability<<std::endl;
-        
-    }
-    else{
-        // nothing: proceed as usual undamaged
-        //std::cout<<"no damage "<<damage_probability<<std::endl;
-    }
+    init_fault_config(t_node);
 }
 
 void BaseController::parse_perturbation_set(std::string filename)
@@ -499,6 +432,93 @@ float BaseController::turn_speed_01()
     return std::abs(m_fLeftSpeed - m_fRightSpeed) / (2.0*m_sWheelTurningParams.MaxSpeed);        // in [0,1]
 }
 
+
+
+
+
+void BaseController::init_sensact(TConfigurationNode &t_node)
+{
+    /*
+    * Get sensor/actuator handles
+    */
+    try
+    {
+        m_pcWheels = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
+        m_pcWheelsEncoder = GetSensor<CCI_DifferentialSteeringSensor>("differential_steering");
+        m_pcLeds = GetActuator<CCI_ThymioLedsActuator>("thymio_led");
+        m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
+        m_pcGround = GetSensor<CCI_ThymioGroundSensor>("Thymio_ground");
+        m_pcRABA = GetActuator<CCI_RangeAndBearingActuator>("range_and_bearing");
+        m_pcRABS = GetSensor<CCI_RangeAndBearingSensor>("range_and_bearing");
+        only_proximity = false;
+
+        rab_cones.push_back(ToRadians(CDegrees(0.0))); // going counter-clock wise
+        rab_cones.push_back(ToRadians(CDegrees(45.0)));
+        rab_cones.push_back(ToRadians(CDegrees(90.0)));
+        rab_cones.push_back(ToRadians(CDegrees(135.0)));
+        rab_cones.push_back(ToRadians(CDegrees(180.0)));
+        rab_cones.push_back(ToRadians(CDegrees(-135.0)));
+        rab_cones.push_back(ToRadians(CDegrees(-90.0)));
+        rab_cones.push_back(ToRadians(CDegrees(-45.0)));
+ 
+    }
+    catch (CARGoSException &ex1)
+    {
+        try{
+            // assume the user just wants to use only proximity sensors
+            m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
+
+            only_proximity = true;
+        }
+        catch (CARGoSException &ex2){
+            THROW_ARGOSEXCEPTION_NESTED("Error initializing sensors/actuators", ex2);
+        }
+    }
+
+
+
+
+}
+
+
+void BaseController::init_fault_config(TConfigurationNode &t_node)
+{
+    /* Experiment to run */
+    TConfigurationNode sub_node = GetNode(t_node, "experiment_run");
+    std::string errorbehav, id_FaultyRobotInSwarm;
+    try
+    {
+        GetNodeAttribute(sub_node, "fault_behavior", errorbehav);
+        GetNodeAttribute(sub_node, "id_faulty_robot", id_FaultyRobotInSwarm);
+    }
+    catch (CARGoSException &ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing type of experiment to run, and fault to simulate.", ex);
+    }
+
+    process_faultbehaviour(errorbehav);
+
+
+
+    if(this->GetId().compare("thymio"+id_FaultyRobotInSwarm) == 0)  //process by ID
+    {
+        
+        b_damagedrobot = true;
+        //std::cout<<"robot "<<id_FaultyRobotInSwarm<<"is damaged";
+    }
+    else if(id_FaultyRobotInSwarm.back()=='%')   // process by proportion; assuming homogenous robots, can just do the first N robots
+    {
+        id_FaultyRobotInSwarm.pop_back();
+        damage_probability = 0.01f * std::stoi(id_FaultyRobotInSwarm);// e.g. 99% 
+        // damage the first number_damaged robots
+        //std::cout<<"will damage robots randomly, with probability "<< damage_probability<<std::endl;
+        
+    }
+    else{
+        // nothing: proceed as usual undamaged
+        //std::cout<<"no damage "<<damage_probability<<std::endl;
+    }
+}
 /****************************************/
 /****************************************/
 

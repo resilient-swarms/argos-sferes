@@ -27,11 +27,24 @@ def read_floats_from_file(file_in):
 #     fig.tight_layout()
 #     fig.savefig(save_filename)
 def make_boxplots(data,row_conditions,save_filename,xlabs,ylab,ylim):
+    """
+    make a single boxplot for each condition
+    :param data:
+    :param row_conditions:
+    :param save_filename:
+    :param xlabs:
+    :param ylab:
+    :param ylim:
+    :return:
+    """
     n_rows = len(row_conditions)
 
     for i in range(n_rows):
         fig, axes = plt.subplots(1,1)
-        y = list(data[row_conditions[i]].values())
+        if isinstance(data, list):
+            y = list(data[row_conditions[i]].values())
+        else:
+            y = list(data[row_conditions[i]].values())
 
         axes.boxplot(y)
         axes.set_xticklabels(xlabs,rotation=0, fontsize=8)
@@ -43,7 +56,16 @@ def make_boxplots(data,row_conditions,save_filename,xlabs,ylab,ylim):
 
 def make_boxplots_from_dict(data,save_filename,
                         xlabs,ylim):
-
+    """
+    make a single boxplot for each condition
+    :param data:
+    :param row_conditions:
+    :param save_filename:
+    :param xlabs:
+    :param ylab:
+    :param ylim:
+    :return:
+    """
     for metric,value in data.items():
         fig, axes = plt.subplots(1,1)
         axes.boxplot(value)
@@ -54,6 +76,16 @@ def make_boxplots_from_dict(data,save_filename,
         fig.savefig(RESULTSFOLDER+"/"+save_filename+"_"+metric+".pdf")
 
 def make_boxplot_matrix(data,row_conditions,col_conditions,save_filename,xlabs,ylab,ylim):
+    """
+    make a single boxplot for each condition
+    :param data:
+    :param row_conditions:
+    :param save_filename:
+    :param xlabs:
+    :param ylab:
+    :param ylim:
+    :return:
+    """
     n_rows = len(row_conditions)
     n_cols=len(col_conditions)
     fig, axes = plt.subplots(n_rows, n_cols,figsize=(20,10))  # compare fault_none to perturbations
@@ -117,7 +149,7 @@ def get_performance_data(outputdirectory, generation):
     file = outputdirectory + "/analysis" + generation + "_handcrafted.dat"
     best_indiv, performance = get_best_individual(file, add_performance=True)
     return performance
-def get_data(base_path,fitfun,descriptors,faults,runs, sens_range, fault_id):
+def get_data_old(base_path,fitfun,descriptors,faults,runs, sens_range, fault_id):
     """
     look up the data in a folder
     :param labels:

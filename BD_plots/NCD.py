@@ -20,18 +20,28 @@ import pickle
 #     history_file = directory + str(max_run) + "/" + history_type + "_history" + str(max_indiv)
 #     return history_file, max_performance
 
-def get_help_data(outputdirectory,generation,history_type,translation_type="handcrafted"):
+def get_help_data(outputdirectory,generation,history_type,translation_type="handcrafted",self_dir=None):
     file = outputdirectory+"/analysis"+generation+"_"+translation_type+".dat"
     best_indiv, performance, bd = get_best_individual(file,add_all=True)
     history_file = outputdirectory+ "/" + history_type + "_history" + str(best_indiv)+".temp"
     bd = np.array(bd,float)
+    if self_dir is not None:
+        self_file = self_dir+"/archive_"+generation+".dat"
+        self_bd = get_individual_bd(self_file,best_indiv,bd_start=1)
+        self_bd = np.array(self_bd,float)
+        return history_file, performance, bd, self_bd
     return history_file, performance, bd
 
-def get_help_data_unperturbed(prefix,fault_dir,nofault_dir,generation,translation_type="handcrafted"):
+def get_help_data_unperturbed(prefix,fault_dir,nofault_dir,generation,translation_type="handcrafted",self_dir=None):
     file = prefix+fault_dir+"/analysis"+generation+"_"+translation_type+".dat"
     best_indiv, _, _ = get_best_individual(file,add_all=True)
     nofaultfile=  prefix+nofault_dir+"/analysis"+generation+"_"+translation_type+".dat"
     bd=get_individual_bd(nofaultfile,best_indiv)
+    if self_dir is not None:
+        self_file = self_dir+"/archive_"+generation+".dat"
+        self_bd = get_individual_bd(self_file,best_indiv,bd_start=1)
+        self_bd = np.array(self_bd,float)
+        return bd, self_bd
     return bd
 
 def read_history_file(filename,from_gz=True):

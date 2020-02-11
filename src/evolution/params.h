@@ -47,10 +47,13 @@ struct ParamsDnn
     /* use only the proximity sensors */
     struct dnn
     {
-    #ifdef RAB_CONTROL
+    #if NN_DIM_TYPE==2
         static constexpr size_t nb_inputs = 24; // ! 7 ir sensors + 8 RAB sensors + 8 RAB data + bias input at +1
         static constexpr size_t nb_outputs = 3; // 2 motors: left and right wheel + rab output
-    #else
+    #elif NN_DIM_TYPE==1        
+        static constexpr size_t nb_inputs = 10; // ! 7 ir sensors + 2 ground sensor + bias input at +1
+        static constexpr size_t nb_outputs = 2; // 2 motors: left and right wheel
+    #else 
         static constexpr size_t nb_inputs = 16; // ! 7 ir sensors + 8 RAB sensors + bias input at +1
         static constexpr size_t nb_outputs = 2; // 2 motors: left and right wheel
     #endif
@@ -110,7 +113,7 @@ struct EAParams
 #elif BEHAV_DIM == 2
         SFERES_ARRAY(size_t, behav_shape, 64, 64);
 #elif BEHAV_DIM == 3
-        SFERES_ARRAY(size_t, behav_shape, 16,16,16);
+        SFERES_ARRAY(size_t, behav_shape, 5,5,5);
 #elif BEHAV_DIM == 6
         SFERES_ARRAY(size_t, behav_shape, 4, 4, 4, 4, 4, 4);
 #elif BEHAV_DIM == 7
@@ -142,7 +145,7 @@ struct EAParams
     struct pop
     {
         // number of initial random points
-        SFERES_CONST size_t init_size = 1000; //1000;
+        SFERES_CONST size_t init_size = 100; //1000;
         // size of a batch
         SFERES_CONST size_t size = 40;//1000;
         SFERES_CONST size_t nb_gen = 10100;

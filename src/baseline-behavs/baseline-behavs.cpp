@@ -33,8 +33,9 @@ void CBaselineBehavs::ExperimentToRun::Init(TConfigurationNode& t_node)
     }
     catch(CARGoSException& ex)
             THROW_ARGOSEXCEPTION_NESTED("Error initializing type of experiment to run, and fault to simulate.", ex);
-
-    if (swarmbehav.compare("SWARM_AGGREGATION") == 0)
+    if(swarmbehav.compare("SWARM_RANDOMPOSITIONING") == 0)
+        SBehavior = SWARM_RANDOMPOSITIONING;
+    else if (swarmbehav.compare("SWARM_AGGREGATION") == 0)
         SBehavior = SWARM_AGGREGATION;
     else if (swarmbehav.compare("SWARM_DISPERSION") == 0)
         SBehavior = SWARM_DISPERSION;
@@ -159,7 +160,8 @@ void CBaselineBehavs::ControlStep()
     // }
 
     // else 
-    if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION    ||
+    if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_RANDOMPOSITIONING   ||
+        m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION    ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_DISPERSION     ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_FLOCKING       ||
             m_sExpRun.SBehavior == ExperimentToRun::SWARM_HOMING         ||
@@ -384,7 +386,17 @@ void CBaselineBehavs::RunHomogeneousSwarmExperiment()
 {
     m_vecBehaviors.clear();
 
-    if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION)
+    if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_RANDOMPOSITIONING)
+    {
+        std::cout << "Randomly positioning " << std::endl;
+        CObstacleAvoidanceBehavior* pcObstacleAvoidanceBehavior = new CObstacleAvoidanceBehavior(0.1f);    // 0.1f reflects a distance of about 4.5cm
+        m_vecBehaviors.push_back(pcObstacleAvoidanceBehavior);
+
+        CRandomWalkBehavior* pcRandomWalkBehavior = new CRandomWalkBehavior(0.0017f); //0.05f
+        m_vecBehaviors.push_back(pcRandomWalkBehavior);
+    }
+
+    else if(m_sExpRun.SBehavior == ExperimentToRun::SWARM_AGGREGATION)
     {
         std::cout << "Running aggregation " << std::endl;
         CObstacleAvoidanceBehavior* pcObstacleAvoidanceBehavior = new CObstacleAvoidanceBehavior(0.1f);    // 0.1f reflects a distance of about 4.5cm

@@ -6,7 +6,6 @@
 #include <vector>
 #include <src/core/arena_utils.h>
 
-
 class FitFun
 {
 public:
@@ -88,7 +87,7 @@ class Coverage : public FitFun
   // Coverage as the number of visited cells divided by total cells
 public:
   size_t num_updates = 0;
-  CoverageCalc* coverageCalc;
+  CoverageCalc *coverageCalc;
   Coverage(std::string init_type, BaseLoopFunctions *cLoopFunctions);
   virtual inline bool quit_on_collision() const
   {
@@ -118,17 +117,16 @@ public:
   virtual void before_trial(BaseLoopFunctions &cLoopFunctions);
 };
 
-
 class DecayCoverage : public FitFun
 {
   // Gomes & Christensen 2018
-  // The arena is discretised into a grid of 10 × 10, 
+  // The arena is discretised into a grid of 10 × 10,
   // and every time cell is visited by a robot, the value of the cell goes to 1, and then
-  // decays constantly at a rate of 0.005/s. 
+  // decays constantly at a rate of 0.005/s.
   // The fitness is the average value of all cells over the entire simulation.
 public:
   size_t num_updates = 0;
-  DecayCoverageCalc* coverageCalc;
+  DecayCoverageCalc *coverageCalc;
   DecayCoverage(std::string init_type, BaseLoopFunctions *cLoopFunctions);
 
   /*after a single step of all agents */
@@ -139,8 +137,6 @@ public:
   /*after completing all trials, combine fitness*/
   virtual float after_trials();
 };
-
-
 
 class Aggregation : public FitFun
 {
@@ -209,12 +205,11 @@ public:
   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
 };
 
-
 /***********************************/
 
 class Chaining : public FitFun
 {
-    /* The fitness function is inversely proportional to
+  /* The fitness function is inversely proportional to
      * the average distance between the closest robots connected through RAB to the
      * source and destination by a chain (or network) of robots.
      *
@@ -223,31 +218,71 @@ class Chaining : public FitFun
      * TODO: The source and destination robots can be stationary or moving.
      * */
 public:
-    Chaining();
+  Chaining();
 
-    /* source */
-    const size_t src_robot_id = 0;
-    /* destination */
-    const size_t dest_robot_id = 1;
-    /* keep track of the number of updates */
-    size_t num_updates = 0;
-    /* keep track if the distance during the trial */
-    float trial_dist = 0.0f;
+  /* source */
+  const size_t src_robot_id = 0;
+  /* destination */
+  const size_t dest_robot_id = 1;
+  /* keep track of the number of updates */
+  size_t num_updates = 0;
+  /* keep track if the distance during the trial */
+  float trial_dist = 0.0f;
 
-
-    virtual void before_trial(BaseLoopFunctions &cLoopFunctions);
-    /*after completing trial, calc fitness*/
-    virtual void apply(BaseLoopFunctions &cLoopFunctions);
-    /*after completing all trials, combine fitness*/
-    virtual float after_trials();
-    /*after a single step of all agents */
-    virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
-    /* calculate the smallest distance between networked robots connected to the source and destination */
-    float min_connected_dist (BaseLoopFunctions &cLoopFunctions, float maxdist);
-    /* make sure the source and destination are the maximally distant robots */
-    void swap_robots (BaseLoopFunctions &cLoopFunctions, size_t robot_a, size_t robot_b);
+  virtual void before_trial(BaseLoopFunctions &cLoopFunctions);
+  /*after completing trial, calc fitness*/
+  virtual void apply(BaseLoopFunctions &cLoopFunctions);
+  /*after completing all trials, combine fitness*/
+  virtual float after_trials();
+  /*after a single step of all agents */
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
+  /* calculate the smallest distance between networked robots connected to the source and destination */
+  float min_connected_dist(BaseLoopFunctions &cLoopFunctions, float maxdist);
+  /* make sure the source and destination are the maximally distant robots */
+  void swap_robots(BaseLoopFunctions &cLoopFunctions, size_t robot_a, size_t robot_b);
 };
 
-
-
 // #endif
+
+class Foraging : public FitFun
+{
+  /*
+     *
+     */
+public:
+
+  float reward;
+  Foraging(){};
+  const float nest_x = 0.32;
+  const size_t num_food = 6;
+  const size_t HARVEST_TIME=50;// 50 time steps 
+  /*
+
+     */
+  const std::vector<float> m_fFoodSquareRadius = {
+      0.10*0.10,0.10*0.10,0.20*0.20,0.20*0.20,0.30*0.30
+  };
+  const std::vector<CVector3> m_cFoodPos = {
+      
+    CVector3(0.80, 1.20, 0.0),
+    CVector3(0.80, 0.50, 0.0),
+    CVector3(1.3 , 1.0, 0.0 ),
+    CVector3(1.5 , 0.5, 0.0),
+    CVector3(1.6 , 1.70, 0.0) 
+
+  };
+
+  size_t num_updates = 0;
+  std::vector<size_t> m_cVisitedFood = {};// how much time steps left until harvestable
+  std::vector<bool> m_bRobotsHoldingFood = {};
+  size_t numfoodCollected = 0;
+  float trial_performance = 0;
+
+  virtual void before_trial(BaseLoopFunctions &cLoopFunctions);
+  /*after completing trial, calc fitness*/
+  virtual void apply(BaseLoopFunctions &cLoopFunctions);
+  /*after completing all trials, combine fitness*/
+  virtual float after_trials();
+  /*after a single step of all agents */
+  virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
+};

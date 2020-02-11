@@ -3,6 +3,7 @@
 #include <src/core/base_loop_functions.h>
 #include <src/core/fitness_functions.h>
 #include <src/core/statistics.h>
+#include <algorithm>
 
 FloreanoMondada::FloreanoMondada() : FitFun()
 {
@@ -571,4 +572,106 @@ float Chaining::after_trials()
    fitness_per_trial.clear();
    //std::cout << "MEAN FITNESS " << meanfit << std::endl;
    return meanfit;
+}
+
+
+/***********************************************************/
+
+
+void Foraging::before_trial(BaseLoopFunctions &cLoopFunctions)
+{
+
+    m_bRobotsHoldingFood.clear();
+    for (size_t i=0; i < cLoopFunctions.curr_pos.size(); i++) {
+        m_bRobotsHoldingFood.push_back(false);
+    }
+    m_cVisitedFood.clear();
+    for (size_t i=0; i < m_cFoodPos.size(); i++) {
+        m_cVisitedFood.push_back(0);
+    }
+    numfoodCollected = 0;
+    num_updates = 0;
+    /// Calculate max fitness
+}
+
+void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
+{
+    for(size_t f = 0; f < num_food; ++f)
+    {
+        m_cVisitedFood[f] = std::max((size_t)0 , m_cVisitedFood[f] - 1);
+#ifdef PRINTING
+
+        std::cout<< "Harvesting time is now for food  "<< f << " on location " <<  m_cFoodPos[f] <<
+         "\n is now" <<m_cVisitedFood[f] << std::endl;
+#endif
+    }
+    for(size_t i = 0; i < cLoopFunctions.curr_pos.size(); i++)
+    {
+        /* Get the position of the thymio on the ground as a CVector2 */
+        CVector3 cPos = cLoopFunctions.curr_pos[i];
+
+        /* The thymio has a food item */
+        if(m_bRobotsHoldingFood[i])
+        {
+            /* Check whether the thymio is in the nest */
+            if(cPos.GetX() < nest_x)
+            {
+                /* Drop the food item */
+                m_bRobotsHoldingFood[i] = false;
+                /* Increase the food count */
+                numfoodCollected++;
+#ifdef PRINTING
+                std::cout << "thymio" << i << " dropped off food. Total collected: " << numfoodCollected << std::endl;
+#endif
+            }
+        }
+        else {
+            /* The thymio has no food item */
+            /* Check whether the thymio is out of the nest */
+            if(cPos.GetX() > nest_x)
+            {
+                /* Check whether the thymio is on a food item that has not already been collected*/
+                for(size_t f = 0; f < num_food; ++f)
+                {
+                    float dx = pow(cPos.GetX() - m_cFoodPos[f].GetX(), 2);// squared dist
+                    float dy = pow(cPos.GetY() - m_cFoodPos[f].GetY(), 2);// squared dist
+                    if(dx + dy < m_fFoodSquareRadius[f] && m_cVisitedFood[f]==0) // check squared dist smaller than squared radius
+                    {
+                        /* The thymio is now carrying an item */
+                        m_bRobotsHoldingFood[i] = true;
+                        /* the food has now been visited */
+                        m_cVisitedFood[f] = HARVEST_TIME;
+#ifdef PRINTING
+                        std::cout << "thymio" << i << " picked up food " << f << std::endl;
+                        std::cout << "harvesting time is now " << HARVEST_TIME << std::endl;
+#endif
+                        /* We are done */
+                        break;
+                        
+                    }
+                }
+            }
+        }
+    }
+
+    reward = numfoodCollected / (float) num_food;
+    trial_performance += reward;
+    num_updates++;
+}
+
+void Foraging::apply(BaseLoopFunctions &cLoopFunctions)
+{
+    float fitness = trial_performance / (float(num_updates));
+#ifdef PRINTING
+    std::cout << trial_performance << " / " << num_updates << std::endl;
+#endif
+    fitness_per_trial.push_back(fitness);
+    trial_performance = 0;
+}
+
+float Foraging::after_trials()
+{
+    float meanfit = StatFuns::mean( fitness_per_trial);
+    fitness_per_trial.clear();
+    return meanfit;
 }

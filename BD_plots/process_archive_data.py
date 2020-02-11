@@ -135,8 +135,8 @@ def run_best_individual(command, outputfolder, generation):
     maxind = get_best_individual(outputfolder + "/analysis"+generation+"_handcrafted.dat")
     print("start run best individual: "+str(maxind))
     run_individual(command, maxind)
-    for analysis_suffix in ["sa_history", "xy_history"]:
-        compress_and_remove_lzma(outputfolder, analysis_suffix + str(maxind)+".temp")
+    #for analysis_suffix in ["sa_history", "xy_history"]:
+    #    compress_and_remove_lzma(outputfolder, analysis_suffix + str(maxind)+".temp")
 
 # def compress_histories(outputfolder):
 #     print("looking for " + outputfolder + "/analysis_sdbc.dat")
@@ -390,7 +390,14 @@ def get_bins(bd_shape):
     else:
         # assume you are doing cvt , just return the shape=number of centroids
         return bd_shape
-
+def convert_QED_rep(individual):
+    s=""
+    individual=int(individual)
+    for num in range(5,-1,-1):
+        number=individual//(4**(num))
+        individual-=number*4**num
+        s+=str(number+1) + ","
+    return s[:-1]
 
 if __name__ == "__main__":
     # sys.path.append("/home/david/DataFinal/ExperimentData")

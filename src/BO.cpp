@@ -45,6 +45,8 @@ int main(int argc, char **argv)
     */
     argos::CSimulator::GetInstance().Destroy();
 
+
+
     /* All is OK */
     return 0;
 }

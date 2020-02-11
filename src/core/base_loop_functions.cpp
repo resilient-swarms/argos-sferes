@@ -274,6 +274,10 @@ void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
         {
             this->fitfun = new Chaining();
         }
+        else if (s == "Foraging")
+        {
+            this->fitfun = new Foraging();
+        }
         else
         {
             throw std::runtime_error("fitfuntype " + s + " not found");
