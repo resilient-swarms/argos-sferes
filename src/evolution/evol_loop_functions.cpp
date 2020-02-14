@@ -609,4 +609,4 @@ void EvolutionLoopFunctions::analyse(float fFitness)
 /****************************************/
 
 //using TemplateEvolutionLoopFunctions = EvolutionLoopFunctions<class NN>;
-REGISTER_LOOP_FUNCTIONS(EvolutionLoopFunctions, "evolution_loopfunctions" + std::string(TAG))
+REGISTER_LOOP_FUNCTIONS(EvolutionLoopFunctions, "evolution_loopfunctions")

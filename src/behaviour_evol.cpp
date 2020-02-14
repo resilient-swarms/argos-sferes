@@ -29,6 +29,7 @@ int main(int argc, char **argv)
     argos::LOGERR << "starting "<< argv[1] << std::endl;// tell which job it is
 #endif
 
+    std::cout << "TAG = "<< TAG << std::endl;
     /*
      * Initialize ARGoS
      */
