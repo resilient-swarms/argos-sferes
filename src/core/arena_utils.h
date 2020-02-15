@@ -1,6 +1,9 @@
 #ifndef ARENA_UTILS
 #define ARENA_UTILS
 
+
+#include <argos3/core/simulator/simulator.h>
+#include "argos3/core/utility/math/vector3.h"
 //#include <boost/math/constants/constants.hpp>
 /****************************************/
 

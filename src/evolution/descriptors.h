@@ -20,7 +20,7 @@
 /****************************************/
 /****************************************/
 
-class EvolutionLoopFunctions;
+class BaseEvolutionLoopFunctions;
 class RunningStat;
 
 
@@ -42,27 +42,27 @@ public:
   std::vector<std::vector<float>> bd;
 
   /* prepare for trials*/
-  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
   virtual void start_trial();
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions){};
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions){};
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions){};
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions){};
 
   /*after the looping over robots*/
-  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+  virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
   {
   }
 
   /*end the trial*/
-  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions)
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
   {
   }
 
   /*summarise BD at the end of trials*/
-  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 class AverageDescriptor : public Descriptor
@@ -75,10 +75,10 @@ public:
   }
 
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*end the trial*/
-  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 
@@ -93,7 +93,7 @@ public:
    unsigned nb_input_output;
 
    /*end the trial*/
-   virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+   virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 class NeuralCyclesDescriptor : public Descriptor
@@ -103,10 +103,10 @@ class NeuralCyclesDescriptor : public Descriptor
 public:
    NeuralCyclesDescriptor() {}
 
-   static float strongly_connected (EvolutionLoopFunctions &cLoopFunctions);
+   static float strongly_connected (BaseEvolutionLoopFunctions &cLoopFunctions);
 
    /*end the trial*/
-   virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+   virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 class IntuitiveHistoryDescriptor : public Descriptor
@@ -116,7 +116,7 @@ class IntuitiveHistoryDescriptor : public Descriptor
     *  after all trials, gather statistics of the observed history
     */
 public:
-  IntuitiveHistoryDescriptor(EvolutionLoopFunctions *cLoopFunctions,size_t behav_dim=3);
+  IntuitiveHistoryDescriptor(BaseEvolutionLoopFunctions *cLoopFunctions,size_t behav_dim=3);
   CoverageCalc coverageCalc;
 
   argos::CVector3 center;
@@ -127,31 +127,31 @@ public:
   virtual void start_trial();
 
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
   /*end the trial*/
-  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 struct RobotAttributeSetter
 {
   float maxX, maxY;
-  RobotAttributeSetter(EvolutionLoopFunctions *cLoopFunctions)
+  RobotAttributeSetter(BaseEvolutionLoopFunctions *cLoopFunctions)
   {
     argos::CVector3 max = cLoopFunctions->GetSpace().GetArenaSize();
     maxX = max.GetX();
     maxY = max.GetY();
   }
 
-  virtual std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions) = 0;
+  virtual std::vector<float> get_attributes(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions) = 0;
 };
 struct NormalAttributeSetter : public RobotAttributeSetter
 {
-  NormalAttributeSetter(EvolutionLoopFunctions *cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
+  NormalAttributeSetter(BaseEvolutionLoopFunctions *cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
   {
   }
-  virtual std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+  virtual std::vector<float> get_attributes(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
   {
     // here just set the attributes of robot at index; let end
     CVector3 pos = cLoopFunctions.curr_pos[robot_index];
@@ -172,10 +172,10 @@ struct NormalAttributeSetter : public RobotAttributeSetter
 
 struct SpeedAttributeSetter : public RobotAttributeSetter
 {
-  SpeedAttributeSetter(EvolutionLoopFunctions *cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
+  SpeedAttributeSetter(BaseEvolutionLoopFunctions *cLoopFunctions) : RobotAttributeSetter(cLoopFunctions)
   {
   }
-  virtual std::vector<float> get_attributes(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+  virtual std::vector<float> get_attributes(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
   {
     float v_lin = cLoopFunctions.actual_linear_velocity_01(robot_index);
     float v_turn = cLoopFunctions.actual_turn_velocity_01(robot_index);
@@ -281,17 +281,17 @@ public:
   std::vector<std::string> variable_groups;
 
   std::vector<std::vector<float>> temp_bd; // accumulate the features over time
-  SDBC(EvolutionLoopFunctions *cLoopFunctions, std::string init_type, size_t bd=BEHAV_DIM);
+  SDBC(BaseEvolutionLoopFunctions *cLoopFunctions, std::string init_type, size_t bd=BEHAV_DIM);
 
   /* minimal robot distance */
-  float minimal_robot_distance(EvolutionLoopFunctions *cLoopFunctions);
+  float minimal_robot_distance(BaseEvolutionLoopFunctions *cLoopFunctions);
   /* uniform closest distance as proxy to the maximal avg closest distance */
-  float get_uniform_closestdist(EvolutionLoopFunctions *cLoopFunctions);
+  float get_uniform_closestdist(BaseEvolutionLoopFunctions *cLoopFunctions);
   /* Divide the max arena distance by the number of robots to get max average robotdist */
-  float get_max_avgdist(EvolutionLoopFunctions *cLoopFunctions);
+  float get_max_avgdist(BaseEvolutionLoopFunctions *cLoopFunctions);
 
   /* walls robots min and max distance */
-  std::pair<float, float> get_wallsrobots_range(EvolutionLoopFunctions *cLoopFunctions);
+  std::pair<float, float> get_wallsrobots_range(BaseEvolutionLoopFunctions *cLoopFunctions);
 
   void init_walls(CLoopFunctions *cLoopFunctions);
   void init_robots(size_t num_features, CLoopFunctions *cLoopFunctions);
@@ -313,24 +313,24 @@ public:
   void add_between_group_dispersion();
 
   /* distance to closest robot */
-  void add_closest_robot_dist(EvolutionLoopFunctions &cLoopFunctions);
+  void add_closest_robot_dist(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /* prepare for trials*/
-  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
   virtual void start_trial();
 
   /*end the trial*/
-  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
   /*after the looping over robots*/
-  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*summarise BD at the end of trials*/
-  //virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+  //virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 // class RNNHistoryDescriptor: public HistoryDescriptor{
@@ -368,13 +368,13 @@ public:
   AutoDescriptor() {}
 
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions){};
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions){};
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions){};
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions){};
 
   /*summarise BD at the end of trial*/
-  virtual std::vector<float> after_trials(Real time, EvolutionLoopFunctions &cLoopFunctions){};
+  virtual std::vector<float> after_trials(Real time, BaseEvolutionLoopFunctions &cLoopFunctions){};
 };
 /****************************************/
 /****************************************/
@@ -383,7 +383,7 @@ public:
 
 /* given a group of sensory activations, average their input activation, and get the correspinding bin
 */
-static size_t get_group_inputactivation(size_t num_bins, std::vector<size_t> group, EvolutionLoopFunctions &cLoopFunctions);
+static size_t get_group_inputactivation(size_t num_bins, std::vector<size_t> group, BaseEvolutionLoopFunctions &cLoopFunctions);
 
 class CVT_MutualInfo : public Descriptor
 {
@@ -407,21 +407,21 @@ public:
     }
 
   /* prepare for trials*/
-  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
   virtual void start_trial();
 
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*after the looping over robots*/
-  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*end the trial*/
-  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*summarise BD at the end of trials*/
-  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /* normalise frequencies */
   virtual void normalise();
@@ -451,12 +451,12 @@ public:
   virtual void normalise();
 
   /* prepare for trials*/
-  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions){}; //don't do anything yet
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions){}; //don't do anything yet
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /* get the descriptor */
   virtual std::vector<float> get_bd();
@@ -485,21 +485,21 @@ public:
   std::vector<std::vector<float>> freqs; // for each sensory state the action probabilities
 
   /* prepare for trials*/
-  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
   virtual void start_trial();
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*after the looping over robots*/
-  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*end the trial*/
-  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*summarise BD at the end of trials*/
-  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /* normalise frequencies */
   void normalise();
@@ -515,7 +515,7 @@ public:
   CVT_RAB_Spirit(size_t behav_dim=4600);
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
 };
 
@@ -525,10 +525,10 @@ public:
   MultiAgent_Spirit();
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*after the looping over robots*/
-  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 class CompressionDescriptor : public Descriptor
@@ -538,25 +538,25 @@ public:
   {
   }
   /* given a group of sensory activations, average their activation*/
-  float get_group_activation(std::vector<size_t> group, EvolutionLoopFunctions &cLoopFunctions);
+  float get_group_activation(std::vector<size_t> group, BaseEvolutionLoopFunctions &cLoopFunctions);
   /* prepare for trials*/
-  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
   virtual void start_trial();
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*after the looping over robots*/
-  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*end the trial*/
-  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*summarise BD at the end of trials*/
-  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 // class NonMarkovianStochasticPolicyInduction : public Descriptor
@@ -568,26 +568,26 @@ public:
 //     NonMarkovianStochasticPolicyInduction();
 
 //     /* prepare for trials*/
-//     virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions){};
+//     virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions){};
 //     /*reset BD at the start of a trial*/
 //     virtual void start_trial(){};
 //     /*after getting inputs, can update the descriptor if needed*/
-//     virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions){};
+//     virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions){};
 
 //     /*after getting outputs, can update the descriptor if needed*/
-//     virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions){}
+//     virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions){}
 //     /*after the looping over robots*/
-//     virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+//     virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 //     {
 //     }
 
 //     /*end the trial*/
-//     virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions)
+//     virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 //     {
 //     }
 
 //     /*summarise BD at the end of trials*/
-//     virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions){};
+//     virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions){};
 // };
 
 class CVT_Trajectory : public Descriptor
@@ -602,19 +602,19 @@ public:
   float maxX, maxY;
   /* final behavioural descriptor  */
   std::vector<float> final_bd;
-  CVT_Trajectory(EvolutionLoopFunctions &cLoopFunctions, size_t num_steps);
+  CVT_Trajectory(BaseEvolutionLoopFunctions &cLoopFunctions, size_t num_steps);
 
   inline bool end_chunk() const
   {
     return (num_updates + 1) % periodicity == 0;
   }
 
-  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
   /*summarise BD at the end of trials*/
-  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 // #endif
 
@@ -629,19 +629,19 @@ public:
 //     float maxX, maxY;
 //     /* final behavioural descriptor  */
 //     std::vector<float> final_bd;
-//     CVT_Trajectory(EvolutionLoopFunctions &cLoopFunctions, size_t num_steps);
+//     CVT_Trajectory(BaseEvolutionLoopFunctions &cLoopFunctions, size_t num_steps);
 
 //     inline bool end_chunk() const
 //     {
 //         return (num_updates + 1) % periodicity == 0;
 //     }
 
-//     virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+//     virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 
 //     /*after getting outputs, can update the descriptor if needed*/
-//     virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+//     virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 //     /*summarise BD at the end of trials*/
-//     virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+//     virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 // };
 
 // class EnvironmentDiversity : public Descriptor
@@ -649,12 +649,12 @@ public:
 // public:
 //   std::vector<EnvironmentGenerator*> env_generators;
 //   size_t id; // the  id of the current generator
-//   EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators);
+//   EnvironmentDiversity(BaseEvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators);
 
 //   /* before all trials, prepare */
-//   void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+//   void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 //   /*summarise BD at the end of trials*/
-//   virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+//   virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 // };
 
 class StaticDescriptor : public Descriptor
@@ -664,7 +664,7 @@ public:
   std::vector<float> final_bd;
   StaticDescriptor(std::vector<float> final_bd);
   /*summarise BD at the end of trials*/
-  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 
@@ -701,17 +701,17 @@ public:
   }
 
   /*after the looping over robots*/
-  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+  virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
   {
   }
 
   /*end the trial*/
-  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions)
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
   {
   }
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
   {
     std::vector<float> copy = cLoopFunctions.inputs;
     // add the input as the previous target
@@ -725,7 +725,7 @@ public:
   }
 
   /*summarise BD at the end of trials*/
-  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions)
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
   {
 
     /*fit the network */
@@ -753,19 +753,19 @@ class SubjectiveHistoryDescriptor : public Descriptor
   SubjectiveHistoryDescriptor(const std::string& filename);
 
   /* prepare for trials*/
-  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
   virtual void start_trial();
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
   /*after the looping over robots*/
-  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*summarise BD at the end of trials*/
-  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 class ObjectiveHistoryDescriptor : public Descriptor
@@ -778,19 +778,19 @@ class ObjectiveHistoryDescriptor : public Descriptor
   ObjectiveHistoryDescriptor(const std::string& filename);
 
   /* prepare for trials*/
-  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
   virtual void start_trial();
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
   /*after the looping over robots*/
-  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*summarise BD at the end of trials*/
-  virtual std::vector<float> after_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 class AnalysisDescriptor : public Descriptor
@@ -808,22 +808,22 @@ public:
 
 
   /* prepare for trials*/
-  virtual void before_trials(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
   /*reset BD at the start of a trial*/
   virtual void start_trial();
   /*after getting inputs, can update the descriptor if needed*/
-  virtual void set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*after getting outputs, can update the descriptor if needed*/
-  virtual void set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions);
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
   /*after the looping over robots*/
-  virtual void after_robotloop(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /*summarise BD at the end of trials*/
-  virtual void end_trial(EvolutionLoopFunctions &cLoopFunctions);
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 
   /* get the descriptor by its id-string and then print it to file prefixed by filename, suffixed by the descriptor name*/
-  void analyse_individual(EvolutionLoopFunctions &cLoopFunctions, float fFitness);
+  void analyse_individual(BaseEvolutionLoopFunctions &cLoopFunctions, float fFitness);
 
 
 

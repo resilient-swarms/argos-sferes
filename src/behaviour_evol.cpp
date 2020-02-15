@@ -5,7 +5,6 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/loop_functions.h>
 
-#include <src/evolution/evol_loop_functions.h>
 #include <src/exec_tools.h>
 
 #include <src/core/statistics.h>
@@ -45,7 +44,7 @@ int main(int argc, char **argv)
     cSimulator.LoadExperiment();
 
 #ifdef CVT
-    static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
+    static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
     EAParams::ea::centroids = load_centroids(cLoopFunctions.centroids_folder + "/centroids_" + std::to_string(EAParams::ea::number_of_clusters) + "_" + std::to_string(EAParams::ea::number_of_dimensions) + ".dat");
 
     // check for SPIRIT

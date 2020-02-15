@@ -5,7 +5,8 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/loop_functions.h>
 
-#include <src/evolution/evol_loop_functions.h>
+
+#include <src/evolution/loopfunctions_include.h>
 #include <src/evolution/descriptors.h>
 #include <src/exec_tools.h>
 

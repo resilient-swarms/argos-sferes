@@ -1,7 +1,7 @@
 
 
-// #ifndef FITNESS_FUNCTIONS
-// #define FITNESS_FUNCTIONS
+#ifndef FITNESS_FUNCTIONS
+#define FITNESS_FUNCTIONS
 
 #include <vector>
 #include <src/core/arena_utils.h>
@@ -44,7 +44,7 @@ class FloreanoMondada : public FitFun
 {
   //Floreano & Mondada '94; minimum of the linear speed, controlling for collision
 public:
-  Real nb_coll = 0;
+  argos::Real nb_coll = 0;
   float speed = 0.0f;
   float lin_speed = 0.0f;
   float num_ds = 0.0f;
@@ -65,7 +65,7 @@ class MeanSpeed : public FitFun
 {
   // same as FloreanoMondada but take mean instead of minimum
 public:
-  Real nb_coll = 0;
+  argos::Real nb_coll = 0;
   float speed = 0.0f;
   float lin_speed = 0.0f;
   float num_ds = 0.0f;
@@ -158,7 +158,7 @@ public:
   virtual float after_trials();
   /*after a single step of all agents */
   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
-  float get_mass(CThymioEntity *robot);
+  //float get_mass(CThymioEntity *robot);
 
   std::pair<std::vector<argos::CVector3>, argos::CVector3> centre_of_mass(BaseLoopFunctions &cLoopFunctions);
 };
@@ -244,39 +244,21 @@ public:
 
 // #endif
 
+
+
+
 class Foraging : public FitFun
 {
   /*
      *
      */
 public:
-
-  float reward;
   Foraging(){};
-  const float nest_x = 0.32;
-  const size_t num_food = 6;
-  const size_t HARVEST_TIME=50;// 50 time steps 
   /*
 
      */
-  const std::vector<float> m_fFoodSquareRadius = {
-      0.10*0.10,0.10*0.10,0.20*0.20,0.20*0.20,0.30*0.30
-  };
-  const std::vector<CVector3> m_cFoodPos = {
-      
-    CVector3(0.80, 1.20, 0.0),
-    CVector3(0.80, 0.50, 0.0),
-    CVector3(1.3 , 1.0, 0.0 ),
-    CVector3(1.5 , 0.5, 0.0),
-    CVector3(1.6 , 1.70, 0.0) 
-
-  };
 
   size_t num_updates = 0;
-  std::vector<size_t> m_cVisitedFood = {};// how much time steps left until harvestable
-  std::vector<bool> m_bRobotsHoldingFood = {};
-  size_t numfoodCollected = 0;
-  float trial_performance = 0;
 
   virtual void before_trial(BaseLoopFunctions &cLoopFunctions);
   /*after completing trial, calc fitness*/
@@ -286,3 +268,7 @@ public:
   /*after a single step of all agents */
   virtual void after_robotloop(BaseLoopFunctions &cLoopFunctions);
 };
+
+
+
+#endif

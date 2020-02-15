@@ -220,15 +220,15 @@ else(NOT BASELINE)
         add_definitions(-DNN_DIM_TYPE=0)
 
     elseif(${NN_INPUT_TYPE} EQUAL 1)
-        set(CONTROL "realthymio_nn_controller")
-        message("using real-thymio: proximity and ground (NN_INPUT_TYPE=1)")
+        set(CONTROL "foraging_nn_controller")
+        message("using foraging-nn controller: proximity and ground (NN_INPUT_TYPE=1)")
         set(tag ${tag}REAL)
         set(exec_prefix "behaviour_evol")
         add_definitions(-DNN_DIM_TYPE=1)
             # Descend into the controllers directory
-        add_library(realthymio_nn_controller SHARED
-            src/evolution/realthymio_nn_controller.h
-            src/evolution/realthymio_nn_controller.cpp)
+        add_library(foraging_nn_controller SHARED
+            src/evolution/foraging_nn_controller.h
+            src/evolution/foraging_nn_controller.cpp)
     elseif(${NN_INPUT_TYPE} EQUAL 2)
         set(CONTROL "nn_controller")
         message("using rab-control (NN_INPUT_TYPE=2)")
@@ -326,16 +326,50 @@ else(NOT BASELINE)
     add_definitions(-DTAG="${tag}")
     message("TAG" ${tag})
     if(ARGOS_COMPILE_QTOPENGL)
-        add_library(evolution_loopfunctions${tag} SHARED
+        message("QT")
+        if(${NN_INPUT_TYPE} EQUAL 1)
+            message("Foraging")
+            add_library(foraging_loopfunctions${tag} SHARED
+            src/evolution/params.h
+            src/evolution/foraging_loop_functions.h
+            src/evolution/foraging_loop_functions.cpp
+	        #src/evolution/foraging_qt_user_functions.h
+            #src/evolution/foraging_qt_user_functions.cpp
+            src/core/robotid_vis.h
+            src/core/robotid_vis.cpp
+	        )
+            set(LOOPFUN foraging_loopfunctions${tag})
+        elseif(NOT ${NN_INPUT_TYPE} EQUAL 1)
+            message("Evolution")
+             add_library(evolution_loopfunctions${tag} SHARED
             src/evolution/params.h
             src/evolution/evol_loop_functions.h
             src/evolution/evol_loop_functions.cpp
             src/core/robotid_vis.h
             src/core/robotid_vis.cpp)
+            set(LOOPFUN evolution_loopfunctions${tag})
+
+
+        endif()
+	
     elseif(NOT ARGOS_COMPILE_QTOPENGL)
-        add_library(evolution_loopfunctions${tag} SHARED
+    message("NO QT")
+        if(${NN_INPUT_TYPE} EQUAL 1)
+        message("Foraging")
+            add_library(foraging_loopfunctions${tag} SHARED
+            src/evolution/params.h
+            src/evolution/foraging_loop_functions.h
+            src/evolution/foraging_loop_functions.cpp
+	        )
+            set(LOOPFUN foraging_loopfunctions${tag})
+        elseif(NOT ${NN_INPUT_TYPE} EQUAL 1)
+        message("Evolution")
+             add_library(evolution_loopfunctions${tag} SHARED
+            src/evolution/params.h
             src/evolution/evol_loop_functions.h
             src/evolution/evol_loop_functions.cpp)
+            set(LOOPFUN evolution_loopfunctions${tag})
+        endif()
     endif()
 
     add_library(descriptors${tag} SHARED
@@ -345,7 +379,7 @@ else(NOT BASELINE)
 
 
 
-    set(LOOPFUN evolution_loopfunctions${tag})
+    
     
     
 endif()
@@ -462,6 +496,8 @@ add_library(statistics SHARED
     src/core/statistics.cpp)
 
 add_library(base_loopfunctions${tag} SHARED
+    src/evolution/base_evol_loop_functions.h
+    src/evolution/base_evol_loop_functions.cpp
     src/core/base_loop_functions.h
     src/core/base_loop_functions.cpp
     src/core/fitness_functions.h # added as error argos3: symbol lookup error: [path removed]/libbase_loopfunctions.so: undefined symbol: _ZN11AggregationC1Ev
@@ -509,6 +545,7 @@ target_link_libraries(${CONTROL}
 
 # link the loop functions
 target_link_libraries(${LOOPFUN}
+
     base_loopfunctions${tag}
     ${CONTROL}
     base_controller

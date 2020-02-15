@@ -365,7 +365,7 @@ struct _argos_parallel_envir
             // /* Load it to configure ARGoS */
             cSimulator.LoadExperiment();
 
-            static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
+            static BaseEvolutionLoopFunctions &cLoopFunctions = dynamic_cast<BaseEvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
             cLoopFunctions.descriptor = new StaticDescriptor(bd);
         }
         catch (argos::CARGoSException &ex)

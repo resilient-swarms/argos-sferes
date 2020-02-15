@@ -5,7 +5,6 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/loop_functions.h>
 
-#include <src/evolution/evol_loop_functions.h>
 #include <src/exec_tools.h>
 
 int main(int argc, char **argv)
@@ -24,7 +23,7 @@ int main(int argc, char **argv)
     /* Load it to configure ARGoS */
     cSimulator.LoadExperiment();
 
-    static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
+    static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
     // expects two arguments
     std::string fitfile = argv[2];
     // override the usual fitness file

@@ -1,6 +1,6 @@
 
 #include <src/core/statistics.h>
-#include <src/evolution/evol_loop_functions.h>
+#include <src/evolution/base_evol_loop_functions.h>
 #include <src/evolution/descriptors.h>
 #include <argos3/plugins/simulator/entities/cylinder_entity.h>
 #include <iterator>
@@ -33,7 +33,7 @@ Descriptor::Descriptor(size_t dims) : behav_dim(dims)
 	geometric_median = false;
 	bd.resize(behav_dim);
 }
-void Descriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+void Descriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	for (size_t t = 0; t < behav_dim; ++t)
 		bd[t].resize(cLoopFunctions.m_unNumberTrials, 0.0f);
@@ -45,7 +45,7 @@ void Descriptor::start_trial()
 	num_updates = 0;
 	++current_trial;
 }
-std::vector<float> Descriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+std::vector<float> Descriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 
 	std::vector<float> final_bd;
@@ -74,7 +74,7 @@ std::vector<float> Descriptor::after_trials(EvolutionLoopFunctions &cLoopFunctio
 
 /**********************************************************************/
 
-void AverageDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void AverageDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 
 	for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
@@ -85,7 +85,7 @@ void AverageDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFu
 }
 
 /*end the trial*/
-void AverageDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+void AverageDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 
 	for (size_t i = 0; i < cLoopFunctions.inputs.size() - 1; ++i)
@@ -108,7 +108,7 @@ NeuralDescriptor::NeuralDescriptor()
     max_nb_connections = ParamsDnn::dnn::max_nb_conns * 2;
 }
 
-void NeuralDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+void NeuralDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
     //nb connections
     unsigned nb_connections = cLoopFunctions.m_pcvecController[0]->nn.get_nb_connections();
@@ -135,7 +135,7 @@ void NeuralDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
     }
 }
 
-void NeuralCyclesDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+void NeuralCyclesDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
     this->bd[0][current_trial] = strongly_connected(cLoopFunctions);
 
@@ -159,7 +159,7 @@ void NeuralCyclesDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
     this->bd[1][current_trial] = prc;
 }
 
-float NeuralCyclesDescriptor::strongly_connected(EvolutionLoopFunctions &cLoopFunctions)
+float NeuralCyclesDescriptor::strongly_connected(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
     using namespace boost;
 
@@ -242,7 +242,7 @@ float NeuralCyclesDescriptor::strongly_connected(EvolutionLoopFunctions &cLoopFu
 
 
 
-IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(EvolutionLoopFunctions *cLoopFunctions,size_t behav_dim) : Descriptor(behav_dim)
+IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(BaseEvolutionLoopFunctions *cLoopFunctions,size_t behav_dim) : Descriptor(behav_dim)
 {
 
 	//define member variables
@@ -266,7 +266,7 @@ void IntuitiveHistoryDescriptor::start_trial()
 	deviation = 0.0f;
 	//velocity_stats=RunningStat();  // dropped the velocity stats
 }
-void IntuitiveHistoryDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void IntuitiveHistoryDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	//add to the deviation (to get the mean after all trials have finished)
 	CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[robot_index]);
@@ -275,12 +275,12 @@ void IntuitiveHistoryDescriptor::set_input_descriptor(size_t robot_index, Evolut
 	++num_updates;
 }
 
-void IntuitiveHistoryDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void IntuitiveHistoryDescriptor::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	//nothing here
 }
 
-void IntuitiveHistoryDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+void IntuitiveHistoryDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	/*add behavioural metrics */
 
@@ -319,7 +319,7 @@ float Entity::distance(const Entity &e1, const Entity &e2)
 
 /******************************************************************/
 
-SDBC::SDBC(EvolutionLoopFunctions *cLoopFunctions, std::string init_type, size_t bd) : Descriptor(bd)
+SDBC::SDBC(BaseEvolutionLoopFunctions *cLoopFunctions, std::string init_type, size_t bd) : Descriptor(bd)
 {
 
 	include_std = init_type.find("std") != std::string::npos ? true : false; // will calculate standard deviations as well
@@ -404,14 +404,14 @@ SDBC::SDBC(EvolutionLoopFunctions *cLoopFunctions, std::string init_type, size_t
 }
 
 /* minimial robot distance */
-float SDBC::minimal_robot_distance(EvolutionLoopFunctions *cLoopFunctions)
+float SDBC::minimal_robot_distance(BaseEvolutionLoopFunctions *cLoopFunctions)
 {
 	SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0)->GetBoundingBox();
 
 	return StatFuns::get_minkowski_distance(bounding_box.MaxCorner, bounding_box.MinCorner); // at least one robot body
 }
 /* uniform closest distance as proxy to the maximal avg closest distance */
-float SDBC::get_uniform_closestdist(EvolutionLoopFunctions *cLoopFunctions)
+float SDBC::get_uniform_closestdist(BaseEvolutionLoopFunctions *cLoopFunctions)
 {
 	/* approximate equation obtained by recursively adding agents at maximum distance to the previous */
 	CVector3 max = cLoopFunctions->get_arenasize();
@@ -436,7 +436,7 @@ float SDBC::get_uniform_closestdist(EvolutionLoopFunctions *cLoopFunctions)
 	}
 }
 /* Divide the max arena distance by the number of robots to get max average robotdist */
-float SDBC::get_max_avgdist(EvolutionLoopFunctions *cLoopFunctions)
+float SDBC::get_max_avgdist(BaseEvolutionLoopFunctions *cLoopFunctions)
 {
 	/* approximate equation obtained by recursively adding agents at maximum distance to the previous */
 	CVector3 max = cLoopFunctions->get_arenasize();
@@ -448,7 +448,7 @@ float SDBC::get_max_avgdist(EvolutionLoopFunctions *cLoopFunctions)
 	return std::max(maxdist, maxSide); // maxSide is the minimum possible ( and seems to be Mase's choice for maximum)
 }
 /* walls robots min and max distance */
-std::pair<float, float> SDBC::get_wallsrobots_range(EvolutionLoopFunctions *cLoopFunctions)
+std::pair<float, float> SDBC::get_wallsrobots_range(BaseEvolutionLoopFunctions *cLoopFunctions)
 {
 	// the range depends on the arena; since many robots can be close to each other without affecting this metric
 	// here approximate this by filling the XY-grid and calculating the distance, then taking max and min
@@ -535,7 +535,7 @@ void SDBC::init_robots(size_t num_features, CLoopFunctions *cLoopFunctions)
 {
 	// here it is assumed fixed number of robots
 	std::vector<Entity> robots;
-	size_t num_robots = static_cast<EvolutionLoopFunctions *>(cLoopFunctions)->m_unNumberRobots;
+	size_t num_robots = static_cast<BaseEvolutionLoopFunctions *>(cLoopFunctions)->m_unNumberRobots;
 	for (size_t i = 0; i < num_robots; ++i)
 	{
 		robots.push_back(Entity());
@@ -675,7 +675,7 @@ void SDBC::add_between_group_dispersion()
 }
 
 /* distance to closest robot */
-void SDBC::add_closest_robot_dist(EvolutionLoopFunctions &cLoopFunctions)
+void SDBC::add_closest_robot_dist(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	float mean_dist = 0.0f;
 	// we already have positions available in curr_pos
@@ -703,7 +703,7 @@ void SDBC::add_closest_robot_dist(EvolutionLoopFunctions &cLoopFunctions)
 }
 
 /* prepare for trials*/
-void SDBC::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+void SDBC::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	for (size_t t = 0; t < num_features; ++t)
 		temp_bd[t].clear();
@@ -717,16 +717,16 @@ void SDBC::start_trial()
 	bd_index = 0;
 }
 /*after getting inputs, can update the descriptor if needed*/
-void SDBC::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void SDBC::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
 /*after getting outputs, can update the descriptor if needed*/
-void SDBC::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void SDBC::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	entity_groups["robots"][robot_index].set_attributes(attribute_setter->get_attributes(robot_index, cLoopFunctions), cLoopFunctions.curr_pos[robot_index]);
 }
 /*after the looping over robots*/
-void SDBC::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+void SDBC::after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	add_group_sizes();				// in case group sizes are variable, group size is descriptor
 	add_group_meanstates();			// for each group calculate mean state (if it has features)
@@ -740,7 +740,7 @@ void SDBC::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 	++num_updates;
 }
 /*end the trial*/
-// void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+// void SDBC::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 // {
 
 // 	for (size_t i = 0; i < behav_dim; ++i)
@@ -754,7 +754,7 @@ void SDBC::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 // }
 
 /*summarise BD at the end of trials*/
-void SDBC::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+void SDBC::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	//After a simulation has ended, the samples obtained for each
 	//behaviour feature at each time step are aggregated to assem-ble a fixed-length characterisation vector.
@@ -800,7 +800,7 @@ CVT_MutualInfo::CVT_MutualInfo()
 }
 
 /* prepare for trials*/
-void CVT_MutualInfo::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+void CVT_MutualInfo::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	num_updates = 0; //start counting all the updates in all the trials
 	/* reset frequencies */
@@ -826,7 +826,7 @@ void CVT_MutualInfo::start_trial()
 // 	return StatFuns::get_bin(activation,0.0f,1.0f,num_bins);
 // }
 /*after getting inputs, can update the descriptor if needed*/
-void CVT_MutualInfo::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void CVT_MutualInfo::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	size_t joint_index = 0;
 	// frequency + joint_frequency
@@ -846,17 +846,17 @@ void CVT_MutualInfo::set_input_descriptor(size_t robot_index, EvolutionLoopFunct
 }
 
 /*after the looping over robots*/
-void CVT_MutualInfo::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+void CVT_MutualInfo::after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
 
 /*end the trial*/
-void CVT_MutualInfo::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+void CVT_MutualInfo::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
 
 /*summarise BD at the end of trials*/
-std::vector<float> CVT_MutualInfo::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+std::vector<float> CVT_MutualInfo::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	/* convert frequencies to probabilities */
 
@@ -918,7 +918,7 @@ CVT_MutualInfoAct::CVT_MutualInfoAct()
 }
 
 /* prepare for trials*/
-void CVT_MutualInfoAct::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+void CVT_MutualInfoAct::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	num_updates = 0; //start counting all the updates in all the trials
 	/* reset frequencies */
@@ -987,7 +987,7 @@ void CVT_MutualInfoAct::normalise()
 	}
 }
 /*after getting outputs, can update the descriptor if needed*/
-void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void CVT_MutualInfoAct::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	for (size_t j = 0; j < num_act; ++j)
 	{
@@ -1017,7 +1017,7 @@ CVT_Spirit::CVT_Spirit(size_t behav_dim) : Descriptor(behav_dim)
 }
 
 /* prepare for trials*/
-void CVT_Spirit::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+void CVT_Spirit::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	freqs.resize(num_joint_sensory_bins);
 	for (size_t i = 0; i < num_joint_sensory_bins; ++i)
@@ -1033,12 +1033,12 @@ void CVT_Spirit::start_trial()
 }
 
 /*after the looping over robots*/
-void CVT_Spirit::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+void CVT_Spirit::after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
 
 /*end the trial*/
-void CVT_Spirit::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+void CVT_Spirit::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
 
@@ -1071,7 +1071,7 @@ std::vector<float> CVT_Spirit::get_bd()
 }
 
 /*after getting outputs, can update the descriptor if needed*/
-void CVT_Spirit::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void CVT_Spirit::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	size_t sens_bin = cLoopFunctions.get_quadrant_bin();
 	size_t act_bin = cLoopFunctions.get_joint_actuator_bin(num_actuator_bins);
@@ -1079,7 +1079,7 @@ void CVT_Spirit::set_output_descriptor(size_t robot_index, EvolutionLoopFunction
 }
 
 /*summarise BD at the end of trials*/
-std::vector<float> CVT_Spirit::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+std::vector<float> CVT_Spirit::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	std::vector<float> final_bd = get_bd();
 	return final_bd;
@@ -1106,7 +1106,7 @@ CVT_RAB_Spirit::CVT_RAB_Spirit(size_t behav_dim) : CVT_Spirit(behav_dim)
 }
 
 /*after getting outputs, can update the descriptor if needed*/
-void CVT_RAB_Spirit::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void CVT_RAB_Spirit::set_output_descriptor(size_t robot_index,BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	size_t sens_bin = cLoopFunctions.get_quadrant_binRAB();
 	size_t act_bin = cLoopFunctions.get_joint_actuator_bin(num_actuator_bins);
@@ -1131,12 +1131,12 @@ MultiAgent_Spirit::MultiAgent_Spirit()
 }
 
 /*after getting outputs, can update the descriptor if needed*/
-void MultiAgent_Spirit::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void MultiAgent_Spirit::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	// nothing here; do in after_robotloop
 }
 /*after getting outputs, can update the descriptor if needed*/
-void MultiAgent_Spirit::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+void MultiAgent_Spirit::after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	size_t sens_bin = cLoopFunctions.get_CM_bin(3, 2);
 	size_t act_bin = cLoopFunctions.get_swarmmovement_bin(2, 2);
@@ -1149,11 +1149,11 @@ void MultiAgent_Spirit::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 
 /************************************************************************/
 
-void CVT_Trajectory::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+void CVT_Trajectory::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	final_bd.clear();
 }
-CVT_Trajectory::CVT_Trajectory(EvolutionLoopFunctions &cLoopFunctions, size_t num_steps)
+CVT_Trajectory::CVT_Trajectory(BaseEvolutionLoopFunctions &cLoopFunctions, size_t num_steps)
 {
 	num_chunks = behav_dim / (2 * cLoopFunctions.m_unNumberTrials);
 
@@ -1163,7 +1163,7 @@ CVT_Trajectory::CVT_Trajectory(EvolutionLoopFunctions &cLoopFunctions, size_t nu
 	maxY = max.GetY();
 }
 /*after getting outputs, can update the descriptor if needed*/
-void CVT_Trajectory::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void CVT_Trajectory::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	num_updates++;
 	if (end_chunk())
@@ -1177,25 +1177,25 @@ void CVT_Trajectory::set_output_descriptor(size_t robot_index, EvolutionLoopFunc
 	}
 }
 /*summarise BD at the end of trials*/
-std::vector<float> CVT_Trajectory::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+std::vector<float> CVT_Trajectory::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	return final_bd;
 }
 
 /***********************************************************************/
-// EnvironmentDiversity::EnvironmentDiversity(EvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators)
+// EnvironmentDiversity::EnvironmentDiversity(BaseEvolutionLoopFunctions &cLoopFunctions,std::string path, size_t num_generators)
 // {
 // 	this->bd.resize(1);
 // 	cLoopFunctions.generator = new EnvironmentGenerator(cLoopFunctions.seed);
 // }
 
 // /* before all trials, prepare */
-// void EnvironmentDiversity::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+// void EnvironmentDiversity::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 // {
 
 // }
 // /*summarise BD at the end of trials*/
-// std::vector<float> EnvironmentDiversity::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+// std::vector<float> EnvironmentDiversity::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 // {
 // 	std::vector<float> final_bd({0.,0.0});//(1, (float)id / (float)env_generators.size());
 // 	return final_bd;
@@ -1209,7 +1209,7 @@ StaticDescriptor::StaticDescriptor(std::vector<float> bd)
 }
 
 /*summarise BD at the end of trials*/
-std::vector<float> StaticDescriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+std::vector<float> StaticDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	return final_bd;
 }
@@ -1224,7 +1224,7 @@ SubjectiveHistoryDescriptor::SubjectiveHistoryDescriptor(const std::string &file
 }
 
 /* prepare for trials*/
-void SubjectiveHistoryDescriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+void SubjectiveHistoryDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
 /*reset BD at the start of a trial*/
@@ -1236,7 +1236,7 @@ void SubjectiveHistoryDescriptor::start_trial()
 	}
 }
 /*after getting inputs, can update the descriptor if needed*/
-void SubjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void SubjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	if(num_updates%frequency==0)
 	{
@@ -1248,7 +1248,7 @@ void SubjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, Evolu
 }
 
 /*after getting outputs, can update the descriptor if needed*/
-void SubjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void SubjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	if(num_updates%frequency==0)
 	{
@@ -1260,7 +1260,7 @@ void SubjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, Evol
 	}
 }
 /*after the looping over robots*/
-void SubjectiveHistoryDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+void SubjectiveHistoryDescriptor::after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	if(num_updates%frequency==0)
 	{
@@ -1270,7 +1270,7 @@ void SubjectiveHistoryDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopF
 }
 
 /*summarise BD at the end of trials*/
-std::vector<float> SubjectiveHistoryDescriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+std::vector<float> SubjectiveHistoryDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	file_writer.close();
 	return std::vector<float>(0);
@@ -1286,7 +1286,7 @@ ObjectiveHistoryDescriptor::ObjectiveHistoryDescriptor(const std::string &filena
 }
 
 /* prepare for trials*/
-void ObjectiveHistoryDescriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+void ObjectiveHistoryDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
 /*reset BD at the start of a trial*/
@@ -1298,7 +1298,7 @@ void ObjectiveHistoryDescriptor::start_trial()
 	}
 }
 /*after getting inputs, can update the descriptor if needed*/
-void ObjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void ObjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	if(num_updates%frequency==0)
 	{
@@ -1309,11 +1309,11 @@ void ObjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, Evolut
 }
 
 /*after getting outputs, can update the descriptor if needed*/
-void ObjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void ObjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
 /*after the looping over robots*/
-void ObjectiveHistoryDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+void ObjectiveHistoryDescriptor::after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	if(num_updates%frequency==0)
 	{
@@ -1322,7 +1322,7 @@ void ObjectiveHistoryDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFu
 	++num_updates;
 }
 /*summarise BD at the end of trials*/
-std::vector<float> ObjectiveHistoryDescriptor::after_trials(EvolutionLoopFunctions &cLoopFunctions)
+std::vector<float> ObjectiveHistoryDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	file_writer.close();
 	return std::vector<float>(0);
@@ -1337,7 +1337,7 @@ AnalysisDescriptor::AnalysisDescriptor(size_t individ, std::string file_n, std::
 }
 
 /* prepare for trials*/
-void AnalysisDescriptor::before_trials(EvolutionLoopFunctions &cLoopFunctions)
+void AnalysisDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	current_trial = 0;
 	for (auto const &x : slave_descriptors)
@@ -1355,7 +1355,7 @@ void AnalysisDescriptor::start_trial()
 	}
 }
 /*after getting inputs, can update the descriptor if needed*/
-void AnalysisDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void AnalysisDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	for (auto const &x : slave_descriptors)
 	{
@@ -1364,7 +1364,7 @@ void AnalysisDescriptor::set_input_descriptor(size_t robot_index, EvolutionLoopF
 }
 
 /*after getting outputs, can update the descriptor if needed*/
-void AnalysisDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoopFunctions &cLoopFunctions)
+void AnalysisDescriptor::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	for (auto const &x : slave_descriptors)
 	{
@@ -1372,7 +1372,7 @@ void AnalysisDescriptor::set_output_descriptor(size_t robot_index, EvolutionLoop
 	}
 }
 /*after the looping over robots*/
-void AnalysisDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
+void AnalysisDescriptor::after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	for (auto const &x : slave_descriptors)
 	{
@@ -1381,7 +1381,7 @@ void AnalysisDescriptor::after_robotloop(EvolutionLoopFunctions &cLoopFunctions)
 }
 
 /*summarise BD at the end of trials*/
-void AnalysisDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
+void AnalysisDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	for (auto const &x : slave_descriptors)
 	{
@@ -1389,7 +1389,7 @@ void AnalysisDescriptor::end_trial(EvolutionLoopFunctions &cLoopFunctions)
 	}
 }
 /* get the descriptor by its id-string and then print it to file*/
-void AnalysisDescriptor::analyse_individual(EvolutionLoopFunctions &cLoopFunctions, float fFitness)
+void AnalysisDescriptor::analyse_individual(BaseEvolutionLoopFunctions &cLoopFunctions, float fFitness)
 {
 	for (auto const &desc : slave_descriptors)
 	{
