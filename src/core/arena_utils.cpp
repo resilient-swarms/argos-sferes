@@ -2,7 +2,7 @@
 #include <src/core/arena_utils.h>
 
 #include <argos3/plugins/simulator/entities/cylinder_entity.h>
-
+#include <argos3/plugins/robots/thymio/simulator/thymio_measures.h>
 
 
 CoverageCalc::CoverageCalc(BaseLoopFunctions *cLoopFunctions)
@@ -13,15 +13,7 @@ CoverageCalc::CoverageCalc(BaseLoopFunctions *cLoopFunctions)
 
 void CoverageCalc::define_grid(BaseLoopFunctions* cLoopFunctions)
 {
-    // initialise grid (for calculating coverage and uniformity)
-    SBoundingBox bounding_box = cLoopFunctions->get_embodied_entity(0)->GetBoundingBox();
-
-    float xdim = bounding_box.MaxCorner.GetX() - bounding_box.MinCorner.GetX();
-    float ydim = bounding_box.MaxCorner.GetY() - bounding_box.MinCorner.GetY();
-    float max_dim_size = Max(xdim,ydim);
-    grid_step = max_dim_size;
-
-    
+    grid_step = THYMIO_LENGHT;
 }
 
 void CoverageCalc::get_num_cells(BaseLoopFunctions &cLoopFunctions)

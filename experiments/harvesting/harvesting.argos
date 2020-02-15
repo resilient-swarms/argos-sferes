@@ -16,8 +16,8 @@
   <!-- *************** -->
   <controllers>
 
-    <nn_controller id="tnn"
-                               library="lib/libnn_controller.so">
+    <realthymio_nn_controller id="tnn"
+                               library="lib/librealthymio_nn_controller.so">
       <actuators>
         <differential_steering implementation="default" />
 	<thymio_led            implementation="default" medium="leds"/>
@@ -33,14 +33,14 @@
 	                id_faulty_robot="0" />
         
       </params>      
-      </nn_controller>
+      </realthymio_nn_controller>
   </controllers>
 
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libevolution_loopfunctions2D"
-                  label="evolution_loopfunctions"
+  <loop_functions library="lib/libevolution_loopfunctions3DREAL"
+                  label="evolution_loopfunctions3DREAL"
                   trials="10"
                   robots="6"
                   descriptortype="history"    
