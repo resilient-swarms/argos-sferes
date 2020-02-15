@@ -23,7 +23,7 @@
 	<thymio_led            implementation="default" medium="leds"/>
       </actuators>
       <sensors>
-	<Thymio_proximity implementation="default"    show_rays="true"  range="0.11" noise_level="0.05"/>
+	<Thymio_proximity implementation="default"    show_rays="false"  range="0.11" noise_level="0.05"/>
 	<Thymio_ground implementation="rot_z_only" show_rays="false"/>
       </sensors>
       <params>
@@ -102,8 +102,10 @@
   <!-- ****************** -->
   <!-- * Visualization * -->
   <!-- ****************** -->
- <visualization>
-    <qt-opengl />
+  <visualization>
+ <qt-opengl>
+        <user_functions label="robotid_vis" />
+    </qt-opengl>
   </visualization>
 
 </argos-configuration>

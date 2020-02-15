@@ -594,7 +594,7 @@ void Foraging::after_robotloop(BaseLoopFunctions &cLoopFunctions)
 void Foraging::apply(BaseLoopFunctions &cLoopFunctions)
 {
 #ifdef PRINTING
-    std::cout << fitness_per_trial[m_unCurrentTrial] << std::endl;
+    std::cout << fitness_per_trial[cLoopFunctions.m_unCurrentTrial] << std::endl;
 #endif
 
 }

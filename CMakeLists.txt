@@ -333,11 +333,15 @@ else(NOT BASELINE)
             src/evolution/params.h
             src/evolution/foraging_loop_functions.h
             src/evolution/foraging_loop_functions.cpp
-	        #src/evolution/foraging_qt_user_functions.h
-            #src/evolution/foraging_qt_user_functions.cpp
-            src/core/robotid_vis.h
-            src/core/robotid_vis.cpp
-	        )
+             src/core/robotid_vis.h
+            src/core/robotid_vis.cpp)
+	    
+            #add_library(foraging_vis SHARED
+#
+	    #src/evolution/foraging_vis.h
+           # src/evolution/foraging_vis.cpp
+	   # )
+	    
             set(LOOPFUN foraging_loopfunctions${tag})
         elseif(NOT ${NN_INPUT_TYPE} EQUAL 1)
             message("Evolution")

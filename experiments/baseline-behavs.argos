@@ -113,7 +113,7 @@
   <!-- ****************** -->
    <visualization>
  <qt-opengl>
-        <user_functions label="robotid_vis" />
+        <user_functions label="foraging_vis" />
     </qt-opengl>
   </visualization>
 </argos-configuration>

@@ -6,13 +6,13 @@
 using namespace argos;
 
 
-class CForagingQTUserFunctions : public CQTOpenGLUserFunctions {
+class ForagingVis : public CQTOpenGLUserFunctions {
 
 public:
 
-   CForagingQTUserFunctions();
+   ForagingVis();
 
-   virtual ~CForagingQTUserFunctions() {}
+   virtual ~ForagingVis() {}
 
    void Draw(argos::CThymioEntity& c_entity);
    

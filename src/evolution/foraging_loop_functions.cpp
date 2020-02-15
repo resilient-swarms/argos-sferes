@@ -40,6 +40,7 @@ void CForagingLoopFunctions::Reset()
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym.GetControllableEntity().GetController());
       cController.holdingFood = false;
    }
+    BaseEvolutionLoopFunctions::Reset();
 }
 
 /****************************************/
@@ -121,7 +122,7 @@ void CForagingLoopFunctions::PostStep()
             bool bDone = false;
             for (size_t i = 0; i < m_cFoodPos.size() && !bDone; ++i)
             {
-               if ((cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius[i])
+               if (m_cVisitedFood[i] == 0 && (cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius[i])
                {
                   /* If so, we move that item out of sight */
                   //m_cFoodPos[i].Set(100.0f, 100.f);
@@ -136,7 +137,7 @@ void CForagingLoopFunctions::PostStep()
 //m_pcFloor->SetChanged();
 /* We are done */
 #ifdef PRINTING
-
+            std::cout << "thymio" << j << " picked up food item " << i <<" from location " <<  m_cFoodPos[i] << std::endl;
 #endif
                   bDone = true;
                }
@@ -147,10 +148,10 @@ void CForagingLoopFunctions::PostStep()
    }
    for (size_t f = 0; f < num_food; ++f)
    {
-      m_cVisitedFood[f] = std::max((size_t)0, m_cVisitedFood[f] - 1);
+      m_cVisitedFood[f] = std::max(0, m_cVisitedFood[f] - 1);
 #ifdef PRINTING
 
-      std::cout << "Harvesting time is now for food  " << f << " on location " << m_cFoodPos[f] << "\n is now" << m_cVisitedFood[f] << std::endl;
+      std::cout << "Harvesting time for food  " << f << " on location " << m_cFoodPos[f] << "\n is now " << m_cVisitedFood[f] << std::endl;
 #endif
    }
    

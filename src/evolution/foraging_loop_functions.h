@@ -10,8 +10,8 @@ class CForagingLoopFunctions : public BaseEvolutionLoopFunctions
 public:
     CFloorEntity *m_pcFloor;
     const float nest_x = 0.32;
-    const size_t num_food = 6;
-    const size_t HARVEST_TIME = 50; // 50 time steps
+    const size_t num_food = 5;
+    const int HARVEST_TIME = 50; // 50 time steps
     const std::vector<float> m_fFoodSquareRadius = {
         0.10 * 0.10, 0.10 * 0.10, 0.20 * 0.20, 0.20 * 0.20, 0.30 * 0.30};
     const std::vector<CVector2> m_cFoodPos = {
@@ -23,7 +23,7 @@ public:
         CVector2(1.6, 1.70)
 
     };
-    std::vector<size_t> m_cVisitedFood = {}; // how much time steps left until harvestable
+    std::vector<int> m_cVisitedFood = {}; // how much time steps left until harvestable
     std::vector<bool> m_bRobotsHoldingFood = {};
     size_t numfoodCollected = 0;
     CForagingLoopFunctions();

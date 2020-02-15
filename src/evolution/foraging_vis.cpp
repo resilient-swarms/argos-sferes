@@ -1,4 +1,4 @@
-#include <src/evolution/foraging_qt_user_functions.h>
+#include <src/evolution/foraging_vis.h>
 #include <src/evolution/foraging_nn_controller.h>
 
 
@@ -6,14 +6,14 @@
 /****************************************/
 /****************************************/
 
-CForagingQTUserFunctions::CForagingQTUserFunctions() {
-   RegisterUserFunction<CForagingQTUserFunctions,argos::CThymioEntity&>(&CForagingQTUserFunctions::Draw);
+ForagingVis::ForagingVis() {
+   RegisterUserFunction<ForagingVis,argos::CThymioEntity&>(&ForagingVis::Draw);
 }
 
 /****************************************/
 /****************************************/
 
-void CForagingQTUserFunctions::Draw(argos::CThymioEntity& c_entity) {
+void ForagingVis::Draw(argos::CThymioEntity& c_entity) {
    ForagingThymioNN& cController = dynamic_cast<ForagingThymioNN&>(c_entity.GetControllableEntity().GetController());
    if(cController.holdingFood) {
       DrawCylinder(
@@ -23,9 +23,11 @@ void CForagingQTUserFunctions::Draw(argos::CThymioEntity& c_entity) {
          0.05f,
          CColor::BLACK);
    }
+   DrawText(CVector3(0.0, 0.0, 0.3),   // position
+             c_entity.GetId().c_str()); // text
 }
 
 /****************************************/
 /****************************************/
+REGISTER_QTOPENGL_USER_FUNCTIONS(ForagingVis, "foraging_vis")
 
-REGISTER_QTOPENGL_USER_FUNCTIONS(CForagingQTUserFunctions, "foraging_qt_user_functions")
