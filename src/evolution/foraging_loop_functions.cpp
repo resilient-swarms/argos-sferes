@@ -15,6 +15,7 @@ CForagingLoopFunctions::CForagingLoopFunctions() : m_pcFloor(NULL)
 
 void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 {
+   m_pcFloor = &GetSpace().GetFloorEntity();
    BaseEvolutionLoopFunctions::Init(t_node);
 }
 
