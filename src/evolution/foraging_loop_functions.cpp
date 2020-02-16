@@ -71,7 +71,9 @@ CColor CForagingLoopFunctions::GetFloorColor(const CVector2 &c_position_on_plane
          return CColor::BLACK;
       }
    }
-   return CColor::GRAY50; // closest match to lab floor (110-160 ~ 127)
+   return CColor::GRAY50 ; // closest match to lab floor (110-160 ~ 127); 
+   //to mimic the variability of lighting and ground itself, further add noise ~ U(-20,20) via thymio ground sensors
+   //this makes the agent robust to small deviations 
 }
 
 /****************************************/

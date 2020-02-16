@@ -29,18 +29,6 @@ void ForagingThymioNN::init_network()
 
 void ForagingThymioNN::ControlStep()
 {
-    /* Get readings from proximity sensor */
-    const argos::CCI_ThymioProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
-    /* Get readings from ground sensor */
-    const CCI_ThymioGroundSensor::TReadings& tGroundReads = m_pcGround->GetReadings();
-
-#ifdef PRINTING
-    std::cout<<"Prox read "<<tProxReads << std::endl;
-    std::cout<<"Ground read "<<tGroundReads << std::endl;
-
-
-#endif
-    m_pcLeds->SetProxHIntensity(tProxReads);
 
     inputs = InputStep();
     nn.step(inputs);
@@ -71,14 +59,27 @@ std::vector<Real> ForagingThymioNN::GetNormalizedSensorReadings()
     std::vector<Real> norm_readings;
     /* Get readings from proximity sensor */
     const argos::CCI_ThymioProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
+    /* Get readings from ground sensor */
+    const CCI_ThymioGroundSensor::TReadings& tGroundReads = m_pcGround->GetReadings();
+
+#ifdef PRINTING
+    std::cout<<"Prox read "<<tProxReads << std::endl;
+    std::cout<<"Ground read "<<tGroundReads << std::endl;
+
+
+#endif
+    m_pcLeds->SetProxHIntensity(tProxReads);
     for(UInt8 i = 0; i < tProxReads.size(); ++i)
         norm_readings.push_back((1.0f - tProxReads[i].Value) * 2.0f - 1.0f);
 
-    /* Get readings from ground sensor */
-    const argos::CCI_ThymioGroundSensor::TReadings& tGroundReads = m_pcGround->GetReadings();
     for(UInt8 i = 0; i < tGroundReads.size(); ++i) {
-        norm_readings.push_back((tGroundReads[i].Value/1000) * 2.0f - 1.0f);
-	//std::cout << (tGroundReads[i].Value/1000) *2.0f -1.0f<< std::endl;
+        float norm_reading = (tGroundReads[i].Value/255.) * 2.0f - 1.0f;
+        norm_reading = std::min(1.0f,std::max(-1.0f,norm_reading));
+        norm_readings.push_back(norm_reading);
+#ifdef PRINTING
+    
+	  std::cout << "norm reading " << i << ": " << norm_reading << std::endl;
+#endif
     }
     return norm_readings;
 }
