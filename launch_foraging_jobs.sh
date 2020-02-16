@@ -38,7 +38,7 @@ for key in ${!descriptors[@]}; do
 
 		# Take template.argos and make an .argos file for this experiment
 		SUFFIX=${Replicates}
-		ConfigFolder=${data}/${FitfunType}range${SensorRange}/${DescriptorType}
+		ConfigFolder=${data}/${FitfunType}/${DescriptorType}
 		Outfolder=${ConfigFolder}/results${SUFFIX}
 		ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 
@@ -52,10 +52,10 @@ for key in ${!descriptors[@]}; do
 			-e "s|DESCRIPTOR_TYPE|${DescriptorType}|" \
 			-e "s|OUTPUTFOLDER|${Outfolder}|" \
 			-e "s|CENTROIDSFOLDER|experiments/centroids|" \
-			-e "s|SENSOR_RANGE|0.11|" \  # proximity
-		-e "s|NOISE_LEVEL|0.05|" \
-			-e "s|GROUND_NOISE_LEVEL|20|" \  # ground sensor
-		-e "s|BEHAVIOUR_TAG|${tag}|" \
+			-e "s|SENSOR_RANGE|0.11|" \
+			-e "s|NOISE_LEVEL|0.05|" \
+			-e "s|GROUND_NOISE|20|"  \
+			-e "s|BEHAVIOUR_TAG|${tag}|" \
 			experiments/harvesting/harvesting_template.argos \
 			>${ConfigFile}
 		if [ ! -z "${CVT}" ]; then
@@ -88,10 +88,11 @@ for key in ${!descriptors[@]}; do
 			echo "found last generation file: "${RESUME_GENERATION}
 			export GENERATION_FILE=${RESUME_GENERATION}
 		fi
-		if [[ $GENERATION_FILE == *10100 ]]; then
+		if [[ $GENERATION_FILE == *6000 ]]; then
 			echo "skipping this one, already finished"
 		else
-			sbatch submit_job.sh
+			echo "submitting job"
+			bash submit_job.sh
 		fi
 	done
 done

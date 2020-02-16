@@ -68,7 +68,7 @@ std::vector<Real> ForagingThymioNN::GetNormalizedSensorReadings()
 
 
 #endif
-    m_pcLeds->SetProxHIntensity(tProxReads);
+    //m_pcLeds->SetProxHIntensity(tProxReads);// don't need it; maybe useful for debugging
     for(UInt8 i = 0; i < tProxReads.size(); ++i)
         norm_readings.push_back((1.0f - tProxReads[i].Value) * 2.0f - 1.0f);
 
@@ -93,7 +93,7 @@ void ForagingThymioNN::init_sensact(argos::TConfigurationNode& t_node)
     try
     {
         m_pcWheels = GetActuator<argos::CCI_DifferentialSteeringActuator>("differential_steering");
-        m_pcLeds = GetActuator<argos::CCI_ThymioLedsActuator>("thymio_led");
+        //m_pcLeds = GetActuator<argos::CCI_ThymioLedsActuator>("thymio_led");
         m_pcProximity = GetSensor<argos::CCI_ThymioProximitySensor>("Thymio_proximity");
         m_pcGround = GetSensor<argos::CCI_ThymioGroundSensor>("Thymio_ground");
  
