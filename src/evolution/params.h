@@ -113,7 +113,7 @@ struct EAParams
 #elif BEHAV_DIM == 2
         SFERES_ARRAY(size_t, behav_shape, 64, 64);
 #elif BEHAV_DIM == 3
-        SFERES_ARRAY(size_t, behav_shape, 5,5,5);
+        SFERES_ARRAY(size_t, behav_shape, 16, 16, 16);
 #elif BEHAV_DIM == 6
         SFERES_ARRAY(size_t, behav_shape, 4, 4, 4, 4, 4, 4);
 #elif BEHAV_DIM == 7
