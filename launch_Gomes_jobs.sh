@@ -78,6 +78,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 				fi
 
 				# Call ARGoS
+				export tag
 				export BD=${BD_DIMS}
 				export CONFIG=${ConfigFile}
 				export OUTPUTDIR=${Outfolder}

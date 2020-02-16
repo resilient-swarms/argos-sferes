@@ -29,7 +29,7 @@ for key in ${!descriptors[@]}; do
 	DescriptorType=${key}
 	BD_DIMS=${descriptors[${key}]}
 	CVT=${voronoi[${DescriptorType}]}
-	tag=${CVT}${BD_DIMS}D
+	tag=${CVT}${BD_DIMS}DREAL
 	echo "doing ${DescriptorType} now"
 	echo "has ${BD_DIMS} dimensions"
 	echo "tag is ${tag}"
@@ -72,6 +72,7 @@ for key in ${!descriptors[@]}; do
 		fi
 
 		# Call ARGoS
+		export tag
 		export BD=${BD_DIMS}
 		export CONFIG=${ConfigFile}
 		export OUTPUTDIR=${Outfolder}

@@ -7,7 +7,7 @@
 #SBATCH --job-name=parallel
 
 
-FILE=./bin/behaviour_evol${VORONOI}${BD}D
+FILE=./bin/behaviour_evol${tag}
 
 jobtocome="${FILE} ${CONFIG} -d ${OUTPUTDIR}"
 if [ ! -z  "${GENERATION_FILE}" ]; then
