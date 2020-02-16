@@ -144,12 +144,24 @@ struct EAParams
 
     struct pop
     {
+#if NN_DIM_TYPE==1       
+        // number of initial random points
+        SFERES_CONST size_t init_size = 1000; //1000;
+        // size of a batch (multiply by 2)
+        SFERES_CONST size_t size = 250;//1000;
+
+        SFERES_CONST size_t nb_gen = 6001;//at most 3M f-evals
+        SFERES_CONST size_t dump_period = 100;
+#else
         // number of initial random points
         SFERES_CONST size_t init_size = 100; //1000;
-        // size of a batch
+        // size of a batch (multiply by 2)
         SFERES_CONST size_t size = 40;//1000;
+
         SFERES_CONST size_t nb_gen = 10100;
         SFERES_CONST size_t dump_period = 100;
+#endif
+
     };
 };
 

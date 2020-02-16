@@ -41,7 +41,7 @@
   <!-- ****************** -->
   <loop_functions library="lib/libforaging_loopfunctions2DREAL"
                   label="foraging_loopfunctions2DREAL"
-                  trials="10"
+                  trials="8"
                   robots="6"
                   descriptortype="history"    
                   fitfuntype="Foraging"
@@ -102,7 +102,7 @@
   <!-- ****************** -->
   <!-- * Visualization * -->
   <!-- ****************** -->
-  <visualization>
+   <visualization>
  <qt-opengl>
         <user_functions label="robotid_vis" />
     </qt-opengl>

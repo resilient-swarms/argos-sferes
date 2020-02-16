@@ -8,7 +8,9 @@
     typedef EvolutionLoopFunctions MainLoopFunctions;
 #endif
 
-
+#include <chrono> 
+using namespace std::chrono; 
+  
 
 
 namespace sferes
@@ -63,7 +65,9 @@ FIT_MAP(FitObstacleMapElites){
             static MainLoopFunctions& cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
             for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
                 cLoopFunctions.m_pcvecController[j]->nn = ind.nn_cpy();
+            auto start = high_resolution_clock::now(); 
         #if PRINTING==1 || BAYESIAN_OPT==1
+            
 	        std::cout<<"writing individual to .dot file"<<std::endl;
             std::ofstream ofs("nn.dot");
             ind.nn().write(ofs);
@@ -93,9 +97,13 @@ FIT_MAP(FitObstacleMapElites){
             this->set_desc(behavioural_descriptor);
 
         #ifdef PRINTING
+
+            
             printf("\n\n fFitness = %f", fFitness);
         #endif
-	
+            auto stop = high_resolution_clock::now(); 
+            auto duration = duration_cast<milliseconds>(stop - start); 
+            std::cout << "evaluation took " << duration.count() << " ms"<<std::endl;
 
             /* stop timer */
             //double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;

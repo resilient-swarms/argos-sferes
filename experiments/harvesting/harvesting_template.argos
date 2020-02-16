@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="120"
+    <experiment length="EXPERIMENT_LENGTH"
                 ticks_per_second="5"
                 random_seed="SEED" />
   </framework>
@@ -16,14 +16,14 @@
   <!-- *************** -->
   <controllers>
 
-    <realthymio_nn_controller id="tnn"
-                               library="lib/librealthymio_nn_controller.so">
+    <foraging_nn_controller id="tnn"
+                               library="lib/libforaging_nn_controller.so">
       <actuators>
         <differential_steering implementation="default" />
 	<thymio_led            implementation="default" medium="leds"/>
       </actuators>
       <sensors>
-	<Thymio_proximity implementation="default"    show_rays="true"  range="0.11" noise_level="0.05"/>
+	<Thymio_proximity implementation="default"    show_rays="true"  range="SENSOR_RANGE" noise_level="NOISE_LEVEL"/>
 	<Thymio_ground implementation="rot_z_only" show_rays="false"/>
       </sensors>
       <params>
@@ -33,7 +33,7 @@
 	                id_faulty_robot="0" />
         
       </params>      
-      </realthymio_nn_controller>
+      </foraging_nn_controller>
   </controllers>
 
   <!-- ****************** -->
@@ -75,7 +75,7 @@
         <distribute>
       <position method="uniform" min="0.5,0.5,0" max="1.5,1.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="NUM_ROBOTS" max_trials="1000">
+      <entity quantity="ROBOTS" max_trials="1000">
         <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
           <controller config="tnn" />
         </Thymio>

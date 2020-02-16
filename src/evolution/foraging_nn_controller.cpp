@@ -20,9 +20,9 @@ ForagingThymioNN::ForagingThymioNN()
 
 void ForagingThymioNN::init_network()
 {
-    //NNSerialiser ser = NNSerialiser();
-    //nn = ser.Load();
-    //nn.init();
+    NNSerialiser ser = NNSerialiser();
+    nn = ser.Load();
+    nn.init();
 }
 /****************************************/
 /****************************************/
@@ -32,8 +32,14 @@ void ForagingThymioNN::ControlStep()
     /* Get readings from proximity sensor */
     const argos::CCI_ThymioProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
     /* Get readings from ground sensor */
-    //const CCI_ThymioGroundSensor::TReadings& tGroundReads = m_pcGround->GetReadings();
+    const CCI_ThymioGroundSensor::TReadings& tGroundReads = m_pcGround->GetReadings();
 
+#ifdef PRINTING
+    std::cout<<"Prox read "<<tProxReads << std::endl;
+    std::cout<<"Ground read "<<tGroundReads << std::endl;
+
+
+#endif
     m_pcLeds->SetProxHIntensity(tProxReads);
 
     inputs = InputStep();
