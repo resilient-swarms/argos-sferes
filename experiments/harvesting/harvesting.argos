@@ -39,8 +39,8 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libforaging_loopfunctions2DREAL"
-                  label="foraging_loopfunctions2DREAL"
+  <loop_functions library="lib/libforaging_loopfunctions3DREAL"
+                  label="foraging_loopfunctions3DREAL"
                   trials="8"
                   robots="6"
                   descriptortype="history"    

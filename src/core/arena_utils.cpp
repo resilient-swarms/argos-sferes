@@ -59,8 +59,9 @@ void CoverageCalc::get_num_cells(BaseLoopFunctions &cLoopFunctions)
     //     // size+=additional_taken;
 	// }
     argos::CVector3 max = cLoopFunctions.get_arenasize();
-    float total_size = (max.GetX() * max.GetY()) / (grid_step*grid_step);
-    num_cells = std::ceil(total_size);  //std::ceil(total_size - obstacle_cells);
+    float total_size_x = std::ceil(max.GetX() / grid_step);
+    float total_size_y = std::ceil(max.GetY() / grid_step);
+    num_cells = total_size_x * total_size_y;  //std::ceil(total_size - obstacle_cells);
 }
 /* get the actual coverage of a single trial */
 float CoverageCalc::get_coverage() const
