@@ -85,12 +85,12 @@ find_package(GSL REQUIRED)
 include_directories(${GSL_INCLUDE_DIR})
 
 # Find Lua
-find_package(Lua53)
-IF(NOT LUA53_FOUND)
-    MESSAGE( FATAL_ERROR "Please point the environment variable LUA_DIR to your Lua installation -- include and lib.")
-ELSE()
-    include_directories(${LUA_INCLUDE_DIR})
-ENDIF()
+#find_package(Lua53)
+#IF(NOT LUA53_FOUND)
+#    MESSAGE( FATAL_ERROR "Please point the environment variable LUA_DIR to your Lua installation -- include and lib.")
+#ELSE()
+include_directories(${LUA_DIR}/include)
+#ENDIF()
 
 # Set ARGoS include dir
 include_directories(${ARGOS_INCLUDE_DIRS})
