@@ -150,7 +150,7 @@ struct EAParams
         // size of a batch (multiply by 2)
         SFERES_CONST size_t size = 250;//1000;
 
-        SFERES_CONST size_t nb_gen = 6001;//at most 3M f-evals
+        SFERES_CONST size_t nb_gen = 20001;//at most 10M f-evals
         SFERES_CONST size_t dump_period = 100;
 #else
         // number of initial random points
