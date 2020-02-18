@@ -35,7 +35,7 @@ set(BOOST_INCLUDEDIR "/usr/include/boost/") # hint location to search for boost 
 set(BOOST_LIBRARYDIR "/usr/lib/x86_64-linux-gnu/") # hint location to search for boost libs
 #find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph mpi python thread REQUIRED)
 #find_package(Boost COMPONENTS serialization filesystem system unit_test_framework program_options graph thread REQUIRED)
-find_package(Boost 1.65 COMPONENTS system serialization graph program_options filesystem  REQUIRED)
+find_package(Boost 1.66 COMPONENTS system serialization graph program_options filesystem  REQUIRED)
 # system unit_test_framework thread REQUIRED)
 if(Boost_FOUND)
     link_directories(${Boost_LIBRARY_DIRS})
@@ -43,7 +43,9 @@ if(Boost_FOUND)
     message("Boost libs found in: " ${Boost_LIBRARY_DIRS})
     message("Boost headers found in: " ${Boost_INCLUDE_DIRS})
 else(NOT Boost_FOUND)
-    message(FATAL_ERROR "Unable to continue without BOOST")
+	link_directories(${BOOSTROOT}/lib)
+	include_directories(${BOOSTROOT}/include)
+	#message(FATAL_ERROR "Unable to continue without BOOST")
 endif()
 
 
@@ -281,10 +283,10 @@ else(NOT BASELINE)
         message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
         set(TMP_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
         set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -g -march=native" CACHE STRING "" FORCE)  
-
-        add_executable(ite_swarms_${BD}D
+        set(tag BO${tag})
+        add_executable(ite_swarms_${tag}
             src/ite/ite_swarms.cpp)
-        target_link_libraries(ite_swarms_${BD}D
+        target_link_libraries(ite_swarms_${tag}
             ${Boost_LIBRARIES}
             ${TBB_LIBRARIES})
 
@@ -300,7 +302,7 @@ else(NOT BASELINE)
 
         # For the argos simulator called by ite-swarms Eval function
         add_definitions(-DBAYESIAN_OPT)
-        set(tag BO${CVT_USE}${BD}D)
+        set(RECORD_FITNESS ON)
         set(EXECUTABLE ${tag})
         set(EXEC_FILE BO.cpp)
     else(NOT BO)

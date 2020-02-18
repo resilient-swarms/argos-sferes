@@ -57,10 +57,17 @@ std::vector<Real> ForagingThymioNN::GetNormalizedSensorReadings()
 {
 
     std::vector<Real> norm_readings;
+#ifdef ANALYSIS  // process original readings with faults
+    /* Get readings from proximity sensor */
+    const argos::CCI_ThymioProximitySensor::TReadings& tProxReads = this->GetIRSensorReadings(b_damagedrobot,FBehavior);
+    /* Get readings from ground sensor */
+    const CCI_ThymioGroundSensor::TReadings& tGroundReads = this->GetGroundSensorReadings(b_damagedrobot,FBehavior);
+#else  // maintain original readings
     /* Get readings from proximity sensor */
     const argos::CCI_ThymioProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
     /* Get readings from ground sensor */
     const CCI_ThymioGroundSensor::TReadings& tGroundReads = m_pcGround->GetReadings();
+#endif
 
 #ifdef PRINTING
     std::cout<<"Prox read "<<tProxReads << std::endl;

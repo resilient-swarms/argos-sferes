@@ -66,6 +66,10 @@ public:
     FAULT_PROXIMITYSENSORS_SETRANDOM,
     FAULT_PROXIMITYSENSORS_SETOFFSET,
 
+    FAULT_GROUNDSENSORS_SETMIN,
+    FAULT_GROUNDSENSORS_SETMAX,
+    FAULT_GROUNDSENSORS_SETRANDOM,
+
     FAULT_RABSENSOR_SETOFFSET,
     FAULT_RABSENSOR_MISSINGRECEIVERS,
     FAULT_RABSENSOR_HALFRANGE,
@@ -135,6 +139,8 @@ public:
 
     CCI_RangeAndBearingSensor::TReadings GetRABSensorReadings(bool b_DamagedRobot, FaultBehavior fault_type);
 
+    CCI_ThymioGroundSensor::TReadings GetGroundSensorReadings(bool b_DamagedRobot, FaultBehavior fault_type);
+    
     std::vector<Real> GetNormalizedSensorReadings();
 
     void process_faultbehaviour(std::string errorbehav);

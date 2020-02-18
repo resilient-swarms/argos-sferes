@@ -27,12 +27,12 @@
 	<Thymio_ground implementation="rot_z_only" show_rays="false" noise_level="GROUND_NOISE" />
       </sensors>
       <params>
-        <wheel_turning max_speed="10"/>
- 	<experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_NONE" 
-	                id_faulty_robot="0" />
+      <wheel_turning max_speed="10" />
+      <experiment_run swarm_behavior="SWARM_BEHAV"
+			fault_behavior="FAULT_TYPE" 
+	                id_faulty_robot="FAULT_ID" />
         
-      </params>      
+      </params>  
       </foraging_nn_controller>
   </controllers>
 
@@ -96,7 +96,7 @@
   <!-- * Media * -->
   <!-- ********* -->
   <media>
-  </media>   -->
+  </media>  
 
   <!-- ****************** -->
   <!-- * Visualization * -->

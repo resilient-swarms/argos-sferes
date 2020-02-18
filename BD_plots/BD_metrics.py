@@ -1038,7 +1038,7 @@ def single_development_plots(fitfun,title, runs, times, bd_type, legend_labels):
             add_boxplotlike_data(p, y_bottom, y_mid, y_top, y_label="Global_performance",
                                  method_index=i)
 
-            c = coverages(4096, directory, runs, archive_file)
+            c = absolutecoverages(4096, directory, runs, archive_file)
             add_boxplotlike_data(c, y_bottom, y_mid, y_top, y_label="Map_coverage",
                                  method_index=i)
             a_p = avg_performances(directory, runs, archive_file,
@@ -1093,10 +1093,10 @@ if __name__ == "__main__":
 
     fitfuns= ["Foraging"] #,"DecayBorderCoverage","Flocking"]
     titles = [""]
-    bd_type = ["history"]  # file system label for bd
-    legend_labels=["HBD"]  # labels for the legend
-    bybin_list=["bd"]
-    times=range(0,6500, 500)
+    bd_type = ["history"]#,"Gomes_sdbc_walls_and_robots_std"]  # file system label for bd
+    legend_labels=["HBD"]#,"SDBC"]  # labels for the legend
+    bybin_list=["bd","bd"]
+    times=range(0,20000, 500)
 
     #make_translation_table("CORRECT", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
 

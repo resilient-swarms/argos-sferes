@@ -54,8 +54,11 @@ for key in ${!descriptors[@]}; do
 			-e "s|CENTROIDSFOLDER|experiments/centroids|" \
 			-e "s|SENSOR_RANGE|0.11|" \
 			-e "s|NOISE_LEVEL|0.05|" \
-			-e "s|GROUND_NOISE|20|"  \
+			-e "s|GROUND_NOISE|20|" \
 			-e "s|BEHAVIOUR_TAG|${tag}|" \
+			-e "s|FAULT_TYPE|FAULT_NONE|" \
+			-e "s|FAULT_ID|-1|" \
+			-e "s|SWARM_BEHAV|/|" \
 			experiments/harvesting/harvesting_template.argos \
 			>${ConfigFile}
 		if [ ! -z "${CVT}" ]; then

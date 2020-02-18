@@ -2,7 +2,7 @@
 
 
 
-#two args: data-dir and number of trials
+#one arg: data-dir 
 
 
 data=$1
@@ -36,7 +36,7 @@ behav["Flocking"]="SWARM_FLOCKING"
 # voronoi["cvt_sdbc_all_std"]="cvt"
 
 command="bin/ite_swarms_"
-bo_executable="bin/BO"
+bo_executable="bin/"
 # note: cvt and 10D does not really matter since we are not evolving
 
 #descriptors["Gomes_sdbc_walls_and_robots_std"]=10

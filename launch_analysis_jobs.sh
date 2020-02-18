@@ -1,10 +1,8 @@
 #!/bin/bash -e
 
 data=$1
-<<<<<<< HEAD
-=======
-video=$4
-if [ $video = "video" ]; then	
+video=$3
+if [ "$video" = "video" ]; then	
 	if [ "$2" = "best" ] || [ "$2" = "impact" ]; then   # testing faulty best or normal best on faulty scenario  -> give numbers to track faults
 		template_file="experiments/experiment_template_perturbation_with_visual_numbered.argos"
 	else
@@ -19,7 +17,6 @@ echo "will use template file ${template_file}"
 
 
 
->>>>>>> 5daa83983a58025ceb273adfa91603f588766038
 export FINALGEN_ARCHIVE=30000 # never forget zero-padding for generation file, not for archive file
 export FINALGEN_GENFILE=30000
 
@@ -166,8 +163,8 @@ for FaultIndex in $(seq 12 12); do
 							-e "s|NOISE_LEVEL|0.05|" \
 							-e "s|BEHAVIOUR_TAG|${tag}|" \
 							-e "s|FAULT_TYPE|${FaultType}|" \
-							-e "s|FAULT_ID|${FaultID}|" \
-							-e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
+							-e "s|FAULT_ID|-1|" \
+							-e "s|SWARM_BEHAV|/|" \
 							${template_file} \
 							>${ConfigFile}
 						if [ "$DescriptorType" = "baseline" ]; then

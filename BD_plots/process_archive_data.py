@@ -126,7 +126,10 @@ def run_individuals(command, path):
     # pool.starmap(run_individual,[(command,i) for i in individuals])
     #
     # pool.close()
+    import time
     individuals = get_individuals(path)
+    print(individuals)
+    time.sleep(5)
     for i in individuals:
         run_individual(command,i)
 

@@ -4,7 +4,6 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/loop_functions.h>
 
-#include <src/evolution/evol_loop_functions.h>
 #include <src/exec_tools.h>
 
 #include <src/evolution/descriptors.h>
@@ -13,7 +12,7 @@
 /****************************************/
 
 
-Descriptor* init_analysis_descriptor(EvolutionLoopFunctions& cLoopFunctions, size_t individual_index,std::string filename,char* best)
+Descriptor* init_analysis_descriptor(MainLoopFunctions& cLoopFunctions, size_t individual_index,std::string filename,char* best)
 {
     std::map<std::string,Descriptor*> slaves;
     if (!strcmp(best,"best"))  // remember, strcmp returns 0 if they are equal
@@ -88,7 +87,7 @@ int main(int argc, char **argv)
 // #endif
 
 
-    static EvolutionLoopFunctions &cLoopFunctions = dynamic_cast<EvolutionLoopFunctions &>(cSimulator.GetLoopFunctions());
+    static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
     /* process arguments*/
     size_t individual_index = std::atoi((*(individual_it+1)).c_str()); 
     cLoopFunctions.descriptor = init_analysis_descriptor(cLoopFunctions,individual_index,

@@ -4,15 +4,14 @@
 /****************************************/
 /****************************************/
 
-BaseController::BaseController() :
-    m_pcWheels(NULL),
-    m_pcProximity(NULL),
-    m_pcGround(NULL),
-    m_pcLeds(NULL),
-    m_pcRABA(NULL),
-    m_pcRABS(NULL),
-    m_pcRNG(CRandom::CreateRNG("argos")),
-    b_damagedrobot(false)
+BaseController::BaseController() : m_pcWheels(NULL),
+                                   m_pcProximity(NULL),
+                                   m_pcGround(NULL),
+                                   m_pcLeds(NULL),
+                                   m_pcRABA(NULL),
+                                   m_pcRABS(NULL),
+                                   m_pcRNG(CRandom::CreateRNG("argos")),
+                                   b_damagedrobot(false)
 {
 }
 
@@ -32,8 +31,8 @@ void BaseController::SWheelTurningParams::Init(TConfigurationNode &t_node)
     {
         GetNodeAttribute(t_node, "max_speed", MaxSpeed); //why is this not getting a value from argos config file?
     }
-    catch(CARGoSException& ex)
-            THROW_ARGOSEXCEPTION_NESTED("Error initializing controller wheel turning parameters.", ex);
+    catch (CARGoSException &ex)
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing controller wheel turning parameters.", ex);
 
     //std::cout << " MaxSpeed " << MaxSpeed << std::endl;
 }
@@ -45,7 +44,7 @@ void BaseController::Init(TConfigurationNode &t_node)
     * Create the random number generator
     */
     m_pcRNG = CRandom::CreateRNG("argos");
-    
+
     init_sensact(t_node);
     /* Wheel turning */
     m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
@@ -58,23 +57,23 @@ void BaseController::parse_perturbation_set(std::string filename)
 {
     std::string line;
     //open file
-    filename.erase(0,std::string("FILE:").length());// strip the prefix
+    filename.erase(0, std::string("FILE:").length()); // strip the prefix
     std::ifstream file(filename);
     //get the line
     if (file.good())
     {
-        std::getline(file,line);
+        std::getline(file, line);
     }
     file.close();
     //
     std::stringstream ss(line);
     std::vector<std::string> result;
 
-    while( ss.good() )
+    while (ss.good())
     {
         std::string substr;
-        std::getline( ss, substr, ',' );
-        result.push_back( substr );
+        std::getline(ss, substr, ',');
+        result.push_back(substr);
     }
     // get the fault for this controller
     std::string id = this->GetId();
@@ -92,7 +91,7 @@ void BaseController::ControlStep()
     {
         damage_actuators();
     }
-    
+
     m_pcWheels->SetLinearVelocity(
         m_fLeftSpeed,
         m_fRightSpeed);
@@ -104,7 +103,7 @@ void BaseController::ControlStep()
 void BaseController::Reset()
 {
     //    m_cPerceptron.Reset();
-    if (damage_probability > 0.0f && m_pcRNG->Uniform(argos::CRange<Real>(0.0,1.0)) < damage_probability)
+    if (damage_probability > 0.0f && m_pcRNG->Uniform(argos::CRange<Real>(0.0, 1.0)) < damage_probability)
     {
         b_damagedrobot = true;
     }
@@ -120,7 +119,7 @@ void BaseController::Destroy()
 
 void BaseController::process_faultbehaviour(std::string errorbehav)
 {
-    
+
     if (errorbehav.compare("FAULT_NONE") == 0)
         FBehavior = FAULT_NONE;
     // these are not supported yet for the NN controller
@@ -139,34 +138,41 @@ void BaseController::process_faultbehaviour(std::string errorbehav)
         FBehavior = FAULT_RANDOM;
     }
     // proximity sensor faults
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETMIN") == 0)
+    else if (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETMIN") == 0)
         FBehavior = FAULT_PROXIMITYSENSORS_SETMIN;
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETMAX") == 0)
+    else if (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETMAX") == 0)
         FBehavior = FAULT_PROXIMITYSENSORS_SETMAX;
-    else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETRANDOM") == 0)
+    else if (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETRANDOM") == 0)
         FBehavior = FAULT_PROXIMITYSENSORS_SETRANDOM;
     // else if  (errorbehav.compare("FAULT_PROXIMITYSENSORS_SETOFFSET") == 0)
     //     FBehavior = FAULT_PROXIMITYSENSORS_SETOFFSET;
 
+    // proximity sensor faults
+    else if (errorbehav.compare("FAULT_GROUNDSENSORS_SETMIN") == 0)
+        FBehavior = FAULT_PROXIMITYSENSORS_SETMIN;
+    else if (errorbehav.compare("FAULT_GROUNDSENSORS_SETMAX") == 0)
+        FBehavior = FAULT_PROXIMITYSENSORS_SETMAX;
+    else if (errorbehav.compare("FAULT_GROUNDSENSORS_SETRANDOM") == 0)
+        FBehavior = FAULT_PROXIMITYSENSORS_SETRANDOM;
 
     // RAB sensor faults
-    else if  (errorbehav.compare("FAULT_RABSENSOR_SETOFFSET") == 0)
+    else if (errorbehav.compare("FAULT_RABSENSOR_SETOFFSET") == 0)
         FBehavior = FAULT_RABSENSOR_SETOFFSET;
-    else if  (errorbehav.compare("FAULT_RABSENSOR_MISSINGRECEIVERS") == 0)
+    else if (errorbehav.compare("FAULT_RABSENSOR_MISSINGRECEIVERS") == 0)
         FBehavior = FAULT_RABSENSOR_MISSINGRECEIVERS;
-    else if  (errorbehav.compare("FAULT_RABSENSOR_HALFRANGE") == 0) // affected robots half the range RAB sensors
+    else if (errorbehav.compare("FAULT_RABSENSOR_HALFRANGE") == 0) // affected robots half the range RAB sensors
         FBehavior = FAULT_RABSENSOR_HALFRANGE;
-    else if (errorbehav.compare("FAULT_RABPACKETLOSS") == 0)  // all the robots cannot receive any RAB info
+    else if (errorbehav.compare("FAULT_RABPACKETLOSS") == 0) // all the robots cannot receive any RAB info
         FBehavior = FAULT_RABPACKETLOSS;
     //RAB actuator faults
-    else if  (errorbehav.compare("FAULT_RABACTUATOR") == 0)
+    else if (errorbehav.compare("FAULT_RABACTUATOR") == 0)
         FBehavior = FAULT_RABACTUATOR;
 
-    else if  (errorbehav.compare("FAULT_ACTUATOR_LWHEEL_SETHALF") == 0)
+    else if (errorbehav.compare("FAULT_ACTUATOR_LWHEEL_SETHALF") == 0)
         FBehavior = FAULT_ACTUATOR_LWHEEL_SETHALF;
-    else if  (errorbehav.compare("FAULT_ACTUATOR_RWHEEL_SETHALF") == 0)
+    else if (errorbehav.compare("FAULT_ACTUATOR_RWHEEL_SETHALF") == 0)
         FBehavior = FAULT_ACTUATOR_RWHEEL_SETHALF;
-    else if  (errorbehav.compare("FAULT_ACTUATOR_BWHEELS_SETHALF") == 0)
+    else if (errorbehav.compare("FAULT_ACTUATOR_BWHEELS_SETHALF") == 0)
         FBehavior = FAULT_ACTUATOR_BWHEELS_SETHALF;
 
     // else if  (errorbehav.compare("FAULT_SOFTWARE") == 0)
@@ -174,9 +180,9 @@ void BaseController::process_faultbehaviour(std::string errorbehav)
 
     // else if  (errorbehav.compare("FAULT_POWER_FAILURE") == 0)
     //     FBehavior = FAULT_POWER_FAILURE;
-    else if(errorbehav.rfind("FILE:", 0) == 0)   // process perturbation set
+    else if (errorbehav.rfind("FILE:", 0) == 0) // process perturbation set
     {
-        
+
         parse_perturbation_set(errorbehav);
     }
     else
@@ -199,7 +205,8 @@ void BaseController::damage_actuators()
         m_fLeftSpeed *= 0.5;
         m_fRightSpeed *= 0.5;
     }
-    else{
+    else
+    {
         return;
     }
 }
@@ -246,6 +253,40 @@ std::vector<CCI_ThymioProximitySensor::SReading> BaseController::GetIRSensorRead
         return sensor_readings;
     }
 
+    else
+    {
+        /* the robot is running one of the general faults or one of the specific faults that doesnot influence IR sensor readings*/
+        return sensor_readings;
+    }
+}
+
+CCI_ThymioGroundSensor::TReadings BaseController::GetGroundSensorReadings(bool b_DamagedRobot, FaultBehavior fault_type)
+{
+    CCI_ThymioGroundSensor::TReadings sensor_readings = m_pcGround->GetReadings();
+    if (!b_DamagedRobot)
+        return sensor_readings;
+
+    if (fault_type == FaultBehavior::FAULT_GROUNDSENSORS_SETMIN)
+    {
+        /* Front IR sensors */
+        for (size_t i = 0; i < 2; ++i)
+            sensor_readings[i].Value = 0.0f;
+        return sensor_readings;
+    }
+    else if (fault_type == FaultBehavior::FAULT_GROUNDSENSORS_SETMAX)
+    {
+        /* Front IR sensors */
+        for (size_t i = 0; i < 2; ++i)
+            sensor_readings[i].Value = 255.0f;
+        return sensor_readings;
+    }
+    else if (fault_type == FaultBehavior::FAULT_GROUNDSENSORS_SETRANDOM)
+    {
+        /* Front IR sensors */
+        for (size_t i = 0; i < 2; ++i)
+            sensor_readings[i].Value = m_pcRNG->Uniform(CRange<Real>(0.0f, 255.0f));
+        return sensor_readings;
+    }
     else
     {
         /* the robot is running one of the general faults or one of the specific faults that doesnot influence IR sensor readings*/
@@ -349,42 +390,42 @@ CCI_RangeAndBearingSensor::TReadings BaseController::GetRABSensorReadings(bool b
     }
 }
 
-
 std::vector<Real> BaseController::GetNormalizedSensorReadings()
 {
     std::vector<Real> norm_readings;
     std::vector<CCI_ThymioProximitySensor::SReading> proximity_sensors = GetIRSensorReadings(b_damagedrobot, FBehavior);
-    for(UInt8 i = 0; i < proximity_sensors.size(); ++i)
+    for (UInt8 i = 0; i < proximity_sensors.size(); ++i)
         norm_readings.push_back((1.0f - proximity_sensors[i].Value) * 2.0f - 1.0f);
 
     CCI_RangeAndBearingSensor::TReadings rab_sensors = GetRABSensorReadings(b_damagedrobot, FBehavior);
 
-
-    for(UInt8 i = proximity_sensors.size(); i < proximity_sensors.size() + 8; ++i) // 8 cones
+    for (UInt8 i = proximity_sensors.size(); i < proximity_sensors.size() + 8; ++i) // 8 cones
     {
         norm_readings.push_back(max_rab_range); // initialize rab sensor readings to max range of 100cm
     }
 
 #ifdef RAB_CONTROL
-     for(UInt8 i = proximity_sensors.size() + 8; i < proximity_sensors.size() + 16; ++i) // 8 data cones
-     {
-         norm_readings.push_back(0); // initialize rab data readings to 0 (default value)
-     }
+    for (UInt8 i = proximity_sensors.size() + 8; i < proximity_sensors.size() + 16; ++i) // 8 data cones
+    {
+        norm_readings.push_back(0); // initialize rab data readings to 0 (default value)
+    }
 #endif
 
-    for(UInt8 i = 0; i < rab_sensors.size(); ++i)
+    for (UInt8 i = 0; i < rab_sensors.size(); ++i)
     {
-        Real min_diff = 1000.0; UInt8 min_cone_index;
-        for(UInt8 rab_cone_index = 0; rab_cone_index < rab_cones.size(); ++rab_cone_index)
+        Real min_diff = 1000.0;
+        UInt8 min_cone_index;
+        for (UInt8 rab_cone_index = 0; rab_cone_index < rab_cones.size(); ++rab_cone_index)
         {
-            if(NormalizedDifference(rab_sensors[i].HorizontalBearing, rab_cones[rab_cone_index]).GetAbsoluteValue() < min_diff)
+            if (NormalizedDifference(rab_sensors[i].HorizontalBearing, rab_cones[rab_cone_index]).GetAbsoluteValue() < min_diff)
             {
                 min_diff = NormalizedDifference(rab_sensors[i].HorizontalBearing, rab_cones[rab_cone_index]).GetAbsoluteValue();
                 min_cone_index = rab_cone_index;
             }
         }
-        if(min_diff != 1000.0)
-            if(norm_readings[proximity_sensors.size() + min_cone_index] > rab_sensors[i].Range) {
+        if (min_diff != 1000.0)
+            if (norm_readings[proximity_sensors.size() + min_cone_index] > rab_sensors[i].Range)
+            {
                 norm_readings[proximity_sensors.size() + min_cone_index] = rab_sensors[i].Range;
 #ifdef RAB_CONTROL
                 // reinterpret 4 bytes into a float. This value will always have value [-1.0, 1.0]
@@ -394,9 +435,8 @@ std::vector<Real> BaseController::GetNormalizedSensorReadings()
             }
     }
 
-    for(UInt8 rab_cone_index = 0; rab_cone_index < rab_cones.size(); ++rab_cone_index)
+    for (UInt8 rab_cone_index = 0; rab_cone_index < rab_cones.size(); ++rab_cone_index)
         norm_readings[proximity_sensors.size() + rab_cone_index] = (norm_readings[proximity_sensors.size() + rab_cone_index] / max_rab_range) * 2.0 - 1.0;
-
 
     return norm_readings;
 }
@@ -404,37 +444,33 @@ std::vector<Real> BaseController::GetNormalizedSensorReadings()
 /* left wheel speed normalised to [0,1]*/
 float BaseController::left_wheel_velocity_01()
 {
-    return (m_sWheelTurningParams.MaxSpeed + m_fLeftSpeed)/ (2.0*m_sWheelTurningParams.MaxSpeed); // in [0,1];
+    return (m_sWheelTurningParams.MaxSpeed + m_fLeftSpeed) / (2.0 * m_sWheelTurningParams.MaxSpeed); // in [0,1];
 }
 /* right wheel speed normalised to [0,1]*/
 float BaseController::right_wheel_velocity_01()
 {
-    return (m_sWheelTurningParams.MaxSpeed + m_fRightSpeed)/ (2.0*m_sWheelTurningParams.MaxSpeed); // in [0,1];
+    return (m_sWheelTurningParams.MaxSpeed + m_fRightSpeed) / (2.0 * m_sWheelTurningParams.MaxSpeed); // in [0,1];
 }
 /* linear speed normalised to [0,1]*/
 float BaseController::linear_speed_01()
 {
-    return (std::abs(m_fLeftSpeed) + std::abs(m_fRightSpeed)) / (2.0*m_sWheelTurningParams.MaxSpeed); // in [0,1]
+    return (std::abs(m_fLeftSpeed) + std::abs(m_fRightSpeed)) / (2.0 * m_sWheelTurningParams.MaxSpeed); // in [0,1]
 }
 /* linear velocity normalised to [0,1]*/
 float BaseController::linear_velocity_01()
 {
-    return (2.0*m_sWheelTurningParams.MaxSpeed + (m_fLeftSpeed+m_fRightSpeed)) / (4.0*m_sWheelTurningParams.MaxSpeed); // in [0,1]
+    return (2.0 * m_sWheelTurningParams.MaxSpeed + (m_fLeftSpeed + m_fRightSpeed)) / (4.0 * m_sWheelTurningParams.MaxSpeed); // in [0,1]
 }
 /* linear velocity normalised to [-1,1]*/
 float BaseController::linear_velocity_signed()
 {
-    return (m_fLeftSpeed+m_fRightSpeed) / (2.0*m_sWheelTurningParams.MaxSpeed); // in [-1,1]
+    return (m_fLeftSpeed + m_fRightSpeed) / (2.0 * m_sWheelTurningParams.MaxSpeed); // in [-1,1]
 }
 /* turn speed normalised to [0,1]*/
 float BaseController::turn_speed_01()
 {
-    return std::abs(m_fLeftSpeed - m_fRightSpeed) / (2.0*m_sWheelTurningParams.MaxSpeed);        // in [0,1]
+    return std::abs(m_fLeftSpeed - m_fRightSpeed) / (2.0 * m_sWheelTurningParams.MaxSpeed); // in [0,1]
 }
-
-
-
-
 
 void BaseController::init_sensact(TConfigurationNode &t_node)
 {
@@ -460,26 +496,22 @@ void BaseController::init_sensact(TConfigurationNode &t_node)
         rab_cones.push_back(ToRadians(CDegrees(-135.0)));
         rab_cones.push_back(ToRadians(CDegrees(-90.0)));
         rab_cones.push_back(ToRadians(CDegrees(-45.0)));
- 
     }
     catch (CARGoSException &ex1)
     {
-        try{
+        try
+        {
             // assume the user just wants to use only proximity sensors
             m_pcProximity = GetSensor<CCI_ThymioProximitySensor>("Thymio_proximity");
 
             only_proximity = true;
         }
-        catch (CARGoSException &ex2){
+        catch (CARGoSException &ex2)
+        {
             THROW_ARGOSEXCEPTION_NESTED("Error initializing sensors/actuators", ex2);
         }
     }
-
-
-
-
 }
-
 
 void BaseController::init_fault_config(TConfigurationNode &t_node)
 {
@@ -498,28 +530,24 @@ void BaseController::init_fault_config(TConfigurationNode &t_node)
 
     process_faultbehaviour(errorbehav);
 
-
-
-    if(this->GetId().compare("thymio"+id_FaultyRobotInSwarm) == 0)  //process by ID
+    if (this->GetId().compare("thymio" + id_FaultyRobotInSwarm) == 0) //process by ID
     {
-        
+
         b_damagedrobot = true;
         //std::cout<<"robot "<<id_FaultyRobotInSwarm<<"is damaged";
     }
-    else if(id_FaultyRobotInSwarm.back()=='%')   // process by proportion; assuming homogenous robots, can just do the first N robots
+    else if (id_FaultyRobotInSwarm.back() == '%') // process by proportion; assuming homogenous robots, can just do the first N robots
     {
         id_FaultyRobotInSwarm.pop_back();
-        damage_probability = 0.01f * std::stoi(id_FaultyRobotInSwarm);// e.g. 99% 
+        damage_probability = 0.01f * std::stoi(id_FaultyRobotInSwarm); // e.g. 99%
         // damage the first number_damaged robots
         //std::cout<<"will damage robots randomly, with probability "<< damage_probability<<std::endl;
-        
     }
-    else{
+    else
+    {
         // nothing: proceed as usual undamaged
         //std::cout<<"no damage "<<damage_probability<<std::endl;
     }
 }
 /****************************************/
 /****************************************/
-
-
