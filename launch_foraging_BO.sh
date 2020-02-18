@@ -1,0 +1,152 @@
+#!/bin/bash -e
+
+#one: data-dir
+
+data=$1
+export Generation=18000
+
+echo "doing generation ${Generation}"
+sleep 2.5
+
+# Create a data diretory
+mkdir -p $data
+declare -A descriptors
+declare -A voronoi
+declare -A behav
+
+# descriptors["history"]=2
+# descriptors["cvt_mutualinfoact"]=14
+# descriptors["cvt_mutualinfo"]=21
+# descriptors["cvt_spirit"]=400
+# descriptors["cvt_sdbc_all_std"]=14
+# voronoi["cvt_mutualinfo"]="cvt"
+# voronoi["history"]=""
+# voronoi["cvt_mutualinfoact"]="cvt"
+# voronoi["cvt_mutualinfo"]="cvt"
+# voronoi["cvt_spirit"]="cvt"
+# voronoi["cvt_sdbc_all_std"]="cvt"
+
+command="bin/ite_swarms_"
+bo_executable="bin/"
+# note: cvt and 10D does not really matter since we are not evolving
+
+#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+
+#descriptors["environment_diversity"]=6
+#voronoi["environment_diversity"]=""
+
+descriptors["history"]=3
+voronoi["history"]=""
+
+#descriptors["cvt_rab_spirit"]=1024
+#voronoi["cvt_rab_spirit"]="cvt"
+
+# descriptors["baseline"]=""
+# voronoi["baseline"]=""
+
+SimTime=120
+
+echo "doing generation ${FINALGEN_ARCHIVE}"
+sleep 2.5
+
+FitfunType="Foraging"
+echo "simtime "${SimTime}
+echo "FitfunType "${FitfunType}
+perturbations_folder="experiments/harvesting/perturbations"
+# for FaultType in "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" \
+# "FAULT_ACTUATOR_LWHEEL_SETHALF" "FAULT_ACTUATOR_RWHEEL_SETHALF" "FAULT_ACTUATOR_BWHEELS_SETHALF"; do
+
+declare -A faultnum
+
+faultnum["sensor"]=30
+faultnum["actuator"]=20
+faultnum["software"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
+faultnum["agents"]=12  # {1,2,...,12} agents included
+
+for FaultCategory in sensor actuator software agents; do
+    numfaults=${faultnum[${FaultCategory}]}
+    for FaultIndex in $(seq 1 ${numfaults}); do
+        for key in ${!descriptors[@]}; do
+            DescriptorType=${key}
+            BD_DIMS=${descriptors[${key}]}
+            CVT=${voronoi[${DescriptorType}]}
+            if [ "$DescriptorType" = "baseline" ]; then
+                tag=""
+                SwarmBehaviour=${behav[${FitfunType}]}
+                echo "SwarmBehaviour = "${SwarmBehaviour}
+                sleep 5
+            else
+                tag=BO${CVT}${BD_DIMS}DREAL
+                SwarmBehaviour="/"
+                sleep 5
+            fi
+            echo "doing ${DescriptorType} now"
+            echo "has ${BD_DIMS} dimensions"
+            echo "tag is ${tag}"
+
+            for Replicates in $(seq 1 5); do
+
+                # Take template.argos and make an .argos file for this experiment
+                SUFFIX=${Replicates}
+
+                #read the data from the original experiment
+                Base=${data}/${FitfunType}/${DescriptorType}
+                # look at archive dir at FAULT_NONE; config includes perturbations
+
+                # look at archive dir at previous perturbation results; config is at FAULT_NONE
+                FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}p${FaultIndex}.txt"
+                ConfigFolder=${Base}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}
+                mkdir -p ${ConfigFolder}
+                ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
+                export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
+                export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
+                Outfolder=${ConfigFolder}/results${SUFFIX}
+
+                mkdir -p $Outfolder
+                echo "config ${ConfigFile}"
+                touch ${ConfigFile}
+                if [ "$FaultType" = "agents" ]; then
+                    robots=$FaultIndex
+                    fault=FAULT_NONE
+                else
+                    robots=6
+                    fault=$FaultType
+                fi
+                sed -e "s|THREADS|0|" \
+                    -e "s|TRIALS|8|" \
+                    -e "s|ROBOTS|${robots}|" \
+                    -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
+                    -e "s|SEED|${Replicates}|" \
+                    -e "s|FITFUN_TYPE|${FitfunType}|" \
+                    -e "s|DESCRIPTOR_TYPE|${DescriptorType}|" \
+                    -e "s|OUTPUTFOLDER|${Outfolder}|" \
+                    -e "s|CENTROIDSFOLDER|experiments/centroids|" \
+                    -e "s|SENSOR_RANGE|0.11|" \
+                    -e "s|NOISE_LEVEL|0.05|" \
+                    -e "s|GROUND_NOISE|20|" \
+                    -e "s|BEHAVIOUR_TAG|${tag}|" \
+                    -e "s|FAULT_TYPE|${fault}|" \
+                    -e "s|FAULT_ID|-1|" \
+                    -e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
+                    experiments/harvesting/harvesting_template.argos \
+                    >${ConfigFile}
+
+               
+                if [ ! -z "${CVT}" ]; then
+                    echo ${CVT}
+                fi
+
+                # Call ARGoS
+                export COMMAND=${command}${tag}
+                export BO_OutputFolder=${Outfolder}/BO_output
+                export ArchiveFolder=${ArchiveDir}
+                export BO_Executable=${bo_executable}${tag}
+                export ConfigFile
+
+
+                bash submit_ite.sh
+            done
+        done
+    done
+done
