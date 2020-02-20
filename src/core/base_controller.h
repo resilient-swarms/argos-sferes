@@ -70,6 +70,8 @@ public:
     FAULT_GROUNDSENSORS_SETMAX,
     FAULT_GROUNDSENSORS_SETRANDOM,
 
+    FAULT_SOFTWARE,
+
     FAULT_RABSENSOR_SETOFFSET,
     FAULT_RABSENSOR_MISSINGRECEIVERS,
     FAULT_RABSENSOR_HALFRANGE,
@@ -124,6 +126,7 @@ public:
     /* Wheel speeds */
     Real m_fLeftSpeed, m_fRightSpeed;
 
+
     /* random number generator */
     CRandom::CRNG *m_pcRNG;
 
@@ -134,6 +137,9 @@ public:
     
     /* whether or not to only use proximity sensors */
     bool only_proximity;
+
+    /* sign of movement when there is a software fault */
+    float software_sign=1.0;
 
     std::vector<CCI_ThymioProximitySensor::SReading> GetIRSensorReadings(bool b_DamagedRobot, FaultBehavior fault_type);
 

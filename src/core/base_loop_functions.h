@@ -162,7 +162,7 @@ public:
     void adjust_number_cylinders();
 
     /* put the agents on the initvecs */
-    void reset_agent_positions();
+    virtual void reset_agent_positions();
 
     /* put the cylinders on the initvecs */
     void reset_cylinder_positions();

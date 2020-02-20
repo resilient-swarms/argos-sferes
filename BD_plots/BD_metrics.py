@@ -1093,10 +1093,10 @@ if __name__ == "__main__":
 
     fitfuns= ["Foraging"] #,"DecayBorderCoverage","Flocking"]
     titles = [""]
-    bd_type = ["history"]#,"Gomes_sdbc_walls_and_robots_std"]  # file system label for bd
-    legend_labels=["HBD"]#,"SDBC"]  # labels for the legend
+    bd_type = ["history","Gomes_sdbc_walls_and_robots_std"]  # file system label for bd
+    legend_labels=["HBD","SDBC"]  # labels for the legend
     bybin_list=["bd","bd"]
-    times=range(0,20000, 500)
+    times=range(0,20500, 500)
 
     #make_translation_table("CORRECT", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
 

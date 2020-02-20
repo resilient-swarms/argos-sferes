@@ -34,6 +34,8 @@ public:
     virtual void Destroy();
     virtual CColor GetFloorColor(const CVector2 &c_position_on_plane);
     virtual void PostStep();
+
+    virtual void reset_agent_positions();
 };
 
 #endif

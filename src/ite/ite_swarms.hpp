@@ -10,7 +10,8 @@
 
 using namespace limbo;
 
-const size_t max_trials = 20;
+
+const size_t max_trials = 10;
 
 namespace global
 {
@@ -23,18 +24,6 @@ float original_max = -std::numeric_limits<float>::infinity();
 unsigned gen_to_load;
 unsigned behav_dim = BEHAV_DIM; // number of dimensions of MAP
 } // namespace global
-
-template <typename Params>
-struct PercentageMax
-{
-    PercentageMax() {}
-
-    template <typename BO, typename AggregatorFunction>
-    bool operator()(const BO &bo, const AggregatorFunction &afun)
-    {
-        return afun(bo.best_observation(afun)) > 0.90 * global::original_max;
-    }
-};
 
 struct Params
 {
@@ -59,13 +48,13 @@ struct Params
         BO_PARAM(double, l, 0.4);
     };
 
-    struct stop_maxiterations
+    struct stop_maxiterations : public defaults::stop_maxiterations
     {
         //BO_DYN_PARAM(int, iterations);
         BO_PARAM(int, iterations, max_trials);
     };
 
-    struct stop_maxpredictedvalue
+    struct stop_maxpredictedvalue : public defaults::stop_maxpredictedvalue
     {
         //BO_DYN_PARAM(int, iterations);
         BO_PARAM(double, ratio, 0.90);
@@ -104,46 +93,45 @@ struct Params
 
 Params::archiveparams::archive_t load_archive(std::string archive_name);
 
-    double get_fitness(size_t ctrl_index)
+double get_fitness(size_t ctrl_index)
+{
+    std::ifstream monFlux((global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat").c_str(), std::ios::out);
+    std::cout << "Loading fitness" << ctrl_index << " file " << std::endl;
+    double fitness;
+    if (monFlux)
     {
-        std::ifstream monFlux((global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat").c_str(), std::ios::out);
-        std::cout << "Loading fitness" << ctrl_index << " file " << std::endl;
-        double fitness;
-        if (monFlux)
+        std::string line;
+        unsigned line_count = 0;
+        while (std::getline(monFlux, line))
         {
-            std::string line;
-            unsigned line_count = 0;
-            while (std::getline(monFlux, line))
-            {
-                std::istringstream iss(line);
-                std::vector<double> numbers;
-                double num;
-                while (iss >> num)
-                    numbers.push_back(num);
+            std::istringstream iss(line);
+            std::vector<double> numbers;
+            double num;
+            while (iss >> num)
+                numbers.push_back(num);
 
-                if (numbers.size() > 1)
-                    std::cerr << "Warning ... we were expecting a single number in the fitness file "
-                              << " and not " << numbers.size();
+            if (numbers.size() > 1)
+                std::cerr << "Warning ... we were expecting a single number in the fitness file "
+                          << " and not " << numbers.size();
 
-                fitness = numbers[0];
-                if (fitness > global::original_max)
-                    global::original_max = fitness;
+            fitness = numbers[0];
+            if (fitness > global::original_max)
+                global::original_max = fitness;
 
-                line_count++;
-            }
-            if (line_count > 1)
-                std::cerr << "Warning ... we were expecting a single line in the fitness file "
-                          << " and not " << line_count;
+            line_count++;
         }
-        else
-        {
-            std::cerr << "ERROR: Could not load the fitness" << ctrl_index << "file " << std::endl;
-            exit(-1);
-        }
-        std::cout << "Fitness = " << fitness << std::endl;
-        return fitness;
+        if (line_count > 1)
+            std::cerr << "Warning ... we were expecting a single line in the fitness file "
+                      << " and not " << line_count;
     }
-
+    else
+    {
+        std::cerr << "ERROR: Could not load the fitness" << ctrl_index << "file " << std::endl;
+        exit(-1);
+    }
+    std::cout << "Fitness = " << fitness << std::endl;
+    return fitness;
+}
 
 double perform_command(size_t ctrl_index, size_t config_index)
 {
@@ -166,12 +154,10 @@ double perform_command(size_t ctrl_index, size_t config_index)
     return get_fitness(ctrl_index);
 }
 
-struct Eval
+struct ControllerEval
 {
     BO_PARAM(size_t, dim_in, BEHAV_DIM); //global::behav_dim
     BO_PARAM(size_t, dim_out, 1);
-
-
 
     // the function to be optimized
     Eigen::VectorXd operator()(const Eigen::VectorXd &x) const
@@ -192,7 +178,11 @@ struct Eval
         {
             sum_fitness += perform_command(ctrl_index, i);
         }
+        sum_fitness /= (float)global::argossim_config_name.size();
 
+        std::cout << "fit was : " << Params::archiveparams::archive[key].fit << std::endl;
+        Params::archiveparams::archive[key].fit = sum_fitness; //update the value
+        std::cout << "fit is now : " << Params::archiveparams::archive[key].fit << std::endl;
         /*std::vector<double> ctrl = Params::archiveparams::archive.at(key).controller;
         hexapod_dart::HexapodDARTSimu<> simu(ctrl, global::global_robot->clone());
         simu.run(5);
@@ -306,3 +296,19 @@ void rename_folder(std::string oldname, std::string newname)
 }
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
+
+
+
+typedef kernel::MaternFiveHalves<Params> Kernel_t;
+typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
+
+// note: MaxPredictedValue just stops immediately (seems like maximal predicted value is set to initial value)
+// ,PercentageMax<Params>
+//typedef boost::fusion::vector<stop_maxiterations> Stop_t;
+typedef mean::MeanArchive<Params> Mean_t;
+typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>, stat::ConsoleSummary<Params>> Stat_t;
+
+typedef init::NoInit<Params> Init_t;
+typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
+typedef acqui::UCB<Params, GP_t> Acqui_t;
+//typedef limbo::stop::MaxPredictedValue<Params> Stop_t;// seems to not be updated at all --> modify default values

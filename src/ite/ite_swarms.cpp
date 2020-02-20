@@ -80,24 +80,14 @@ int main(int argc, char** argv)
         newname = *(folder_it+1);
     }
 
-    typedef kernel::MaternFiveHalves<Params> Kernel_t;
-    typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
-
-    // note: MaxPredictedValue just stops immediately (seems like maximal predicted value is set to initial value)
-    // ,PercentageMax<Params>
-    //typedef boost::fusion::vector<stop_maxiterations> Stop_t;
-    typedef mean::MeanArchive<Params> Mean_t;
-    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>, stat::ConsoleSummary<Params>> Stat_t;
-
-    typedef init::NoInit<Params> Init_t;
-    typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
-    typedef acqui::UCB<Params, GP_t> Acqui_t;
-    typedef boost::fusion::vector<stop::MaxIterations<Params>,stop::MaxPredictedValue<Params>> Stop_t;
-
-    bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>,stopcrit<Stop_t>> opt;
+    bayes_opt::BOptimizer<Params, modelfun<GP_t>,
+                                 initfun<Init_t>, 
+                                 acquifun<Acqui_t>, 
+                                 acquiopt<InnerOpt_t>, 
+                                 statsfun<Stat_t>> opt;
     global::results_path = opt.res_dir();
 
-    opt.optimize(Eval());
+    opt.optimize(ControllerEval());
 
 
     auto val = opt.best_observation();

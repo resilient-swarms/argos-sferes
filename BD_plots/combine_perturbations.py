@@ -24,7 +24,7 @@ def software_faults(num_agents, filename):
     for i in range(num_agents):
         with open(filename+"p"+str(i)+".txt","w+") as f:
             combined_perturbations=["FAULT_NONE" for i in range(num_agents)]
-            combined_perturbations[i] = "SOFTWARE_FAULT"
+            combined_perturbations[i] = "FAULT_SOFTWARE"
             string_p=""
             for j in range(len(combined_perturbations) - 1):
                 string_p+=combined_perturbations[j]+","
