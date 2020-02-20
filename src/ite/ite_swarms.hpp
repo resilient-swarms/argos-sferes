@@ -54,10 +54,8 @@ struct Params
         BO_PARAM(int, iterations, max_trials);
     };
 
-    struct stop_maxpredictedvalue : public defaults::stop_maxpredictedvalue
-    {
-        //BO_DYN_PARAM(int, iterations);
-        BO_PARAM(double, ratio, 0.90);
+    // using a default 90% above all other predicted gait performances in the map
+    struct stop_maxpredictedvalue : public defaults::stop_maxpredictedvalue {
     };
 
     struct acqui_ucb : public defaults::acqui_ucb
@@ -181,8 +179,7 @@ struct ControllerEval
         sum_fitness /= (float)global::argossim_config_name.size();
 
         std::cout << "fit was : " << Params::archiveparams::archive[key].fit << std::endl;
-        Params::archiveparams::archive[key].fit = sum_fitness; //update the value
-        std::cout << "fit is now : " << Params::archiveparams::archive[key].fit << std::endl;
+        std::cout << "fit is now : " << sum_fitness << std::endl;
         /*std::vector<double> ctrl = Params::archiveparams::archive.at(key).controller;
         hexapod_dart::HexapodDARTSimu<> simu(ctrl, global::global_robot->clone());
         simu.run(5);
@@ -297,18 +294,3 @@ void rename_folder(std::string oldname, std::string newname)
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
 
-
-
-typedef kernel::MaternFiveHalves<Params> Kernel_t;
-typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
-
-// note: MaxPredictedValue just stops immediately (seems like maximal predicted value is set to initial value)
-// ,PercentageMax<Params>
-//typedef boost::fusion::vector<stop_maxiterations> Stop_t;
-typedef mean::MeanArchive<Params> Mean_t;
-typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>, stat::ConsoleSummary<Params>> Stat_t;
-
-typedef init::NoInit<Params> Init_t;
-typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
-typedef acqui::UCB<Params, GP_t> Acqui_t;
-//typedef limbo::stop::MaxPredictedValue<Params> Stop_t;// seems to not be updated at all --> modify default values

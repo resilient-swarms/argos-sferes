@@ -596,7 +596,7 @@ void Foraging::apply(BaseLoopFunctions &cLoopFunctions)
 #ifdef PRINTING
     std::cout << fitness_per_trial[cLoopFunctions.m_unCurrentTrial] << std::endl;
 #endif
-
+    fitness_per_trial[cLoopFunctions.m_unCurrentTrial]*= 6.0f/(float) cLoopFunctions.m_unNumberRobots ;// correct for the number of robots
 }
 
 float Foraging::after_trials()
