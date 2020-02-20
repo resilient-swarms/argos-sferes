@@ -109,9 +109,15 @@ for FaultCategory in sensor actuator software agents; do
                 if [ "$FaultType" = "agents" ]; then
                     robots=$FaultIndex
                     fault=FAULT_NONE
+                    FaultID=-1
+                elif [ "$FaultType" = "software" ]; then
+                    robots=6
+                    fault=FAULT_SOFTWARE
+                    FaultID=$FaultIndex
                 else
                     robots=6
                     fault=$FaultType
+                    FaultID=-1
                 fi
                 sed -e "s|THREADS|0|" \
                     -e "s|TRIALS|8|" \
@@ -127,7 +133,7 @@ for FaultCategory in sensor actuator software agents; do
                     -e "s|GROUND_NOISE|20|" \
                     -e "s|BEHAVIOUR_TAG|${tag}|" \
                     -e "s|FAULT_TYPE|${fault}|" \
-                    -e "s|FAULT_ID|-1|" \
+                    -e "s|FAULT_ID|${FaultID}|" \
                     -e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
                     experiments/harvesting/harvesting_template.argos \
                     >${ConfigFile}
