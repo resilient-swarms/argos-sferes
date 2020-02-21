@@ -22,7 +22,7 @@ namespace limbo {
                     for (size_t i = 0; i < it->first.size(); i++)
                         temp[i] = it->first[i];
 
-                    float new_acqui = eval(f, temp);
+                    float new_acqui = it->second.fit;
 
                     if (best_acqui < new_acqui || it == Params::archiveparams::archive.begin()) {
                         best_acqui = new_acqui;

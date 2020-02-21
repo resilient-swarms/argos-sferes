@@ -10,8 +10,7 @@
 
 using namespace limbo;
 
-
-const size_t max_trials = 10;
+const size_t max_trials = 15;
 
 namespace global
 {
@@ -55,7 +54,8 @@ struct Params
     };
 
     // using a default 90% above all other predicted gait performances in the map
-    struct stop_maxpredictedvalue : public defaults::stop_maxpredictedvalue {
+    struct stop_maxpredictedvalue : public defaults::stop_maxpredictedvalue
+    {
     };
 
     struct acqui_ucb : public defaults::acqui_ucb
@@ -179,6 +179,7 @@ struct ControllerEval
         sum_fitness /= (float)global::argossim_config_name.size();
 
         std::cout << "fit was : " << Params::archiveparams::archive[key].fit << std::endl;
+        Params::archiveparams::archive[key].fit = sum_fitness;//only way our Mean function is updated
         std::cout << "fit is now : " << sum_fitness << std::endl;
         /*std::vector<double> ctrl = Params::archiveparams::archive.at(key).controller;
         hexapod_dart::HexapodDARTSimu<> simu(ctrl, global::global_robot->clone());
@@ -293,4 +294,3 @@ void rename_folder(std::string oldname, std::string newname)
 }
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
-

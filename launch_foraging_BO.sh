@@ -102,7 +102,8 @@ for FaultCategory in sensor actuator software agents; do
                 export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
                 export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
                 Outfolder=${ConfigFolder}/results${SUFFIX}
-
+                rm -rf ${Outfolder}/BO_output
+                rm ${Outfolder}/fitness
                 mkdir -p $Outfolder
                 echo "config ${ConfigFile}"
                 touch ${ConfigFile}

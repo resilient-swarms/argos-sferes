@@ -4,7 +4,7 @@
 namespace limbo {
     namespace mean {
         template <typename Params>
-        struct MeanArchive {                   // set posterior mean equal to the fitness observed on that bin
+        struct MeanArchive {     // see http://www.resibots.eu/limbo/guides/limbo_concepts.html
             MeanArchive(size_t dim_out = 1)
             {
             }
