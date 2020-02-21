@@ -107,11 +107,11 @@ for FaultCategory in sensor actuator software agents; do
                 mkdir -p $Outfolder
                 echo "config ${ConfigFile}"
                 touch ${ConfigFile}
-                if [ "$FaultType" = "agents" ]; then
+                if [  "$FaultCategory" = "agents" ]; then
                     robots=$FaultIndex
                     fault=FAULT_NONE
                     FaultID=-1
-                elif [ "$FaultType" = "software" ]; then
+                elif [ "$FaultCategory" = "software" ]; then
                     robots=6
                     fault=FAULT_SOFTWARE
                     FaultID=$FaultIndex
