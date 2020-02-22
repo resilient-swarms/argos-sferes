@@ -44,7 +44,7 @@ struct Params
 
     struct kernel_maternfivehalves : public defaults::kernel_maternfivehalves
     {
-        BO_PARAM(double, l, 0.4);
+        BO_PARAM(double, l, 1.5);// smoothness of the function; 1.5 is a setting used scikit learn https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.kernels.Matern.html
     };
 
     struct stop_maxiterations : public defaults::stop_maxiterations

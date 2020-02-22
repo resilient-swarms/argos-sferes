@@ -22,14 +22,14 @@ namespace limbo {
                     for (size_t i = 0; i < it->first.size(); i++)
                         temp[i] = it->first[i];
 
-                    float new_acqui = it->second.fit;
+                    float new_acqui = eval(f, temp);
 
                     if (best_acqui < new_acqui || it == Params::archiveparams::archive.begin()) {
                         best_acqui = new_acqui;
                         result = temp;
                     }
                 }
-                std::cout << "best expected value " << best_acqui << std::endl;
+                std::cout << "best UCB " << best_acqui << std::endl;
                 std::cout << "vector " << result << std::endl;
                 return result;
             }
