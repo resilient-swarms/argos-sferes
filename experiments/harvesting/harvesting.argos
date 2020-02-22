@@ -8,7 +8,7 @@
     <system threads="0" />
     <experiment length="120"
                 ticks_per_second="5"
-                random_seed="1" />
+                random_seed="2" />
   </framework>
 
   <!-- *************** -->
@@ -29,8 +29,8 @@
       <params>
         <wheel_turning max_speed="10"/>
  	<experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_NONE" 
-	                id_faulty_robot="0" />
+			fault_behavior="FAULT_SOFTWARE_NEIGHBOURHOOD" 
+	                id_faulty_robot="5" />
         
       </params>      
       </foraging_nn_controller>
@@ -42,7 +42,7 @@
   <loop_functions library="lib/libforaging_loopfunctions3DREAL"
                   label="foraging_loopfunctions3DREAL"
                   trials="8"
-                  robots="12"
+                  robots="6"
                   descriptortype="history"    
                   fitfuntype="Foraging"
                   output_folder="OUTPUTFOLDER"
@@ -75,7 +75,7 @@
         <distribute>
       <position method="uniform" min="0.5,0.5,0" max="1.5,1.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="12" max_trials="1000">
+      <entity quantity="6" max_trials="1000">
         <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
           <controller config="tnn" />
         </Thymio>

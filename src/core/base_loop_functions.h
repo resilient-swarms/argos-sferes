@@ -7,7 +7,6 @@
 #include <cmath>
 #include <src/core/base_controller.h>
 
-
 #include <argos3/core/utility/math/angles.h>
 #include <argos3/core/control_interface/ci_controller.h>
 #include <argos3/core/simulator/loop_functions.h>
@@ -17,7 +16,7 @@
 #include <argos3/plugins/simulator/entities/cylinder_entity.h>
 #include <argos3/core/simulator/space/space.h>
 
-#define WALL_THICKNESS 1.0  // note: configs should always take a 1 meter thickness of the walls
+#define WALL_THICKNESS 1.0 // note: configs should always take a 1 meter thickness of the walls
 
 /*******************/
 //class EnvironmentGenerator;
@@ -28,7 +27,6 @@ class BaseLoopFunctions : public CLoopFunctions
 {
 
 public:
-
     /* The initial setup of a trial */
     struct SInitSetup
     {
@@ -44,24 +42,26 @@ public:
     }
     virtual ~BaseLoopFunctions(){
 
-        
     };
 
-    virtual std::string get_controller_id()=0;
+    virtual std::string get_controller_id() = 0;
 
     /* embodied entity  */
-    virtual CEmbodiedEntity* get_embodied_entity(size_t robot);
+    virtual CEmbodiedEntity *get_embodied_entity(size_t robot);
 
-    CEmbodiedEntity* get_embodied_cylinder(size_t robot);
+    CEmbodiedEntity *get_embodied_cylinder(size_t robot);
 
     /* get RAB range */
     Real get_RAB_range(size_t robot);
 
     /* get the controller  */
-    virtual BaseController* get_controller(size_t robot);
+    virtual BaseController *get_controller(size_t robot);
 
     /* place robots on initial positions */
     void place_robots();
+    virtual void try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
+    virtual std::vector<size_t> priority_robotplacement();
+    void robot_trial_setup(size_t m_unTrial, const CRange<Real> x_range, const CRange<Real> y_range,size_t& num_tries);
 
     /* place cylinders on initial positions */
     void place_cylinders();
@@ -70,7 +70,7 @@ public:
     //void init_generator(TConfigurationNode &t_node);
     /* initialise the robot vector */
     virtual void init_robots(TConfigurationNode &t_node);
-    
+
     virtual void Init(TConfigurationNode &t_node);
     void init_fitfuns(TConfigurationNode &t_node);
 
@@ -83,7 +83,7 @@ public:
     virtual void PreStep() = 0;
     virtual void PostStep();
 
-    virtual void before_trials(argos::CSimulator& cSimulator);
+    virtual void before_trials(argos::CSimulator &cSimulator);
     /* set the current trial */
     inline void SetTrial()
     {
@@ -92,45 +92,46 @@ public:
     /* get wall outer position, assuming centered evenly in arena */
     CVector3 get_wall_pos(std::string type)
     {
-        CSpace::TMapPerTypePerId& entity_map = GetSpace().GetEntityMapPerTypePerId();
+        CSpace::TMapPerTypePerId &entity_map = GetSpace().GetEntityMapPerTypePerId();
         CVector3 pos = any_cast<CBoxEntity *>(entity_map["box"][type])->GetEmbodiedEntity().GetOriginAnchor().Position;
-        if (type=="wall_north")
+        if (type == "wall_north")
         {
             // remove WALL_THICKNESS/2 from the Y component
-            pos.SetY(pos.GetY() - WALL_THICKNESS/2.0f);
+            pos.SetY(pos.GetY() - WALL_THICKNESS / 2.0f);
         }
-        else if (type=="wall_south")
+        else if (type == "wall_south")
         {
-             // add WALL_THICKNESS/2 to the Y component
-            pos.SetY(pos.GetY()+ WALL_THICKNESS/2.0f);
+            // add WALL_THICKNESS/2 to the Y component
+            pos.SetY(pos.GetY() + WALL_THICKNESS / 2.0f);
         }
-        else if (type=="wall_east")
+        else if (type == "wall_east")
         {
             // remove WALL_THICKNESS/2 from the X component
-            pos.SetX(pos.GetX() - WALL_THICKNESS/2.0f);
+            pos.SetX(pos.GetX() - WALL_THICKNESS / 2.0f);
         }
-        else if (type=="wall_west")
+        else if (type == "wall_west")
         {
-             // add WALL_THICKNESS/2 to the X component
-            pos.SetX(pos.GetX()+ WALL_THICKNESS/2.0f);
+            // add WALL_THICKNESS/2 to the X component
+            pos.SetX(pos.GetX() + WALL_THICKNESS / 2.0f);
         }
-        else{
+        else
+        {
             throw std::runtime_error("walltype not supported");
         }
         return pos;
     }
     CVector3 get_arenasize()
     {
-        
-		CVector3 wall_N = get_wall_pos("wall_north");
-		CVector3 wall_S = get_wall_pos("wall_south");
-		CVector3 wall_W = get_wall_pos("wall_west");;
-		CVector3 wall_E = get_wall_pos("wall_east");
 
+        CVector3 wall_N = get_wall_pos("wall_north");
+        CVector3 wall_S = get_wall_pos("wall_south");
+        CVector3 wall_W = get_wall_pos("wall_west");
+        ;
+        CVector3 wall_E = get_wall_pos("wall_east");
 
         Real y = wall_N.GetY() - wall_S.GetY();
         Real x = wall_E.GetX() - wall_W.GetX();
-        CVector3 size = CVector3(x,y,(Real) 0.0);
+        CVector3 size = CVector3(x, y, (Real)0.0);
         return size;
     }
 
@@ -138,7 +139,7 @@ public:
     {
         CVector3 centre = GetSpace().GetArenaCenter();
 
-        return CVector3(centre.GetX(),centre.GetY(),(Real) 0.0);
+        return CVector3(centre.GetX(), centre.GetY(), (Real)0.0);
     }
 
     /* add additional agents */
@@ -149,8 +150,6 @@ public:
 
     /* adjust the number of agents */
     void adjust_number_agents();
-
-
 
     /* add additional cylinders */
     virtual void create_new_cylinders();
@@ -167,13 +166,10 @@ public:
     /* put the cylinders on the initvecs */
     void reset_cylinder_positions();
 
-
-    virtual void start_trial(argos::CSimulator& cSimulator);
+    virtual void start_trial(argos::CSimulator &cSimulator);
     virtual void end_trial();
     virtual void print_progress();
-    float run_all_trials(argos::CSimulator& cSimulator);
-
-
+    float run_all_trials(argos::CSimulator &cSimulator);
 
     /* these methods are not be overridden */
 
@@ -181,7 +177,6 @@ public:
     float alltrials_fitness();
 
     /* helper functions */
-    
 
     /*get the orientation of the robot */
     CRadians get_orientation(size_t robot_index);
@@ -198,8 +193,7 @@ public:
     float get_mass(CThymioEntity *robot);
 
     /* get the centre of mass */
-    argos::CVector3 centre_of_mass(const std::vector<CVector3>& positions);
-
+    argos::CVector3 centre_of_mass(const std::vector<CVector3> &positions);
 
 public:
     bool stop_eval;
@@ -211,11 +205,11 @@ public:
     std::vector<CVector3> curr_pos, old_pos;
     std::vector<CRadians> curr_theta, old_theta;
     size_t m_unNumberTrials;
-    size_t  seed;// seed part corresponding to the one in the config
+    size_t seed;          // seed part corresponding to the one in the config
     int m_unCurrentTrial; // will start with -1 for convenience
-    std::vector<std::vector<SInitSetup>> m_vecInitSetup,m_vecInitSetupCylinders;
+    std::vector<std::vector<SInitSetup>> m_vecInitSetup, m_vecInitSetupCylinders;
 
-    size_t m_unNumberCylinders=0;//note: this may also be zero when using distribute exclusively
+    size_t m_unNumberCylinders = 0; //note: this may also be zero when using distribute exclusively
     size_t m_unNumberRobots;
     //EnvironmentGenerator* generator = NULL;
     std::string output_folder;
@@ -226,7 +220,7 @@ public:
     /* robot vectors */
     std::vector<CThymioEntity *> m_pcvecRobot;
     /* cylinder vectors */
-    std::vector<CCylinderEntity*> m_pcvecCylinder;
+    std::vector<CCylinderEntity *> m_pcvecCylinder;
 
     /* help to create robot vectors */
     std::string robot_id;

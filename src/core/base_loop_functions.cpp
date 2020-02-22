@@ -23,7 +23,7 @@ void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
         for (CSpace::TMapPerType::iterator it = m_cThymio.begin(); it != m_cThymio.end(); ++it) //!TODO: Make sure the CSpace::TMapPerType does not change during a simulation (i.e it is not robot-position specific)
         {
             m_pcvecRobot.push_back(any_cast<CThymioEntity *>(it->second));
-        // damage the first number_damaged robots
+            // damage the first number_damaged robots
         }
         if (m_unNumberRobots != m_pcvecRobot.size()) // we need to make sure the number of robots distributed in the arena match what is specified by the user in the loop function.
         {
@@ -43,10 +43,6 @@ void BaseLoopFunctions::init_robots(TConfigurationNode &t_node)
             throw std::runtime_error("\n The number of cylinders distributed in the arena " + std::to_string(m_unNumberRobots) + " does not match what is specified by the user in the loop function " + std::to_string(m_pcvecCylinder.size()));
         }
     }
-
-    
-
-    
 }
 
 CEmbodiedEntity *BaseLoopFunctions::get_embodied_entity(size_t robot)
@@ -59,13 +55,67 @@ CEmbodiedEntity *BaseLoopFunctions::get_embodied_cylinder(size_t cylinder)
     return &m_pcvecCylinder[cylinder]->GetEmbodiedEntity();
 }
 
-
 /* get the controller  */
 BaseController *BaseLoopFunctions::get_controller(size_t robot)
 {
     return dynamic_cast<BaseController *>(&m_pcvecRobot[robot]->GetControllableEntity().GetController());
 }
+void BaseLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries)
+{
+    Position = CVector3(m_pcRNG->Uniform(x_range), m_pcRNG->Uniform(y_range), 0.0f);
+    Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
+                                CRadians::ZERO,
+                                CRadians::ZERO);
 
+    while (!get_embodied_entity(m_unRobot)->MoveTo( // move the body of the robot
+        Position,                                   // to this position
+        Orientation,                                // with this orientation
+        false                                       // this is not a check, leave the robot there
+        ))
+    {
+        Position = CVector3(m_pcRNG->Uniform(x_range), m_pcRNG->Uniform(y_range), 0.0f);
+        //std::cout << "Position2 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
+
+        Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
+                                    CRadians::ZERO,
+                                    CRadians::ZERO);
+        if (num_tries > 10000)
+        {
+            throw std::runtime_error("failed to initialise robot positions; too many obstacles?");
+        }
+        ++num_tries;
+    }
+}
+std::vector<size_t> BaseLoopFunctions::priority_robotplacement()
+{
+    // in base loop functions, simply 0..N-1
+    std::vector<size_t> indices;
+    for (size_t index = 0; index < indices.size(); ++index)
+    {
+        indices.push_back(index);
+    }
+    return indices;
+}
+
+void BaseLoopFunctions::robot_trial_setup(size_t m_unTrial, const CRange<Real> x_range, const CRange<Real> y_range, size_t &num_tries)
+{
+    std::vector<size_t> robots = priority_robotplacement();
+    for (size_t m_unRobot : robots)
+    {
+
+        CVector3 Position;
+        CQuaternion Orientation;
+        try_robot_position(Position, Orientation, x_range, y_range, m_unRobot, num_tries);
+#ifdef PRINTING
+        std::cout << "Successful placement of robot " << m_unRobot << " at trial "<<m_unTrial << std::endl;
+        std::cout << "Position1 " << Position << std::endl;
+#endif
+        m_vecInitSetup[m_unTrial][m_unRobot].Position = Position;
+        m_vecInitSetup[m_unTrial][m_unRobot].Orientation = Orientation;
+        // std::cout << Position << std::endl;
+        // std::cout << Orientation << std::endl;
+    }
+}
 void BaseLoopFunctions::place_robots()
 {
     // set RAB range
@@ -74,7 +124,7 @@ void BaseLoopFunctions::place_robots()
         // add the RAB range as a parameter to the controller class
         Real max_rab = m_pcvecRobot[i]->GetRABEquippedEntity().GetRange();
         BaseController *ctrl = get_controller(i);
-        ctrl->max_rab_range = max_rab*100.0;//convert to cm
+        ctrl->max_rab_range = max_rab * 100.0; //convert to cm
     }
     curr_pos.resize(m_unNumberRobots);
     curr_theta.resize(m_unNumberRobots);
@@ -83,54 +133,20 @@ void BaseLoopFunctions::place_robots()
 
     //m_vecInitSetup.clear();
     CVector3 size = get_arenasize();
-    Real minX = 0.50f; 
+    Real minX = 0.50f;
     Real maxX = size.GetX() - 0.50f;
     Real minY = 0.50f;
     Real maxY = size.GetY() - 0.50;
     m_vecInitSetup.clear();
     for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
     {
+
         m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
         size_t num_tries = 0;
-        for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
-        {
-            CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
-#ifdef PRINTING
-            std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
-#endif
-            CQuaternion Orientation;
-            Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
-                                        CRadians::ZERO,
-                                        CRadians::ZERO);
-
-            while (!get_embodied_entity(m_unRobot)->MoveTo( // move the body of the robot
-                Position,                                   // to this position
-                Orientation,                                // with this orientation
-                false                                       // this is not a check, leave the robot there
-                ))
-            {
-                Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
-                //std::cout << "Position2 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
-                
-                Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
-                                            CRadians::ZERO,
-                                            CRadians::ZERO);
-                if (num_tries > 10000)
-                {
-                    throw std::runtime_error("failed to initialise robot positions; too many obstacles?");
-                }
-                ++num_tries;
-            }
-            m_vecInitSetup[m_unTrial][m_unRobot].Position = Position;
-            m_vecInitSetup[m_unTrial][m_unRobot].Orientation = Orientation;
-            // std::cout << Position << std::endl;
-            // std::cout << Orientation << std::endl;
-        }
-
-
+        robot_trial_setup(m_unTrial, CRange<Real>(minX, maxX), CRange<Real>(minY, maxY), num_tries);
 
         m_vecInitSetupCylinders.push_back(std::vector<SInitSetup>(m_unNumberCylinders));
-        for (size_t cylinder =0 ; cylinder < m_unNumberCylinders; ++cylinder)
+        for (size_t cylinder = 0; cylinder < m_unNumberCylinders; ++cylinder)
         {
             CVector3 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
 #ifdef PRINTING
@@ -142,9 +158,9 @@ void BaseLoopFunctions::place_robots()
                                         CRadians::ZERO);
             CEmbodiedEntity *entity = get_embodied_cylinder(cylinder);
             while (!entity->MoveTo( // move the body of the robot
-                Position,                                   // to this position
-                Orientation,                                // with this orientation
-                false                                       // this is not a check, leave the robot there
+                Position,           // to this position
+                Orientation,        // with this orientation
+                false               // this is not a check, leave the robot there
                 ))
             {
                 Position = CVector3(m_pcRNG->Uniform(CRange<Real>(minX, maxX)), m_pcRNG->Uniform(CRange<Real>(minY, maxY)), 0.0f);
@@ -165,7 +181,6 @@ void BaseLoopFunctions::place_robots()
         }
     }
 }
-
 
 void BaseLoopFunctions::Init(TConfigurationNode &t_node)
 {
@@ -292,14 +307,14 @@ void BaseLoopFunctions::init_fitfuns(TConfigurationNode &t_node)
 void BaseLoopFunctions::create_new_agents()
 {
     size_t start = m_pcvecRobot.size();
-    for (size_t i = start ; i < m_unNumberRobots; ++i) // initialise the robots
+    for (size_t i = start; i < m_unNumberRobots; ++i) // initialise the robots
     {
-        m_pcvecRobot.push_back(new CThymioEntity("thymio"+std::to_string(i),
-                       get_controller_id()+std::to_string(i),
-                        m_vecInitSetupCylinders[m_unCurrentTrial][i].Position,    // to this position
-                      m_vecInitSetupCylinders[m_unCurrentTrial][i].Orientation,
-                       rab_range,
-                       rab_data_size));// TODO: construct properly
+        m_pcvecRobot.push_back(new CThymioEntity("thymio" + std::to_string(i),
+                                                 get_controller_id() + std::to_string(i),
+                                                 m_vecInitSetupCylinders[m_unCurrentTrial][i].Position, // to this position
+                                                 m_vecInitSetupCylinders[m_unCurrentTrial][i].Orientation,
+                                                 rab_range,
+                                                 rab_data_size)); // TODO: construct properly
         this->AddEntity(*m_pcvecRobot[i]);
         //CPhysicsModel *model = &m_pcvecRobot[i]->GetEmbodiedEntity().GetPhysicsModel("dyn2d_0");
         //model->UpdateEntityStatus();
@@ -309,20 +324,20 @@ void BaseLoopFunctions::create_new_agents()
 /* add additional agents */
 void BaseLoopFunctions::create_new_cylinders()
 {
-    
+
     CSpace::TMapPerType &cylinders = GetSpace().GetEntitiesByType("cylinder");
     size_t start = cylinders.size();
-    CCylinderEntity *cyl = any_cast<CCylinderEntity*>(cylinders.begin()->second);
+    CCylinderEntity *cyl = any_cast<CCylinderEntity *>(cylinders.begin()->second);
     for (size_t i = start; i < m_unNumberCylinders; ++i) // initialise the robots
     {
-        
-        CCylinderEntity* new_c = new CCylinderEntity("c" + std::to_string(i),
-                                            m_vecInitSetupCylinders[m_unCurrentTrial][i].Position,    // to this position
-                                            m_vecInitSetupCylinders[m_unCurrentTrial][i].Orientation,
-                                                cyl->GetEmbodiedEntity().IsMovable(),
-                                                cyl->GetRadius(),
-                                                cyl->GetHeight(),
-                                                cyl->GetMass());
+
+        CCylinderEntity *new_c = new CCylinderEntity("c" + std::to_string(i),
+                                                     m_vecInitSetupCylinders[m_unCurrentTrial][i].Position, // to this position
+                                                     m_vecInitSetupCylinders[m_unCurrentTrial][i].Orientation,
+                                                     cyl->GetEmbodiedEntity().IsMovable(),
+                                                     cyl->GetRadius(),
+                                                     cyl->GetHeight(),
+                                                     cyl->GetMass());
         // CPhysicsModel *model;
         // model = &new_c->GetEmbodiedEntity().GetPhysicsModel("dyn2d_0");
         // model->UpdateEntityStatus();
@@ -334,7 +349,7 @@ void BaseLoopFunctions::create_new_cylinders()
 /* remove superfluous agents */
 void BaseLoopFunctions::remove_agents(size_t too_much)
 {
-    for (size_t i = 0 ; i < too_much; ++i)
+    for (size_t i = 0; i < too_much; ++i)
     {
         m_pcvecRobot.back()->Destroy();
         this->RemoveEntity(*m_pcvecRobot.back());
@@ -345,7 +360,6 @@ void BaseLoopFunctions::remove_agents(size_t too_much)
 void BaseLoopFunctions::remove_cylinders(size_t too_much)
 {
 
-   
     for (size_t i = 0; i < too_much; ++i)
     {
         this->RemoveEntity(*m_pcvecCylinder.back());
@@ -406,17 +420,16 @@ void BaseLoopFunctions::reset_agent_positions()
         CPhysicsModel *model;
         //model = &entity->GetPhysicsModel("dyn2d_0");
         //model->UpdateEntityStatus();
-        if ( !entity->MoveTo(
-            m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
-            m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
-            false                                                    // this is not a check, leave the robot there
-        ))
+        if (!entity->MoveTo(
+                m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
+                m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
+                false                                                    // this is not a check, leave the robot there
+                ))
         {
             // std::cout << "trial" << m_unCurrentTrial << std::endl;
             // std::cout << "robot" << m_unRobot << std::endl;
             // std::cout<<"entity pos "<<entity->GetOriginAnchor().Position << std::endl;
             // std::cout<<"trial pos " <<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
-
         }
         // std::cout<<"agent "<<m_unRobot<<std::endl;
         // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
@@ -431,7 +444,6 @@ void BaseLoopFunctions::reset_agent_positions()
         //         continue;
         //     }
         // }
-        
 
         old_pos[m_unRobot] = entity->GetOriginAnchor().Position;
         curr_pos[m_unRobot] = old_pos[m_unRobot];
@@ -454,9 +466,9 @@ void BaseLoopFunctions::reset_agent_positions()
 
 void BaseLoopFunctions::reset_cylinder_positions()
 {
-    for (size_t cylinder=0 ; cylinder < m_pcvecCylinder.size(); ++cylinder)
+    for (size_t cylinder = 0; cylinder < m_pcvecCylinder.size(); ++cylinder)
     {
-       
+
         CEmbodiedEntity *entity = get_embodied_cylinder(cylinder);
         CPhysicsModel *model;
         //model = &entity->GetPhysicsModel("dyn2d_0");
@@ -469,14 +481,13 @@ void BaseLoopFunctions::reset_cylinder_positions()
         // std::cout<<"cylinder "<<cylinder<<std::endl;
         // std::cout<<m_vecInitSetup[m_unCurrentTrial][cylinder].Position<<std::endl;
         // std::cout<<m_vecInitSetup[m_unCurrentTrial][cylinder].Orientation<<std::endl;
-
     }
 }
 /* before the trials start and Reset happens check 
     whether some settings of the config must be changed */
 // void BaseLoopFunctions::generate()
 // {
-    
+
 //     if (generator != NULL)
 //     {
 //         generator->generate(this);
@@ -540,7 +551,7 @@ float BaseLoopFunctions::run_all_trials(argos::CSimulator &cSimulator)
     {
         perform_trial(cSimulator);
 #ifdef COLLISION_STOP
-        if(stop_eval)
+        if (stop_eval)
         {
             return 0.0f;
         }
@@ -554,8 +565,8 @@ float BaseLoopFunctions::run_all_trials(argos::CSimulator &cSimulator)
     /****************************************/
     float fFitness = alltrials_fitness();
 #ifdef RECORD_FIT
-	fitness_writer<<fFitness<<std::endl;
-#endif 
+    fitness_writer << fFitness << std::endl;
+#endif
     return fFitness;
 }
 

@@ -35,7 +35,8 @@ public:
     virtual CColor GetFloorColor(const CVector2 &c_position_on_plane);
     virtual void PostStep();
 
-    virtual void reset_agent_positions();
+    virtual void try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
+    virtual std::vector<size_t> priority_robotplacement();
 };
 
 #endif

@@ -33,83 +33,221 @@ void CForagingLoopFunctions::Reset()
       m_cVisitedFood.push_back(0);
    }
    numfoodCollected = 0;
-   /* Check whether a robot is on a food item */
-   CSpace::TMapPerType &m_thymios = GetSpace().GetEntitiesByType("Thymio");
 
-   for (CSpace::TMapPerType::iterator it = m_thymios.begin(); it != m_thymios.end(); ++it)
+   for (size_t i=0; i < m_unNumberRobots; ++i)
    {
       /* Get handle to foot-bot entity and controller */
-      argos::CThymioEntity &cThym = *any_cast<argos::CThymioEntity *>(it->second);
-      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym.GetControllableEntity().GetController());
+      argos::CThymioEntity* cThym = m_pcvecRobot[i];
+      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
       cController.holdingFood = false;
    }
 }
 
-void CForagingLoopFunctions::reset_agent_positions()
+std::vector<size_t> CForagingLoopFunctions::priority_robotplacement()
 {
-
-   for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
+   // in base loop functions, simply 0..N-1
+   std::vector<size_t> indices;
+   for (size_t index = 0; index < m_unNumberRobots; ++index)
    {
-      CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
-      BaseController *cController = get_controller(m_unRobot);
-      CPhysicsModel *model;
-      CVector3 Position;
-      CQuaternion Orientation;
-      if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE)
+      BaseController *cController = get_controller(index);
+      if (cController->b_damagedrobot && (cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE || cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_NEIGHBOURHOOD || cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_FOOD))
       {
-         do
-         {
-            Position = CVector3(nest_x, m_pcRNG->Uniform(CRange<Real>(0.3, 1.8)), 0.0f);
-#ifdef PRINTING
-            std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
-#endif
-
-            Orientation.FromEulerAngles(CRadians::PI_OVER_TWO, //orient the agent vertically
-                                        CRadians::ZERO,
-                                        CRadians::ZERO);
-         } while (!entity->MoveTo(
-             Position,    // to this position
-             Orientation, // with this orientation
-             false        // this is not a check, leave the robot there
-             ));
+         indices.insert(indices.begin(), index);
       }
       else
       {
-
-         if (!entity->MoveTo(
-                 m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
-                 m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
-                 false                                                    // this is not a check, leave the robot there
-                 ))
-         {
-            // std::cout << "trial" << m_unCurrentTrial << std::endl;
-            // std::cout << "robot" << m_unRobot << std::endl;
-            // std::cout<<"entity pos "<<entity->GetOriginAnchor().Position << std::endl;
-            // std::cout<<"trial pos " <<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
-         }
+         indices.push_back(index);
       }
+   }
+   return indices;
+}
 
-      // std::cout<<"agent "<<m_unRobot<<std::endl;
-      // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
-      // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation<<std::endl;
-      // for (size_t i=0; i < 4; ++i)
-      // {
-      //     try{
-      //         model = &entity->GetPhysicsModel("dyn2d_"+std::to_string(i));
-      //         //std::cout<<"Found the entity !"<<std::endl;
-      //     }
-      //     catch(argos::CARGoSException e){
-      //         continue;
-      //     }
-      // }
+void CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries)
+{
 
-      old_pos[m_unRobot] = entity->GetOriginAnchor().Position;
-      curr_pos[m_unRobot] = old_pos[m_unRobot];
-      CRadians zAngle = get_orientation(m_unRobot);
-      curr_theta[m_unRobot] = zAngle;
-      old_theta[m_unRobot] = zAngle;
+   CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
+   BaseController *cController = get_controller(m_unRobot);
+   if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE)
+   {
+      do
+      {
+         Position = CVector3(nest_x, m_pcRNG->Uniform(CRange<Real>(0.3, 1.8)), 0.0f);
+#ifdef PRINTING
+         std::cout << "Positioning agent with software" << std::endl;
+         std::cout << "Nest x-position is " << nest_x << std::endl;
+         std::cout << "Position1 " << Position << std::endl;
+#endif
+
+         Orientation.FromEulerAngles(CRadians::PI_OVER_TWO, //orient the agent vertically
+                                     CRadians::ZERO,
+                                     CRadians::ZERO);
+         ++num_tries;
+      } while (!entity->MoveTo(
+          Position,    // to this position
+          Orientation, // with this orientation
+          false        // this is not a check, leave the robot there
+          ));
+   }
+   else if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_FOOD)
+   {
+
+      do
+      {
+         // randomly select a food location
+         int i = m_pcRNG->Uniform(CRange<int>(0, num_food));
+         Position = CVector3(m_cFoodPos[i].GetX(), m_cFoodPos[i].GetY(), 0.0);
+#ifdef PRINTING
+         std::cout << "Positioning agent with software_food fault" << std::endl;
+         std::cout << "Food position is " << m_cFoodPos[i] << std::endl;
+         std::cout << "Position1 " << Position << std::endl;
+#endif
+
+         Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
+                                     CRadians::ZERO,
+                                     CRadians::ZERO);
+         ++num_tries;
+      } while (!entity->MoveTo(
+          Position,    // to this position
+          Orientation, // with this orientation
+          false        // this is not a check, leave the robot there
+          ));
+   }
+   else if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_NEIGHBOURHOOD)
+   {
+      do
+      {
+         // randomly select a food location
+         int i = m_pcRNG->Uniform(CRange<int>(0, num_food));
+         // randomly add or subtract a number in (radius, radius + 0.10) for X and Y
+         int sign_x = m_pcRNG->Uniform(CRange<int>(0, 2));
+         int sign_y = m_pcRNG->Uniform(CRange<int>(0, 2));
+         Real radius = std::sqrt(m_fFoodSquareRadius[i]);
+         Real added_x = m_pcRNG->Uniform(CRange<Real>(radius, radius + 0.10));
+         Real added_y = m_pcRNG->Uniform(CRange<Real>(radius, radius + 0.10));
+         if (sign_x == 0)
+         {
+            added_x = -added_x;
+         }
+         if (sign_y == 0)
+         {
+            added_y = -added_y;
+         }
+         Position = CVector3(m_cFoodPos[i].GetX() + added_x , m_cFoodPos[i].GetY() + added_y, 0.0);
+#ifdef PRINTING
+         std::cout << "Positioning agent with software_neighbourhood fault" << std::endl;
+         std::cout << "Food position is " << m_cFoodPos[i] << std::endl;
+         std::cout << "Food radius is " << radius << std::endl;
+         std::cout << "Position1 " << Position << std::endl;
+#endif
+
+         Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
+                                     CRadians::ZERO,
+                                     CRadians::ZERO);
+         ++num_tries;
+      } while (!entity->MoveTo(
+          Position,    // to this position
+          Orientation, // with this orientation
+          false        // this is not a check, leave the robot there
+          ));
+   }
+   else
+   {
+      BaseLoopFunctions::try_robot_position(Position, Orientation, x_range, y_range, m_unRobot, num_tries);
    }
 }
+//    void CForagingLoopFunctions::reset_agent_positions()
+//    {
+
+//       for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
+//       {
+//          CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
+//          BaseController *cController = get_controller(m_unRobot);
+//          CPhysicsModel *model;
+//          CVector3 Position;
+//          CQuaternion Orientation;
+//          if (cController->b_damagedrobot)
+//          {
+//             if (cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE)
+//             {
+//                do
+//                {
+//                   Position = CVector3(nest_x, m_pcRNG->Uniform(CRange<Real>(0.3, 1.8)), 0.0f);
+// #ifdef PRINTING
+//                   std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
+// #endif
+
+//                   Orientation.FromEulerAngles(CRadians::PI_OVER_TWO, //orient the agent vertically
+//                                               CRadians::ZERO,
+//                                               CRadians::ZERO);
+//                } while (!entity->MoveTo(
+//                    Position,    // to this position
+//                    Orientation, // with this orientation
+//                    false        // this is not a check, leave the robot there
+//                    ));
+//             }
+//             else if (cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_FOOD)
+//             {
+//                // 1. randomly select a food
+//                size_t i = m_pcRNG->Uniform(CRange<int>(0, num_food));
+//                Position = CVector3(m_cFoodPos.GetX(), m_cFoodPos.GetY(), 0.0);
+//                // 2. check other agents not on the same location; the ones that are will be moved
+//                do
+//                {
+//                   Position = CVector3(m_cFoodPos, m_pcRNG->Uniform(CRange<Real>(0.3, 1.8)), 0.0f);
+// #ifdef PRINTING
+//                   std::cout << "Position1 " << Position << " trial " << m_unTrial << " time " << GetSpace().GetSimulationClock() << std::endl;
+// #endif
+
+//                   Orientation.FromEulerAngles(CRadians::PI_OVER_TWO, //orient the agent vertically
+//                                               CRadians::ZERO,
+//                                               CRadians::ZERO);
+//                } while (!entity->MoveTo(
+//                    Position,    // to this position
+//                    Orientation, // with this orientation
+//                    false        // this is not a check, leave the robot there
+//                    ));
+//             }
+//             else if (cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_NEIGHBOURHOOD)
+//             {
+//             }
+//          }
+//          else
+//          {
+
+//             if (!entity->MoveTo(
+//                     m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
+//                     m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
+//                     false                                                    // this is not a check, leave the robot there
+//                     ))
+//             {
+//                // std::cout << "trial" << m_unCurrentTrial << std::endl;
+//                // std::cout << "robot" << m_unRobot << std::endl;
+//                // std::cout<<"entity pos "<<entity->GetOriginAnchor().Position << std::endl;
+//                // std::cout<<"trial pos " <<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
+//             }
+//          }
+
+//          // std::cout<<"agent "<<m_unRobot<<std::endl;
+//          // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
+//          // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation<<std::endl;
+//          // for (size_t i=0; i < 4; ++i)
+//          // {
+//          //     try{
+//          //         model = &entity->GetPhysicsModel("dyn2d_"+std::to_string(i));
+//          //         //std::cout<<"Found the entity !"<<std::endl;
+//          //     }
+//          //     catch(argos::CARGoSException e){
+//          //         continue;
+//          //     }
+//          // }
+
+//          old_pos[m_unRobot] = entity->GetOriginAnchor().Position;
+//          curr_pos[m_unRobot] = old_pos[m_unRobot];
+//          CRadians zAngle = get_orientation(m_unRobot);
+//          curr_theta[m_unRobot] = zAngle;
+//          old_theta[m_unRobot] = zAngle;
+//       }
+//    }
 
 /****************************************/
 /****************************************/
@@ -151,21 +289,18 @@ void CForagingLoopFunctions::PostStep()
     * Each robot can carry only one food item per time
     */
    /* Check whether a robot is on a food item */
-   CSpace::TMapPerType &m_thymios = GetSpace().GetEntitiesByType("Thymio");
-   size_t j = 0;
-   for (CSpace::TMapPerType::iterator it = m_thymios.begin(); it != m_thymios.end(); ++it)
+   for (size_t j=0; j < m_unNumberRobots; ++j)
    {
 
       /* Get handle to foot-bot entity and controller */
-      argos::CThymioEntity &cThym = *any_cast<argos::CThymioEntity *>(it->second);
-      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym.GetControllableEntity().GetController());
+      argos::CThymioEntity* cThym = m_pcvecRobot[j];
+      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
       /* Get the position of the foot-bot on the ground as a CVector2 */
       CVector2 cPos;
-      cPos.Set(cThym.GetEmbodiedEntity().GetOriginAnchor().Position.GetX(),
-               cThym.GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
-      /* Get food data */
-      //CFootBotForaging::SFoodData &sFoodData = cController.GetFoodData();
-      /* The foot-bot has a food item */
+      cPos.Set(cThym->GetEmbodiedEntity().GetOriginAnchor().Position.GetX(),
+               cThym->GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
+
+      /* The thymio has a food item and does not drop it due to software fault*/
       if (cController.holdingFood)
       {
          /* Check whether the foot-bot is in the nest */
@@ -176,7 +311,7 @@ void CForagingLoopFunctions::PostStep()
             /* Increase the food count */
             fitfun->fitness_per_trial[m_unCurrentTrial]++;
 #ifdef PRINTING
-            std::cout << "thymio" << j << " dropped off food. Total collected: " << fitfun->fitness_per_trial[m_unCurrentTrial] << std::endl;
+            std::cout << cThym->GetId() << " dropped off food. Total collected: " << fitfun->fitness_per_trial[m_unCurrentTrial] << std::endl;
 #endif
             /* The floor texture must be updated */
             m_pcFloor->SetChanged();
@@ -194,11 +329,21 @@ void CForagingLoopFunctions::PostStep()
             {
                if (m_cVisitedFood[i] == 0 && (cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius[i])
                {
-                  /* If so, we move that item out of sight */
-                  //m_cFoodPos[i].Set(100.0f, 100.f);
-                  /* The foot-bot is now carrying an item */
-                  /* The thymio is now carrying an item */
-                  cController.holdingFood = true;
+                  /* The thymio is now carrying an item, unless it did not pick it up due to software failure */
+                  if (cController.b_damagedrobot && cController.FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_FOOD)
+                  {
+                     cController.holdingFood = false;
+#ifdef PRINTING
+                     std::cout << cThym->GetId() << " could not pick up food due to software_food fault " << std::endl;
+#endif
+                  }
+                  else
+                  {
+                     cController.holdingFood = true;
+#ifdef PRINTING
+                     std::cout << cThym->GetId() << " is now holding food " << std::endl;
+#endif
+                  }
                   /* the food has now been visited */
                   m_cVisitedFood[i] = HARVEST_TIME;
                   /* The floor texture must be updated */
@@ -207,14 +352,13 @@ void CForagingLoopFunctions::PostStep()
 //m_pcFloor->SetChanged();
 /* We are done */
 #ifdef PRINTING
-                  std::cout << "thymio" << j << " picked up food item " << i << " from location " << m_cFoodPos[i] << std::endl;
+                  std::cout << cThym->GetId() << " picked up food item " << i << " from location " << m_cFoodPos[i] << std::endl;
 #endif
                   bDone = true;
                }
             }
          }
       }
-      ++j;
    }
    for (size_t f = 0; f < num_food; ++f)
    {

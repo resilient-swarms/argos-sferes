@@ -121,11 +121,20 @@ void BaseController::process_faultbehaviour(std::string errorbehav)
 {
 
     if (errorbehav.compare("FAULT_NONE") == 0)
-    {    FBehavior = FAULT_NONE;
+    {
+        FBehavior = FAULT_NONE;
     }
-    else if(errorbehav.compare("FAULT_SOFTWARE") == 0)
+    else if (errorbehav.compare("FAULT_SOFTWARE") == 0)
     {
         FBehavior = FAULT_SOFTWARE;
+    }
+    else if (errorbehav.compare("FAULT_SOFTWARE_FOOD") == 0)
+    {
+        FBehavior = FAULT_SOFTWARE_FOOD;
+    }
+    else if (errorbehav.compare("FAULT_SOFTWARE_NEIGHBOURHOOD") == 0)
+    {
+        FBehavior = FAULT_SOFTWARE_NEIGHBOURHOOD;
     }
     // these are not supported yet for the NN controller
     // else if  (errorbehav.compare("FAULT_STRAIGHTLINE") == 0)
@@ -212,13 +221,18 @@ void BaseController::damage_actuators()
     }
     else if (FBehavior == FaultBehavior::FAULT_SOFTWARE)
     {
-        float r = m_pcRNG->Uniform(CRange<Real>(0.0,1.0));
-        if ( r < 0.05)
+        float r = m_pcRNG->Uniform(CRange<Real>(0.0, 1.0));
+        if (r < 0.05)
         {
-            software_sign*=-1.0f;
+            software_sign *= -1.0f;
         }
         m_fLeftSpeed = software_sign * m_sWheelTurningParams.MaxSpeed;
         m_fRightSpeed = software_sign * m_sWheelTurningParams.MaxSpeed;
+    }
+    else if (FBehavior == FaultBehavior::FAULT_SOFTWARE_FOOD || FBehavior == FaultBehavior::FAULT_SOFTWARE_NEIGHBOURHOOD)
+    {
+        m_fLeftSpeed = 0.0f;
+        m_fRightSpeed = 0.0f;
     }
     else
     {
