@@ -44,7 +44,9 @@ struct Params
 
     struct kernel_maternfivehalves : public defaults::kernel_maternfivehalves
     {
-        BO_PARAM(double, l, 1.5);// smoothness of the function; 1.5 is a setting used scikit learn https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.kernels.Matern.html
+        BO_PARAM(double, l, 0.4);// smoothness of the function; 
+        // 0.4 is used in IT&E
+        //1.5 is a setting used scikit learn https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.kernels.Matern.html
     };
 
     struct stop_maxiterations : public defaults::stop_maxiterations
@@ -60,7 +62,7 @@ struct Params
 
     struct acqui_ucb : public defaults::acqui_ucb
     {
-        BO_PARAM(double, alpha, 0.2);
+        BO_PARAM(double, alpha, 0.05);
     };
 
     struct archiveparams
@@ -179,7 +181,7 @@ struct ControllerEval
         sum_fitness /= (float)global::argossim_config_name.size();
 
         std::cout << "fit was : " << Params::archiveparams::archive[key].fit << std::endl;
-        Params::archiveparams::archive[key].fit = sum_fitness;//only way our Mean function is updated
+        //Params::archiveparams::archive[key].fit = sum_fitness;//only way our Mean function is updated
         std::cout << "fit is now : " << sum_fitness << std::endl;
         /*std::vector<double> ctrl = Params::archiveparams::archive.at(key).controller;
         hexapod_dart::HexapodDARTSimu<> simu(ctrl, global::global_robot->clone());
