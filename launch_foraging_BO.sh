@@ -3,7 +3,7 @@
 #one: data-dir
 
 data=$1
-export Generation=18000
+export Generation=20000
 
 echo "doing generation ${Generation}"
 sleep 2.5
@@ -61,10 +61,11 @@ declare -A faultnum
 
 faultnum["sensor"]=30
 faultnum["actuator"]=20
-faultnum["software"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
+faultnum["software"]=6      # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
+faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["agents"]=12  # {1,2,...,12} agents included
 
-for FaultCategory in sensor actuator software agents; do
+for FaultCategory in sensor actuator software software_food agents; do
     numfaults=${faultnum[${FaultCategory}]}
     for FaultIndex in $(seq 1 ${numfaults}); do
         for key in ${!descriptors[@]}; do
@@ -96,63 +97,82 @@ for FaultCategory in sensor actuator software agents; do
 
                 # look at archive dir at previous perturbation results; config is at FAULT_NONE
                 FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}p${FaultIndex}.txt"
-                ConfigFolder=${Base}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}
-                mkdir -p ${ConfigFolder}
-                ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
-                export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
-                export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
-                Outfolder=${ConfigFolder}/results${SUFFIX}
-                rm -rf ${Outfolder}/BO_output
-                rm ${Outfolder}/fitness
-                mkdir -p $Outfolder
-                echo "config ${ConfigFile}"
-                touch ${ConfigFile}
-                if [  "$FaultCategory" = "agents" ]; then
+                food_loop="-1"
+                if [ "$FaultCategory" = "agents" ]; then
                     robots=$FaultIndex
                     fault=FAULT_NONE
                     FaultID=-1
                 elif [ "$FaultCategory" = "software" ]; then
                     robots=6
                     fault=FAULT_SOFTWARE
-                    FaultID=$FaultIndex
+                    FaultID=$(($FaultIndex - 1))
+                elif [ "$FaultCategory" = "software_food" ]; then
+                    robots=6
+                    fault=FAULT_SOFTWARE_FOOD
+                    food_loop="0 1 2 3 4"
+                    FaultID=$(($FaultIndex - 1))
                 else
                     robots=6
                     fault=$FaultType
                     FaultID=-1
                 fi
-                sed -e "s|THREADS|0|" \
-                    -e "s|TRIALS|8|" \
-                    -e "s|ROBOTS|${robots}|" \
-                    -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
-                    -e "s|SEED|${Replicates}|" \
-                    -e "s|FITFUN_TYPE|${FitfunType}|" \
-                    -e "s|DESCRIPTOR_TYPE|${DescriptorType}|" \
-                    -e "s|OUTPUTFOLDER|${Outfolder}|" \
-                    -e "s|CENTROIDSFOLDER|experiments/centroids|" \
-                    -e "s|SENSOR_RANGE|0.11|" \
-                    -e "s|NOISE_LEVEL|0.05|" \
-                    -e "s|GROUND_NOISE|20|" \
-                    -e "s|BEHAVIOUR_TAG|${tag}|" \
-                    -e "s|FAULT_TYPE|${fault}|" \
-                    -e "s|FAULT_ID|${FaultID}|" \
-                    -e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
-                    experiments/harvesting/harvesting_template.argos \
-                    >${ConfigFile}
 
-               
-                if [ ! -z "${CVT}" ]; then
-                    echo ${CVT}
-                fi
+                echo "fault ${fault}   robots ${robots}  FaultID  $FaultID "
+                for food in ${food_loop}; do
+                    echo "doing food ${food}"
+                    if [ "${food}" != "-1" ];then
+                        food_nr_filename=$(( ${food} + 1 ))
+                        food_tag="f${food_nr_filename}"
+                        echo "food tag ${food_tag}"
+                    else
+                        food_tag=""
+                        echo "food tag empty"
+                    fi
+                    ConfigFolder=${Base}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}
+                    mkdir -p ${ConfigFolder}
+                    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
+                    export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
+                    export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
+                    Outfolder=${ConfigFolder}/results${SUFFIX}
+                    rm -rf ${Outfolder}/BO_output
+                    rm ${Outfolder}/fitness
+                    mkdir -p $Outfolder
+                    echo "config ${ConfigFile}"
+                    touch ${ConfigFile}
+                    sed -e "s|THREADS|0|" \
+                        -e "s|TRIALS|8|" \
+                        -e "s|ROBOTS|${robots}|" \
+                        -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
+                        -e "s|SEED|${Replicates}|" \
+                        -e "s|FITFUN_TYPE|${FitfunType}|" \
+                        -e "s|DESCRIPTOR_TYPE|${DescriptorType}|" \
+                        -e "s|OUTPUTFOLDER|${Outfolder}|" \
+                        -e "s|CENTROIDSFOLDER|experiments/centroids|" \
+                        -e "s|SENSOR_RANGE|0.11|" \
+                        -e "s|NOISE_LEVEL|0.05|" \
+                        -e "s|GROUND_NOISE|20|" \
+                        -e "s|BEHAVIOUR_TAG|${tag}|" \
+                        -e "s|FAULT_TYPE|${fault}|" \
+                        -e "s|FAULT_ID|${FaultID}|" \
+                        -e "s|FOOD_ID|${food}|" \
+                        -e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
+                        experiments/harvesting/harvesting_template.argos \
+                        >${ConfigFile}
 
-                # Call ARGoS
-                export COMMAND=${command}${tag}
-                export BO_OutputFolder=${Outfolder}/BO_output
-                export ArchiveFolder=${ArchiveDir}
-                export BO_Executable=${bo_executable}${tag}
-                export ConfigFile
+                    if [ ! -z "${CVT}" ]; then
+                        echo ${CVT}
+                    fi
 
+                    # Call ARGoS
+                    export COMMAND=${command}${tag}
+                    export BO_OutputFolder=${Outfolder}/BO_output
+                    export ArchiveFolder=${ArchiveDir}
+                    export BO_Executable=${bo_executable}${tag}
+                    export ConfigFile
 
-                bash submit_ite.sh
+                    echo "submitting ite job"
+                    sbatch submit_ite.sh
+                done
             done
         done
     done

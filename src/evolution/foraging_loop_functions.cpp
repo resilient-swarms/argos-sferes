@@ -66,7 +66,7 @@ void CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion 
 {
 
    CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
-   BaseController *cController = get_controller(m_unRobot);
+   ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN*>(get_controller(m_unRobot));
    if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE)
    {
       do
@@ -93,8 +93,8 @@ void CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion 
 
       do
       {
-         // randomly select a food location
-         int i = m_pcRNG->Uniform(CRange<int>(0, num_food));
+         // select a food location
+         int i = cController->foodID;
          Position = CVector3(m_cFoodPos[i].GetX(), m_cFoodPos[i].GetY(), 0.0);
 #ifdef PRINTING
          std::cout << "Positioning agent with software_food fault" << std::endl;
@@ -116,8 +116,8 @@ void CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion 
    {
       do
       {
-         // randomly select a food location
-         int i = m_pcRNG->Uniform(CRange<int>(0, num_food));
+         // select a food location
+         int i = cController->foodID;
          // randomly add or subtract a number in (radius, radius + 0.10) for X and Y
          int sign_x = m_pcRNG->Uniform(CRange<int>(0, 2));
          int sign_y = m_pcRNG->Uniform(CRange<int>(0, 2));

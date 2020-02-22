@@ -556,7 +556,7 @@ void BaseController::init_fault_config(TConfigurationNode &t_node)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing type of experiment to run, and fault to simulate.", ex);
     }
-
+    
     process_faultbehaviour(errorbehav);
 
     if (this->GetId().compare("thymio" + id_FaultyRobotInSwarm) == 0) //process by ID

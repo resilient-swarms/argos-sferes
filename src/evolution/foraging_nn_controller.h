@@ -26,7 +26,8 @@
 class ForagingThymioNN : public BaseController {
 
 public:
-    bool  holdingFood=false;
+   bool  holdingFood=false;
+   int foodID=-1;// index used to track the "SOFTWARE_FOOD" fault
    ForagingThymioNN();
    virtual ~ForagingThymioNN();
 
@@ -34,6 +35,7 @@ public:
    virtual void Reset() {holdingFood=false;};
    virtual void Destroy(){};
    virtual void init_sensact(argos::TConfigurationNode& t_node);
+   virtual void init_fault_config(TConfigurationNode &t_node);
    void init_network();
     std::vector<Real> GetNormalizedSensorReadings();
 

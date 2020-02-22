@@ -30,7 +30,9 @@
       <wheel_turning max_speed="10" />
       <experiment_run swarm_behavior="SWARM_BEHAV"
 			fault_behavior="FAULT_TYPE" 
-	                id_faulty_robot="FAULT_ID" />
+	                id_faulty_robot="FAULT_ID"
+			id_food_source="FOOD_ID"
+     />
         
       </params>  
       </foraging_nn_controller>
