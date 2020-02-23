@@ -227,7 +227,7 @@ for FaultCategory in software_food; do
                             bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
                         else
                             echo "submit test"
-                            bash submit_test.sh $2 # submit to iridis
+                            sbatch submit_test.sh $2 # submit to iridis
                         fi
                     fi
                 done
