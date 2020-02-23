@@ -10,7 +10,7 @@
 
 using namespace limbo;
 
-const size_t max_trials = 15;
+const size_t max_trials = 20;
 
 namespace global
 {
@@ -39,7 +39,7 @@ struct Params
     // no noise
     struct kernel : public defaults::kernel
     {
-        BO_PARAM(double, noise, 1e-10);
+        BO_PARAM(double, noise, 1e-3); // 0.001 is used in IT&E
     };
 
     struct kernel_maternfivehalves : public defaults::kernel_maternfivehalves
