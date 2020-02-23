@@ -60,7 +60,7 @@ BaseController *BaseLoopFunctions::get_controller(size_t robot)
 {
     return dynamic_cast<BaseController *>(&m_pcvecRobot[robot]->GetControllableEntity().GetController());
 }
-void BaseLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries)
+bool BaseLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries)
 {
     Position = CVector3(m_pcRNG->Uniform(x_range), m_pcRNG->Uniform(y_range), 0.0f);
     Orientation.FromEulerAngles(m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE),
@@ -85,6 +85,7 @@ void BaseLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion &Orie
         }
         ++num_tries;
     }
+    return true;
 }
 std::vector<size_t> BaseLoopFunctions::priority_robotplacement()
 {
@@ -100,21 +101,33 @@ std::vector<size_t> BaseLoopFunctions::priority_robotplacement()
 void BaseLoopFunctions::robot_trial_setup(size_t m_unTrial, const CRange<Real> x_range, const CRange<Real> y_range, size_t &num_tries)
 {
     std::vector<size_t> robots = priority_robotplacement();
-    for (size_t m_unRobot : robots)
-    {
 
-        CVector3 Position;
-        CQuaternion Orientation;
-        try_robot_position(Position, Orientation, x_range, y_range, m_unRobot, num_tries);
+    size_t num_additional_tries;
+    bool failed;
+    do
+    {
+        num_additional_tries = 0;
+        failed = false; // continue placing until no failure
+        for (size_t m_unRobot : robots)
+        {
+
+            CVector3 Position;
+            CQuaternion Orientation;
+            if (!try_robot_position(Position, Orientation, x_range, y_range, m_unRobot, num_additional_tries))
+            {
+                failed = true; // continue placing since new agents will have different positions
+            }
 #ifdef PRINTING
-        std::cout << "Successful placement of robot " << m_unRobot << " at trial "<<m_unTrial << std::endl;
-        std::cout << "Position1 " << Position << std::endl;
+            std::cout << "Successful placement of robot " << m_unRobot << " at trial " << m_unTrial << std::endl;
+            std::cout << "Position1 " << Position << std::endl;
 #endif
-        m_vecInitSetup[m_unTrial][m_unRobot].Position = Position;
-        m_vecInitSetup[m_unTrial][m_unRobot].Orientation = Orientation;
-        // std::cout << Position << std::endl;
-        // std::cout << Orientation << std::endl;
-    }
+            m_vecInitSetup[m_unTrial][m_unRobot].Position = Position;
+            m_vecInitSetup[m_unTrial][m_unRobot].Orientation = Orientation;
+            // std::cout << Position << std::endl;
+            // std::cout << Orientation << std::endl;
+        }
+    } while (failed);
+    num_tries += num_additional_tries;
 }
 void BaseLoopFunctions::place_robots()
 {
@@ -410,47 +423,62 @@ void BaseLoopFunctions::adjust_number_cylinders()
     }
 }
 
-void BaseLoopFunctions::reset_agent_positions()
+void BaseLoopFunctions::reset_agent_positions(bool force)
 {
-
-    for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
+    bool failure;
+    size_t num_failures = 0;
+    do
     {
-        CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
-
-        CPhysicsModel *model;
-        //model = &entity->GetPhysicsModel("dyn2d_0");
-        //model->UpdateEntityStatus();
-        if (!entity->MoveTo(
-                m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
-                m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
-                false                                                    // this is not a check, leave the robot there
-                ))
+        failure = false;
+        for (size_t m_unRobot = 0; m_unRobot < m_unNumberRobots; ++m_unRobot)
         {
-            // std::cout << "trial" << m_unCurrentTrial << std::endl;
-            // std::cout << "robot" << m_unRobot << std::endl;
-            // std::cout<<"entity pos "<<entity->GetOriginAnchor().Position << std::endl;
-            // std::cout<<"trial pos " <<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
-        }
-        // std::cout<<"agent "<<m_unRobot<<std::endl;
-        // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
-        // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation<<std::endl;
-        // for (size_t i=0; i < 4; ++i)
-        // {
-        //     try{
-        //         model = &entity->GetPhysicsModel("dyn2d_"+std::to_string(i));
-        //         //std::cout<<"Found the entity !"<<std::endl;
-        //     }
-        //     catch(argos::CARGoSException e){
-        //         continue;
-        //     }
-        // }
+            CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
 
-        old_pos[m_unRobot] = entity->GetOriginAnchor().Position;
-        curr_pos[m_unRobot] = old_pos[m_unRobot];
-        CRadians zAngle = get_orientation(m_unRobot);
-        curr_theta[m_unRobot] = zAngle;
-        old_theta[m_unRobot] = zAngle;
-    }
+            CPhysicsModel *model;
+            //model = &entity->GetPhysicsModel("dyn2d_0");
+            //model->UpdateEntityStatus();
+            if (!entity->MoveTo(
+                    m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position,    // to this position
+                    m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation, // with this orientation
+                    false                                                    // this is not a check, leave the robot there
+                    ))
+            {
+                if (force)
+                {
+                    failure = true;
+                    std::cout << "failure to reset agent positions; will try again" << std::endl;
+                }
+                // std::cout << "trial" << m_unCurrentTrial << std::endl;
+                // std::cout << "robot" << m_unRobot << std::endl;
+                // std::cout<<"entity pos "<<entity->GetOriginAnchor().Position << std::endl;
+                // std::cout<<"trial pos " <<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
+            }
+            // std::cout<<"agent "<<m_unRobot<<std::endl;
+            // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Position<<std::endl;
+            // std::cout<<m_vecInitSetup[m_unCurrentTrial][m_unRobot].Orientation<<std::endl;
+            // for (size_t i=0; i < 4; ++i)
+            // {
+            //     try{
+            //         model = &entity->GetPhysicsModel("dyn2d_"+std::to_string(i));
+            //         //std::cout<<"Found the entity !"<<std::endl;
+            //     }
+            //     catch(argos::CARGoSException e){
+            //         continue;
+            //     }
+            // }
+
+            old_pos[m_unRobot] = entity->GetOriginAnchor().Position;
+            curr_pos[m_unRobot] = old_pos[m_unRobot];
+            CRadians zAngle = get_orientation(m_unRobot);
+            curr_theta[m_unRobot] = zAngle;
+            old_theta[m_unRobot] = zAngle;
+        }
+        ++num_failures;
+        if (num_failures > m_unNumberRobots)
+        {
+            throw std::runtime_error("failed to reset agent positions");
+        }
+    } while (failure);
 
     // for (size_t i=0; i < 4; ++i)
     // {

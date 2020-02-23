@@ -171,7 +171,7 @@ for FaultCategory in sensor actuator software software_food agents; do
                     export ConfigFile
 
                     echo "submitting ite job"
-                    sbatch submit_ite.sh
+                    bash submit_ite.sh
                 done
             done
         done

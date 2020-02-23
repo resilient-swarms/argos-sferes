@@ -25,7 +25,9 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 void CForagingLoopFunctions::Reset()
 {
 
-   BaseEvolutionLoopFunctions::Reset();
+   //BaseEvolutionLoopFunctions::Reset();
+   reset_agent_positions(forcePositions);//force the positions (unlike BaseEvol/Base LoopFunctions::Reset)
+   reset_cylinder_positions();
 
    m_cVisitedFood.clear();
    for (size_t i = 0; i < m_cFoodPos.size(); i++)
@@ -34,10 +36,10 @@ void CForagingLoopFunctions::Reset()
    }
    numfoodCollected = 0;
 
-   for (size_t i=0; i < m_unNumberRobots; ++i)
+   for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
       /* Get handle to foot-bot entity and controller */
-      argos::CThymioEntity* cThym = m_pcvecRobot[i];
+      argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
       cController.holdingFood = false;
    }
@@ -62,13 +64,14 @@ std::vector<size_t> CForagingLoopFunctions::priority_robotplacement()
    return indices;
 }
 
-void CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries)
+bool CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries)
 {
 
    CEmbodiedEntity *entity = get_embodied_entity(m_unRobot);
-   ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN*>(get_controller(m_unRobot));
+   ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN *>(get_controller(m_unRobot));
    if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE)
    {
+      forcePositions=true;
       do
       {
          Position = CVector3(nest_x, m_pcRNG->Uniform(CRange<Real>(0.3, 1.8)), 0.0f);
@@ -82,15 +85,22 @@ void CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion 
                                      CRadians::ZERO,
                                      CRadians::ZERO);
          ++num_tries;
+         if (num_tries > 1000)
+         {
+            std::cout << "could not initialise controller at food item " << std::endl;
+            return false;
+         }
       } while (!entity->MoveTo(
           Position,    // to this position
           Orientation, // with this orientation
           false        // this is not a check, leave the robot there
           ));
+      return true;
    }
    else if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_FOOD)
    {
-
+      forcePositions=true;
+      bool success = true;
       do
       {
          // select a food location
@@ -106,14 +116,23 @@ void CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion 
                                      CRadians::ZERO,
                                      CRadians::ZERO);
          ++num_tries;
+         if (num_tries > 1000)
+         {
+            std::cout << "could not initialise controller at food item " << std::endl;
+            return false;
+         }
       } while (!entity->MoveTo(
           Position,    // to this position
           Orientation, // with this orientation
           false        // this is not a check, leave the robot there
           ));
+      
+      std::cout << "successfully initialised at food item " << std::endl;
+      return true;
    }
    else if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_NEIGHBOURHOOD)
    {
+      forcePositions=true;
       do
       {
          // select a food location
@@ -132,7 +151,7 @@ void CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion 
          {
             added_y = -added_y;
          }
-         Position = CVector3(m_cFoodPos[i].GetX() + added_x , m_cFoodPos[i].GetY() + added_y, 0.0);
+         Position = CVector3(m_cFoodPos[i].GetX() + added_x, m_cFoodPos[i].GetY() + added_y, 0.0);
 #ifdef PRINTING
          std::cout << "Positioning agent with software_neighbourhood fault" << std::endl;
          std::cout << "Food position is " << m_cFoodPos[i] << std::endl;
@@ -144,15 +163,22 @@ void CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion 
                                      CRadians::ZERO,
                                      CRadians::ZERO);
          ++num_tries;
+         if (num_tries > 1000)
+         {
+            std::cout << "could not initialise controller around food item " << std::endl;
+            return false;
+         }
       } while (!entity->MoveTo(
           Position,    // to this position
           Orientation, // with this orientation
           false        // this is not a check, leave the robot there
           ));
+      std::cout << "successfully initialised around food item " << std::endl;
+      return true;
    }
    else
    {
-      BaseLoopFunctions::try_robot_position(Position, Orientation, x_range, y_range, m_unRobot, num_tries);
+      return BaseLoopFunctions::try_robot_position(Position, Orientation, x_range, y_range, m_unRobot, num_tries);
    }
 }
 //    void CForagingLoopFunctions::reset_agent_positions()
@@ -289,11 +315,11 @@ void CForagingLoopFunctions::PostStep()
     * Each robot can carry only one food item per time
     */
    /* Check whether a robot is on a food item */
-   for (size_t j=0; j < m_unNumberRobots; ++j)
+   for (size_t j = 0; j < m_unNumberRobots; ++j)
    {
 
       /* Get handle to foot-bot entity and controller */
-      argos::CThymioEntity* cThym = m_pcvecRobot[j];
+      argos::CThymioEntity *cThym = m_pcvecRobot[j];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
       /* Get the position of the foot-bot on the ground as a CVector2 */
       CVector2 cPos;

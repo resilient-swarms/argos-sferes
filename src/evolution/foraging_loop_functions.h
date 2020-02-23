@@ -23,6 +23,7 @@ public:
         CVector2(1.6, 1.70)
 
     };
+    bool forcePositions=false;
     std::vector<int> m_cVisitedFood = {}; // how much time steps left until harvestable
     std::vector<bool> m_bRobotsHoldingFood = {};
     size_t numfoodCollected = 0;
@@ -35,7 +36,7 @@ public:
     virtual CColor GetFloorColor(const CVector2 &c_position_on_plane);
     virtual void PostStep();
 
-    virtual void try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
+    virtual bool try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
     virtual std::vector<size_t> priority_robotplacement();
 };
 

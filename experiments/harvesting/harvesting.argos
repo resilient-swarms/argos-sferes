@@ -8,7 +8,7 @@
     <system threads="0" />
     <experiment length="120"
                 ticks_per_second="5"
-                random_seed="2" />
+                random_seed="1" />
   </framework>
 
   <!-- *************** -->
@@ -29,9 +29,9 @@
       <params>
         <wheel_turning max_speed="10"/>
  	<experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_SOFTWARE_FOOD" 
-	                id_faulty_robot="5" 
-			id_food_source="2"
+			fault_behavior="FAULT_NONE" 
+	                id_faulty_robot="-1" 
+			id_food_source="-1"
 	/>
         
       </params>      
@@ -106,9 +106,9 @@
  <!-- ****************** -->
 
    <visualization>
- <qt-opengl>
+  <!--<qt-opengl>
         <user_functions label="robotid_vis" />
-    </qt-opengl>
+    </qt-opengl>  -->
   </visualization>
 
  

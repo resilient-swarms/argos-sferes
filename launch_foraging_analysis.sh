@@ -62,7 +62,7 @@ faultnum["software"]=6      # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["agents"]=12       # {1,2,...,12} agents included
 
-for FaultCategory in sensor actuator software software_food agents; do
+for FaultCategory in software_food; do
     numfaults=${faultnum[${FaultCategory}]}
     for FaultIndex in $(seq 1 ${numfaults}); do
         for key in ${!descriptors[@]}; do
@@ -106,7 +106,7 @@ for FaultCategory in sensor actuator software software_food agents; do
                 elif [ "$FaultCategory" = "software_food" ]; then
                     robots=6
                     fault=FAULT_SOFTWARE_FOOD
-                    food_loop="0 1 2 3 4"
+                    food_loop="0"
                     FaultID=$(($FaultIndex - 1))
                 else
                     robots=6
@@ -162,7 +162,7 @@ for FaultCategory in sensor actuator software software_food agents; do
                         export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
                         Outfolder=${ConfigFolder}/results${SUFFIX}
                     fi
-
+                    mkdir -p $Outfolder
                     echo "config ${ConfigFile}"
                     touch ${ConfigFile}
                     sed -e "s|THREADS|0|" \
@@ -227,7 +227,7 @@ for FaultCategory in sensor actuator software software_food agents; do
                             bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
                         else
                             echo "submit test"
-                            sbatch submit_test.sh $2 # submit to iridis
+                            bash submit_test.sh $2 # submit to iridis
                         fi
                     fi
                 done

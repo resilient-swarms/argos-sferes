@@ -59,7 +59,7 @@ public:
 
     /* place robots on initial positions */
     void place_robots();
-    virtual void try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
+    virtual bool try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
     virtual std::vector<size_t> priority_robotplacement();
     void robot_trial_setup(size_t m_unTrial, const CRange<Real> x_range, const CRange<Real> y_range,size_t& num_tries);
 
@@ -161,7 +161,7 @@ public:
     void adjust_number_cylinders();
 
     /* put the agents on the initvecs */
-    virtual void reset_agent_positions();
+    virtual void reset_agent_positions(bool force=false);
 
     /* put the cylinders on the initvecs */
     void reset_cylinder_positions();
