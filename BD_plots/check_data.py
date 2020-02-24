@@ -78,9 +78,9 @@ def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturba
                         print("too much : "+str(too_much))
 
 def check_archives_complete_foraging(finalgen,datadir,descriptors,runs, translation):
-    sensor_perturbs = 29
-    actuator_perturbs = 19
-    software_perturbs = 5
+    sensor_perturbs = 30
+    actuator_perturbs = 20
+    software_perturbs = 6
     num_food = 5
     max_num_agents = 11
 
@@ -113,21 +113,23 @@ def check_archives_complete_foraging(finalgen,datadir,descriptors,runs, translat
                     file_length3=0
                 if file_length!=file_length3:
                     print(perturbed)
+                    print("file length not the same")
+
                 missing =  U_list - P_list
                 if missing:
                     # find missing individuals
-                    print(perturbed)
                     print("missing : " + str(missing))
                 too_much = P_list - U_list
                 if too_much:
-                    print(perturbed)
                     print("too much : "+str(too_much))
+                if not missing and not too_much and file_length!=file_length3:
+                    print("must have duplicates")
 def check_BO_complete_foraging(datadir,descriptors,runs):
-    sensor_perturbs = 29
-    actuator_perturbs = 19
-    software_perturbs = 5
+    sensor_perturbs = 30
+    actuator_perturbs = 20
+    software_perturbs = 6
     num_food = 5
-    max_num_agents = 11
+    max_num_agents = 12
 
     sensor_perturbations = ["sensorp" + str(i) for i in range(1, sensor_perturbs + 1)]
     actuator_perturbations = ["actuatorp" + str(i) for i in range(1, actuator_perturbs + 1)]
@@ -160,11 +162,11 @@ if __name__ == "__main__":
 
     check_archives_complete_foraging(20000,
                             "/home/david/Data",
-                            ["history","Gomes_sdbc_walls_and_robots_std"],
+                            ["Gomes_sdbc_walls_and_robots_std"],
                             range(1,6),
                             translation="handcrafted"
                             )
 
     check_BO_complete_foraging( "/home/david/Data",
-                            ["history","Gomes_sdbc_walls_and_robots_std"],
+                            ["Gomes_sdbc_walls_and_robots_std"],
                             range(1,6))
