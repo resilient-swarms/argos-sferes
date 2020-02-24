@@ -30,14 +30,14 @@ command="bin/ite_swarms_"
 bo_executable="bin/"
 # note: cvt and 10D does not really matter since we are not evolving
 
-#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
 #descriptors["environment_diversity"]=6
 #voronoi["environment_diversity"]=""
 
-descriptors["history"]=3
-voronoi["history"]=""
+#descriptors["history"]=3
+#voronoi["history"]=""
 
 #descriptors["cvt_rab_spirit"]=1024
 #voronoi["cvt_rab_spirit"]="cvt"
