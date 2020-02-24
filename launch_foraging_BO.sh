@@ -36,8 +36,8 @@ voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 #descriptors["environment_diversity"]=6
 #voronoi["environment_diversity"]=""
 
-#descriptors["history"]=3
-#voronoi["history"]=""
+descriptors["history"]=3
+voronoi["history"]=""
 
 #descriptors["cvt_rab_spirit"]=1024
 #voronoi["cvt_rab_spirit"]="cvt"
@@ -65,7 +65,7 @@ faultnum["software"]=6      # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["agents"]=12  # {1,2,...,12} agents included
 
-for FaultCategory in sensor actuator software software_food agents; do
+for FaultCategory in software software_food; do
     numfaults=${faultnum[${FaultCategory}]}
     for FaultIndex in $(seq 1 ${numfaults}); do
         for key in ${!descriptors[@]}; do

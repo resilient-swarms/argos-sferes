@@ -11,6 +11,8 @@ utilities to check:
 from os import path
 from process_archive_data import *
 
+from foraging_faults import *
+
 def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturbations,translation):
 
 
@@ -78,19 +80,7 @@ def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturba
                         print("too much : "+str(too_much))
 
 def check_archives_complete_foraging(finalgen,datadir,descriptors,runs, translation):
-    sensor_perturbs = 30
-    actuator_perturbs = 20
-    software_perturbs = 6
-    num_food = 5
-    max_num_agents = 11
 
-    sensor_perturbations = ["sensorp" + str(i) for i in range(1, sensor_perturbs + 1)]
-    actuator_perturbations = ["actuatorp" + str(i) for i in range(1, actuator_perturbs + 1)]
-    software_perturbations = ["softwarep" + str(i) for i in range(1, software_perturbs + 1)]
-    softwarefood_perturbations = ["software_foodp" + str(i) + "f" + str(f) for i in range(1, software_perturbs + 1) for
-                                  f in range(1, num_food + 1)]
-    agent_perturbations = ["agentsp" + str(i) for i in range(1, max_num_agents + 1)]
-    perturbations = sensor_perturbations + actuator_perturbations + software_perturbations + softwarefood_perturbations + agent_perturbations
     for desc in descriptors:
         print(desc)
         filename = datadir + "/Foraging/" +  desc
@@ -101,7 +91,7 @@ def check_archives_complete_foraging(finalgen,datadir,descriptors,runs, translat
 
             U_list = set(get_ind_performances_uniquearchive(unperturbed).keys())
 
-            for perturbation in perturbations:
+            for perturbation in foraging_perturbations:
 
                 perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/analysis"+str(finalgen)+"_"+translation+".dat"
                 try:
@@ -125,25 +115,14 @@ def check_archives_complete_foraging(finalgen,datadir,descriptors,runs, translat
                 if not missing and not too_much and file_length!=file_length3:
                     print("must have duplicates")
 def check_BO_complete_foraging(datadir,descriptors,runs):
-    sensor_perturbs = 30
-    actuator_perturbs = 20
-    software_perturbs = 6
-    num_food = 5
-    max_num_agents = 12
 
-    sensor_perturbations = ["sensorp" + str(i) for i in range(1, sensor_perturbs + 1)]
-    actuator_perturbations = ["actuatorp" + str(i) for i in range(1, actuator_perturbs + 1)]
-    software_perturbations = ["softwarep" + str(i) for i in range(1, software_perturbs + 1)]
-    softwarefood_perturbations = ["software_foodp" + str(i) + "f" + str(f) for i in range(1, software_perturbs + 1) for
-                                  f in range(1, num_food + 1)]
-    agent_perturbations = ["agentsp" + str(i) for i in range(1, max_num_agents + 1)]
-    perturbations = sensor_perturbations + actuator_perturbations + software_perturbations + softwarefood_perturbations + agent_perturbations
+
     for desc in descriptors:
         print(desc)
         filename = datadir + "/Foraging/" +  desc
         for run in runs:
 
-            for perturbation in perturbations:
+            for perturbation in foraging_perturbations:
 
                 perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/BO_output"
                 if not path.exists(perturbed):
@@ -162,11 +141,11 @@ if __name__ == "__main__":
 
     check_archives_complete_foraging(20000,
                             "/home/david/Data",
-                            ["Gomes_sdbc_walls_and_robots_std"],
+                            ["history","Gomes_sdbc_walls_and_robots_std"],
                             range(1,6),
                             translation="handcrafted"
                             )
 
     check_BO_complete_foraging( "/home/david/Data",
-                            ["Gomes_sdbc_walls_and_robots_std"],
+                            ["history","Gomes_sdbc_walls_and_robots_std"],
                             range(1,6))
