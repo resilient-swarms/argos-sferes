@@ -54,9 +54,9 @@ if __name__ == "__main__":
 
     num_agents=6
     for run in range(1, 6):
-        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "proximity_sensor", PROXIMITY_SENSOR_PERTURBATIONS, num_agents,
+        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_proximity_sensor", PROXIMITY_SENSOR_PERTURBATIONS, num_agents,
                        range(0, 20))
-        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "ground_sensor",
+        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_ground_sensor",
                        GROUND_SENSOR_PERTURBATIONS, num_agents,
                        range(0, 20))
         #write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_actuator", ACT_PERTURBATIONS, num_agents,
