@@ -57,12 +57,14 @@ perturbations_folder="experiments/harvesting/perturbations"
 declare -A faultnum
 
 faultnum["sensor"]=30
+faultnum["proximity_sensor"]=20
+faultnum["ground_sensor"]=20
 faultnum["actuator"]=20
 faultnum["software"]=6      # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["agents"]=12       # {1,2,...,12} agents included
 
-for FaultCategory in software_food; do
+for FaultCategory in proximity_sensor ground_sensor; do
     numfaults=${faultnum[${FaultCategory}]}
     for FaultIndex in $(seq 1 ${numfaults}); do
         for key in ${!descriptors[@]}; do
