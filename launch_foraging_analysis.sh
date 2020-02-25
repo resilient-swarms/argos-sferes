@@ -110,6 +110,11 @@ for FaultCategory in proximity_sensor ground_sensor; do
                     fault=FAULT_SOFTWARE_FOOD
                     food_loop="0"
                     FaultID=$(($FaultIndex - 1))
+                elif [ "$FaultCategory" = "food_scarcity" ]; then
+                    robots=6
+                    fault=FAULT_FOOD_SCARCITY
+                    food_loop="0 1 2 3 4"
+                    FaultID=$(($FaultIndex - 1))
                 else
                     robots=6
                     fault=$FaultType
@@ -120,7 +125,7 @@ for FaultCategory in proximity_sensor ground_sensor; do
                 for food in ${food_loop}; do
                     echo "doing food ${food}"
                     if [ "${food}" != "-1" ]; then
-                        food_nr_filename=$(( ${food} + 1 ))
+                        food_nr_filename=$((${food} + 1))
                         food_tag="f${food_nr_filename}"
                         echo "food tag ${food_tag}"
                     else

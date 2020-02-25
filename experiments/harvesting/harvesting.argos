@@ -29,9 +29,9 @@
       <params>
         <wheel_turning max_speed="10"/>
  	<experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_NONE" 
+			fault_behavior="FAULT_FOOD_SCARCITY" 
 	                id_faulty_robot="-1" 
-			id_food_source="-1"
+			id_food_source="0"
 	/>
         
       </params>      
@@ -106,9 +106,9 @@
  <!-- ****************** -->
 
    <visualization>
-  <!--<qt-opengl>
+ <qt-opengl>
         <user_functions label="robotid_vis" />
-    </qt-opengl>  -->
+    </qt-opengl> 
   </visualization>
 
  

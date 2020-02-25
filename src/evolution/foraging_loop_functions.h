@@ -12,9 +12,9 @@ public:
     const float nest_x = 0.32;
     const size_t num_food = 5;
     const int HARVEST_TIME = 50; // 50 time steps
-    const std::vector<float> m_fFoodSquareRadius = {
+    std::vector<float> m_fFoodSquareRadius = {
         0.10 * 0.10, 0.10 * 0.10, 0.20 * 0.20, 0.20 * 0.20, 0.30 * 0.30};
-    const std::vector<CVector2> m_cFoodPos = {
+    std::vector<CVector2> m_cFoodPos = {
 
         CVector2(0.80, 1.20),
         CVector2(0.80, 0.50),
@@ -38,6 +38,7 @@ public:
 
     virtual bool try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
     virtual std::vector<size_t> priority_robotplacement();
+    void food_scarcity();
 };
 
 #endif

@@ -21,10 +21,21 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 
 /****************************************/
 /****************************************/
-
+void CForagingLoopFunctions::food_scarcity()
+{
+   ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN *>(get_controller(0));// index 0 because any index will do
+   if (cController->FBehavior == BaseController::FaultBehavior::FAULT_FOOD_SCARCITY)
+   {
+      float rad = 0.040 * (float) (cController->foodID + 1);
+      m_fFoodSquareRadius = { rad*rad};// only one small food item
+      float food_x = m_pcRNG->Uniform(CRange<Real>(1.7, 1.85));// very far from nest_x but not against the border
+      float food_y = m_pcRNG->Uniform(CRange<Real>(0.3, 1.8));// y does not matter so much
+      m_cFoodPos = {CVector2(food_x, food_y)};
+   }
+}
 void CForagingLoopFunctions::Reset()
 {
-
+   food_scarcity();
    //BaseEvolutionLoopFunctions::Reset();
    reset_agent_positions(forcePositions);//force the positions (unlike BaseEvol/Base LoopFunctions::Reset)
    reset_cylinder_positions();

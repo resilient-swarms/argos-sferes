@@ -136,6 +136,11 @@ void BaseController::process_faultbehaviour(std::string errorbehav)
     {
         FBehavior = FAULT_SOFTWARE_NEIGHBOURHOOD;
     }
+    else if (errorbehav.compare("FAULT_FOOD_SCARCITY") == 0)
+    {
+        FBehavior = FAULT_FOOD_SCARCITY;
+    }
+
     // these are not supported yet for the NN controller
     // else if  (errorbehav.compare("FAULT_STRAIGHTLINE") == 0)
     //     FBehavior = FAULT_STRAIGHTLINE;

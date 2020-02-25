@@ -65,9 +65,10 @@ faultnum["ground_sensor"]=20
 faultnum["actuator"]=20
 faultnum["software"]=6      # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
-faultnum["agents"]=12  # {1,2,...,12} agents included
+faultnum["food_scarcity"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
+faultnum["agents"]=12       # {1,2,...,12} agents included
 
-for FaultCategory in proximity_sensor ground_sensor; do
+for FaultCategory in food_scarcity; do
     numfaults=${faultnum[${FaultCategory}]}
     for FaultIndex in $(seq 1 ${numfaults}); do
         for key in ${!descriptors[@]}; do
@@ -113,6 +114,11 @@ for FaultCategory in proximity_sensor ground_sensor; do
                     fault=FAULT_SOFTWARE_FOOD
                     food_loop="0 1 2 3 4"
                     FaultID=$(($FaultIndex - 1))
+                elif [ "$FaultCategory" = "food_scarcity" ]; then
+                    robots=6
+                    fault=FAULT_FOOD_SCARCITY
+                    food_loop="0 1 2 3 4"
+                    FaultID=$(($FaultIndex - 1))
                 else
                     robots=6
                     fault=$FaultType
@@ -122,8 +128,8 @@ for FaultCategory in proximity_sensor ground_sensor; do
                 echo "fault ${fault}   robots ${robots}  FaultID  $FaultID "
                 for food in ${food_loop}; do
                     echo "doing food ${food}"
-                    if [ "${food}" != "-1" ];then
-                        food_nr_filename=$(( ${food} + 1 ))
+                    if [ "${food}" != "-1" ]; then
+                        food_nr_filename=$((${food} + 1))
                         food_tag="f${food_nr_filename}"
                         echo "food tag ${food_tag}"
                     else
