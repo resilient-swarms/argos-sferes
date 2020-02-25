@@ -14,8 +14,8 @@ BASIC_PERTURBATIONS=["FAULT_NONE","FAULT_PROXIMITYSENSORS_SETMIN", "FAULT_PROXIM
                      "FAULT_RABSENSOR_SETOFFSET"]
 
 
-SENSOR_PERTURBATIONS=["FAULT_NONE","FAULT_PROXIMITYSENSORS_SETMIN", "FAULT_PROXIMITYSENSORS_SETMAX", "FAULT_PROXIMITYSENSORS_SETRANDOM",
-                      "FAULT_GROUNDSENSORS_SETMIN", "FAULT_GROUNDSENSORS_SETMAX", "FAULT_GROUNDSENSORS_SETRANDOM"]
+PROXIMITY_SENSOR_PERTURBATIONS=["FAULT_NONE","FAULT_PROXIMITYSENSORS_SETMIN", "FAULT_PROXIMITYSENSORS_SETMAX", "FAULT_PROXIMITYSENSORS_SETRANDOM"]
+GROUND_SENSOR_PERTURBATIONS=["FAULT_NONE","FAULT_GROUNDSENSORS_SETMIN", "FAULT_GROUNDSENSORS_SETMAX", "FAULT_GROUNDSENSORS_SETRANDOM"]
 ACT_PERTURBATIONS=["FAULT_NONE","FAULT_ACTUATOR_LWHEEL_SETHALF", "FAULT_ACTUATOR_RWHEEL_SETHALF", "FAULT_ACTUATOR_BWHEELS_SETHALF"]
 SOFTWARE_FAULTS=[]
 
@@ -54,12 +54,15 @@ if __name__ == "__main__":
 
     num_agents=6
     for run in range(1, 6):
-        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_sensor", SENSOR_PERTURBATIONS, num_agents,
-                       range(0, 30))
-        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_actuator", ACT_PERTURBATIONS, num_agents,
+        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "proximity_sensor", PROXIMITY_SENSOR_PERTURBATIONS, num_agents,
                        range(0, 20))
+        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "ground_sensor",
+                       GROUND_SENSOR_PERTURBATIONS, num_agents,
+                       range(0, 20))
+        #write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_actuator", ACT_PERTURBATIONS, num_agents,
+        #               range(0, 20))
 
-        software_faults(num_agents,home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_software")
+
 
 
 
