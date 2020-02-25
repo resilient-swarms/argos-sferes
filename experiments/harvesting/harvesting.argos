@@ -29,7 +29,7 @@
       <params>
         <wheel_turning max_speed="10"/>
  	<experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_FOOD_SCARCITY" 
+			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" 
 			id_food_source="0"
 	/>
