@@ -38,7 +38,7 @@ def random_combinations(N,num_agents):
 def write_superset(filename,basic_perturbations,num_agents,elements):
     N = len(basic_perturbations)
     for i in elements:
-        with open(filename+"p"+str(i)+".txt","w+") as f:
+        with open(filename+"p"+str(i+1)+".txt","w+") as f:
             indexes = random_combinations(N,num_agents)
             combined_perturbations=""
             for j in range(len(indexes) - 1):
