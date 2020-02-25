@@ -29,9 +29,9 @@
       <params>
         <wheel_turning max_speed="10"/>
  	<experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_NONE" 
+			fault_behavior="FILE:experiments/harvesting/perturbations/run1_ground_sensorp1.txt" 
 	                id_faulty_robot="-1" 
-			id_food_source="0"
+			id_food_source="-1"
 	/>
         
       </params>      

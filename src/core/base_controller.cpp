@@ -168,11 +168,11 @@ void BaseController::process_faultbehaviour(std::string errorbehav)
 
     // proximity sensor faults
     else if (errorbehav.compare("FAULT_GROUNDSENSORS_SETMIN") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETMIN;
+        FBehavior = FAULT_GROUNDSENSORS_SETMIN;
     else if (errorbehav.compare("FAULT_GROUNDSENSORS_SETMAX") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETMAX;
+        FBehavior = FAULT_GROUNDSENSORS_SETMAX;
     else if (errorbehav.compare("FAULT_GROUNDSENSORS_SETRANDOM") == 0)
-        FBehavior = FAULT_PROXIMITYSENSORS_SETRANDOM;
+        FBehavior = FAULT_GROUNDSENSORS_SETRANDOM;
 
     // RAB sensor faults
     else if (errorbehav.compare("FAULT_RABSENSOR_SETOFFSET") == 0)

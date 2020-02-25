@@ -102,25 +102,31 @@ for FaultCategory in food_scarcity proximity_sensor ground_sensor; do
                     robots=$FaultIndex
                     fault=FAULT_NONE
                     FaultID=-1
+                    echo "agents category"
                 elif [ "$FaultCategory" = "software" ]; then
                     robots=6
                     fault=FAULT_SOFTWARE
                     FaultID=$(($FaultIndex - 1))
+                    echo "software category"
                 elif [ "$FaultCategory" = "software_food" ]; then
                     robots=6
                     fault=FAULT_SOFTWARE_FOOD
                     food_loop="0"
                     FaultID=$(($FaultIndex - 1))
+                    echo "software food"
                 elif [ "$FaultCategory" = "food_scarcity" ]; then
                     robots=6
                     fault=FAULT_FOOD_SCARCITY
                     food_loop="0 1 2 3 4 5"
                     FaultID=$(($FaultIndex - 1))
+                    echo "food scarcity"
                 else
                     robots=6
                     fault=$FaultType
                     FaultID=-1
+                    echo "other category (e.g., sensor or actuator)"
                 fi
+
 
                 echo "fault ${fault}   robots ${robots}  FaultID  $FaultID "
                 for food in ${food_loop}; do
