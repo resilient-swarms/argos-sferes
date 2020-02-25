@@ -65,7 +65,7 @@ faultnum["ground_sensor"]=20
 faultnum["actuator"]=20
 faultnum["software"]=6      # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
-faultnum["food_scarcity"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
+faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
 faultnum["agents"]=12       # {1,2,...,12} agents included
 
 for FaultCategory in food_scarcity proximity_sensor ground_sensor; do
@@ -117,7 +117,7 @@ for FaultCategory in food_scarcity proximity_sensor ground_sensor; do
                 elif [ "$FaultCategory" = "food_scarcity" ]; then
                     robots=6
                     fault=FAULT_FOOD_SCARCITY
-                    food_loop="0 1 2 3 4"
+                    food_loop="0 1 2 3 4 5"
                     FaultID=$(($FaultIndex - 1))
                 else
                     robots=6
