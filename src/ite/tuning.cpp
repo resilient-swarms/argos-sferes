@@ -2,7 +2,7 @@
 
 #define TUNING
 
-#include "ite_swarms.hpp"
+#include "src/ite/ite_swarms.hpp"
 
 /******************************/
 /* HYPER PARAM TUNING HERE */
@@ -66,7 +66,7 @@ struct HPParams
 
     struct stop_maxpredictedvalue
     {
-        BO_PARAM(double, ratio, 100.f); //take something absurd
+        BO_PARAM(double, ratio, 100.0f); //take something absurd
     };
 
     // we use the default parameters for acqui_ucb
@@ -93,30 +93,41 @@ struct EvalHP
         double opt_alpha = x[0];
         double opt_l = x[1];
         Params::acqui_ucb::set_alpha(opt_alpha);
-
-        Eigen::VectorXd _h_params = Eigen::VectorXd(2); // tuning on logarithmic scale
-        _h_params << x[1], x[2];
         Params::kernel_maternfivehalves::set_l(opt_l);
 
-        typedef kernel::MaternFiveHalves<Params> Kernel_t;
-        typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
-        typedef boost::fusion::vector<stop::MaxIterations<Params>> Stop_t; // for tuning we don't care how many iterations
-        typedef mean::MeanArchive<Params> Mean_t;
-        typedef init::NoInit<Params> Init_t;
-        typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
-        typedef acqui::UCB<Params, GP_t> Acqui_t;
-        bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, stopcrit<Stop_t>> opt;
-        opt.optimize(ControllerEval());
-        auto val = opt.best_observation();
-        Eigen::VectorXd result = opt.best_sample().transpose();
+        Opt_t opt;
 
-        double trials = max_evals * global::argossim_config_name.size() - global::num_trials; // minimise the number of trials
-        auto vec = Eigen::VectorXd(2);
-        vec[0] = val[0];
-        vec[1] = trials;
 
-        std::cout << "this is the value: " << vec.transpose() << std::endl;
 
+        Eigen::VectorXd vec = Eigen::VectorXd::Zero(2); // tuning on logarithmic scale
+        std::cout << "------------------------------------" << std::endl;
+            std::cout << "Start evaluating alpha=" << opt_alpha << " length-scale="<<opt_l << std::endl;
+            std::cout << "------------------------------------" << std::endl;
+        for (size_t i = 0; i < global::argossim_config_name.size(); ++i)
+        {
+            std::cout << "------------------------------------" << std::endl;
+            std::cout << "Do IT&E for config " << global::argossim_config_name[i] << std::endl;
+            std::cout << "------------------------------------" << std::endl;
+            global::current_config = global::argossim_config_name[i];
+            opt.optimize(ControllerEval());
+            auto val = opt.best_observation();
+            Eigen::VectorXd result = opt.best_sample().transpose();
+
+            double trials = max_evals - global::num_trials; // minimise the number of trials
+
+            vec[0] = val[0];
+            vec[1] = trials;
+            auto vec = Eigen::VectorXd(2);
+        }
+        vec[0] /= (float)global::argossim_config_name.size();
+        vec[1] /= (float)global::argossim_config_name.size();
+        std::cout << "------------------------------------" << std::endl;
+        std::cout << "evaluated one point for HP tuning" << std::endl;
+        std::cout << "Point " << x << " evaluated" << std::endl;
+        std::cout << "Avg Fitness="<< vec[0] << std::endl;
+        std::cout << "Avg Number of trials="<< vec[1] << std::endl;
+        std::cout << "------------------------------------" << std::endl;
+        std::cout << "------------------------------------" << std::endl;
         return vec;
     }
 };

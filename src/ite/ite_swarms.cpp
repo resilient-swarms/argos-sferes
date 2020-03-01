@@ -74,27 +74,9 @@ int main(int argc, char **argv)
     {
         newname = *(folder_it + 1);
     }
-    typedef kernel::MaternFiveHalves<Params> Kernel_t;
-    typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
-    //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
-    typedef mean::MeanArchive<Params> Mean_t;
-    // here, GPArchive, a custom module, writes the maps after each iteration
-    //    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
-    //            stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
-    //            stat::Observations<Params>, stat::BestSamples<Params>, stat::GPArchive<Params>> Stat_t;
-
-    // without the gparchive stats module in case you have not installed it.
-    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
-                                  stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
-                                  stat::Observations<Params>, stat::BestSamples<Params>>
-        Stat_t;
-
-    typedef init::NoInit<Params> Init_t;
-    typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
-    typedef acqui::UCB<Params, GP_t> Acqui_t;
-
-    bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> opt;
+    Opt_t opt;
     global::results_path = opt.res_dir();
+    global::current_config = global::argossim_config_name[0];
 
 #ifdef REAL_EXP
     opt.optimize(RealEval());

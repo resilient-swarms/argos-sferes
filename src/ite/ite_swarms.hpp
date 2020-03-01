@@ -23,6 +23,7 @@ namespace global
 std::string results_path;
 std::string argossim_bin_name;
 std::vector<std::string> argossim_config_name;
+std::string current_config;
 std::string archive_path;
 size_t num_trials;
 float original_max = -std::numeric_limits<float>::infinity();
@@ -152,12 +153,12 @@ double get_fitness(size_t ctrl_index)
     return fitness;
 }
 
-double perform_command(size_t ctrl_index, size_t config_index)
+double perform_command(size_t ctrl_index, std::string config_file)
 {
     std::cout << "will evaluate config : " << std::endl;
-    std::cout << global::argossim_config_name[config_index] << std::endl;
+    std::cout << config_file << std::endl;
     std::string sim_cmd = global::argossim_bin_name + " " +
-                          global::argossim_config_name[config_index] + " " +
+                          config_file + " " +
                           global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat " +
                           "--load " +
                           global::archive_path + "/gen_" + std::to_string(global::gen_to_load) + " " +
@@ -273,22 +274,18 @@ struct ControllerEval
 
         // ./bin/behaviour_evolBO2D experiments/history_BO.argos experiments/fitness${INDIVIDUAL} --load ${DATA}/history/results1/gen_2000 -n ${INDIVIDUAL} -o experiments/nn${INDIVIDUAL}
 
-        float sum_fitness = 0.0f;
-        for (size_t i = 0; i < global::argossim_config_name.size(); ++i)
-        {
-            sum_fitness += perform_command(ctrl_index, i);
-        }
-        sum_fitness /= (float)global::argossim_config_name.size();
+        float fitness = perform_command(ctrl_index, global::current_config);
+
 
         std::cout << "fit was : " << Params::archiveparams::archive[key].fit << std::endl;
         //Params::archiveparams::archive[key].fit = sum_fitness;//only way our Mean function is updated
-        std::cout << "fit is now : " << sum_fitness << std::endl;
+        std::cout << "fit is now : " << fitness << std::endl;
         /*std::vector<double> ctrl = Params::archiveparams::archive.at(key).controller;
         hexapod_dart::HexapodDARTSimu<> simu(ctrl, global::global_robot->clone());
         simu.run(5);
 
         return tools::make_vector(simu.covered_distance());*/
-        return tools::make_vector(sum_fitness);
+        return tools::make_vector(fitness);
     }
 };
 
@@ -396,3 +393,26 @@ void rename_folder(std::string oldname, std::string newname)
 }
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
+
+
+ typedef kernel::MaternFiveHalves<Params> Kernel_t;
+    typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
+    //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
+    typedef mean::MeanArchive<Params> Mean_t;
+    // here, GPArchive, a custom module, writes the maps after each iteration
+    //    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
+    //            stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
+    //            stat::Observations<Params>, stat::BestSamples<Params>, stat::GPArchive<Params>> Stat_t;
+
+    // without the gparchive stats module in case you have not installed it.
+    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
+                                  stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
+                                  stat::Observations<Params>, stat::BestSamples<Params>>
+        Stat_t;
+
+    typedef init::NoInit<Params> Init_t;
+    typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
+    typedef acqui::UCB<Params, GP_t> Acqui_t;
+    typedef bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;
+
+    
