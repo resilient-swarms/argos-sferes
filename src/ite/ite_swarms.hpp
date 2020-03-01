@@ -4,13 +4,19 @@
 
 #include <limbo/limbo.hpp>
 
-#include <exhaustive_search_archive.hpp>
-#include <mean_archive.hpp>
+#include <src/ite/exhaustive_search_archive.hpp>
+#include <src/ite/mean_archive.hpp>
 #include <stdio.h>
 
 using namespace limbo;
 
-const size_t max_trials = 20;
+const size_t max_evals = 10;
+
+#ifdef REAL_EXP
+size_t num_trials = 3;
+#else
+size_t num_trials = 1; //trials done internally
+#endif
 
 namespace global
 {
@@ -39,20 +45,8 @@ struct Params
     // no noise
     struct kernel : public defaults::kernel
     {
+
         BO_PARAM(double, noise, 1e-3); // 0.001 is used in IT&E
-    };
-
-    struct kernel_maternfivehalves : public defaults::kernel_maternfivehalves
-    {
-        BO_PARAM(double, l, 0.4);// smoothness of the function; 
-        // 0.4 is used in IT&E
-        //1.5 is a setting used scikit learn https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.kernels.Matern.html
-    };
-
-    struct stop_maxiterations : public defaults::stop_maxiterations
-    {
-        //BO_DYN_PARAM(int, iterations);
-        BO_PARAM(int, iterations, max_trials);
     };
 
     // using a default 90% above all other predicted gait performances in the map
@@ -60,10 +54,35 @@ struct Params
     {
     };
 
+    struct stop_maxiterations
+    {
+        BO_PARAM(int, iterations, max_evals);
+    };
+#ifdef TUNING
+    struct kernel_maternfivehalves : public defaults::kernel_maternfivehalves
+    {
+        BO_DYN_PARAM(double, l);
+    };
+
     struct acqui_ucb : public defaults::acqui_ucb
     {
-        BO_PARAM(double, alpha, 0.05);
+        BO_DYN_PARAM(double, alpha);
     };
+
+#else
+    struct kernel_maternfivehalves : public defaults::kernel_maternfivehalves
+    {
+        BO_PARAM(double, l, 0.15); // smoothness of the function;
+        // 0.4 is used in IT&E; but here this affects all the behaviours it seems
+        //1.5 is a setting used scikit learn https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.kernels.Matern.html
+    };
+
+    struct acqui_ucb : public defaults::acqui_ucb
+    {
+        BO_PARAM(double, alpha, 0.10);
+    };
+
+#endif
 
     struct archiveparams
     {
@@ -135,25 +154,106 @@ double get_fitness(size_t ctrl_index)
 
 double perform_command(size_t ctrl_index, size_t config_index)
 {
-
+    std::cout << "will evaluate config : " << std::endl;
+    std::cout << global::argossim_config_name[config_index] << std::endl;
     std::string sim_cmd = global::argossim_bin_name + " " +
                           global::argossim_config_name[config_index] + " " +
-                          global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat "
-                                                                                           "--load " +
+                          global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat " +
+                          "--load " +
                           global::archive_path + "/gen_" + std::to_string(global::gen_to_load) + " " +
                           "-n " + std::to_string(ctrl_index) + " " +
                           "-o " + global::results_path + "/nn" + std::to_string(ctrl_index) + ".dot " +
-                          "-d " + global::results_path;
+                          "-d " + global::results_path + " >> BOlog.txt";
     if (system(sim_cmd.c_str()) != 0)
     {
         std::cerr << "Error executing simulation " << std::endl
                   << sim_cmd << std::endl;
-        exit(-1);
+        std::cout << "please check whether the fitness has been written properly, and press a key";
+        char key;
+        std::cin >> key;
     }
 
     return get_fitness(ctrl_index);
 }
+struct RealEval
+{
+    BO_PARAM(size_t, dim_in, BEHAV_DIM); //global::behav_dim
+    BO_PARAM(size_t, dim_out, 1);
 
+    // the function to be optimized
+    Eigen::VectorXd operator()(const Eigen::VectorXd &x) const
+    {
+        std::cout << "In Eval " << std::endl;
+
+        //assert(global::behav_dim == 2);
+
+        std::vector<double> key(x.size(), 0);
+        Eigen::VectorXd::Map(key.data(), key.size()) = x;
+
+        unsigned ctrl_index = Params::archiveparams::archive.at(key).controller;
+
+        // ./bin/behaviour_evolBO2D experiments/history_BO.argos experiments/fitness${INDIVIDUAL} --load ${DATA}/history/results1/gen_2000 -n ${INDIVIDUAL} -o experiments/nn${INDIVIDUAL}
+        char ready;
+        double sum = 0.0;
+        double fitness;
+        std::vector<double> numbers;
+        for (size_t trial = 0; trial < num_trials; ++trial)
+        {
+            std::string fitfile = global::results_path + "/fitness" + std::to_string(ctrl_index) + "t" + std::to_string(trial) + ".dat";
+            std::string sim_cmd = global::argossim_bin_name + " " +
+                                  global::argossim_config_name[0] + " " +
+                                  fitfile + " --load " +
+                                  global::archive_path + "/gen_" + std::to_string(global::gen_to_load) + " " +
+                                  "-n " + std::to_string(ctrl_index) + " " +
+                                  "-o " + global::results_path + "/nn" + std::to_string(ctrl_index) + ".dot " +
+                                  "-d " + global::results_path;
+            std::cout << "Will execute individual " << std::to_string(ctrl_index) << std::endl;
+            std::cout << "Please run the following command manually " << std::endl;
+            std::cout << sim_cmd << std::endl;
+            std::cout << "After that press any key to continue" << std::endl;
+            std::cin >> ready;
+
+            std::ifstream infile(fitfile.c_str(), std::ios::out);
+            int i = 0;
+            std::string line;
+            numbers.clear();
+            while (std::getline(infile, line))
+            {
+                float value;
+                std::stringstream ss(line);
+
+                while (ss >> value)
+                {
+                    numbers.push_back(value);
+                }
+                ++i;
+            }
+            if (i == 0)
+            {
+                std::cout << "No line" << std::endl;
+            }
+            if (i > 1)
+            {
+                std::cout << "warning : more than one line" << std::endl;
+            }
+            std::cout << "Fitness = " << numbers[0] << std::endl;
+            sum += numbers[0];
+        }
+
+        fitness = sum /= (float)num_trials;
+        if (fitness > global::original_max)
+            global::original_max = fitness;
+
+        std::cout << "Average fitness = " << fitness << std::endl;
+
+        /*std::vector<double> ctrl = Params::archiveparams::archive.at(key).controller;
+        hexapod_dart::HexapodDARTSimu<> simu(ctrl, global::global_robot->clone());
+        simu.run(5);
+
+        return tools::make_vector(simu.covered_distance());*/
+        return tools::make_vector(fitness);
+    }
+};
 struct ControllerEval
 {
     BO_PARAM(size_t, dim_in, BEHAV_DIM); //global::behav_dim

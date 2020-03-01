@@ -258,25 +258,25 @@ else(NOT BASELINE)
         set(LIMBO_PATH ${PROJECT_SOURCE_DIR}/limbo/src) # location of limbo - where https://github.com/resibots/limbo.git has been cloned
         include_directories(${LIMBO_PATH})
 
-        SET(NLOPT_INCLUDE_DIR "$ENV{NLOPT_INCLUDE_DIR}")
-        SET(NLOPT_LIB_DIR "$ENV{NLOPT_LIB_DIR}")
-        IF(NOT NLOPT_INCLUDE_DIR OR NOT NLOPT_LIB_DIR)
-            MESSAGE( WARNING "NLOpt not found. Please point the environment variables NLOPT_INCLUDE_DIR and NLOPT_LIB_DIR to your NLopt installation.")
-        ELSE()
-            include_directories("${NLOPT_INCLUDE_DIR}")
-            link_directories("${NLOPT_LIB_DIR}")
-            add_definitions(-DUSE_NLOPT)
-        ENDIF()
+        #SET(NLOPT_INCLUDE_DIR "$ENV{NLOPT_INCLUDE_DIR}")
+        #SET(NLOPT_LIB_DIR "$ENV{NLOPT_LIB_DIR}")
+        #IF(NOT NLOPT_INCLUDE_DIR OR NOT NLOPT_LIB_DIR)
+        #    MESSAGE( WARNING "NLOpt not found. Please point the environment variables NLOPT_INCLUDE_DIR and NLOPT_LIB_DIR to your NLopt installation.")
+        #ELSE()
+        #    include_directories("${NLOPT_INCLUDE_DIR}")
+        #    link_directories("${NLOPT_LIB_DIR}")
+         #   add_definitions(-DUSE_NLOPT)
+        #ENDIF()
 
-        SET(CMAES_INCLUDE_DIR "$ENV{CMAES_INCLUDE_DIR}")
-        SET(CMAES_LIB_DIR "$ENV{CMAES_LIB_DIR}")
-        IF(NOT CMAES_INCLUDE_DIR OR NOT CMAES_LIB_DIR)
-            MESSAGE( WARNING "CMAES not found. Please point the environment variables CMAES_INCLUDE_DIR and CMAES_LIB_DIR to your CMAES installation.")
-        ELSE()
-            include_directories("${CMAES_INCLUDE_DIR}")
-            link_directories("${CMAES_LIB_DIR}")
-            add_definitions(-DUSE_LIBCMAES)
-        ENDIF()
+        #SET(CMAES_INCLUDE_DIR "$ENV{CMAES_INCLUDE_DIR}")
+        #SET(CMAES_LIB_DIR "$ENV{CMAES_LIB_DIR}")
+        #IF(NOT CMAES_INCLUDE_DIR OR NOT CMAES_LIB_DIR)
+        #    MESSAGE( WARNING "CMAES not found. Please point the environment variables CMAES_INCLUDE_DIR and CMAES_LIB_DIR to your CMAES installation.")
+        #ELSE()
+        ##    include_directories("${CMAES_INCLUDE_DIR}")
+        #    link_directories("${CMAES_LIB_DIR}")
+        #    add_definitions(-DUSE_LIBCMAES)
+        #ENDIF()
 
         include_directories(${PROJECT_SOURCE_DIR}/src/ite) # location of ite-swarm includes
 
@@ -290,13 +290,15 @@ else(NOT BASELINE)
             ${Boost_LIBRARIES}
             ${TBB_LIBRARIES})
 
-        #add_executable(tuning${BD}D
-        #    src/ite/tuning.cpp)
-        #target_link_libraries(tuning${BD}D
-        #    ${Boost_LIBRARIES}
-        #    ${TBB_LIBRARIES})
+        add_executable(tuning${tag}
+            src/ite/tuning.cpp)
+        target_link_libraries(tuning${tag}
+          ${Boost_LIBRARIES}
+          ${TBB_LIBRARIES})
 
         set(CMAKE_CXX_FLAGS ${TMP_CMAKE_CXX_FLAGS} CACHE STRING "" FORCE)
+        #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -lcmaes -lm -lglog -lgflags ")
+        message(FLAGS ${CMAKE_CXX_FLAGS})
         message("${PROJECT_SOURCE_DIR} " ${PROJECT_SOURCE_DIR})
         #######################################################################
 

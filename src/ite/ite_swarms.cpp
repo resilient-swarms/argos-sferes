@@ -1,5 +1,5 @@
 
-#include "ite_swarms.hpp"
+#include "src/ite/ite_swarms.hpp"
 
 //BO_DECLARE_DYN_PARAM(int, Params::stop_maxiterations, iterations);
 
@@ -96,7 +96,11 @@ int main(int argc, char **argv)
     bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> opt;
     global::results_path = opt.res_dir();
 
+#ifdef REAL_EXP
+    opt.optimize(RealEval());
+#else
     opt.optimize(ControllerEval());
+#endif
 
     auto val = opt.best_observation();
     Eigen::VectorXd result = opt.best_sample().transpose();

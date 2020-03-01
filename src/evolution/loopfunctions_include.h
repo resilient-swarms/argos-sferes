@@ -71,7 +71,7 @@ FIT_MAP(FitObstacleMapElites){
 	        std::cout<<"writing individual to .dot file"<<std::endl;
             std::ofstream ofs("nn.dot");
             ind.nn().write(ofs);
-
+            std::cout << "Finish writing network" << std::endl;
             //NNSerialiser ser = NNSerialiser();
             //ser.Save<Indiv>(ind);
 
@@ -92,9 +92,11 @@ FIT_MAP(FitObstacleMapElites){
             return;
         #endif
 
+        #ifndef BAYESIAN_OPT
             std::vector<float> behavioural_descriptor = cLoopFunctions.alltrials_descriptor();
         
             this->set_desc(behavioural_descriptor);
+        #endif
 
         #ifdef PRINTING
 

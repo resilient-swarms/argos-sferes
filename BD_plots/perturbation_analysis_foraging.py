@@ -17,8 +17,8 @@ import pickle
 baseline_performances = pickle.load(open("data/fitfun/foraging_maximal_fitness.pkl", "rb"))
 
 runs=range(1,6)
-bd_type = ["history", "Gomes_sdbc_walls_and_robots_std"]  # legend label
-legend_labels = ["HBD", "SDBC"]  # labels for the legend
+bd_type = ["history"]  # legend label
+legend_labels = ["HBD"]  # labels for the legend
 fitfuns = ["Foraging"]
 fitfunlabels = [""]
 
@@ -100,16 +100,15 @@ def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnof
         # for k in range(len(nofaultperfs[r])):
         #     transfer = np.append(transfer, [(temp[k] - nofaultperfs[r][k]) / baseline_performances[fitfuns[j]]])  # avoid NANs
 
-        best_transfer = np.append(best_transfer,
-                                  (temp[maxindsnofault[r]] - best_nofaultperfs[r]) / best_nofaultperfs[r])
+        best_transfer = np.append(best_transfer,temp[maxindsnofault[r]])
 
     best_performances = np.append(best_performances, best_performance)
 
     #recovery = np.append(recovery, [(best_performance - best_nofaultperfs[r]) / baseline_performances[
     #    fitfuns[j]]])  # best performance vs best nofaultperf
-    resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / best_nofaultperfs[r])
+    #resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / best_nofaultperfs[r])
 
-    return best_performances,  best_transfer, resilience, num_trials
+    return best_performances,  best_transfer, num_trials
 
 
 
@@ -198,7 +197,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                         continue
                     faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
 
-                    best_performances, best_transfer, resilience, _num_trials = add_fault_performance(j, r, gener, nofaultperfs, best_nofaultperfs, maxindsnofault, faultpath,
+                    best_performances, best_transfer,  _num_trials = add_fault_performance(j, r, gener, nofaultperfs, best_nofaultperfs, maxindsnofault, faultpath,
                                                                                                                           best_performances=[], best_transfer=[],resilience=[], baseline=bd_type[i]=="baseline", title_tag=title_tag)
 
 
@@ -212,13 +211,13 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                         faulttype,index=get_fault_type(fault)
                         best_performance_data[i][index] = np.append(best_performance_data[i][index],best_performances)
                         best_transfer_data[i][index] = np.append(best_transfer_data[i][index],best_transfer)
-                        resilience_data[i][index] = np.append(resilience_data[i][index],resilience)
+                        #resilience_data[i][index] = np.append(resilience_data[i][index],resilience)
                         trial_data[i][index].append(_num_trials)
                     else:
                         # normalise by maximal fitness (make different performance data comparable)
                         best_performance_data[i] = np.append(best_performance_data[i],best_performances/baseline_performances[fitfuns[j]])
                         best_transfer_data[i] = np.append(best_transfer_data[i],best_transfer)
-                        resilience_data[i] = np.append(resilience_data[i],resilience)
+                        #resilience_data[i] = np.append(resilience_data[i],resilience)
                         trial_data[i].append(_num_trials)
 
     from scipy.stats import mannwhitneyu
@@ -233,11 +232,11 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
         #     for j in range(len(fitfuns)):
         #         best_performance_data[i][j]/=baseline_performances[fitfuns[j]]
         if title_tag=="BO":
-            part_data = (trial_data,best_performance_data, resilience_data)
-            col_labels = [("Number of trials", "float2"), ("Performance", "float2"), ("Resilience (%)", "float2")]
+            part_data = (trial_data,best_performance_data)
+            col_labels = [("Number of evaluations", "float2"), ("Recovery performance", "float2")]
         else:
-            part_data = (best_transfer_data,best_performance_data, resilience_data)
-            col_labels=[("Impact (%)","float2"),("Performance","float2"),("Resilience (%)","float2")]
+            part_data = (best_transfer_data,best_performance_data)
+            col_labels=[("Fault injection performance","float2"),("Recovery performance","float2")]
         with open("results/fault/summary_table_faulttype"+title_tag,"w") as f:
             make_table(f,part_data,
                        rowlabels=foraging_fault_types,
@@ -466,8 +465,8 @@ def get_max_performances(bd_type,fitfuns,generation):
 
 if __name__ == "__main__":
     #get_max_performances(bd_type, fitfuns, generation)
-    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False, title_tag="")
+    #significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False, title_tag="")
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
-                      title_tag="BO")
+                     title_tag="BO")
 
 
