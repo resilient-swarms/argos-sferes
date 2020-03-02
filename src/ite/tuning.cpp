@@ -61,7 +61,7 @@ struct HPParams
     // we stop after 40 iterations
     struct stop_maxiterations
     {
-        BO_PARAM(int, iterations, 50);
+        BO_PARAM(int, iterations, 100);
     };
 
     struct stop_maxpredictedvalue
@@ -109,14 +109,15 @@ struct EvalHP
             std::cout << "Do IT&E for config " << global::argossim_config_name[i] << std::endl;
             std::cout << "------------------------------------" << std::endl;
             global::current_config = global::argossim_config_name[i];
+            global::results_path = opt.res_dir();
             opt.optimize(ControllerEval());
             auto val = opt.best_observation();
             Eigen::VectorXd result = opt.best_sample().transpose();
 
             double trials = max_evals - global::num_trials; // minimise the number of trials
 
-            vec[0] = val[0];
-            vec[1] = trials;
+            vec[0] += val[0];
+            vec[1] += trials;
             auto vec = Eigen::VectorXd(2);
         }
         vec[0] /= (float)global::argossim_config_name.size();
@@ -217,11 +218,13 @@ int main(int argc, char **argv)
     global::num_trials = 0;
 
     bayes_opt::BOptimizer<HPParams> HPopt;
-    global::results_path = HPopt.res_dir();
+    global::hyper_results_path = HPopt.res_dir();
 
     HPopt.optimize(EvalHP());
     auto HPval = HPopt.best_observation();
     Eigen::VectorXd HPresult = HPopt.best_sample().transpose();
 
     std::cout << "max value: " << HPval << " with best sample:  " << HPresult.transpose() << std::endl;
+
+    rename_folder(global::hyper_results_path, newname);
 }
