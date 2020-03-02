@@ -55,13 +55,13 @@ struct HPParams
     // we use 10 random samples to initialize the algorithm
     struct init_randomsampling
     {
-        BO_PARAM(int, samples, 10);
+        BO_PARAM(int, samples, 250);
     };
 
     // we stop after 40 iterations
     struct stop_maxiterations
     {
-        BO_PARAM(int, iterations, 100);
+        BO_PARAM(int, iterations, 0);
     };
 
     struct stop_maxpredictedvalue
@@ -88,7 +88,7 @@ struct EvalHP
     // the function to be optimized
     Eigen::VectorXd operator()(const Eigen::VectorXd &x) const
     {
-        global::num_trials = 0;
+        
         // be able to adjust alpha
         double opt_alpha = x[0];
         double opt_l = x[1];
@@ -110,6 +110,7 @@ struct EvalHP
             std::cout << "------------------------------------" << std::endl;
             global::current_config = global::argossim_config_name[i];
             global::results_path = opt.res_dir();
+            global::num_trials = 0;
             opt.optimize(ControllerEval());
             auto val = opt.best_observation();
             Eigen::VectorXd result = opt.best_sample().transpose();
@@ -118,7 +119,6 @@ struct EvalHP
 
             vec[0] += val[0];
             vec[1] += trials;
-            auto vec = Eigen::VectorXd(2);
         }
         vec[0] /= (float)global::argossim_config_name.size();
         vec[1] /= (float)global::argossim_config_name.size();
