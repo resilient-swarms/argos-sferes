@@ -126,9 +126,10 @@ struct EvalHP
         std::cout << "evaluated one point for HP tuning" << std::endl;
         std::cout << "Point " << x << " evaluated" << std::endl;
         std::cout << "Avg Fitness="<< vec[0] << std::endl;
-        std::cout << "Avg Number of trials="<< vec[1] << std::endl;
+        std::cout << "Avg Number of trials="<< max_evals - vec[1] << std::endl;
         std::cout << "------------------------------------" << std::endl;
         std::cout << "------------------------------------" << std::endl;
+        global::hyper_log << x[0] << "\t" << x[1] << "\t" << vec[0] << "\t" << vec[1] << std::endl;
         return vec;
     }
 };
@@ -219,7 +220,7 @@ int main(int argc, char **argv)
 
     bayes_opt::BOptimizer<HPParams> HPopt;
     global::hyper_results_path = HPopt.res_dir();
-
+    
     HPopt.optimize(EvalHP());
     auto HPval = HPopt.best_observation();
     Eigen::VectorXd HPresult = HPopt.best_sample().transpose();

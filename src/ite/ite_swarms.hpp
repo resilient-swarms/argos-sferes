@@ -22,6 +22,7 @@ namespace global
 {
 std::string results_path;
 std::string hyper_results_path;
+std::ofstream hyper_log("hyperlog.txt");
 std::string argossim_bin_name;
 std::vector<std::string> argossim_config_name;
 std::string current_config;
