@@ -72,7 +72,7 @@ ELSE()
     add_definitions( -DEIGEN3_ENABLED )
 ENDIF()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lboost_system -fPIC")
 add_definitions( -DNDEBUG ) # non-debug mode
 add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
@@ -85,9 +85,11 @@ find_package(GSL REQUIRED)
 include_directories(${GSL_INCLUDE_DIR})
 
 # Find Lua
-find_package(Lua52)
-IF(NOT LUA52_FOUND)
-    MESSAGE( FATAL_ERROR "Please point the environment variable LUA_DIR to your Lua installation -- include and lib.")
+find_package(Lua53)
+IF(NOT LUA53_FOUND)
+    MESSAGE("Please point the environment variable LUA_DIR to your Lua installation -- include and lib.")
+    MESSAGE("Will base include of lua on your environment variable LUA_DIR")
+    include_directories($ENV{LUA_DIR}/include)
 ELSE()
     include_directories(${LUA_INCLUDE_DIR})
 ENDIF()
