@@ -17,14 +17,14 @@ Instruction for compilation (using MAP-Elites and neural-network modules)
 
 2. Download argos-sferes code
 
-    git clone https://github.com/daneshtarapore/argos-sferes.git
+       git clone https://github.com/daneshtarapore/argos-sferes.git
 
 
 3. Now download the sferes2 code -- all header files, so don't need compilation (unless you want to run the sferes2 test cases).
 
-    cd argos-sferes
+        cd argos-sferes
 
-    git clone https://github.com/sferes2/sferes2.git 
+        git clone https://github.com/sferes2/sferes2.git 
 
 
 4. 
@@ -86,10 +86,10 @@ Instruction for running
 
 
 
-Evolution in the normal operating environment can be run using 
+Evolution in the normal operating environment can be run using:
 
    
-   ./bin/behaviour_evolcvt10D experiments/Gomes_walls_and_robots_std.argos
+     ./bin/behaviour_evolcvt10D experiments/Gomes_walls_and_robots_std.argos
    
  
 Note here the binaries are organised as "behaviour_evol"${CVT}${DIM}D" where CVT is whether or not using CVT-MAPElites or MAPElites and DIM is the dimensionality of the behavioural descriptor.
@@ -99,7 +99,7 @@ Hand-crafted behaviours can also be experimented with just to see how well evolu
 
 
 
-   ./bin/baseline_behaviour experiments/baseline-behavs.argos
+     ./bin/baseline_behaviour experiments/baseline-behavs.argos
    
 
 
@@ -108,13 +108,13 @@ Running the experiments from the above-mentioned paper can be done using the "la
 
 For QED, this is:
 
-   bash launch_environment_descriptor.sh ${data_directory}
+      bash launch_environment_descriptor.sh ${data_directory}
    
    
 For the baseline QD-algorithms, this is:
 
 
-   bash launch_Gomes_jobs.sh ${data_directory}
+      bash launch_Gomes_jobs.sh ${data_directory}
 
 
 To try out an evolved solution
