@@ -34,9 +34,9 @@ A. As nn2, map_elites and cvt_map_elites code are in header files, they don't ne
     
     git clone https://github.com/resilient-swarms/cvt_map_elites.git 
    
-B. clone limbo for bayesian optimisation:
+B. clone limbo for bayesian optimisation (optional):
 
-    cd ~/argos-sferes
+    cd ../..
     
     git clone https://github.com/resibots/limbo.git
     
