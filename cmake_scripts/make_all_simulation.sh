@@ -10,7 +10,7 @@ for dim in 3 ; do   # 10 14 21 400
     
       cmake -DNN_INPUT_TYPE=1 -DCMAKE_BUILD_TYPE=Debug -DCVT_USAGE=ON -DBD=${dim}  ..
     else
-      cmake -DNN_INPUT_TYPE=0 -DCMAKE_BUILD_TYPE=Debug -DBD=${dim} ..
+      cmake -DNN_INPUT_TYPE=1 -DCMAKE_BUILD_TYPE=Debug -DBD=${dim} ..
     fi
    make -j 8
 

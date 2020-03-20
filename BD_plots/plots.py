@@ -598,34 +598,22 @@ def createTwinPlot(stats1, stats2, x_values, colors, markers, xlabel, ylabel, yl
         legendbox = (legbox_x, legbox_y)
 
 
-def createBoxPlot(methods,numbers,legend_labels,xlabel,save_filename):
+def createBoxPlot(numbers,legend_labels,xlabel,ylabel,ylim,save_filename):
 
     # Create a figure instance
     fig = PLT.figure()
     a = fig.add_subplot(111)
 
     bp = a.boxplot(numbers)
-    means=[]
-    maxmean=0
-    for i in range(len(numbers)):
-        if (len(numbers[i])==0):
-            means.append(0)
-        else:
-            ms=sum(numbers[i]) / len(numbers[i])
-            #std=np.std(numbers[i])
-            means.append(ms)
-            m = max(numbers[i])
-            if m > maxmean:
-                maxmean = m
-    a.scatter(range(1,1+len(methods)), means)
-    a.set_xticklabels(legend_labels, fontsize=8)
-    a.set_ylim(0, min(1,maxmean+.1*maxmean))
-    a.set_ylabel(xlabel)
-    a.set_xlabel("Method")
-    fig.subplots_adjust(wspace=0.6, hspace=0.6, left=0.1, bottom=0.22, right=0.96, top=0.96)
+    #a.scatter(range(1,1+len(methods)), means)
+    PLT.xticks(range(1,len(legend_labels)+1), legend_labels, fontsize=8)
+    PLT.ylim(ylim)
+    PLT.ylabel(ylabel)
+    PLT.xlabel(xlabel)
+    PLT.subplots_adjust(wspace=0.6, hspace=0.6, left=0.1, bottom=0.22, right=0.96, top=0.96)
     # fig4.tight_layout()
-    fig.tight_layout()
-    fig.savefig(save_filename)
+    PLT.tight_layout()
+    PLT.savefig(save_filename)
 
 
 

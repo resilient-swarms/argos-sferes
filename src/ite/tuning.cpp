@@ -55,13 +55,13 @@ struct HPParams
     // we use 10 random samples to initialize the algorithm
     struct init_randomsampling
     {
-        BO_PARAM(int, samples, 250);
+        BO_PARAM(int, samples, 10);
     };
 
     // we stop after 40 iterations
     struct stop_maxiterations
     {
-        BO_PARAM(int, iterations, 0);
+        BO_PARAM(int, iterations, 40);
     };
 
     struct stop_maxpredictedvalue

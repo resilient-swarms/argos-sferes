@@ -265,18 +265,18 @@ else(NOT BASELINE)
         #ELSE()
         #    include_directories("${NLOPT_INCLUDE_DIR}")
         #    link_directories("${NLOPT_LIB_DIR}")
-         #   add_definitions(-DUSE_NLOPT)
+        #   add_definitions(-DUSE_NLOPT)
         #ENDIF()
 
-        #SET(CMAES_INCLUDE_DIR "$ENV{CMAES_INCLUDE_DIR}")
-        #SET(CMAES_LIB_DIR "$ENV{CMAES_LIB_DIR}")
-        #IF(NOT CMAES_INCLUDE_DIR OR NOT CMAES_LIB_DIR)
-        #    MESSAGE( WARNING "CMAES not found. Please point the environment variables CMAES_INCLUDE_DIR and CMAES_LIB_DIR to your CMAES installation.")
-        #ELSE()
-        ##    include_directories("${CMAES_INCLUDE_DIR}")
-        #    link_directories("${CMAES_LIB_DIR}")
-        #    add_definitions(-DUSE_LIBCMAES)
-        #ENDIF()
+        SET(CMAES_INCLUDE_DIR "$ENV{CMAES_INCLUDE_DIR}")
+        SET(CMAES_LIB_DIR "$ENV{CMAES_LIB_DIR}")
+        IF(NOT CMAES_INCLUDE_DIR OR NOT CMAES_LIB_DIR)
+            MESSAGE( WARNING "CMAES not found. Please point the environment variables CMAES_INCLUDE_DIR and CMAES_LIB_DIR to your CMAES installation.")
+        ELSE()
+            include_directories("${CMAES_INCLUDE_DIR}")
+            link_directories("${CMAES_LIB_DIR}")
+            add_definitions(-DUSE_LIBCMAES)
+        ENDIF()
 
         include_directories(${PROJECT_SOURCE_DIR}/src/ite) # location of ite-swarm includes
 
@@ -292,12 +292,15 @@ else(NOT BASELINE)
 
         add_executable(tuning${tag}
             src/ite/tuning.cpp)
+        message("CMAES LIB DIR" ${CMAES_LIB_DIR})
         target_link_libraries(tuning${tag}
           ${Boost_LIBRARIES}
-          ${TBB_LIBRARIES})
+          ${TBB_LIBRARIES}
+          ${CMAES_LIB_DIR}/libcmaes.so
+          )
 
         set(CMAKE_CXX_FLAGS ${TMP_CMAKE_CXX_FLAGS} CACHE STRING "" FORCE)
-        #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -lcmaes -lm -lglog -lgflags ")
+        #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -llibcmaes -lm -lglog -lgflags ")
         message(FLAGS ${CMAKE_CXX_FLAGS})
         message("${PROJECT_SOURCE_DIR} " ${PROJECT_SOURCE_DIR})
         #######################################################################
@@ -318,7 +321,7 @@ else(NOT BASELINE)
             set(EXECUTABLE ${exec_prefix}${tag})
             set(EXEC_FILE ${exec_prefix}.cpp)
         elseif(${ARGOS_PAR} EQUAL 2)
-            message("using parallel environments (2)")
+            message("using parallel environments (2)")  
             add_definitions(-DARGOS_PARALLELENVIR) 
             set(EXECUTABLE envir_evol${tag})
             set(EXEC_FILE envir_evol.cpp)

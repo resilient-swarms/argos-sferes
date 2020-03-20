@@ -464,7 +464,7 @@ def coverage_development_plots(title,runs,times,BD_directory,title_tag, bd_type,
     # (numsides, style, angle)
     markers=[(3,1,0),(3,2,0),(4,1,0),(4,2,0)] # markers for the lines
     bd_shapes =[4096, 4096, 4096,4096, 4096, 4096,4096,4096, 4096]  # shape of the characterisation
-    y_labels=["Map_coverage"]
+    y_labels=["Best_performance"]
 
 
     boxes=[(.10,.40),(.10,.60),(.10,.60),(.45,.15),(0.20,0.20),(0.20,0.20)] # where to place the legend box
@@ -482,39 +482,49 @@ def coverage_development_plots(title,runs,times,BD_directory,title_tag, bd_type,
             for j in range(len(fitfuns)):
                 try:
                     archive_file, directory = get_archiveplusdir(BD_directory[j],bd_type,i,time,projected=projected)
-                    abs_coverage=absolutecoverages(bd_shapes[i], directory, runs, archive_file)
+                    #abs_coverage=absolutecoverages(bd_shapes[i], directory, runs, archive_file)
+                    abs_coverage=global_performances(directory,runs,archive_file,max_performance=1,conversion_func=None)/ baseline_performances[fitfuns[j]]
                     abs_coverages.append(abs_coverage)
 
                 except Exception as e:
                     print(e)
-            add_boxplotlike_data(abs_coverages, y_bottom, y_mid, y_top, y_label="Map_coverage",method_index=i,
+            add_boxplotlike_data(abs_coverages, y_bottom, y_mid, y_top, y_label="Best_performance",method_index=i,
                                  statistic="meanall_replicatesd")
 
 
     j=0
-    maximum_line = (times,[4096 for i in times])
-    cov=y_mid["Map_coverage"]
-    top_cov=y_top["Map_coverage"]
-    for i in range(len(cov)):
-        print(bd_type[i])
-        print(cov[i][-1])
-        sd_cov = top_cov[i][-1] - cov[i][-1]
-        print(sd_cov)
+    maximum_line = (times,[1.0 for i in times])
+    # cov=y_mid["Map_coverage"]
+    # top_cov=y_top["Map_coverage"]
+    # for i in range(len(cov)):
+    #     print(bd_type[i])
+    #     print(cov[i][-1])
+    #     sd_cov = top_cov[i][-1] - cov[i][-1]
+    #     print(sd_cov)
 
-    annots = {"text": "maximal coverage=4096 solutions","xy":(10000,4400),"xytext":(10000,4400),
-              "fontsize":22,"align": "center"}
+    # annots = {"text": "maximal coverage=4096 solutions","xy":(10000,4400),"xytext":(10000,4400),
+    #           "fontsize":22,"align": "center"}
+    annots={"text": "maximal performance in normal operating environment","xy":(15000,1.012),"xytext":(15000,1.012),
+               "fontsize":22,"align": "center"}
     for label in y_labels:
         #ylim=[0,4500]
 
+        # createPlot(y_mid[label],x_values=np.array(times),
+        #            save_filename=RESULTSFOLDER + "/" + title_tag + label + ".pdf", legend_labels=legend_labels,
+        #            colors=colors,markers=markers,xlabel="Generations",ylabel=label.replace("_"," "),
+        #            xlim=[0,times[-1]+500],xscale="linear",yscale="log",ylim=[10**1,10**4],
+        #            legendbox=boxes[j],annotations=[annots],xticks=[],yticks=[],task_markers=[],scatter=False,
+        #            legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[maximum_line],index_x=[],
+        #            xaxis_style="plain",y_err=[],force=True,fill_between=(y_bottom[label],y_top[label]),
+        #            ax=ax,title=title )
         createPlot(y_mid[label],x_values=np.array(times),
                    save_filename=RESULTSFOLDER + "/" + title_tag + label + ".pdf", legend_labels=legend_labels,
                    colors=colors,markers=markers,xlabel="Generations",ylabel=label.replace("_"," "),
-                   xlim=[0,times[-1]+500],xscale="linear",yscale="log",ylim=[10**1,10**4],
+                   xlim=[0,times[-1]+500],xscale="linear",yscale="linear",ylim=None,
                    legendbox=boxes[j],annotations=[annots],xticks=[],yticks=[],task_markers=[],scatter=False,
                    legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[maximum_line],index_x=[],
                    xaxis_style="plain",y_err=[],force=True,fill_between=(y_bottom[label],y_top[label]),
                    ax=ax,title=title )
-
         j+=1
 
 
@@ -1076,7 +1086,7 @@ def create_coverage_development_plots():
                           ax = axs)
 
 
-    finish_fig(fig, RESULTSFOLDER +"/evolution/development/CoverageLOGSCALE_allruns.pdf")
+    finish_fig(fig, RESULTSFOLDER +"/evolution/development/BestPerformance_allruns_annotated.pdf")
 
 
 
@@ -1091,12 +1101,13 @@ if __name__ == "__main__":
     faults=range(50)
     runs=range(1,6)
 
-    fitfuns= ["Foraging"] #,"DecayBorderCoverage","Flocking"]
-    titles = [""]
-    bd_type = ["history","Gomes_sdbc_walls_and_robots_std"]  # file system label for bd
-    legend_labels=["HBD","SDBC"]  # labels for the legend
+    fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
+                   "DecayBorderCoverage", "Flocking"]  # ,"DecayBorderCoverage","Flocking"]
+    bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
+                   ]  # file system label for bd
+    legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]
     bybin_list=["bd","bd"]
-    times=range(0,20500, 500)
+    times=range(0,30500, 500)
 
     #make_translation_table("CORRECT", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
 
@@ -1110,8 +1121,8 @@ if __name__ == "__main__":
     #make_evolution_table(fitfuns, bd_type, runs, generation=6000,load_existing=False,by_fitfun=False)
 
 
-    #create_coverage_development_plots()
+    create_coverage_development_plots()
 
     #create_all_development_plots()
 
-    single_development_plots("Foraging", "", runs, times, bd_type, legend_labels)
+    #single_development_plots("Foraging", "", runs, times, bd_type, legend_labels)

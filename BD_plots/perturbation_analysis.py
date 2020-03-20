@@ -738,19 +738,24 @@ def get_max_performances(bd_type,fitfuns,generation):
 
     pickle.dump(maximum,open("data/fitfun/maximal_fitness.pkl","wb"))
 
-
+def resilience_boxplot():
+    best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(
+        open("data/combined/summary_statistics.pkl", "rb"))
+    createBoxPlot(numbers=best_performance_data[:-1], legend_labels=legend_labels, xlabel="Behavioural descriptor", ylabel="Recovered performance",ylim=[0.00,1.0],save_filename="results/resilience_boxplot.pdf")
 
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
-
-
+    ##significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=False,
+    #                title_tag="")
+    resilience_boxplot()
 
 
     # legend_labels.append("baseline")
 
     # set by_fitfun true
-    significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=True,
-                     title_tag="")
+
+    #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=True,
+    #                 title_tag="")
     #significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=True, load_existing=True,
     #                 title_tag="")
 
@@ -768,5 +773,5 @@ if __name__ == "__main__":
 
     #get_max_performances(bd_type, fitfuns,"30000")
 
-    make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="resilience")
-    make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="recovered-performance")
+    #make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="resilience")
+    #make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="recovered-performance")

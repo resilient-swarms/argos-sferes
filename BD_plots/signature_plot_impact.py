@@ -174,7 +174,7 @@ if __name__ == "__main__":
                                               history_type= "xy",add_self_dist=True)
         #assert np.allclose(resilience, resilience_data[i])
         #indexes=np.where((best_transfer_data[i] >= -0.4))
-        indexes=np.where((best_transfer_data[i] >= -0.5))
+        indexes=np.where((best_transfer_data[i])<float("inf"))
         impacts.append(best_transfer_data[i][indexes])
         resiliences.append(resilience[indexes])
         dists.append(dist[indexes])
@@ -364,11 +364,11 @@ if __name__ == "__main__":
 
     plot(impacts,dists,"impact_distance_signature",titles=["HBD","SDBC","SPIRIT","QED"],
          axis_names=["Impact of fault","Behavioural diversity"],
-         xlim=[-0.5,0.0],ylim=[0,1],grid=True,vmax=10.0,rounded_max=8.0,cbarlabels=['0%', '0.02%', ">0.04%"])
+         xlim=[-1.0,0.0],ylim=[0,1],grid=True,vmax=10.0,rounded_max=8.0,cbarlabels=['0%', '0.02%', ">0.04%"])
 
     plot(impacts,resiliences,"impact_resilience_signature",titles=["HBD","SDBC","SPIRIT","QED"],
          axis_names=["Impact of fault","Map resilience"],
-         xlim=[-0.5,0.0],ylim=[-0.5,0.0],grid=True,add_unit_line=True,vmax=50.0,rounded_max=40.0,cbarlabels=['0%', '0.10%', ">0.20%"])
+         xlim=[-1.0,0.0],ylim=[-1.0,0.0],grid=True,add_unit_line=True,vmax=50.0,rounded_max=40.0,cbarlabels=['0%', '0.10%', ">0.20%"])
 
     plot(self_dists, dists, "projection_signature", titles=["HBD", "SDBC", "SPIRIT", "QED"],
          axis_names=["distance in own space","distance in projected space"],

@@ -284,10 +284,12 @@ def get_archive_filepath(BD_directory,run, archive_file_path):
     return BD_directory + "/results" + str(run) + "/" + archive_file_path
 
 def get_bd_dir(fitfun, tag="range0.11"):
-    data_dir = HOME_DIR + "/Data/"
+    data_dir = "/media/david/Elements/Data/"
     title = fitfun + tag
     BD_dir = data_dir + "/" + title
     return BD_dir
+
+
 def get_combined_archive(BD_directory,runs, archive_file_path,by_bin="bd",include_val=True,include_ind=False,centroids=[]):
     """
     takes different runs, then combines the archives,
