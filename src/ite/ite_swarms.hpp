@@ -73,16 +73,17 @@ struct Params
     };
 
 #else
+    // take tuned parameters 0.903197	0.274235
     struct kernel_maternfivehalves : public defaults::kernel_maternfivehalves
     {
-        BO_PARAM(double, l, 0.15); // smoothness of the function;
+        BO_PARAM(double, l, 0.27); // smoothness of the function;
         // 0.4 is used in IT&E; but here this affects all the behaviours it seems
         //1.5 is a setting used scikit learn https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.kernels.Matern.html
     };
 
     struct acqui_ucb : public defaults::acqui_ucb
     {
-        BO_PARAM(double, alpha, 0.10);
+        BO_PARAM(double, alpha, 0.90);
     };
 
 #endif
