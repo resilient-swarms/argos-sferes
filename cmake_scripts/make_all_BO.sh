@@ -11,7 +11,7 @@ for dim in 3 10 ; do
     else
     cmake -DNN_INPUT_TYPE=1 -DBO=ON -DCMAKE_BUILD_TYPE=Debug -DRECORD_FITNESS=ON -DBD=${dim}  -DDEFINE_PRINT=OFF ..
     fi
-   make -j 8
+   make -j 2
 
 
 done 

@@ -82,8 +82,8 @@ struct HPParams
 
 struct EvalHP
 {
-    BO_PARAM(size_t, dim_in, 3);  // 3 hyperparameters  (alpha for acquisition function and l and sigma_sq for matern kernel)
-    BO_PARAM(size_t, dim_out, 2); // fitness and number of trials
+    BO_PARAM(size_t, dim_in, 2);  // 2 hyperparameters  (alpha for acquisition function and l for matern kernel)
+    BO_PARAM(size_t, dim_out, 1); // fitness and number of trials
 
     // the function to be optimized
     Eigen::VectorXd operator()(const Eigen::VectorXd &x) const
@@ -98,7 +98,7 @@ struct EvalHP
         Opt_t opt;
 
 
-
+        float sum_trials=0.0f;
         Eigen::VectorXd vec = Eigen::VectorXd::Zero(2); // tuning on logarithmic scale
         std::cout << "------------------------------------" << std::endl;
             std::cout << "Start evaluating alpha=" << opt_alpha << " length-scale="<<opt_l << std::endl;
@@ -115,13 +115,20 @@ struct EvalHP
             auto val = opt.best_observation();
             Eigen::VectorXd result = opt.best_sample().transpose();
 
-            double trials = max_evals - global::num_trials; // minimise the number of trials
+            //double trials = max_evals - global::num_trials; // minimise the number of trials
+            std::vector<Eigen::VectorXd> observations = opt.observations();
+            float performance_loss=0.0f;
+            for (auto &obs : observations)
+            {
+                performance_loss += (val[0] - obs[0])/(float) max_evals;//
+            }
 
-            vec[0] += val[0];
-            vec[1] += trials;
+
+            vec[0] += val[0] - 0.10*performance_loss;// performance
+            
+
         }
         vec[0] /= (float)global::argossim_config_name.size();
-        vec[1] /= (float)global::argossim_config_name.size();
         std::cout << "------------------------------------" << std::endl;
         std::cout << "evaluated one point for HP tuning" << std::endl;
         std::cout << "Point " << x << " evaluated" << std::endl;
@@ -129,7 +136,7 @@ struct EvalHP
         std::cout << "Avg Number of trials="<< max_evals - vec[1] << std::endl;
         std::cout << "------------------------------------" << std::endl;
         std::cout << "------------------------------------" << std::endl;
-        global::hyper_log << x[0] << "\t" << x[1] << "\t" << vec[0] << "\t" << vec[1] << std::endl;
+        global::hyper_log << x[0] << "\t" << x[1] << "\t" << vec[0] << std::endl;
         return vec;
     }
 };
