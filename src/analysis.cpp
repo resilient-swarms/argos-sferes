@@ -90,6 +90,7 @@ int main(int argc, char **argv)
     static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
     /* process arguments*/
     size_t individual_index = std::atoi((*(individual_it+1)).c_str()); 
+
     cLoopFunctions.descriptor = init_analysis_descriptor(cLoopFunctions,individual_index,
                     std::string(cLoopFunctions.output_folder)+std::string("/analysis")+std::string(argv[3])+std::string("_"), // add generation number to identify uniquely
                     argv[2]);

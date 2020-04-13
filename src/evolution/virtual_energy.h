@@ -11,6 +11,7 @@ pattern "∗ food nest", where d is the distance of the nest to the food.
 
 #include <cstddef>
 #include <vector>
+#include <iostream>
 
 enum VirtualState
 {
@@ -22,26 +23,39 @@ struct VirtualEnergy
 {
 
     float E;
-    float default_reward, food_reward, nest_reward;
+    float init_reward, default_reward, food_reward, nest_reward;
     size_t counter;
     std::vector<VirtualState> previous_state;
     VirtualEnergy(float num_agents, float steps_to_1m)
     {
         // initialise
-        E = 4.0 * steps_to_1m * num_agents;
+        init_reward = 4.0 * steps_to_1m * num_agents;
         food_reward = steps_to_1m / 2.0;
         nest_reward = 2.0 * steps_to_1m;
-        for(size_t i=0; i < num_agents; ++i)
+        for (size_t i = 0; i < num_agents; ++i)
         {
             previous_state.push_back(DEFAULT);
         }
+
+        std::cout << "init reward = "  << init_reward << std::endl;
+        std::cout << "food reward = "  << food_reward << std::endl;
+        std::cout << "nest reward = "  << nest_reward << std::endl;
+
+    }
+    void reset()
+    {
+        for (size_t i = 0; i < previous_state.size(); ++i)
+        {
+            previous_state[i] = DEFAULT;
+        }
+        E = init_reward;
     }
     /* main step function, increasing or decreasing energy depending on subgoal attainment */
     bool step(bool collide, VirtualState state);
     /* whether or not energy is depleted */
     inline bool depleted()
     {
-        
+
         counter = 0; //loop is finished, set counter back to 0
         return this->E <= 0;
     }

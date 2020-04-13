@@ -194,6 +194,13 @@ public:
 
     /* get the centre of mass */
     argos::CVector3 centre_of_mass(const std::vector<CVector3> &positions);
+#ifdef RECORD_FIT
+    /* write fitness to file */
+    virtual void write_fitness(float fFitness)
+    {
+        fitness_writer << fFitness << std::endl;
+    }
+#endif
 
 public:
     bool stop_eval;

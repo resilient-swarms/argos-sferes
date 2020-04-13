@@ -3,7 +3,6 @@
 #include "src/evolution/foraging_nn_controller.h"
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
-
 /****************************************/
 /****************************************/
 
@@ -20,24 +19,24 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    BaseEvolutionLoopFunctions::Init(t_node);
    /* process virtual_energy */
    std::string use_virtual;
-    try
-    {
-        GetNodeAttribute(t_node, "use_virtual", use_virtual);
-        if (use_virtual=="True")
-        {
-           // init is set to the number of steps to travel 1 m (approx half of the arena)
-           // 100 - 6*num_steps = 0
-           ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN *>(get_controller(0)); // index 0 because any index will do
-           float num_ticks_per_s = 1.0/tick_time;
-           float steps_to_1m = (100.0/cController->m_sWheelTurningParams.MaxSpeed)*num_ticks_per_s;//maxspeed in cm/s
-           virtual_energy = new VirtualEnergy(this->m_unNumberRobots,steps_to_1m);
-        }
-        // TODO: create some statistics files in this folder
-    }
-    catch (CARGoSException &ex)
-    {
-        THROW_ARGOSEXCEPTION_NESTED("Error initializing centroids_folder", ex);
-    }
+   try
+   {
+      GetNodeAttribute(t_node, "use_virtual", use_virtual);
+      if (use_virtual == "True")
+      {
+         // init is set to the number of steps to travel 1 m (approx half of the arena)
+         // 100 - 6*num_steps = 0
+         ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN *>(get_controller(0)); // index 0 because any index will do
+         float num_ticks_per_s = 1.0 / tick_time;
+         float steps_to_1m = (100.0 / cController->m_sWheelTurningParams.MaxSpeed) * num_ticks_per_s; //maxspeed in cm/s
+         virtual_energy = new VirtualEnergy(this->m_unNumberRobots, steps_to_1m);
+      }
+      // TODO: create some statistics files in this folder
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing centroids_folder", ex);
+   }
 }
 
 /****************************************/
@@ -75,6 +74,13 @@ void CForagingLoopFunctions::Reset()
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
       cController.holdingFood = false;
    }
+
+   if(virtual_energy != NULL)
+   {
+      virtual_energy->reset();
+   }
+
+   
 }
 
 std::vector<size_t> CForagingLoopFunctions::priority_robotplacement()
@@ -421,9 +427,9 @@ void CForagingLoopFunctions::PostStep()
             }
          }
       }
-      if (virtual_energy!=NULL)
+      if (virtual_energy != NULL)
       {
-         
+
          virtual_energy->step(cThym->GetEmbodiedEntity().IsCollidingWithSomething(), virtualState);
       }
    }
@@ -445,8 +451,16 @@ void CForagingLoopFunctions::PostStep()
 #ifdef PRINTING
          std::cout << "out of energy" << std::endl;
 #endif
+
+#ifdef RECORD_FIT
+         std::cout << "Final energy " << virtual_energy->E << std::endl;
+         std::cout << "sim clock " << (float)GetSpace().GetSimulationClock() << std::endl;
+         avg_final_E += virtual_energy->E + (float)GetSpace().GetSimulationClock();
+         std::cout << "avg_final_E " << avg_final_E << std::endl;
+#endif
          argos::CSimulator::GetInstance().Terminate();
          stop_eval = true;
+
       }
    }
 }

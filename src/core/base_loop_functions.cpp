@@ -593,7 +593,7 @@ float BaseLoopFunctions::run_all_trials(argos::CSimulator &cSimulator)
     /****************************************/
     float fFitness = alltrials_fitness();
 #ifdef RECORD_FIT
-    fitness_writer << fFitness << std::endl;
+    write_fitness(fFitness);
 #endif
     return fFitness;
 }

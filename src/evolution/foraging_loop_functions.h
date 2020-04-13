@@ -5,13 +5,11 @@
 #include <argos3/core/simulator/entity/floor_entity.h>
 #include "src/evolution/virtual_energy.h"
 
-
-
 class CForagingLoopFunctions : public BaseEvolutionLoopFunctions
 {
 
 public:
-    VirtualEnergy* virtual_energy;
+    VirtualEnergy *virtual_energy;
     CFloorEntity *m_pcFloor;
     const float nest_x = 0.32;
     const size_t num_food = 5;
@@ -27,10 +25,11 @@ public:
         CVector2(1.6, 1.70)
 
     };
-    bool forcePositions=false;
+    bool forcePositions = false;
     std::vector<int> m_cVisitedFood = {}; // how much time steps left until harvestable
     std::vector<bool> m_bRobotsHoldingFood = {};
     size_t numfoodCollected = 0;
+    float avg_final_E = 0.0f;
     CForagingLoopFunctions();
     virtual ~CForagingLoopFunctions() {}
 
@@ -42,6 +41,22 @@ public:
 
     virtual bool try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
     virtual std::vector<size_t> priority_robotplacement();
+
+#ifdef RECORD_FIT
+    /* write fitness to file */
+    virtual void write_fitness(float fFitness)
+    {
+        if(virtual_energy != NULL)
+        {
+            avg_final_E /= (float) this->m_unNumberTrials;
+            std::cout << "FINAL: avg_final_E " << avg_final_E << std::endl;
+            fitness_writer << fFitness << "\t" << avg_final_E <<std::endl;
+        }
+        else{
+            fitness_writer << fFitness << std::endl;
+        }
+    }
+#endif
     void food_scarcity();
 };
 
