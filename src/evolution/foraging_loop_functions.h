@@ -3,11 +3,15 @@
 
 #include "src/evolution/base_evol_loop_functions.h"
 #include <argos3/core/simulator/entity/floor_entity.h>
+#include "src/evolution/virtual_energy.h"
+
+
 
 class CForagingLoopFunctions : public BaseEvolutionLoopFunctions
 {
 
 public:
+    VirtualEnergy* virtual_energy;
     CFloorEntity *m_pcFloor;
     const float nest_x = 0.32;
     const size_t num_food = 5;

@@ -84,7 +84,7 @@ public:
 #endif
 
     std::vector<ControllerType *> m_pcvecController;
-    bool stop_eval;
+    bool stop_eval=false;
     Real stand_still, maxIRSensor;
     Descriptor *descriptor;
 

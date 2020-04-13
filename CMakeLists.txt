@@ -340,6 +340,8 @@ else(NOT BASELINE)
             message("Foraging")
             add_library(foraging_loopfunctions${tag} SHARED
             src/evolution/params.h
+            src/evolution/virtual_energy.h
+            src/evolution/virtual_energy.cpp
             src/evolution/foraging_loop_functions.h
             src/evolution/foraging_loop_functions.cpp
              src/core/robotid_vis.h
@@ -373,6 +375,8 @@ else(NOT BASELINE)
             src/evolution/params.h
             src/evolution/foraging_loop_functions.h
             src/evolution/foraging_loop_functions.cpp
+            src/evolution/virtual_energy.h
+            src/evolution/virtual_energy.cpp
 	        )
             set(LOOPFUN foraging_loopfunctions${tag})
         elseif(NOT ${NN_INPUT_TYPE} EQUAL 1)

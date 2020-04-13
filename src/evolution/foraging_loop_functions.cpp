@@ -3,10 +3,11 @@
 #include "src/evolution/foraging_nn_controller.h"
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
+
 /****************************************/
 /****************************************/
 
-CForagingLoopFunctions::CForagingLoopFunctions() : m_pcFloor(NULL)
+CForagingLoopFunctions::CForagingLoopFunctions() : m_pcFloor(NULL), virtual_energy(NULL)
 {
 }
 
@@ -17,19 +18,39 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 {
    m_pcFloor = &GetSpace().GetFloorEntity();
    BaseEvolutionLoopFunctions::Init(t_node);
+   /* process virtual_energy */
+   std::string use_virtual;
+    try
+    {
+        GetNodeAttribute(t_node, "use_virtual", use_virtual);
+        if (use_virtual=="True")
+        {
+           // init is set to the number of steps to travel 1 m (approx half of the arena)
+           // 100 - 6*num_steps = 0
+           ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN *>(get_controller(0)); // index 0 because any index will do
+           float num_ticks_per_s = 1.0/tick_time;
+           float steps_to_1m = (100.0/cController->m_sWheelTurningParams.MaxSpeed)*num_ticks_per_s;//maxspeed in cm/s
+           virtual_energy = new VirtualEnergy(this->m_unNumberRobots,steps_to_1m);
+        }
+        // TODO: create some statistics files in this folder
+    }
+    catch (CARGoSException &ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing centroids_folder", ex);
+    }
 }
 
 /****************************************/
 /****************************************/
 void CForagingLoopFunctions::food_scarcity()
 {
-   ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN *>(get_controller(0));// index 0 because any index will do
+   ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN *>(get_controller(0)); // index 0 because any index will do
    if (cController->FBehavior == BaseController::FaultBehavior::FAULT_FOOD_SCARCITY)
    {
-      float rad = 0.040 * (float) (cController->foodID + 1);
-      m_fFoodSquareRadius = { rad*rad};// only one small food item
-      float food_x = m_pcRNG->Uniform(CRange<Real>(1.7, 1.85));// very far from nest_x but not against the border
-      float food_y = m_pcRNG->Uniform(CRange<Real>(0.3, 1.8));// y does not matter so much
+      float rad = 0.040 * (float)(cController->foodID + 1);
+      m_fFoodSquareRadius = {rad * rad};                        // only one small food item
+      float food_x = m_pcRNG->Uniform(CRange<Real>(1.7, 1.85)); // very far from nest_x but not against the border
+      float food_y = m_pcRNG->Uniform(CRange<Real>(0.3, 1.8));  // y does not matter so much
       m_cFoodPos = {CVector2(food_x, food_y)};
    }
 }
@@ -37,7 +58,7 @@ void CForagingLoopFunctions::Reset()
 {
    food_scarcity();
    //BaseEvolutionLoopFunctions::Reset();
-   reset_agent_positions(forcePositions);//force the positions (unlike BaseEvol/Base LoopFunctions::Reset)
+   reset_agent_positions(forcePositions); //force the positions (unlike BaseEvol/Base LoopFunctions::Reset)
    reset_cylinder_positions();
 
    m_cVisitedFood.clear();
@@ -82,7 +103,7 @@ bool CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion 
    ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN *>(get_controller(m_unRobot));
    if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE)
    {
-      forcePositions=true;
+      forcePositions = true;
       do
       {
          Position = CVector3(nest_x, m_pcRNG->Uniform(CRange<Real>(0.3, 1.8)), 0.0f);
@@ -110,7 +131,7 @@ bool CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion 
    }
    else if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_FOOD)
    {
-      forcePositions=true;
+      forcePositions = true;
       bool success = true;
       do
       {
@@ -137,13 +158,13 @@ bool CForagingLoopFunctions::try_robot_position(CVector3 &Position, CQuaternion 
           Orientation, // with this orientation
           false        // this is not a check, leave the robot there
           ));
-      
+
       std::cout << "successfully initialised at food item " << std::endl;
       return true;
    }
    else if (cController->b_damagedrobot && cController->FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_NEIGHBOURHOOD)
    {
-      forcePositions=true;
+      forcePositions = true;
       do
       {
          // select a food location
@@ -336,7 +357,7 @@ void CForagingLoopFunctions::PostStep()
       CVector2 cPos;
       cPos.Set(cThym->GetEmbodiedEntity().GetOriginAnchor().Position.GetX(),
                cThym->GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
-
+      VirtualState virtualState = VirtualState::DEFAULT;
       /* The thymio has a food item and does not drop it due to software fault*/
       if (cController.holdingFood)
       {
@@ -345,6 +366,9 @@ void CForagingLoopFunctions::PostStep()
          {
             /* Drop the food item */
             cController.holdingFood = false;
+
+            virtualState = VirtualState::NEST;
+
             /* Increase the food count */
             fitfun->fitness_per_trial[m_unCurrentTrial]++;
 #ifdef PRINTING
@@ -376,6 +400,7 @@ void CForagingLoopFunctions::PostStep()
                   }
                   else
                   {
+                     virtualState = VirtualState::HOLDING_FOOD;
                      cController.holdingFood = true;
 #ifdef PRINTING
                      std::cout << cThym->GetId() << " is now holding food " << std::endl;
@@ -396,6 +421,11 @@ void CForagingLoopFunctions::PostStep()
             }
          }
       }
+      if (virtual_energy!=NULL)
+      {
+         
+         virtual_energy->step(cThym->GetEmbodiedEntity().IsCollidingWithSomething(), virtualState);
+      }
    }
    for (size_t f = 0; f < num_food; ++f)
    {
@@ -407,6 +437,18 @@ void CForagingLoopFunctions::PostStep()
    }
 
    BaseEvolutionLoopFunctions::PostStep();
+
+   if (virtual_energy != NULL)
+   {
+      if (virtual_energy->depleted())
+      {
+#ifdef PRINTING
+         std::cout << "out of energy" << std::endl;
+#endif
+         argos::CSimulator::GetInstance().Terminate();
+         stop_eval = true;
+      }
+   }
 }
 
 /****************************************/

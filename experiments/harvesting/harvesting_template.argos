@@ -49,6 +49,7 @@
                   fitfuntype="Foraging"
                   output_folder="OUTPUTFOLDER"
                 centroids_folder="CENTROIDSFOLDER"
+		  use_virtual="USE_VIRTUAL"
                     />
 
   <!-- *********************** -->

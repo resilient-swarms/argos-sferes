@@ -49,7 +49,7 @@ struct Params
     struct kernel : public defaults::kernel
     {
 
-        BO_PARAM(double, noise, 1e-3); // 0.001 is used in IT&E
+        BO_PARAM(double, noise, 0); // 0.001 is used in IT&E
     };
 
     // using a default 90% above all other predicted gait performances in the map

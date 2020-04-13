@@ -271,11 +271,11 @@ void BaseEvolutionLoopFunctions::before_trials(argos::CSimulator &cSimulator)
     BaseLoopFunctions::before_trials(cSimulator);
     descriptor->before_trials(*this);
 }
+
+
 void BaseEvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 {
-#ifdef COLLISION_STOP
     stop_eval = false;
-#endif
     descriptor->start_trial();
 
     BaseLoopFunctions::start_trial(cSimulator);
@@ -295,12 +295,10 @@ void BaseEvolutionLoopFunctions::end_trial()
 
 std::vector<float> BaseEvolutionLoopFunctions::alltrials_descriptor()
 {
-#ifdef COLLISION_STOP
     if (stop_eval)
     {
         return std::vector<float>(BEHAV_DIM);
     }
-#endif
     return descriptor->after_trials(*this);
 }
 

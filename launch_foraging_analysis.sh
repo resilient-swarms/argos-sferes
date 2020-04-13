@@ -2,6 +2,7 @@
 
 data=$1
 video=$3
+UseVirtual=$4
 if [ "$video" = "video" ]; then
     if [ "$2" = "best" ] || [ "$2" = "impact" ]; then # testing faulty best or normal best on faulty scenario  -> give numbers to track faults
         template_file="experiments/experiment_template_perturbation_with_visual_numbered.argos"
@@ -196,6 +197,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|FAULT_ID|${FaultID}|" \
                         -e "s|FOOD_ID|${food}|" \
                         -e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
+                        -e "s|USE_VIRTUAL|${UseVirtual}|" \
                         experiments/harvesting/harvesting_template.argos \
                         >${ConfigFile}
 

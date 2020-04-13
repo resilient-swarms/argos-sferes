@@ -5,6 +5,7 @@
 #one arg: data-dir 
 
 
+
 data=$1
 export Generation=30000
 
