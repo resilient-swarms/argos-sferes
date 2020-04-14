@@ -29,8 +29,8 @@ struct VirtualEnergy
     {
         // initialise
         init_reward = 4.0 * steps_to_1m * num_agents;
-        food_reward = steps_to_1m / 2.0;
-        nest_reward = 2.0 * steps_to_1m;
+        food_reward = steps_to_1m;
+        nest_reward = 5.0 * steps_to_1m;
         for (size_t i = 0; i < num_agents; ++i)
         {
             previous_state.push_back(DEFAULT);
