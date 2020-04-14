@@ -22,7 +22,8 @@ bool VirtualEnergy::step(size_t j, bool collide, VirtualState state)
     }
     else
     {
-        // do nothing
+        // count as default as well
+        reward = -1.0;
     }
     //penalty for collisions
     if (collide)
