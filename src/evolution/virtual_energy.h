@@ -24,7 +24,6 @@ struct VirtualEnergy
 
     float E;
     float init_reward, default_reward, food_reward, nest_reward;
-    size_t counter;
     std::vector<VirtualState> previous_state;
     VirtualEnergy(float num_agents, float steps_to_1m)
     {
@@ -51,12 +50,10 @@ struct VirtualEnergy
         E = init_reward;
     }
     /* main step function, increasing or decreasing energy depending on subgoal attainment */
-    bool step(bool collide, VirtualState state);
+    bool step(size_t  j, bool collide, VirtualState state);
     /* whether or not energy is depleted */
     inline bool depleted()
     {
-
-        counter = 0; //loop is finished, set counter back to 0
         return this->E <= 0;
     }
 };

@@ -430,7 +430,7 @@ void CForagingLoopFunctions::PostStep()
       if (virtual_energy != NULL)
       {
 
-         virtual_energy->step(cThym->GetEmbodiedEntity().IsCollidingWithSomething(), virtualState);
+         virtual_energy->step(j,cThym->GetEmbodiedEntity().IsCollidingWithSomething(), virtualState);
       }
    }
    for (size_t f = 0; f < num_food; ++f)
