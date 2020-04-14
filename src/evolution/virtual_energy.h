@@ -40,7 +40,7 @@ struct VirtualEnergy
         std::cout << "init reward = "  << init_reward << std::endl;
         std::cout << "food reward = "  << food_reward << std::endl;
         std::cout << "nest reward = "  << nest_reward << std::endl;
-
+        E = init_reward;
     }
     void reset()
     {
