@@ -428,7 +428,7 @@ void CForagingLoopFunctions::PostStep()
       // adjust state where needed
       if (cController.holdingFood)
       {
-         state = HOLDING_FOOD; //
+         virtualState = HOLDING_FOOD; //
       }
       if (virtual_energy != NULL)
       {
