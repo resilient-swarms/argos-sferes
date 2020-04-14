@@ -26,6 +26,13 @@ declare -A descriptors
 declare -A voronoi
 declare -A behav
 
+
+
+MINGEN=20000 #
+MAXGEN=20000
+STEP=500
+
+
 command="bin/analysis" # note: cvt and 10D does not really matter since we are not evolving
 
 #descriptors["Gomes_sdbc_walls_and_robots_std"]=10
@@ -34,8 +41,8 @@ command="bin/analysis" # note: cvt and 10D does not really matter since we are n
 # descriptors["environment_diversity"]=6
 # voronoi["environment_diversity"]=""
 
-#descriptors["history"]=3
-#voronoi["history"]=""
+descriptors["history"]=3
+voronoi["history"]=""
 
 #descriptors["baseline"]=""
 #voronoi["baseline"]=""
@@ -51,7 +58,7 @@ for key in ${!descriptors[@]}; do
         sleep 5
 
     else
-        tag=${CVT}${BD_DIMS}DANA
+        tag=${CVT}${BD_DIMS}DANAREAL
         SwarmBehaviour="/"
     fi
     echo "doing ${DescriptorType} now"
@@ -94,7 +101,7 @@ for key in ${!descriptors[@]}; do
                 -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
                 -e "s|SEED|${Replicates}|" \
                 -e "s|FITFUN_TYPE|${FitfunType}|" \
-                -e "s|DESCRIPTOR_TYPE|${DescriptorType}|" \
+                -e "s|DESCRIPTOR_TYPE|analysis|" \
                 -e "s|OUTPUTFOLDER|${Outfolder}|" \
                 -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                 -e "s|SENSOR_RANGE|0.11|" \
