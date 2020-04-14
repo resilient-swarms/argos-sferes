@@ -8,6 +8,7 @@ source activate py3.7 # just for the cvt initialisation
 
 data=$1
 
+
 # Create a data diretory
 mkdir -p $data
 declare -A descriptors
@@ -39,7 +40,7 @@ for key in ${!descriptors[@]}; do
 		# Take template.argos and make an .argos file for this experiment
 		SUFFIX=${Replicates}
 		ConfigFolder=${data}/${FitfunType}/${DescriptorType}
-		Outfolder=${ConfigFolder}/results${SUFFIX}
+		Outfolder=${ConfigFolder}/results${SUFFIX}/
 		ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 
 		mkdir -p $Outfolder

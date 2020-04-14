@@ -3,6 +3,10 @@
 data=$1
 video=$3
 UseVirtual=$4
+if [ "$UseVirtual" = "True" ]; then
+	VirtualFolder="virtual_energy_exp"
+fi
+
 if [ "$video" = "video" ]; then
     if [ "$2" = "best" ] || [ "$2" = "impact" ]; then # testing faulty best or normal best on faulty scenario  -> give numbers to track faults
         template_file="experiments/experiment_template_perturbation_with_visual_numbered.argos"
@@ -177,7 +181,10 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
                         Outfolder=${ConfigFolder}/results${SUFFIX}
                     fi
-                    mkdir -p $Outfolder
+                    Outfolder=${Outfolder}/${VirtualFolder}
+	            echo "Outfolder ${Outfolder}"
+		    
+		    mkdir -p $Outfolder
                     echo "config ${ConfigFile}"
                     touch ${ConfigFile}
                     sed -e "s|THREADS|0|" \
@@ -187,7 +194,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|SEED|${Replicates}|" \
                         -e "s|FITFUN_TYPE|${FitfunType}|" \
                         -e "s|DESCRIPTOR_TYPE|${DescriptorType}|" \
-                        -e "s|OUTPUTFOLDER|${Outfolder}|" \
+                        -e "s|OUTPUTFOLDER|${Outfolder}}|" \
                         -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                         -e "s|SENSOR_RANGE|0.11|" \
                         -e "s|NOISE_LEVEL|0.05|" \

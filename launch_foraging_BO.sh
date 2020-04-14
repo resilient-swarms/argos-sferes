@@ -161,7 +161,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|SEED|${Replicates}|" \
                         -e "s|FITFUN_TYPE|${FitfunType}|" \
                         -e "s|DESCRIPTOR_TYPE|${DescriptorType}|" \
-                        -e "s|OUTPUTFOLDER|${Outfolder}|" \
+                        -e "s|OUTPUTFOLDER|${Outfolder}${UseVirtual}|" \
                         -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                         -e "s|SENSOR_RANGE|0.11|" \
                         -e "s|NOISE_LEVEL|0.05|" \
