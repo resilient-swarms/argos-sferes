@@ -75,12 +75,10 @@ void CForagingLoopFunctions::Reset()
       cController.holdingFood = false;
    }
 
-   if(virtual_energy != NULL)
+   if (virtual_energy != NULL)
    {
       virtual_energy->reset();
    }
-
-   
 }
 
 std::vector<size_t> CForagingLoopFunctions::priority_robotplacement()
@@ -406,7 +404,7 @@ void CForagingLoopFunctions::PostStep()
                   }
                   else
                   {
-                     virtualState = VirtualState::HOLDING_FOOD;
+
                      cController.holdingFood = true;
 #ifdef PRINTING
                      std::cout << cThym->GetId() << " is now holding food " << std::endl;
@@ -427,10 +425,15 @@ void CForagingLoopFunctions::PostStep()
             }
          }
       }
+      // adjust state where needed
+      if (cController.holdingFood)
+      {
+         state = HOLDING_FOOD; //
+      }
       if (virtual_energy != NULL)
       {
 
-         virtual_energy->step(j,cThym->GetEmbodiedEntity().IsCollidingWithSomething(), virtualState);
+         virtual_energy->step(j, cThym->GetEmbodiedEntity().IsCollidingWithSomething(), virtualState);
       }
    }
    for (size_t f = 0; f < num_food; ++f)
@@ -460,7 +463,6 @@ void CForagingLoopFunctions::PostStep()
 #endif
          argos::CSimulator::GetInstance().Terminate();
          stop_eval = true;
-
       }
    }
 }

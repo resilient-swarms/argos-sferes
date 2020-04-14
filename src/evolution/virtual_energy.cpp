@@ -1,7 +1,6 @@
 #include <src/evolution/virtual_energy.h>
 #include <iostream>
 
-
 /* main step function, increasing or decreasing energy depending on subgoal attainment */
 bool VirtualEnergy::step(size_t j, bool collide, VirtualState state)
 {
