@@ -40,3 +40,4 @@ bool VirtualEnergy::step(size_t j, bool collide, VirtualState state)
     std::cout << "E = " << E << std::endl;
 #endif
 }
+

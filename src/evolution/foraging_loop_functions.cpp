@@ -455,12 +455,7 @@ void CForagingLoopFunctions::PostStep()
          std::cout << "out of energy" << std::endl;
 #endif
 
-#ifdef RECORD_FIT
-         std::cout << "Final energy " << virtual_energy->E << std::endl;
-         std::cout << "sim clock " << (float)GetSpace().GetSimulationClock() << std::endl;
-         avg_final_E += virtual_energy->E + (float)GetSpace().GetSimulationClock();
-         std::cout << "avg_final_E " << avg_final_E << std::endl;
-#endif
+         virtual_energy_finish_trial();
          argos::CSimulator::GetInstance().Terminate();
          stop_eval = true;
       }

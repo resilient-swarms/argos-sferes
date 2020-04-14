@@ -46,18 +46,35 @@ public:
     /* write fitness to file */
     virtual void write_fitness(float fFitness)
     {
-        if(virtual_energy != NULL)
+        if (virtual_energy != NULL)
         {
-            avg_final_E /= (float) this->m_unNumberTrials;
+            avg_final_E /= (float)this->m_unNumberTrials;
             std::cout << "FINAL: avg_final_E " << avg_final_E << std::endl;
-            fitness_writer << fFitness << "\t" << avg_final_E <<std::endl;
+            fitness_writer << fFitness << "\t" << avg_final_E << std::endl;
         }
-        else{
+        else
+        {
             fitness_writer << fFitness << std::endl;
         }
     }
 #endif
     void food_scarcity();
+
+    void virtual_energy_finish_trial()
+    {
+#ifdef RECORD_FIT
+        std::cout << "Final energy " << virtual_energy->E << std::endl;
+        std::cout << "sim clock " << (float)GetSpace().GetSimulationClock() << std::endl;
+        avg_final_E += virtual_energy->E + (float)GetSpace().GetSimulationClock();
+        std::cout << "avg_final_E " << avg_final_E << std::endl;
+#endif
+    }
+
+    virtual void end_trial()
+    {
+        virtual_energy_finish_trial();
+        BaseEvolutionLoopFunctions::end_trial();
+    }
 };
 
 #endif
