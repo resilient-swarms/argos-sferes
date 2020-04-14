@@ -4,6 +4,10 @@
 
 data=$1
 UseVirtual=$2
+if [ "$UseVirtual" = "True" ]; then
+	VirtualFolder="virtual_energy_exp"
+fi
+
 export Generation=20000
 
 echo "doing generation ${Generation}"
@@ -148,7 +152,8 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
                     export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
                     export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
-                    Outfolder=${ConfigFolder}/results${SUFFIX}
+                    Outfolder=${ConfigFolder}/results${SUFFIX}/${VirtualFolder}
+                    echo "Outfolder ${Outfolder}"
                     rm -rf ${Outfolder}/BO_output
                     rm ${Outfolder}/fitness
                     mkdir -p $Outfolder
@@ -161,7 +166,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|SEED|${Replicates}|" \
                         -e "s|FITFUN_TYPE|${FitfunType}|" \
                         -e "s|DESCRIPTOR_TYPE|${DescriptorType}|" \
-                        -e "s|OUTPUTFOLDER|${Outfolder}${UseVirtual}|" \
+                        -e "s|OUTPUTFOLDER|${Outfolder}|" \
                         -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                         -e "s|SENSOR_RANGE|0.11|" \
                         -e "s|NOISE_LEVEL|0.05|" \
