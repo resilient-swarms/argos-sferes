@@ -6,6 +6,9 @@ data=$1
 UseVirtual=$2
 if [ "$UseVirtual" = "True" ]; then
 	VirtualFolder="virtual_energy_exp"
+    command="bin/ite_swarms_VE_"
+else
+    command="bin/ite_swarms_"
 fi
 
 export Generation=20000
@@ -31,7 +34,7 @@ declare -A behav
 # voronoi["cvt_spirit"]="cvt"
 # voronoi["cvt_sdbc_all_std"]="cvt"
 
-command="bin/ite_swarms_"
+
 bo_executable="bin/"
 # note: cvt and 10D does not really matter since we are not evolving
 

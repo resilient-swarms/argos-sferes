@@ -186,7 +186,7 @@ int main(int argc, char **argv)
     {
         global::archive_path = *(map_it + 1);
         global::gen_to_load = atoi((*(map_it + 2)).c_str());
-        Params::archiveparams::archive = load_archive(global::archive_path + "/archive_" + std::to_string(global::gen_to_load) + ".dat");
+        Params::archiveparams::archive = load_archive(global::archive_path);
     }
 
     if (eval_it == cmd_args.end())

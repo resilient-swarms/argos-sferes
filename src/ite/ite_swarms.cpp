@@ -74,26 +74,8 @@ int main(int argc, char **argv)
     {
         newname = *(folder_it + 1);
     }
-    Opt_t opt;
-    global::results_path = opt.res_dir();
-    global::current_config = global::argossim_config_name[0];
 
-#ifdef REAL_EXP
-    opt.optimize(RealEval());
-#else
-    opt.optimize(ControllerEval());
-#endif
-
-    auto val = opt.best_observation();
-    Eigen::VectorXd result = opt.best_sample().transpose();
-
-    std::cout << val << " res  " << result.transpose() << std::endl;
-
-    std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
-
-    // now look up the behaviour descriptor in the archive file
-    // and save to BOOST_SERIALISATION_NVP
-    print_individual_to_network(bd, Params::archiveparams::archive);
-    rename_folder(global::results_path, newname);
+    /* run ite */
+    run_ite(newname);
     return 0;
 }

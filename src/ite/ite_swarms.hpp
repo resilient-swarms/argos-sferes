@@ -76,7 +76,7 @@ struct Params
     // take tuned parameters 0.903197	0.274235
     struct kernel_maternfivehalves : public defaults::kernel_maternfivehalves
     {
-         
+
         BO_PARAM(double, l, 0.121697); // smoothness of the function;
         // 0.4 is used in IT&E; but here this affects all the behaviours it seems
         //1.5 is a setting used scikit learn https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.kernels.Matern.html
@@ -115,7 +115,7 @@ struct Params
     };
 };
 
-Params::archiveparams::archive_t load_archive(std::string archive_name);
+Params::archiveparams::archive_t load_archive(std::string archive_name, std::string VE_file);
 
 double get_fitness(size_t ctrl_index)
 {
@@ -138,7 +138,7 @@ double get_fitness(size_t ctrl_index)
                 std::cerr << "Warning ... we were expecting a single number in the fitness file "
                           << " and not " << numbers.size();
 
-            fitness = numbers[0];
+            fitness = numbers.back(); // only number usually; when virtual energy is second number, use that
             if (fitness > global::original_max)
                 global::original_max = fitness;
 
@@ -280,7 +280,6 @@ struct ControllerEval
 
         float fitness = perform_command(ctrl_index, global::current_config);
 
-
         std::cout << "fit was : " << Params::archiveparams::archive[key].fit << std::endl;
         //Params::archiveparams::archive[key].fit = sum_fitness;//only way our Mean function is updated
         std::cout << "fit is now : " << fitness << std::endl;
@@ -293,10 +292,48 @@ struct ControllerEval
     }
 };
 
-std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archiveparams::classcomp> load_archive(std::string archive_name)
+double get_VE(size_t line_no,std::string VE_file)
+{
+    std::string line;
+    size_t temp_line_no = 0;
+    std::ifstream monFlux(VE_file.c_str());
+    while (std::getline(monFlux, line))
+    {
+        std::istringstream iss(line);
+        std::vector<double> numbers;
+        if (temp_line_no == line_no)
+        {
+
+            double num;
+            while (iss >> num)
+            {
+                numbers.push_back(num);
+            }
+
+            if (numbers.size() != 2)
+            {
+                throw std::runtime_error("lines in VE file should have two numbers");
+            }
+            
+            return numbers.back();
+        }
+
+        ++temp_line_no;
+    }
+    throw std::runtime_error("line_no not reached !");
+    return 0.0f;
+}
+
+Params::archiveparams::archive_t load_archive(std::string archive_name, std::string VE_file = "")
 {
 
-    std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archiveparams::classcomp> archive;
+    Params::archiveparams::archive_t archive;
+
+    bool do_VE = false;
+    if (VE_file != "")
+    {
+        do_VE = true;
+    }
 
     /*size_t lastindex = archive_name.find_last_of(".");
     std::string extension = archive_name.substr(lastindex + 1);*/
@@ -304,8 +341,10 @@ std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archi
     // Assuming order <ind index> <behav_descriptor> <fitness>
     std::cout << "Loading archive file " << archive_name << std::endl;
     std::ifstream monFlux(archive_name.c_str());
+
     if (monFlux)
     {
+        size_t line_no = 0;
         std::string line;
         while (std::getline(monFlux, line))
         {
@@ -318,10 +357,16 @@ std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archi
             }
 
             if (numbers.size() < (global::behav_dim + 1 + 1))
-                continue;
+            {
+                throw std::runtime_error("lower than expected dimension");
+            }
+            else if(numbers.size() > (global::behav_dim + 3) )
+            {
+                throw std::runtime_error("higher than expected dimension");
+            }
 
             int init_i = 0;
-            if (numbers.size() > (global::behav_dim + 1 + 1))
+            if (numbers.size() > (global::behav_dim + 1 + 1)) // additional index added at start (also ignore)
                 init_i = 1;
 
             Params::archiveparams::elem_archive elem;
@@ -339,7 +384,14 @@ std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archi
                 }
                 else if (i == (global::behav_dim + 1))
                 {
-                    elem.fit = data;
+                    if(do_VE)
+                    {
+                        elem.fit = get_VE(line_no, VE_file);
+                    }
+                    else
+                    {
+                        elem.fit = data;
+                    }
                 }
                 else
                 {
@@ -347,11 +399,13 @@ std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archi
                 }
             }
             archive[candidate] = elem;
+
+            ++line_no;
         }
     }
     else
     {
-        std::cerr << "ERROR: Could not load the archive " << global::archive_path + "/archive_" + std::to_string(global::gen_to_load) + ".dat" << std::endl;
+        std::cerr << "ERROR: Could not load the archive " << archive_name << std::endl;
         exit(-1);
     }
 
@@ -360,7 +414,7 @@ std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archi
 }
 
 void print_individual_to_network(std::vector<double> bd,
-                                 std::map<std::vector<double>, Params::archiveparams::elem_archive, Params::archiveparams::classcomp> archive)
+                                 Params::archiveparams::archive_t& archive)
 {
 
     /*size_t lastindex = archive_name.find_last_of(".");
@@ -398,25 +452,46 @@ void rename_folder(std::string oldname, std::string newname)
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
 
+typedef kernel::MaternFiveHalves<Params> Kernel_t;
+typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
+//typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
+typedef mean::MeanArchive<Params> Mean_t;
+// here, GPArchive, a custom module, writes the maps after each iteration
+//    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
+//            stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
+//            stat::Observations<Params>, stat::BestSamples<Params>, stat::GPArchive<Params>> Stat_t;
 
- typedef kernel::MaternFiveHalves<Params> Kernel_t;
-    typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
-    //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
-    typedef mean::MeanArchive<Params> Mean_t;
-    // here, GPArchive, a custom module, writes the maps after each iteration
-    //    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
-    //            stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
-    //            stat::Observations<Params>, stat::BestSamples<Params>, stat::GPArchive<Params>> Stat_t;
+// without the gparchive stats module in case you have not installed it.
+typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
+                              stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
+                              stat::Observations<Params>, stat::BestSamples<Params>>
+    Stat_t;
 
-    // without the gparchive stats module in case you have not installed it.
-    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
-                                  stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
-                                  stat::Observations<Params>, stat::BestSamples<Params>>
-        Stat_t;
+typedef init::NoInit<Params> Init_t;
+typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
+typedef acqui::UCB<Params, GP_t> Acqui_t;
+typedef bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;
 
-    typedef init::NoInit<Params> Init_t;
-    typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
-    typedef acqui::UCB<Params, GP_t> Acqui_t;
-    typedef bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;
+void run_ite(std::string newname)
+{
+    Opt_t opt;
+    global::results_path = opt.res_dir();
+    global::current_config = global::argossim_config_name[0];
+#ifdef REAL_EXP
+    opt.optimize(RealEval());
+#else
+    opt.optimize(ControllerEval());
+#endif
 
-    
+    auto val = opt.best_observation();
+    Eigen::VectorXd result = opt.best_sample().transpose();
+
+    std::cout << val << " res  " << result.transpose() << std::endl;
+
+    std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+
+    // now look up the behaviour descriptor in the archive file
+    // and save to BOOST_SERIALISATION_NVP
+    print_individual_to_network(bd, Params::archiveparams::archive);
+    rename_folder(global::results_path, newname);
+}
