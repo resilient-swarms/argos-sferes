@@ -19,10 +19,13 @@ def scatter_plot():
                 x_full.append(float(item[-1]))
 
 
-    print("correlation with partial evaluation fitness="+str(np.corrcoef(x,y)))
+    print("linear correlation with partial evaluation fitness="+str(np.corrcoef(x,y)))
+    coef, p = spearmanr(x, y)
+    print("rank correlation with partial evaluation fitness="+str(coef))
 
-
-    print("correlation with full evaluation fitness ="+str(np.corrcoef(x_full,y)))
+    print("linear correlation with full evaluation fitness ="+str(np.corrcoef(x_full,y)))
+    coef, p = spearmanr(x_full, y)
+    print("rank correlation with full evaluation fitness="+str(coef))
 
     # plot(x, y, "maxvar_blackgridnew", titles=["HBD", "SDBC", "SPIRIT", "QED"],
     #      axis_names=["Fitness", "Virtual energy + Survived ticks"],
