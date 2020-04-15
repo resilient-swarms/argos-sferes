@@ -2,6 +2,10 @@ from plots import *
 from perturbation_analysis_foraging import *
 from signature_plot import plot
 
+NUM_SECONDS=120
+TICKS_PER_SECOND=5
+TICKS_PER_TRIAL=NUM_SECONDS*TICKS_PER_SECOND
+
 def scatter_plot():
     x=[]
     y=[]
@@ -19,6 +23,7 @@ def scatter_plot():
                 x_full.append(float(item[-1]))
 
 
+    # correlation statistics
     print("linear correlation with partial evaluation fitness="+str(np.corrcoef(x,y)))
     coef, p = spearmanr(x, y)
     print("rank correlation with partial evaluation fitness="+str(coef))
@@ -27,6 +32,17 @@ def scatter_plot():
     coef, p = spearmanr(x_full, y)
     print("rank correlation with full evaluation fitness="+str(coef))
 
+
+    # trial completion statistics
+    percent_full=np.sum(np.array(y)>TICKS_PER_TRIAL)/len(y)
+    print("percentage full trial:"+str(percent_full))
+
+    minimal_time=np.min(np.array(y))/TICKS_PER_SECOND
+    median_time=np.median(np.array(y))/TICKS_PER_SECOND
+    mean_time=np.mean(np.array(y))/TICKS_PER_SECOND
+    print("minimal time in trial:" + str(minimal_time) + "s")
+    print("median time in trial:" + str(median_time)  + "s")
+    print("mean time in trial:" + str(mean_time)  + "s")
     # plot(x, y, "maxvar_blackgridnew", titles=["HBD", "SDBC", "SPIRIT", "QED"],
     #      axis_names=["Fitness", "Virtual energy + Survived ticks"],
     #      xlim=[-5.0,25.0], ylim=[0, 2000], grid=True)
