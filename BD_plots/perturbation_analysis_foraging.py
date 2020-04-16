@@ -15,8 +15,8 @@ from significance import *
 import pickle
 
 
-NUM_SECONDS=120
-TICKS_PER_SECOND=5
+NUM_SECONDS=120.0
+TICKS_PER_SECOND=5.0
 TICKS_PER_TRIAL=NUM_SECONDS*TICKS_PER_SECOND
 
 baseline_performances = pickle.load(open("data/fitfun/foraging_maximal_fitness.pkl", "rb"))
@@ -81,6 +81,7 @@ def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, ge
         bd = tuple(item[1:-1])
         if bd == sample:
             archive_individual = item[0]
+            break
     if archive_individual is None:
         raise Exception("sample not found in normal archive")
     # look up that individual's performance in the faulty environment
@@ -162,9 +163,9 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
             else:
                 BOfile = faultpath + normal_folder + "/BO_output/observations.dat"
             parsed_file_list = read_spacedelimited(BOfile)
-            performance_loss=0
+            performance_loss=0.
             i=0
-            time_loss=0
+            time_loss=0.
             for line in parsed_file_list:
                 if i == 0:
                     i += 1
@@ -173,7 +174,7 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
                     time_consumed=min(float(line[-1]), TICKS_PER_TRIAL)/TICKS_PER_SECOND
                     time_loss+=time_consumed
                     performance = index2fullperformance(bd_t,path,faultpath,virtual_folder,i,r,gener)
-                    performance_loss += (best_performance - performance)
+                    performance_loss += (best_performance - performance)*(time_consumed/NUM_SECONDS) # multiply by trial proportion
                 else:
                     performance_loss+=(best_performance - float(line[-1])) # all have equal time
 
