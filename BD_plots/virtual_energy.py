@@ -2,9 +2,7 @@ from plots import *
 from perturbation_analysis_foraging import *
 from signature_plot import plot
 
-NUM_SECONDS=120
-TICKS_PER_SECOND=5
-TICKS_PER_TRIAL=NUM_SECONDS*TICKS_PER_SECOND
+
 
 def scatter_plot():
     x=[]

@@ -14,6 +14,11 @@ from plots import *
 from significance import *
 import pickle
 
+
+NUM_SECONDS=120
+TICKS_PER_SECOND=5
+TICKS_PER_TRIAL=NUM_SECONDS*TICKS_PER_SECOND
+
 baseline_performances = pickle.load(open("data/fitfun/foraging_maximal_fitness.pkl", "rb"))
 
 runs=range(1,6)
@@ -60,7 +65,7 @@ def bin_single_point(datapoint,minima, bins,bin_sizes):
 
 def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnofault,faultpath,
                           best_performances,best_transfer,resilience, baseline=False,
-                          title_tag=""):
+                          title_tag="",virtual_energy=False):
     """
 
     :param j: fitfun index
@@ -77,7 +82,11 @@ def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnof
     :param baseline:
     :return:
     """
-    path=faultpath+"/fitness" if baseline else faultpath+"/results"+str(runs[r])+"/analysis" + str(gener) + "_handcrafted.dat"
+    virtual_folder="/results" + str(runs[r]) + "/virtual_energy_exp"
+    exhaustive_virtual_folder="/results" + str(runs[r]) + "/virtual_energy_exp/exhaustive"
+    normal_folder ="/results" + str(runs[r])
+    path=faultpath+"/fitness" if baseline else faultpath+normal_folder+"/analysis" + str(gener) + "_handcrafted.dat"
+    virtualpath = faultpath + virtual_folder + "/fitness"
     if baseline:
 
         best_performance=get_baseline_fitness(path)
@@ -87,26 +96,60 @@ def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnof
         #performances = np.append(performances, temp)
 
         if title_tag=="BO":
-            BOfile = faultpath + "/results" + str(runs[r]) +"/BO_output/best_observations.dat"
+
+            if virtual_energy:
+                BOfile = faultpath + virtual_folder +"/BO_output/best_observations.dat"
+            else:
+                BOfile = faultpath + normal_folder + "/BO_output/best_observations.dat"
             parsed_file_list = read_spacedelimited(BOfile)
             last_line=parsed_file_list[-1]
-            best_performance=float(last_line[-1])
+            if virtual_energy:
+                # look up best fitness in the exhaustive search
+                exh_perf_list = read_spacedelimited(faultpath +exhaustive_virtual_folder+"/fitness")
+                best_performance=-float("inf")
+                for line in exh_perf_list:
+                    number=float(line[-1])
+                    if number > best_performance:
+                        best_performance=number
+                samplefile = faultpath + virtual_folder + "/BO_output/samples.dat"
+                sample_list = read_spacedelimited(samplefile)
+            else:
+                best_performance=float(last_line[-1])
             num_trials=len(parsed_file_list) - 1 # count the lines, but top line does not count
 
-            BOfile = faultpath + "/results" + str(runs[r]) + "/BO_output/observations.dat"
+            if virtual_energy:
+                BOfile = faultpath + virtual_folder + "/BO_output/observations.dat"
+            else:
+                BOfile = faultpath + normal_folder + "/BO_output/observations.dat"
             parsed_file_list = read_spacedelimited(BOfile)
             performance_loss=0
             i=0
+            time_loss=0
             for line in parsed_file_list:
                 if i == 0:
                     i += 1
                     continue
-                performance_loss+=(best_performance - float(line[-1]))
+                if virtual_energy:
+                    time_consumed=min(line[-1], TICKS_PER_TRIAL)
+                    time_loss+=time_consumed
+                    # look up the sample
+                    sample=sample_list[i][1:]
+                    # look up perfomance obtained by that controller in the exhaustive search
+                    for line in sample_list:
+                        bd=np.array(line[1:-1],dtype=float)
+                        if bd==sample:
+                            performance = float(line[-1])
+                    performance_loss += (best_performance - performance)
+                else:
+                    performance_loss+=(best_performance - float(line[-1]))
+
                 i+=1
+            if not virtual_energy:
+                time_loss = num_trials * NUM_SECONDS
 
         else:
             maxind, best_performance = get_best_individual(path, add_performance=True, index_based=True)
-            num_trials=None
+            time_loss=None
             performance_loss=None
 
         # all performances vs all nofaultperformances
@@ -121,7 +164,7 @@ def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnof
     #    fitfuns[j]]])  # best performance vs best nofaultperf
     #resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / best_nofaultperfs[r])
 
-    return best_performances,  best_transfer, num_trials, performance_loss
+    return best_performances,  best_transfer, time_loss, performance_loss
 
 
 
@@ -138,7 +181,7 @@ def get_nofault_performances(nofaultpath,gener,runs):
             assert best_performance == max_nofaultperfs[f]
         return nofaultperfs,max_nofaultperfs,maxindsnofault
 
-def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True, load_existing=False,title_tag=""):
+def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True, load_existing=False,title_tag="",virtual_energy=False):
     """
 
     performance: defined as the performance on all the perturbed environments
@@ -213,7 +256,8 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                     faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
 
                     best_performances, best_transfer,  _num_trials, _performance_loss = add_fault_performance(j, r, gener, nofaultperfs, best_nofaultperfs, maxindsnofault, faultpath,
-                                                                                                                          best_performances=[], best_transfer=[],resilience=[], baseline=bd_type[i]=="baseline", title_tag=title_tag)
+                                                                                                                          best_performances=[], best_transfer=[],resilience=[], baseline=bd_type[i]=="baseline",
+                                                                                                              title_tag=title_tag,virtual_energy=virtual_energy)
 
 
 
@@ -483,6 +527,6 @@ if __name__ == "__main__":
     #get_max_performances(bd_type, fitfuns, generation)
     #significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False, title_tag="")
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
-                     title_tag="BO")
+                     title_tag="BO",virtual_energy=True)
 
 
