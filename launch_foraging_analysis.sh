@@ -4,7 +4,7 @@ data=$1
 video=$3
 UseVirtual=$4
 if [ "$UseVirtual" = "True" ]; then
-	VirtualFolder="virtual_energy_exp"
+	VirtualFolder="virtual_energy_exp/exhaustive"
 fi
 
 if [ "$video" = "video" ]; then

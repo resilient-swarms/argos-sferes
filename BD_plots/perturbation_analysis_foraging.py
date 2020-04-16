@@ -62,8 +62,55 @@ def bin_single_point(datapoint,minima, bins,bin_sizes):
 #             gather_bds(prefix,generation,bd_type,fitfuns,faults,runs,history_type)
 
 
+def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, gener):
+    # get the corresponding BD
+    samp = faultpath + virtual_folder + "/BO_output/samples.dat"
+    samp_list = read_spacedelimited(samp)
+    sample = None
+    i = 0
+    for line in samp_list:
+        if i == best_index:
+            sample = tuple(line[1:])
+            break
+        i += 1
+    # get the corresponding individual in the normal environment, original archive
+    original_archive = HOME_DIR + "/Data/Foraging/"+bd_t+ "/results" + str(runs[r]) + "/archive_" + str(gener) + ".dat"
+    archive = read_spacedelimited(original_archive)
+    archive_individual = None
+    for item in archive:
+        bd = tuple(item[1:-1])
+        if bd == sample:
+            archive_individual = item[0]
+    if archive_individual is None:
+        raise Exception("sample not found in normal archive")
+    # look up that individual's performance in the faulty environment
+    parsed_file_list = read_spacedelimited(path)
 
-def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnofault,faultpath,
+    for item in parsed_file_list:
+        indiv = item[0]
+        if indiv == archive_individual:
+            performance = float(item[-1])
+            return performance
+    raise Exception("individual not found in faulty archive")
+
+
+def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener):
+    # look up best observation of virtual energy
+    obs = faultpath + virtual_folder + "/BO_output/observations.dat"
+    obs_list = read_spacedelimited(obs)
+    i = 0
+    best_VE = -float("inf")
+    best_index = None
+    for line in obs_list:
+        if i > 0:  # ignore the first line
+            number = float(line[-1])
+            if number > best_VE:
+                best_VE = number
+                best_index = i  # ignore the first line
+        i +=1
+    return index2fullperformance(bd_t,path,faultpath,virtual_folder,best_index,r,gener)
+
+def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxindsnofault,faultpath,
                           best_performances,best_transfer,resilience, baseline=False,
                           title_tag="",virtual_energy=False):
     """
@@ -102,18 +149,11 @@ def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnof
             else:
                 BOfile = faultpath + normal_folder + "/BO_output/best_observations.dat"
             parsed_file_list = read_spacedelimited(BOfile)
-            last_line=parsed_file_list[-1]
+
             if virtual_energy:
-                # look up best fitness in the exhaustive search
-                exh_perf_list = read_spacedelimited(faultpath +exhaustive_virtual_folder+"/fitness")
-                best_performance=-float("inf")
-                for line in exh_perf_list:
-                    number=float(line[-1])
-                    if number > best_performance:
-                        best_performance=number
-                samplefile = faultpath + virtual_folder + "/BO_output/samples.dat"
-                sample_list = read_spacedelimited(samplefile)
+                best_performance=get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener)
             else:
+                last_line = parsed_file_list[-1]
                 best_performance=float(last_line[-1])
             num_trials=len(parsed_file_list) - 1 # count the lines, but top line does not count
 
@@ -130,18 +170,12 @@ def add_fault_performance(j, r, gener, nofaultperfs,best_nofaultperfs,maxindsnof
                     i += 1
                     continue
                 if virtual_energy:
-                    time_consumed=min(line[-1], TICKS_PER_TRIAL)
+                    time_consumed=min(float(line[-1]), TICKS_PER_TRIAL)/TICKS_PER_SECOND
                     time_loss+=time_consumed
-                    # look up the sample
-                    sample=sample_list[i][1:]
-                    # look up perfomance obtained by that controller in the exhaustive search
-                    for line in sample_list:
-                        bd=np.array(line[1:-1],dtype=float)
-                        if bd==sample:
-                            performance = float(line[-1])
+                    performance = index2fullperformance(bd_t,path,faultpath,virtual_folder,i,r,gener)
                     performance_loss += (best_performance - performance)
                 else:
-                    performance_loss+=(best_performance - float(line[-1]))
+                    performance_loss+=(best_performance - float(line[-1])) # all have equal time
 
                 i+=1
             if not virtual_energy:
@@ -255,7 +289,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                         continue
                     faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
 
-                    best_performances, best_transfer,  _num_trials, _performance_loss = add_fault_performance(j, r, gener, nofaultperfs, best_nofaultperfs, maxindsnofault, faultpath,
+                    best_performances, best_transfer,  _num_trials, _performance_loss = add_fault_performance(bd_type[i], r, gener, nofaultperfs, best_nofaultperfs, maxindsnofault, faultpath,
                                                                                                                           best_performances=[], best_transfer=[],resilience=[], baseline=bd_type[i]=="baseline",
                                                                                                               title_tag=title_tag,virtual_energy=virtual_energy)
 
@@ -293,10 +327,13 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
         #         best_performance_data[i][j]/=baseline_performances[fitfuns[j]]
         if title_tag=="BO":
             part_data = (best_performance_data, trial_data, performance_loss_data)
-            col_labels =  [("Recovery performance", "float2"),("Number of evaluations", "float2"),  ("Performance loss", "float2"), ]
+            col_labels =  [("Recovery performance", "float2"),("Evaluation time ($s$)", "float2"),  ("Search loss", "float2"), ]
         else:
-            part_data = (best_performance_data)
+            part_data = (best_transfer_data,best_performance_data)
             col_labels=[("Fault injection performance","float2"),("Recovery performance","float2")]
+
+        if virtual_energy:
+            title_tag+="VE"
         with open("results/fault/summary_table_faulttype"+title_tag,"w") as f:
             make_table(f,part_data,
                        rowlabels=foraging_fault_types,
@@ -524,8 +561,10 @@ def get_max_performances(bd_type,fitfuns,generation):
 
 
 if __name__ == "__main__":
-    #get_max_performances(bd_type, fitfuns, generation)
-    #significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False, title_tag="")
+    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
+                     title_tag="",virtual_energy=False)
+    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
+                     title_tag="BO",virtual_energy=False)
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                      title_tag="BO",virtual_energy=True)
 

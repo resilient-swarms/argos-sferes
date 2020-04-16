@@ -9,8 +9,7 @@ proximity_sensor_perturbations = ["proximity_sensorp" + str(i) for i in range(1,
 ground_sensor_perturbations = ["ground_sensorp" + str(i) for i in range(1, sensor_perturbs + 1)]
 actuator_perturbations = ["actuatorp" + str(i) for i in range(1, actuator_perturbs + 1)]
 software_perturbations = ["softwarep" + str(i) for i in range(1, software_perturbs + 1)]
-softwarefood_perturbations = ["software_foodp" + str(i) + "f" + str(f) for i in range(1, software_perturbs + 1) for
-                              f in range(1, num_food + 1)]
+softwarefood_perturbations = ["software_foodp" + str(i) + "f" + str(1) for i in range(1, software_perturbs + 1)]
 foodscarcity_perturbations = ["food_scarcityp1f"+str(f) for f in range(1, 7)]
 agent_perturbations = ["agentsp" + str(i) for i in range(1, max_num_agents + 1) if i!=6]
 foraging_perturbations = proximity_sensor_perturbations + ground_sensor_perturbations + actuator_perturbations + \
