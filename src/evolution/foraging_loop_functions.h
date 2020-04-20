@@ -12,7 +12,6 @@ public:
     VirtualEnergy *virtual_energy;
     CFloorEntity *m_pcFloor;
     const float nest_x = 0.32;
-    const size_t num_food = 5;
     const int HARVEST_TIME = 50; // 50 time steps
     std::vector<float> m_fFoodSquareRadius = {
         0.10 * 0.10, 0.10 * 0.10, 0.20 * 0.20, 0.20 * 0.20, 0.30 * 0.30};

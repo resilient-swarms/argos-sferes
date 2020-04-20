@@ -436,7 +436,7 @@ void CForagingLoopFunctions::PostStep()
          virtual_energy->step(j, cThym->GetEmbodiedEntity().IsCollidingWithSomething(), virtualState);
       }
    }
-   for (size_t f = 0; f < num_food; ++f)
+   for (size_t f = 0; f < m_cVisitedFood.size(); ++f)
    {
       m_cVisitedFood[f] = std::max(0, m_cVisitedFood[f] - 1);
 #ifdef PRINTING
