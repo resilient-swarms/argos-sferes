@@ -72,7 +72,10 @@ public:
 
     virtual void end_trial()
     {
-        virtual_energy_finish_trial();
+        if (virtual_energy != NULL)
+        {
+            virtual_energy_finish_trial();
+        }
         BaseEvolutionLoopFunctions::end_trial();
     }
 };

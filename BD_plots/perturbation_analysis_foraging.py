@@ -186,6 +186,7 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
             maxind, best_performance = get_best_individual(path, add_performance=True, index_based=True)
             time_loss=None
             performance_loss=None
+            num_trials=None
 
         # all performances vs all nofaultperformances
         # for k in range(len(nofaultperfs[r])):
@@ -199,7 +200,7 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
     #    fitfuns[j]]])  # best performance vs best nofaultperf
     #resilience = np.append(resilience, (best_performance - best_nofaultperfs[r]) / best_nofaultperfs[r])
 
-    return best_performances,  best_transfer, time_loss, performance_loss
+    return best_performances,  best_transfer, time_loss, performance_loss, num_trials
 
 
 
@@ -259,6 +260,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
         resilience_data = []
         recovery_data = []
         trial_data = []
+        num_trials = []
         performance_loss_data=[]
         j = 0  #only one fitness function
         for i in range(len(bd_type)):
@@ -270,6 +272,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
             resilience_data.append([[] for i in range(num_fault_types)])
             recovery_data.append([[] for i in range(num_fault_types)])
             trial_data.append([[] for i in range(num_fault_types)])
+            num_trials.append([[] for i in range(num_fault_types)])
             performance_loss_data.append([[] for i in range(num_fault_types)])
 
             BD_dir = datadir+"/Foraging"
@@ -290,7 +293,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                         continue
                     faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
 
-                    best_performances, best_transfer,  _num_trials, _performance_loss = add_fault_performance(bd_type[i], r, gener, nofaultperfs, best_nofaultperfs, maxindsnofault, faultpath,
+                    best_performances, best_transfer,  _trial_time, _performance_loss, _num_trials = add_fault_performance(bd_type[i], r, gener, nofaultperfs, best_nofaultperfs, maxindsnofault, faultpath,
                                                                                                                           best_performances=[], best_transfer=[],resilience=[], baseline=bd_type[i]=="baseline",
                                                                                                               title_tag=title_tag,virtual_energy=virtual_energy)
 
@@ -306,14 +309,16 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                         best_performance_data[i][index] = np.append(best_performance_data[i][index],best_performances)
                         best_transfer_data[i][index] = np.append(best_transfer_data[i][index],best_transfer)
                         #resilience_data[i][index] = np.append(resilience_data[i][index],resilience)
-                        trial_data[i][index].append(_num_trials)
+                        trial_data[i][index].append(_trial_time)
                         performance_loss_data[i][index].append(_performance_loss)
+                        num_trials[i][index].append(_num_trials)
                     else:
                         # normalise by maximal fitness (make different performance data comparable)
                         best_performance_data[i] = np.append(best_performance_data[i],best_performances/baseline_performances[fitfuns[j]])
                         best_transfer_data[i] = np.append(best_transfer_data[i],best_transfer)
                         #resilience_data[i] = np.append(resilience_data[i],resilience)
-                        trial_data[i].append(_num_trials)
+                        trial_data[i].append(_trial_time)
+                        num_trials[i].append(_num_trials)
 
     from scipy.stats import mannwhitneyu
     all_data = (best_performance_data, performance_data, best_transfer_data, transfer_data,resilience_data)
@@ -327,8 +332,8 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
         #     for j in range(len(fitfuns)):
         #         best_performance_data[i][j]/=baseline_performances[fitfuns[j]]
         if title_tag=="BO":
-            part_data = (best_performance_data, trial_data, performance_loss_data)
-            col_labels =  [("Recovery performance", "float2"),("Evaluation time ($s$)", "float2"),  ("Search loss", "float2"), ]
+            part_data = (best_performance_data, trial_data, performance_loss_data, num_trials)
+            col_labels =  [("Recovery performance", "float2"),("Evaluation time ($s$)", "float2"),  ("Search loss", "float2"),("Number of evaluations","float2") ]
         else:
             part_data = (best_transfer_data,best_performance_data)
             col_labels=[("Fault injection performance","float2"),("Recovery performance","float2")]
@@ -562,10 +567,10 @@ def get_max_performances(bd_type,fitfuns,generation):
 
 
 if __name__ == "__main__":
-    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
-                     title_tag="",virtual_energy=False)
-    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
-                     title_tag="BO",virtual_energy=False)
+    # significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
+    #                  title_tag="",virtual_energy=False)
+    # significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
+    #                  title_tag="BO",virtual_energy=False)
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                      title_tag="BO",virtual_energy=True)
 

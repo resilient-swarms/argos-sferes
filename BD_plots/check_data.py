@@ -141,11 +141,11 @@ if __name__ == "__main__":
 
     check_archives_complete_foraging(20000,
                             "/home/david/Data",
-                            ["history","Gomes_sdbc_walls_and_robots_std"],
+                            ["history"],
                             range(1,6),
                             translation="handcrafted"
                             )
 
     check_BO_complete_foraging( "/home/david/Data",
-                            ["history","Gomes_sdbc_walls_and_robots_std"],
+                            ["history"],
                             range(1,6))

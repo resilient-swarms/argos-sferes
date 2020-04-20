@@ -305,6 +305,15 @@ else(NOT BASELINE)
           ${CMAES_LIB_DIR}/libcmaes.so
           )
 
+        add_executable(tuning_VE_${tag}
+            src/ite/tuning_VE.cpp)
+        message("CMAES LIB DIR" ${CMAES_LIB_DIR})
+        target_link_libraries(tuning_VE_${tag}
+          ${Boost_LIBRARIES}
+          ${TBB_LIBRARIES}
+          ${CMAES_LIB_DIR}/libcmaes.so
+          )
+
         set(CMAKE_CXX_FLAGS ${TMP_CMAKE_CXX_FLAGS} CACHE STRING "" FORCE)
         #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -llibcmaes -lm -lglog -lgflags ")
         message(FLAGS ${CMAKE_CXX_FLAGS})

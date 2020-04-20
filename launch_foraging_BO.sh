@@ -6,7 +6,7 @@ data=$1
 UseVirtual=$2
 if [ "$UseVirtual" = "True" ]; then
 	VirtualFolder="virtual_energy_exp"
-    command="bin/ite_swarms_VE_"
+    command="bin/ite_swarms_"
 else
     command="bin/ite_swarms_"
 fi
@@ -76,7 +76,7 @@ faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
 faultnum["agents"]=12       # {1,2,...,12} agents included
 
-for FaultCategory in software_food ; do
+for FaultCategory in proximity_sensor ground_sensor actuator software software_food food_scarcity agents; do
     numfaults=${faultnum[${FaultCategory}]}
     for FaultIndex in $(seq 1 ${numfaults}); do
         for key in ${!descriptors[@]}; do

@@ -10,7 +10,7 @@
 
 using namespace limbo;
 
-const size_t max_evals = 10;
+const size_t max_evals = 30;
 
 #ifdef REAL_EXP
 size_t num_trials = 3;
@@ -73,18 +73,27 @@ struct Params
     };
 
 #else
+
     // take tuned parameters 0.903197	0.274235
     struct kernel_maternfivehalves : public defaults::kernel_maternfivehalves
     {
-
+#ifdef VE
+        BO_PARAM(double, l, 0.0591898); // smoothness of the function;
+#else
         BO_PARAM(double, l, 0.121697); // smoothness of the function;
+#endif
         // 0.4 is used in IT&E; but here this affects all the behaviours it seems
         //1.5 is a setting used scikit learn https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.kernels.Matern.html
     };
 
     struct acqui_ucb : public defaults::acqui_ucb
     {
+#ifdef VE
+        BO_PARAM(double, alpha, 0.407532);
+#else
         BO_PARAM(double, alpha, 0.926734);
+#endif
+
     };
 
 #endif
@@ -137,8 +146,11 @@ double get_fitness(size_t ctrl_index)
             if (numbers.size() > 1)
                 std::cerr << "Warning ... we were expecting a single number in the fitness file "
                           << " and not " << numbers.size();
-
-            fitness = numbers.back(); // only number usually; when virtual energy is second number, use that
+#ifdef VE
+            fitness = numbers.back(); // only number usually; otherwise use first
+#else   
+            fitness = numbers[0];
+#endif
             if (fitness > global::original_max)
                 global::original_max = fitness;
 
@@ -292,7 +304,7 @@ struct ControllerEval
     }
 };
 
-double get_VE(size_t line_no,std::string VE_file)
+double get_VE(size_t line_no, std::string VE_file)
 {
     std::string line;
     size_t temp_line_no = 0;
@@ -314,7 +326,7 @@ double get_VE(size_t line_no,std::string VE_file)
             {
                 throw std::runtime_error("lines in VE file should have two numbers");
             }
-            
+
             return numbers.back();
         }
 
@@ -360,7 +372,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
             {
                 throw std::runtime_error("lower than expected dimension");
             }
-            else if(numbers.size() > (global::behav_dim + 3) )
+            else if (numbers.size() > (global::behav_dim + 3))
             {
                 throw std::runtime_error("higher than expected dimension");
             }
@@ -384,7 +396,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
                 }
                 else if (i == (global::behav_dim + 1))
                 {
-                    if(do_VE)
+                    if (do_VE)
                     {
                         elem.fit = get_VE(line_no, VE_file);
                     }
@@ -414,7 +426,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
 }
 
 void print_individual_to_network(std::vector<double> bd,
-                                 Params::archiveparams::archive_t& archive)
+                                 Params::archiveparams::archive_t &archive)
 {
 
     /*size_t lastindex = archive_name.find_last_of(".");
@@ -472,7 +484,7 @@ typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
 typedef acqui::UCB<Params, GP_t> Acqui_t;
 typedef bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;
 
-void run_ite(std::string newname)
+void run_ite(const std::string &newname)
 {
     Opt_t opt;
     global::results_path = opt.res_dir();
@@ -495,3 +507,5 @@ void run_ite(std::string newname)
     print_individual_to_network(bd, Params::archiveparams::archive);
     rename_folder(global::results_path, newname);
 }
+
+

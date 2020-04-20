@@ -41,15 +41,24 @@ def scatter_plot():
     print("minimal time in trial:" + str(minimal_time) + "s")
     print("median time in trial:" + str(median_time)  + "s")
     print("mean time in trial:" + str(mean_time)  + "s")
-    # plot(x, y, "maxvar_blackgridnew", titles=["HBD", "SDBC", "SPIRIT", "QED"],
-    #      axis_names=["Fitness", "Virtual energy + Survived ticks"],
-    #      xlim=[-5.0,25.0], ylim=[0, 2000], grid=True)
-    # createPlot([y],np.array(x),colors,markers,xlabel="Fitness",ylabel="Virtual energy",
-    #            ylim=None,save_filename="scatterVirtualEnergy.pdf",legend_labels,xlim=None,xscale="linear",yscale="linear",
-    #            legendbox=(.10,.10),annotations=[],xticks=[],yticks=[],task_markers=[],scatter=True,
-    #            legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[],index_x=[],
-    #            xaxis_style="plain",y_err=[],force=False,fill_between=[],
-    #            ax=None, title=None, skip_legend=False)
+
+
+    # virtual energy statistics
+    print("mean VE= "+str(np.mean(y)))
+    print("max VE= " + str(np.max(y)))
+
+    # vfitness statistics
+    print("mean F= "+str(np.mean(x_full)))
+    print("max F= " + str(np.max(x_full)))
+    plot(x, y, "densityVirtualEnergy.pdf", titles=["HBD"],
+         axis_names=["Fitness", "Virtual energy + Survived ticks"],
+         xlim=[-5.0,25.0], ylim=[0, 2000], grid=True)
+    createPlot([y],np.array(x),colors,markers,xlabel="Fitness",ylabel="Virtual energy",
+               ylim=None,save_filename="scatterVirtualEnergy.pdf",legend_labels=legend_labels,xlim=None,xscale="linear",yscale="linear",
+               legendbox=(.10,.10),annotations=[],xticks=[],yticks=[],task_markers=[],scatter=True,
+               legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[],index_x=[],
+               xaxis_style="plain",y_err=[],force=False,fill_between=[],
+               ax=None, title=None, skip_legend=False)
 
 
 
