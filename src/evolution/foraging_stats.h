@@ -20,9 +20,8 @@ struct ForagingStats
 
     /* write to file */
     std::ofstream stat_writer;
-    ForagingStats(std::string outputdir,float agents) : num_agents(agents)
+    ForagingStats(std::string outputdir,float agents) : num_agents(agents), stat_writer(outputdir+"/foraging_stats.txt")
     {
-        stat_writer = std::ofstream(outputdir+"/foraging_stats.txt");
     }
 
     void count_notharvesting()
