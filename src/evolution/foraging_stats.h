@@ -10,6 +10,9 @@ struct ForagingStats
     /* time steps without holding food*/
     float steps_without_food = 0.0f;
 
+    /* nest visitiations without holding food */
+    float nest_without_food = 0.0f;
+
     float num_agents;
 
     /* number of trials */
@@ -32,10 +35,17 @@ struct ForagingStats
         ++steps_without_food;
     }
 
+    void count_nestvisitwithoutholdingfood()
+    {
+        ++nest_without_food;
+    }
+
     void write()
     {
-        stat_writer <<  not_harvesting_times/num_agents  << " " << steps_without_food/num_agents <<std::endl;
+        stat_writer <<  not_harvesting_times/num_agents  << " " << steps_without_food/num_agents 
+            << " " << nest_without_food/num_agents <<std::endl;
         not_harvesting_times = 0.0f;
         steps_without_food = 0.0f;
+        nest_without_food = 0.0f;
     }
 };
