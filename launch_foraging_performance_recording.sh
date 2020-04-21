@@ -77,7 +77,7 @@ for key in ${!descriptors[@]}; do
             #write data to these folders
             ConfigFolder=${Base}/${FaultType}/${video}
             ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
-            Outfolder=${ConfigFolder}/results${SUFFIX}                # where to drop the results
+            Outfolder=${ConfigFolder}/results${SUFFIX}//performance_recording${GEN} # where to drop the results
             export Searchfolder=${Base}/${FaultType}/results${SUFFIX} # where to search for best indiv
 
             mkdir -p $Outfolder
@@ -102,7 +102,7 @@ for key in ${!descriptors[@]}; do
                 -e "s|SEED|${Replicates}|" \
                 -e "s|FITFUN_TYPE|${FitfunType}|" \
                 -e "s|DESCRIPTOR_TYPE|analysis|" \
-                -e "s|OUTPUTFOLDER|${Outfolder}/performance_recording${GEN}|" \
+                -e "s|OUTPUTFOLDER|${Outfolder}|" \
                 -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                 -e "s|SENSOR_RANGE|0.11|" \
                 -e "s|NOISE_LEVEL|0.05|" \

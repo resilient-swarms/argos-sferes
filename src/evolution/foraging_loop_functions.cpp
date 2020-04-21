@@ -41,7 +41,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       {
          // init is set to the number of steps to travel 1 m (approx half of the arena)
          // 100 - 6*num_steps = 0
-         stats = new ForagingStats(output_folder, (float)m_unNumberRobots);
+         stats = new ForagingStats(output_folder, m_unNumberRobots, m_unNumberTrials);
       }
    }
    catch (CARGoSException &ex)

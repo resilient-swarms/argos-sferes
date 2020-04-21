@@ -57,6 +57,10 @@ public:
         {
             fitness_writer << fFitness << std::endl;
         }
+        if (stats != NULL)
+        {
+            stats->write();
+        }
     }
 #endif
     void food_scarcity();
@@ -76,10 +80,6 @@ public:
         if (virtual_energy != NULL)
         {
             virtual_energy_finish_trial();
-        }
-        if (stats != NULL)
-        {
-            stats->write();
         }
         BaseEvolutionLoopFunctions::end_trial();
     }
