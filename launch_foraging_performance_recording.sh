@@ -9,6 +9,7 @@ UseVirtual=$4
 if [ "$UseVirtual" = "True" ]; then
     VirtualFolder="virtual_energy_exp"
 fi
+TrackStats=$5
 
 SimTime=120
 
@@ -28,10 +29,9 @@ declare -A behav
 
 
 
-MINGEN=20000 #
+MINGEN=0 #
 MAXGEN=20000
-STEP=500
-
+STEP=4000
 
 command="bin/analysis" # note: cvt and 10D does not really matter since we are not evolving
 
@@ -113,6 +113,7 @@ for key in ${!descriptors[@]}; do
                 -e "s|FOOD_ID|-1|" \
                 -e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
                 -e "s|USE_VIRTUAL|${UseVirtual}|" \
+                -e "s|TRACK_STATS|${TrackStats}|" \
                 experiments/harvesting/harvesting_template.argos \
                 >${ConfigFile}
 
