@@ -102,7 +102,7 @@ for key in ${!descriptors[@]}; do
                 -e "s|SEED|${Replicates}|" \
                 -e "s|FITFUN_TYPE|${FitfunType}|" \
                 -e "s|DESCRIPTOR_TYPE|analysis|" \
-                -e "s|OUTPUTFOLDER|${Outfolder}|" \
+                -e "s|OUTPUTFOLDER|${Outfolder}/performance_recording${GEN}|" \
                 -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                 -e "s|SENSOR_RANGE|0.11|" \
                 -e "s|NOISE_LEVEL|0.05|" \
