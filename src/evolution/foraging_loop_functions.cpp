@@ -21,6 +21,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    std::string use_virtual;
    try
    {
+      // using virtual energy or no ?
       GetNodeAttribute(t_node, "use_virtual", use_virtual);
       if (use_virtual == "True")
       {
@@ -32,6 +33,15 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
          virtual_energy = new VirtualEnergy(this->m_unNumberRobots, steps_to_1m);
       }
       // TODO: create some statistics files in this folder
+
+      // using virtual energy or no ?
+      GetNodeAttribute(t_node, "track_stats", track_stats;
+      if (track_stats == "True")
+      {
+         // init is set to the number of steps to travel 1 m (approx half of the arena)
+         // 100 - 6*num_steps = 0
+         stats = new ForagingStats();
+      }
    }
    catch (CARGoSException &ex)
    {
@@ -392,35 +402,45 @@ void CForagingLoopFunctions::PostStep()
             bool bDone = false;
             for (size_t i = 0; i < m_cFoodPos.size() && !bDone; ++i)
             {
-               if (m_cVisitedFood[i] == 0 && (cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius[i])
+               if (cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius[i]) // on food source
                {
-                  /* The thymio is now carrying an item, unless it did not pick it up due to software failure */
-                  if (cController.b_damagedrobot && cController.FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_FOOD)
-                  {
-                     cController.holdingFood = false;
+                     if (m_cVisitedFood[i] == 0) // no remaining harvesting time
+                     {
+                        /* The thymio is now carrying an item, unless it did not pick it up due to software failure */
+                        if (cController.b_damagedrobot && cController.FBehavior == BaseController::FaultBehavior::FAULT_SOFTWARE_FOOD)
+                        {
+                           cController.holdingFood = false;
 #ifdef PRINTING
-                     std::cout << cThym->GetId() << " could not pick up food due to software_food fault " << std::endl;
+                           std::cout << cThym->GetId() << " could not pick up food due to software_food fault " << std::endl;
 #endif
-                  }
-                  else
-                  {
+                        }
+                        else
+                        {
 
-                     cController.holdingFood = true;
+                           cController.holdingFood = true;
 #ifdef PRINTING
-                     std::cout << cThym->GetId() << " is now holding food " << std::endl;
+                           std::cout << cThym->GetId() << " is now holding food " << std::endl;
 #endif
-                  }
-                  /* the food has now been visited */
-                  m_cVisitedFood[i] = HARVEST_TIME;
-                  /* The floor texture must be updated */
-                  m_pcFloor->SetChanged();
+                        }
+                        /* the food has now been visited */
+                        m_cVisitedFood[i] = HARVEST_TIME;
+                        /* The floor texture must be updated */
+                        m_pcFloor->SetChanged();
 /* The floor texture must be updated */
 //m_pcFloor->SetChanged();
 /* We are done */
 #ifdef PRINTING
-                  std::cout << cThym->GetId() << " picked up food item " << i << " from location " << m_cFoodPos[i] << std::endl;
+                        std::cout << cThym->GetId() << " picked up food item " << i << " from location " << m_cFoodPos[i] << std::endl;
 #endif
-                  bDone = true;
+                        bDone = true;
+                     }
+                     else
+                     {
+                        if (stats != NULL)
+                        {
+                           stats->count_notharvesting();// not harvesting but on food source = lost time
+                        }
+                     }
                }
             }
          }
@@ -429,6 +449,12 @@ void CForagingLoopFunctions::PostStep()
       if (cController.holdingFood)
       {
          virtualState = HOLDING_FOOD; //
+      }
+      else{
+         if (stats != NULL)
+         {
+            stats->count_stepswithoutholdingfood();
+         }
       }
       if (virtual_energy != NULL)
       {

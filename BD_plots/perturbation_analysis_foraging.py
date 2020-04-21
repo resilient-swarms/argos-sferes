@@ -87,12 +87,18 @@ def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, ge
     # look up that individual's performance in the faulty environment
     parsed_file_list = read_spacedelimited(path)
 
+    performance=0.0
     for item in parsed_file_list:
         indiv = item[0]
         if indiv == archive_individual:
             performance = float(item[-1])
-            return performance
-    raise Exception("individual not found in faulty archive")
+    # if performance is None:
+    #     raise Exception("individual not found in faulty archive")
+    timefile = faultpath + virtual_folder + "/BO_output/fitness" + str(archive_individual) + ".dat"
+    parsed_file_list = read_tabdelimited(timefile)
+    time_consumed = min(float(parsed_file_list[0][1]),TICKS_PER_TRIAL)/TICKS_PER_SECOND #time_consumed = min(float(line[-1]), TICKS_PER_TRIAL)/TICKS_PER_SECOND
+
+    return performance, time_consumed
 
 
 def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener):
@@ -152,7 +158,7 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
             parsed_file_list = read_spacedelimited(BOfile)
 
             if virtual_energy:
-                best_performance=get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener)
+                best_performance,_=get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener)
             else:
                 last_line = parsed_file_list[-1]
                 best_performance=float(last_line[-1])
@@ -171,9 +177,9 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
                     i += 1
                     continue
                 if virtual_energy:
-                    time_consumed=min(float(line[-1]), TICKS_PER_TRIAL)/TICKS_PER_SECOND
-                    time_loss+=time_consumed
-                    performance = index2fullperformance(bd_t,path,faultpath,virtual_folder,i,r,gener)
+                    # time_consumed = min(float(line[-1]), TICKS_PER_TRIAL)/TICKS_PER_SECOND
+                    performance, time_consumed = index2fullperformance(bd_t,path,faultpath,virtual_folder,i,r,gener)
+                    time_loss += time_consumed
                     performance_loss += (best_performance - performance)*(time_consumed/NUM_SECONDS) # multiply by trial proportion
                 else:
                     performance_loss+=(best_performance - float(line[-1])) # all have equal time
