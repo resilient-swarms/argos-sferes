@@ -35,12 +35,13 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       // TODO: create some statistics files in this folder
 
       // using virtual energy or no ?
-      GetNodeAttribute(t_node, "track_stats", track_stats;
+      std::string track_stats;
+      GetNodeAttribute(t_node, "track_stats", track_stats);
       if (track_stats == "True")
       {
          // init is set to the number of steps to travel 1 m (approx half of the arena)
          // 100 - 6*num_steps = 0
-         stats = new ForagingStats();
+         stats = new ForagingStats(output_folder,(float) m_unNumberRobots);
       }
    }
    catch (CARGoSException &ex)
@@ -402,7 +403,7 @@ void CForagingLoopFunctions::PostStep()
             bool bDone = false;
             for (size_t i = 0; i < m_cFoodPos.size() && !bDone; ++i)
             {
-               if (cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius[i]) // on food source
+               if ((cPos - m_cFoodPos[i]).SquareLength() < m_fFoodSquareRadius[i]) // on food source
                {
                      if (m_cVisitedFood[i] == 0) // no remaining harvesting time
                      {

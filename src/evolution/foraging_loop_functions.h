@@ -77,6 +77,10 @@ public:
         {
             virtual_energy_finish_trial();
         }
+        if (stats != NULL)
+        {
+            stats->write();
+        }
         BaseEvolutionLoopFunctions::end_trial();
     }
 };

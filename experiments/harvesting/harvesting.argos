@@ -41,15 +41,16 @@
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libforaging_loopfunctionsBO3DREAL"
-                  label="foraging_loopfunctionsBO3DREAL"
+  <loop_functions library="lib/libforaging_loopfunctionscvt10DANAREAL"
+                  label="foraging_loopfunctionscvt10DANAREAL"
                   trials="8"
                   robots="6"
-                  descriptortype="history"    
+                  descriptortype="Gomes_sdbc_walls_and_robots_std"    
                   fitfuntype="Foraging"
-                  output_folder="OUTPUTFOLDER"
-                centroids_folder="CENTROIDSFOLDER"
-		use_virtual="True"
+                  output_folder="experiments/harvesting"
+                  centroids_folder="CENTROIDSFOLDER"
+		  use_virtual="False"
+		  track_stats="True"
 
 
                     />
