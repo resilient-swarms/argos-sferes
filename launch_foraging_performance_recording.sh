@@ -13,7 +13,7 @@ TrackStats=$5
 
 SimTime=120
 
-echo "doing generation ${FINALGEN_ARCHIVE}"
+
 sleep 2.5
 
 FitfunType="Foraging"
@@ -67,6 +67,8 @@ for key in ${!descriptors[@]}; do
 
     for Replicates in $(seq 1 5); do
         for GEN in $(seq ${MINGEN} ${STEP} ${MAXGEN}); do
+
+            echo "doing generation ${GEN}"
             # Take template.argos and make an .argos file for this experiment
             SUFFIX=${Replicates}
 
@@ -86,7 +88,7 @@ for key in ${!descriptors[@]}; do
             mkdir -p ${ConfigFolder}
             ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
             export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
-            export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
+            export archivefile="${ArchiveDir}/archive_${GEN}.dat"
             Outfolder=${ConfigFolder}/results${SUFFIX}/${VirtualFolder}/performance_recording${GEN}
             echo "Outfolder ${Outfolder}"
             sleep 3
@@ -141,8 +143,8 @@ for key in ${!descriptors[@]}; do
             else
                 export FINALGEN_GENFILE=0000${GEN} # add two zeros
             fi
-            export generationfile="${Base}/results${SUFFIX}/gen_${FINALGEN_GENFILE}"
-            export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
+            export generationfile="${Base}/results${SUFFIX}/gen_${GEN}"
+            export archivefile="${ArchiveDir}/archive_${GEN}.dat"
 
             echo "submitting job"
             bash zero_padding_data.sh ${Base}/results${SUFFIX} # make sure everything is zero-padded

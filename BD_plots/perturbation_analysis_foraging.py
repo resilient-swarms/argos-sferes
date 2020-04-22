@@ -1,39 +1,20 @@
-from sklearn.neighbors import KernelDensity
 
-from dimensionality_plot import *
-from perturbance_metrics import *
 
-from foraging_faults import *
+from foraging_params import *
 from BD_metrics import *
-from NCD import *
 from reduce_translated_archive import *
-HOME_DIR = os.environ["HOME"]
+
 RESULTSFOLDER="results"
+
+
+
 from plots import *
 
 from significance import *
 import pickle
 
 
-NUM_SECONDS=120.0
-TICKS_PER_SECOND=5.0
-TICKS_PER_TRIAL=NUM_SECONDS*TICKS_PER_SECOND
 
-baseline_performances = pickle.load(open("data/fitfun/foraging_maximal_fitness.pkl", "rb"))
-
-runs=range(1,6)
-bd_type = ["history"]  # legend label
-legend_labels = ["HBD"]  # labels for the legend
-fitfuns = ["Foraging"]
-fitfunlabels = [""]
-
-
-colors = ["C" + str(i) for i in range(len(bd_type))]
-markers = [(2, 1, 0), (3, 1, 0), (2, 1, 1), (3, 1, 1)]
-
-datadir = HOME_DIR + "/Data/"
-generation = "20000"
-history_type = "xy"
 
 
 
