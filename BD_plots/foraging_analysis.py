@@ -8,7 +8,7 @@ def gather_data():
     y1=[]
     y2=[]
     y3=[]
-    t = range(20000, 24000, 4000)
+    t = range(0, 24000, 4000)
     for bd in bd_type:
         lines1=[]
         lines2=[]
