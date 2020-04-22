@@ -140,7 +140,7 @@ for key in ${!descriptors[@]}; do
             else
                 export FINALGEN_GENFILE=0000${GEN} # add two zeros
             fi
-            export generationfile="${Base}/results${SUFFIX}/gen_${FINALGEN_ARCHIVE}"
+            export generationfile="${Base}/results${SUFFIX}/gen_${FINALGEN_GENFILE}"
             export archivefile="${ArchiveDir}/archive_${GEN}.dat"
 
             echo "submitting job"
