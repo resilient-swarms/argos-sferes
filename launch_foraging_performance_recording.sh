@@ -147,7 +147,7 @@ for key in ${!descriptors[@]}; do
                 export FINALGEN_GENFILE=0000${GEN} # add two zeros
             fi
             export generationfile="${Base}/results${SUFFIX}/gen_${FINALGEN_ARCHIVE}"
-            export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
+            export archivefile="${ArchiveDir}/archive_${GEN}.dat"
 
             echo "submitting job"
             bash zero_padding_data.sh ${Base}/results${SUFFIX} # make sure everything is zero-padded
