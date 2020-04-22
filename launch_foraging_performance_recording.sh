@@ -81,7 +81,6 @@ for key in ${!descriptors[@]}; do
             ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
             export Searchfolder=${Base}/${FaultType}/results${SUFFIX} # where to search for best indiv
 
-            mkdir -p $Outfolder
             echo "config ${ConfigFile}"
             touch ${ConfigFile}
 
@@ -90,9 +89,12 @@ for key in ${!descriptors[@]}; do
             export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
             export archivefile="${ArchiveDir}/archive_${GEN}.dat"
             Outfolder=${ConfigFolder}/results${SUFFIX}/${VirtualFolder}/performance_recording${GEN}
-            echo "Outfolder ${Outfolder}"
+            mkdir -p $Outfolder
+	    echo "Outfolder ${Outfolder}"
             sleep 3
             rm ${Outfolder}/fitness
+	    rm ${Outfolder}/analysis*.dat
+	    rm ${Outfolder}/foraging_stats_archive.txt
             mkdir -p $Outfolder
             echo "config ${ConfigFile}"
             touch ${ConfigFile}
