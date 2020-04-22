@@ -78,19 +78,20 @@ for key in ${!descriptors[@]}; do
 
             #write data to these folders
             ConfigFolder=${Base}/${FaultType}/${video}
-            ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
             export Searchfolder=${Base}/${FaultType}/results${SUFFIX} # where to search for best indiv
 
-            echo "config ${ConfigFile}"
-            touch ${ConfigFile}
 
             mkdir -p ${ConfigFolder}
             ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
             export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
             export archivefile="${ArchiveDir}/archive_${GEN}.dat"
             Outfolder=${ConfigFolder}/results${SUFFIX}/${VirtualFolder}/performance_recording${GEN}
+            ConfigFolder=$Outfolder # 
+            ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
+            echo "config ${ConfigFile}"
+            touch ${ConfigFile}
             mkdir -p $Outfolder
-	    echo "Outfolder ${Outfolder}"
+	        echo "Outfolder ${Outfolder}"
             sleep 3
             rm ${Outfolder}/fitness
 	    rm ${Outfolder}/analysis*.dat
