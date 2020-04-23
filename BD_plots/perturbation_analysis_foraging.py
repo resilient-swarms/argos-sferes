@@ -284,7 +284,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                     if by_faulttype:
                         faulttype,index=get_fault_type(fault)
                         best_performance_data[i][index] = np.append(best_performance_data[i][index],best_performances/6.0)
-                        best_transfer_data[i][index] = np.append(best_transfer_data[i][index],best_transfer)
+                        best_transfer_data[i][index] = np.append(best_transfer_data[i][index],best_transfer/6.0)
                         #resilience_data[i][index] = np.append(resilience_data[i][index],resilience)
                         if title_tag.startswith("BO"):
                             trial_data[i][index].append(_trial_time)
@@ -359,8 +359,8 @@ def test_significance(bd_type,by_faulttype,data_type):
         print(foraging_fault_types[f])
         for i in range(len(bd_type)):
                 print("compare exhaustive before and after")
-                y = best_performance_data[i][f]
-                x = best_transfer_data[i][f]
+                x = best_performance_data[i][f]
+                y = best_transfer_data[i][f]
                 stat,p = ranksums(x,y)
                 print("%s after vs %s before: U=%.2f, p=%.6f"%(bd_type[i],bd_type[i],stat,p))
                 delta, label= cliffs_delta(stat,x,y)
