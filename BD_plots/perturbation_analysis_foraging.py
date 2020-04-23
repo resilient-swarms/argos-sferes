@@ -1,24 +1,13 @@
-
-
 from foraging_params import *
 from BD_metrics import *
 from reduce_translated_archive import *
 
 RESULTSFOLDER="results"
 
-
-
 from plots import *
 
 from significance import *
 import pickle
-
-
-
-
-
-
-
 
 def bin_single_point(datapoint,minima, bins,bin_sizes):
     category = 0
@@ -130,7 +119,7 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
         temp = np.array(list(get_ind_performances_uniquearchive(path).values())).flatten()
         #performances = np.append(performances, temp)
 
-        if title_tag=="BO":
+        if title_tag.startswith("BO"):
 
             if virtual_energy:
                 BOfile = faultpath + virtual_folder +"/BO_output/best_observations.dat"
@@ -221,9 +210,10 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
     :return:
     """
 
+    if virtual_energy:
+        title_tag += "VE"
 
-
-    loadfilename = "data/fitfun/summary_statistics_fault"+title_tag+".pkl" if by_faulttype else "data/combined/summary_statistics"+title_tag+".pkl"
+    loadfilename = "data/faulttype/summary_statistics_fault"+title_tag+".pkl" if by_faulttype else "data/combined/summary_statistics"+title_tag+".pkl"
     if load_existing:
         best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(
             open(loadfilename, "rb"))
@@ -293,12 +283,13 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
 
                     if by_faulttype:
                         faulttype,index=get_fault_type(fault)
-                        best_performance_data[i][index] = np.append(best_performance_data[i][index],best_performances)
+                        best_performance_data[i][index] = np.append(best_performance_data[i][index],best_performances/6.0)
                         best_transfer_data[i][index] = np.append(best_transfer_data[i][index],best_transfer)
                         #resilience_data[i][index] = np.append(resilience_data[i][index],resilience)
-                        trial_data[i][index].append(_trial_time)
-                        performance_loss_data[i][index].append(_performance_loss)
-                        num_trials[i][index].append(_num_trials)
+                        if title_tag.startswith("BO"):
+                            trial_data[i][index].append(_trial_time)
+                            num_trials[i][index].append(_num_trials)
+                            #performance_loss_data[i][index].append(_performance_loss / 6.0)
                     else:
                         # normalise by maximal fitness (make different performance data comparable)
                         best_performance_data[i] = np.append(best_performance_data[i],best_performances/baseline_performances[fitfuns[j]])
@@ -308,7 +299,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                         num_trials[i].append(_num_trials)
 
     from scipy.stats import mannwhitneyu
-    all_data = (best_performance_data, performance_data, best_transfer_data, transfer_data,resilience_data)
+    all_data = (best_performance_data, best_transfer_data, trial_data, performance_loss_data, num_trials)
 
     if by_faulttype:
         if not load_existing:
@@ -318,15 +309,14 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
         # for i in range(len(best_performance_data)):
         #     for j in range(len(fitfuns)):
         #         best_performance_data[i][j]/=baseline_performances[fitfuns[j]]
-        if title_tag=="BO":
-            part_data = (best_performance_data, trial_data, performance_loss_data, num_trials)
-            col_labels =  [("Recovery performance", "float2"),("Evaluation time ($s$)", "float2"),  ("Search loss", "float2"),("Number of evaluations","float2") ]
+        if title_tag.startswith("BO"):
+            part_data = (best_performance_data, trial_data, num_trials)
+            col_labels =  [("Recovery performance", "float2"),("Evaluation time ($s$)", "float2"), ("Number of evaluations","float2") ]
         else:
             part_data = (best_transfer_data,best_performance_data)
             col_labels=[("Fault injection performance","float2"),("Recovery performance","float2")]
 
-        if virtual_energy:
-            title_tag+="VE"
+
         with open("results/fault/summary_table_faulttype"+title_tag,"w") as f:
             make_table(f,part_data,
                        rowlabels=foraging_fault_types,
@@ -358,51 +348,47 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                             median=True)
 
 
-def test_significance(bd_type,by_fitfun,data_type):
+def test_significance(bd_type,by_faulttype,data_type):
 
-   if not by_fitfun:
-       best_performance_data, performance_data, best_transfer_data,transfer_data, recovery_data, resilience_data = pickle.load(open("data/combined/summary_statistics.pkl", "rb"))
-   else:
-       best_performance_data, performance_data, best_transfer_data , transfer_data, resilience_data = pickle.load(open("data/fitfun/summary_statistics_fitfun.pkl", "rb"))
 
-   if data_type=="resilience":
-       data=resilience_data
-   elif data_type == "recovery":
-       data = recovery_data
-   elif data_type=="best_performance":
-       data=best_performance_data
-   elif data_type=="best_transfer":
-       data=best_transfer_data
-   elif data_type == "transfer":
-       data = transfer_data
-   elif data_type == "performance":
-       data = performance_data
-   else:
-       raise Exception("specify data_type")
+    best_performance_data, best_transfer_data, trial_data, performance_loss_data, num_trials = pickle.load(open("data/faulttype/summary_statistics_fault.pkl", "rb"))
+    best_BOperformance_data, best_BOtransfer_data, trial_BOdata, performance_BOloss_data, num_BOtrials = pickle.load(open("data/faulttype/summary_statistics_faultBO.pkl", "rb"))
+    best_BOVEperformance_data, best_BOVWtransfer_data, trial_BOVEdata, performance_BOVEloss_data, num_BOVEtrials = pickle.load(open("data/faulttype/summary_statistics_faultBOVE.pkl", "rb"))
 
-   if by_fitfun:
-       for f in range(len(fitfuns)):
-           print(fitfuns[f])
-           for i in range(len(bd_type)):
-               x=data[i][f]
-               for j in range(0,len(bd_type)):
-                   y=data[j][f]
-                   stat,p = ranksums(x,y)
-                   print("%s vs %s : U=%.2f, p=%.6f"%(bd_type[i],bd_type[j],stat,p))
-                   if i != j:
-                       delta, label= cliffs_delta(stat,x,y)
-                       print("Cliffs delta: %.3f   %s"%(delta,label))
-   else:
-       print("OVERALL")
-       for i in range(len(bd_type)):
-           x = data[i]
-           for j in range(0, len(bd_type)):
-               y = data[j]
-               stat, p = ranksums(x, y)
-               print("%s vs %s : U=%.2f, p=%.6f" % (bd_type[i], bd_type[j], stat, p))
-               if i != j:
-                   delta, label = cliffs_delta(stat, x, y)
-                   print("Cliffs delta: %.3f   %s"%(delta,label))
+    for f in range(num_fault_types):
+        print(foraging_fault_types[f])
+        for i in range(len(bd_type)):
+                print("compare exhaustive before and after")
+                y = best_performance_data[i][f]
+                x = best_transfer_data[i][f]
+                stat,p = ranksums(x,y)
+                print("%s after vs %s before: U=%.2f, p=%.6f"%(bd_type[i],bd_type[i],stat,p))
+                delta, label= cliffs_delta(stat,x,y)
+                print("Cliffs delta: %.3f   %s"%(delta,label))
+
+                print("-------------------------------------")
+
+                print("compare exhaustive to BO")
+                y = best_BOperformance_data[i][f]
+                x = best_performance_data[i][f]
+                stat, p = ranksums(x, y)
+                print("%s exhaustive vs %s BO: U=%.2f, p=%.6f" % (bd_type[i], bd_type[i], stat, p))
+                delta, label = cliffs_delta(stat, x, y)
+                print("Cliffs delta: %.3f   %s" % (delta, label))
+
+
+                print("--------------------------------------")
+                print("compare BO  virtual vs BO")
+                y = best_BOperformance_data[i][f]
+                x = best_BOVEperformance_data[i][f]
+                stat, p = ranksums(x, y)
+                print("%s virtual_energy vs %s BO: U=%.2f, p=%.6f" % (bd_type[i], bd_type[i], stat, p))
+                delta, label = cliffs_delta(stat, x, y)
+                print("Cliffs delta: %.3f   %s" % (delta, label))
+
+
+                print("")
+
 def make_significance_table(fitfunlabels,conditionlabels,qed_index,table_type="resilience"):
 
     best_performance_data, performance_data, best_transfer_data, transfer_data, resilience_data = pickle.load(
@@ -559,6 +545,12 @@ if __name__ == "__main__":
     # significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
     #                  title_tag="BO",virtual_energy=False)
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
+                     title_tag="",virtual_energy=False)
+    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
+                     title_tag="BO",virtual_energy=False)
+    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                      title_tag="BO",virtual_energy=True)
+
+    test_significance(bd_type, by_faulttype=True, data_type="best_performance")
 
 

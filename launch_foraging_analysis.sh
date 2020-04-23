@@ -180,9 +180,6 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
                         export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
                         Outfolder=${ConfigFolder}/results${SUFFIX}
-                    fi
-                    Outfolder=${Outfolder}/${VirtualFolder}
-	            echo "Outfolder ${Outfolder}"
 		    
 		    mkdir -p $Outfolder
                     echo "config ${ConfigFile}"

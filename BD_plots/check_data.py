@@ -11,7 +11,7 @@ utilities to check:
 from os import path
 from process_archive_data import *
 
-from foraging_faults import *
+from foraging_params import *
 
 def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturbations,translation):
 
@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
     check_archives_complete_foraging(20000,
                             "/home/david/Data",
-                            ["history","Gomes_sdbc_walls_and_robots_std"],
+                            ["history"],
                             range(1,6),
                             translation="handcrafted"
                             )
