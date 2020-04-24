@@ -9,6 +9,9 @@ from plots import *
 from significance import *
 import pickle
 
+
+settings_tag=""
+
 def bin_single_point(datapoint,minima, bins,bin_sizes):
     category = 0
     cum_prod = 1
@@ -34,7 +37,7 @@ def bin_single_point(datapoint,minima, bins,bin_sizes):
 
 def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, gener):
     # get the corresponding BD
-    samp = faultpath + virtual_folder + "/BO_output/samples.dat"
+    samp = faultpath + virtual_folder + "/BO_output" + settings_tag + "/samples.dat"
     samp_list = read_spacedelimited(samp)
     sample = None
     i = 0
@@ -64,7 +67,7 @@ def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, ge
             performance = float(item[-1])
     # if performance is None:
     #     raise Exception("individual not found in faulty archive")
-    timefile = faultpath + virtual_folder + "/BO_output/fitness" + str(archive_individual) + ".dat"
+    timefile = faultpath + virtual_folder + "/BO_output" + settings_tag + "/fitness" + str(archive_individual) + ".dat"
     parsed_file_list = read_tabdelimited(timefile)
     time_consumed = min(float(parsed_file_list[0][1]),TICKS_PER_TRIAL)/TICKS_PER_SECOND #time_consumed = min(float(line[-1]), TICKS_PER_TRIAL)/TICKS_PER_SECOND
 
@@ -73,7 +76,7 @@ def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, ge
 
 def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener):
     # look up best observation of virtual energy
-    obs = faultpath + virtual_folder + "/BO_output/observations.dat"
+    obs = faultpath + virtual_folder + "/BO_output" + settings_tag + "/observations.dat"
     obs_list = read_spacedelimited(obs)
     i = 0
     best_VE = -float("inf")
@@ -122,9 +125,9 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
         if title_tag.startswith("BO"):
 
             if virtual_energy:
-                BOfile = faultpath + virtual_folder +"/BO_output/best_observations.dat"
+                BOfile = faultpath + virtual_folder +"/BO_output" + settings_tag + "/best_observations.dat"
             else:
-                BOfile = faultpath + normal_folder + "/BO_output/best_observations.dat"
+                BOfile = faultpath + normal_folder + "/BO_output" + settings_tag + "/best_observations.dat"
             parsed_file_list = read_spacedelimited(BOfile)
 
             if virtual_energy:
@@ -135,9 +138,9 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
             num_trials=len(parsed_file_list) - 1 # count the lines, but top line does not count
 
             if virtual_energy:
-                BOfile = faultpath + virtual_folder + "/BO_output/observations.dat"
+                BOfile = faultpath + virtual_folder + "/BO_output" + settings_tag + "/observations.dat"
             else:
-                BOfile = faultpath + normal_folder + "/BO_output/observations.dat"
+                BOfile = faultpath + normal_folder + "/BO_output" + settings_tag + "/observations.dat"
             parsed_file_list = read_spacedelimited(BOfile)
             performance_loss=0.
             i=0
@@ -283,8 +286,8 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
 
                     if by_faulttype:
                         faulttype,index=get_fault_type(fault)
-                        best_performance_data[i][index] = np.append(best_performance_data[i][index],best_performances/6.0)
-                        best_transfer_data[i][index] = np.append(best_transfer_data[i][index],best_transfer/6.0)
+                        best_performance_data[i][index] = np.append(best_performance_data[i][index],best_performances)
+                        best_transfer_data[i][index] = np.append(best_transfer_data[i][index],best_transfer)
                         #resilience_data[i][index] = np.append(resilience_data[i][index],resilience)
                         if title_tag.startswith("BO"):
                             trial_data[i][index].append(_trial_time)

@@ -294,7 +294,7 @@ def get_archive_filepath(BD_directory,run, archive_file_path):
     return BD_directory + "/results" + str(run) + "/" + archive_file_path
 
 def get_bd_dir(fitfun, tag="range0.11"):
-    data_dir = "/media/david/Elements/Data/"
+    data_dir = "/home/david/Data/"
     title = fitfun + tag
     BD_dir = data_dir + "/" + title
     return BD_dir

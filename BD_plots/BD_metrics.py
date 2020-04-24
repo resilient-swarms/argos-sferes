@@ -1010,6 +1010,8 @@ def create_all_development_plots():
 
 
 def single_development_plots(fitfun,title, runs, times, bd_type, legend_labels):
+
+    num_agents=6.0
     # bd_type = ["history","cvt_mutualinfo","cvt_mutualinfoact","cvt_spirit"]  #legend label
     #
     # legend_labels=["handcrafted","mutualinfo","mutualinfoact","spirit"]  # labels for the legend
@@ -1042,17 +1044,17 @@ def single_development_plots(fitfun,title, runs, times, bd_type, legend_labels):
             archive_file, directory = get_archiveplusdir(BD_dir, bd_type, i, time,
                                                          projected=False)
             # get all the data from the archive: no fault
-            p = global_performances(directory, runs,
+            p = np.array(global_performances(directory, runs,
                                     archive_file, max_performance=1,
-                                    conversion_func=None)
+                                    conversion_func=None))/num_agents  # 6 is the number of agents
             add_boxplotlike_data(p, y_bottom, y_mid, y_top, y_label="Global_performance",
                                  method_index=i)
 
             c = absolutecoverages(4096, directory, runs, archive_file)
             add_boxplotlike_data(c, y_bottom, y_mid, y_top, y_label="Map_coverage",
                                  method_index=i)
-            a_p = avg_performances(directory, runs, archive_file,
-                                   max_performance=1, conversion_func=None, from_fitfile=False)
+            a_p = np.array(avg_performances(directory, runs, archive_file,
+                                   max_performance=1, conversion_func=None, from_fitfile=False))/num_agents
             add_boxplotlike_data(a_p, y_bottom, y_mid, y_top, y_label="Average_performance",
                                  method_index=i)
 
@@ -1101,13 +1103,14 @@ if __name__ == "__main__":
     faults=range(50)
     runs=range(1,6)
 
-    fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
-                   "DecayBorderCoverage", "Flocking"]  # ,"DecayBorderCoverage","Flocking"]
-    bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
-                   ]  # file system label for bd
-    legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]
+    #fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
+    #               "DecayBorderCoverage", "Flocking"]  # ,"DecayBorderCoverage","Flocking"]
+    #bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
+    #               ]  # file system label for bd
+    legend_labels = ["HBD", "SDBC"]
+    bd_type=["history", "Gomes_sdbc_walls_and_robots_std"]
     bybin_list=["bd","bd"]
-    times=range(0,30500, 500)
+    times=range(0,20500, 500)
 
     #make_translation_table("CORRECT", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
 
@@ -1121,8 +1124,8 @@ if __name__ == "__main__":
     #make_evolution_table(fitfuns, bd_type, runs, generation=6000,load_existing=False,by_fitfun=False)
 
 
-    create_coverage_development_plots()
+    #create_coverage_development_plots()
 
     #create_all_development_plots()
 
-    #single_development_plots("Foraging", "", runs, times, bd_type, legend_labels)
+    single_development_plots("Foraging", "", runs, times, bd_type, legend_labels)

@@ -38,14 +38,15 @@ actuator_perturbations = ["actuatorp" + str(i) for i in range(1, actuator_pertur
 software_perturbations = ["softwarep" + str(i) for i in range(1, software_perturbs + 1)]
 softwarefood_perturbations = ["software_foodp" + str(i) + "f" + str(1) for i in range(1, software_perturbs + 1)]
 foodscarcity_perturbations = ["food_scarcityp1f"+str(f) for f in range(1, 7)]
-agent_perturbations = ["agentsp" + str(i) for i in range(1, max_num_agents + 1) if i!=6]
+agent_perturbations = ["agentsp" + str(i) for i in [3,12,24]]
 foraging_perturbations = proximity_sensor_perturbations + ground_sensor_perturbations + actuator_perturbations + \
                          software_perturbations + softwarefood_perturbations + foodscarcity_perturbations  + agent_perturbations
 
 
-num_fault_types=7
+num_fault_types=9
 
-foraging_fault_types=["Proximity-Sensor","Ground-Sensor","Actuator","Software-Nest","Software-Food","Food-Scarcity","Agents"]
+foraging_fault_types=["Proximity-Sensor","Ground-Sensor","Actuator","Software-Nest","Software-Food","Food-Scarcity",
+                      "3 agents","12 agents", "24 agents"]
 
 def get_fault_type(fault):
     if fault.startswith("proximity_sensorp"):
@@ -60,7 +61,11 @@ def get_fault_type(fault):
         return "Software-Food",4
     elif fault.startswith("food_scarcityp"):
         return "Food-Scarcity",5
-    elif fault.startswith("agentsp"):
+    elif fault.startswith("agentsp3"):
         return "Agents",6
+    elif fault.startswith("agentsp12"):
+        return "Agents",7
+    elif fault.startswith("agentsp24"):
+        return "Agents",8
     else:
         Exception("unknown faulttype")

@@ -10,6 +10,7 @@ if [ "$UseVirtual" = "True" ]; then
 else
     command="bin/ite_swarms_"
 fi
+output_tag=$3
 
 export Generation=20000
 
@@ -157,7 +158,8 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
                     Outfolder=${ConfigFolder}/results${SUFFIX}/${VirtualFolder}
                     echo "Outfolder ${Outfolder}"
-                    rm -rf ${Outfolder}/BO_output
+                    BO_folder=${Outfolder}/BO_output${output_tag}
+                    rm -rf ${BO_folder}
                     rm ${Outfolder}/fitness
                     mkdir -p $Outfolder
                     echo "config ${ConfigFile}"
@@ -189,7 +191,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
 
                     # Call ARGoS
                     export COMMAND=${command}${tag}
-                    export BO_OutputFolder=${Outfolder}/BO_output
+                    export BO_OutputFolder=${BO_folder}
                     export ArchiveFolder=${ArchiveDir}
                     export BO_Executable=${bo_executable}${tag}
                     export ConfigFile

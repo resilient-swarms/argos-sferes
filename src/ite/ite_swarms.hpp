@@ -52,10 +52,11 @@ struct Params
         BO_PARAM(double, noise, 0); // 0.001 is used in IT&E
     };
 
-    // using a default 90% above all other predicted gait performances in the map
-    struct stop_maxpredictedvalue : public defaults::stop_maxpredictedvalue
-    {
-    };
+    // // using a default 90% above all other predicted gait performances in the map
+    // struct stop_maxpredictedvalue : public defaults::stop_maxpredictedvalue
+    // {
+    //     BO_PARAM(double, ratio, 0.99);
+    // };
 
     struct stop_maxiterations
     {
@@ -398,6 +399,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
                 {
                     if (do_VE)
                     {
+                        std::cout << "Line no " << line_no << std::endl;
                         elem.fit = get_VE(line_no, VE_file);
                     }
                     else
