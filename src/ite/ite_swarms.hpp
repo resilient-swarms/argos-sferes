@@ -10,7 +10,7 @@
 
 using namespace limbo;
 
-const size_t max_evals = 30;
+const size_t max_evals = 100;
 
 #ifdef REAL_EXP
 size_t num_trials = 3;
@@ -106,6 +106,7 @@ struct Params
             std::vector<double> behav_descriptor; // the first entry of elem_archive should be the behaviour descriptor (see ln 19 in exhaustive_search_archive.hpp)
             float fit;
             unsigned controller;
+            bool checked=false;
         };
 
         struct classcomp
