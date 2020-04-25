@@ -10,7 +10,7 @@ from significance import *
 import pickle
 
 
-settings_tag=""
+settings_tag="_100evaluations"
 
 def bin_single_point(datapoint,minima, bins,bin_sizes):
     category = 0
@@ -89,6 +89,61 @@ def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener):
                 best_index = i  # ignore the first line
         i +=1
     return index2fullperformance(bd_t,path,faultpath,virtual_folder,best_index,r,gener)
+
+def add_development_of_fault_performance(bd_t, r, gener, faultpath,
+                          best_performances,time_lost,baseline=False,
+                          title_tag="",virtual_energy=False):
+    """
+
+    :param j: fitfun index
+    :param r: run index
+    :param best_nofaultperfs:
+    :param maxindsnofault:
+    :param faultpath:
+    :param best_performances:
+    :param performances:
+    :param best_transfer:
+    :param transfer:
+    :param recovery:
+    :param resilience:
+    :param baseline:
+    :return:
+    """
+    virtual_folder="/results" + str(runs[r]) + "/virtual_energy_exp"
+    normal_folder ="/results" + str(runs[r])
+    path=faultpath+"/fitness" if baseline else faultpath+normal_folder+"/analysis" + str(gener) + "_handcrafted.dat"
+
+    temp = np.array(list(get_ind_performances_uniquearchive(path).values())).flatten()
+
+    if title_tag.startswith("BO"):
+
+        if virtual_energy:
+            BOfile = faultpath + virtual_folder +"/BO_output" + settings_tag + "/best_observations.dat"
+        else:
+            BOfile = faultpath + normal_folder + "/BO_output" + settings_tag + "/best_observations.dat"
+        parsed_file_list = read_spacedelimited(BOfile)
+
+        i=1
+        time_cumulant=0.0
+        x=[]
+        y=[]
+        for line in parsed_file_list:
+            if i==1:
+                i+=1
+                continue # ignore the first line
+            if virtual_energy:
+                best_performance,time_consumed=get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener)
+            else:
+                best_performance=float(line[-1])
+                time_consumed=NUM_SECONDS
+            time_cumulant+=time_consumed
+            x.append(time_cumulant)
+            y.append(best_performance)
+            i+=1
+    time_lost = np.append(time_lost, x)
+    best_performances = np.append(best_performances, y)
+
+    return best_performances,  time_lost
 
 def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxindsnofault,faultpath,
                           best_performances,best_transfer,resilience, baseline=False,
@@ -245,15 +300,15 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
         j = 0  #only one fitness function
         for i in range(len(bd_type)):
             print(bd_type[i])
-            best_performance_data.append([[] for i in range(num_fault_types)])
-            performance_data.append([[] for i in range(num_fault_types)])
-            best_transfer_data.append([[] for i in range(num_fault_types)])
-            transfer_data.append([[] for i in range(num_fault_types)])
-            resilience_data.append([[] for i in range(num_fault_types)])
-            recovery_data.append([[] for i in range(num_fault_types)])
-            trial_data.append([[] for i in range(num_fault_types)])
-            num_trials.append([[] for i in range(num_fault_types)])
-            performance_loss_data.append([[] for i in range(num_fault_types)])
+            best_performance_data.append([[] for j in range(num_fault_types)])
+            performance_data.append([[] for j in range(num_fault_types)])
+            best_transfer_data.append([[] for j in range(num_fault_types)])
+            transfer_data.append([[] for j in range(num_fault_types)])
+            resilience_data.append([[] for j in range(num_fault_types)])
+            recovery_data.append([[] for j in range(num_fault_types)])
+            trial_data.append([[] for j in range(num_fault_types)])
+            num_trials.append([[] for j in range(num_fault_types)])
+            performance_loss_data.append([[] for j in range(num_fault_types)])
 
             BD_dir = datadir+"/Foraging"
                 # get all the data from the archive: no fault
@@ -288,7 +343,6 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                         faulttype,index=get_fault_type(fault)
                         best_performance_data[i][index] = np.append(best_performance_data[i][index],best_performances)
                         best_transfer_data[i][index] = np.append(best_transfer_data[i][index],best_transfer)
-                        #resilience_data[i][index] = np.append(resilience_data[i][index],resilience)
                         if title_tag.startswith("BO"):
                             trial_data[i][index].append(_trial_time)
                             num_trials[i][index].append(_num_trials)
@@ -349,6 +403,114 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                            columnlabels=[],
                            conditionalcolumnlabels=[("besttransfer","float2"),("bestperformance","float2"),("resilience","float2")],
                             median=True)
+
+
+def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=30):
+    """
+
+    performance: defined as the performance on all the perturbed environments
+    transfer: defined as each individuals' drop in performance
+    resilience: the best performance's drop in performance
+
+
+
+    :param fitfuns:
+    :param bd_type:
+    :param runs:
+    :param faults:
+    :param gener:
+    :return:
+    """
+
+    # get the reference performances
+    loadfilename = "data/faulttype/summary_statistics_fault.pkl" # no title tag = exhaustive search
+    reference_performance_data,reference_faultinjection_data, _, _, _ = pickle.load(
+            open(loadfilename, "rb"))
+
+    # prepare the data for the two conditions
+    conditions = ["RBO"]
+    settings = [("BO",False),("BO",True)]
+    best_performance_data = []
+    time_loss = []
+
+    j = 0  #only one fitness function
+    for i in range(len(bd_type)):
+
+        for c, condition in enumerate(conditions):
+            title_tag, VE = settings[c]
+            print(bd_type[i])
+            best_performance_data.append([[[] for t in range(max_evals)] for j in range(num_fault_types)] )
+            time_loss.append([[[] for t in range(max_evals)] for j in range(num_fault_types)])
+
+            BD_dir = datadir+"/Foraging"
+            # get all the data from the archive: no fault
+
+            nofaultpath=BD_dir + "/" + bd_type[i] + "/results"
+            nofaultperfs, best_nofaultperfs, maxindsnofault = get_nofault_performances(nofaultpath,gener,runs)
+
+
+            for fault in foraging_perturbations:
+                print("fault %s"%(fault))
+                for r, run in enumerate(runs):
+                    if fault=="software_foodp3f2" and run==5:
+                        print("skipping")
+                        continue
+                    if fault=="software_foodp4f1" and run==3:
+                        print("skipping")
+                        continue
+                    faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
+
+                    best_performances, time_lost = \
+                        add_development_of_fault_performance(bd_type[i], r, gener, faultpath,
+                          best_performances=[],time_lost=[],baseline=False,
+                          title_tag=title_tag,virtual_energy=VE)
+
+                    if by_faulttype:
+                        faulttype,index=get_fault_type(fault)
+                        for t in range(max_evals):
+                            best_performance_data[i][index][t] = np.append(best_performance_data[i][index][t],best_performances[t])
+                            time_loss[i][index][t] = np.append(time_loss[i][index][t], time_lost[t])
+                    else:
+                        raise Exception("not supported")
+
+
+        # get the mean and sd for each fault category for this condition (BO or BO-VE)
+        for fault_category in range(num_fault_types):
+            mean_lines = [[] for c in conditions]
+            sd_lines1 = [[] for c in conditions]
+            sd_lines2 = [[] for c in conditions]
+            min_reference = np.mean(reference_faultinjection_data[i][fault_category])
+            max_reference = np.mean(reference_performance_data[i][fault_category])
+            colors = ["C5", "C0"]  # colors for the lines
+            # (numsides, style, angle)
+            markers = ["*", "o"]  # markers for the lines
+
+
+
+            # add the exhaustive search performance as a maximum
+
+            for c, condition in enumerate(conditions):
+                time=[]
+                for t in range(max_evals):
+                    mean = np.mean(best_performance_data[i][fault_category][t])
+                    mean_lines[c].append(mean)
+                    sd = np.std(best_performance_data[i][fault_category][t])
+                    sd_lines1[c].append(mean-sd)
+                    sd_lines2[c].append(mean+sd)
+                    time.append(np.mean(time_loss[i][c][t]))
+
+
+
+            additional_lines = [(time, [min_reference for t in time]), (time, [max_reference for t in time])]
+            createPlot(mean_lines, x_values=np.array(time),
+                           save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+".pdf", legend_labels=conditions,
+                           colors=colors, markers=markers, xlabel="Time ($s$)",
+                           ylabel="Best performance",
+                           xlim=[0, 4000], xscale="linear", yscale="linear", ylim=None,
+                           legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
+                           legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
+                           xaxis_style="plain", y_err=[], force=True, fill_between=(sd_lines1, sd_lines2))
+
 
 
 def test_significance(bd_type,by_faulttype,data_type):
@@ -549,11 +711,8 @@ if __name__ == "__main__":
     #                  title_tag="BO",virtual_energy=False)
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                      title_tag="",virtual_energy=False)
-    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
-                     title_tag="BO",virtual_energy=False)
-    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
-                     title_tag="BO",virtual_energy=True)
 
-    test_significance(bd_type, by_faulttype=True, data_type="best_performance")
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=30)
+
 
 
