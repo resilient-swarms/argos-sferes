@@ -46,7 +46,7 @@ foraging_perturbations = proximity_sensor_perturbations + ground_sensor_perturba
 num_fault_types=9
 
 foraging_fault_types=["Proximity-Sensor","Ground-Sensor","Actuator","Software-Nest","Software-Food","Food-Scarcity",
-                      "3 agents","12 agents", "24 agents"]
+                      "3agents","12agents", "24agents"]
 
 def get_fault_type(fault):
     if fault.startswith("proximity_sensorp"):
