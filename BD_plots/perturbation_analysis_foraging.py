@@ -9,6 +9,7 @@ from plots import *
 from significance import *
 import pickle
 
+NUM_AGENTS=6.0
 
 settings_tag="_100evaluations"
 
@@ -75,7 +76,7 @@ def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, ge
 
 def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener, until=None):
     # look up best observation of virtual energy
-    obs = faultpath + virtual_folder + "/BO_output" + settings_tag + "/observations.dat"
+    obs = faultpath + virtual_folder + "/BO_output" + settings_tag + "_init4/observations.dat"
     obs_list = read_spacedelimited(obs)
     i = 0
     best_VE = -float("inf")
@@ -90,8 +91,6 @@ def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener, until=No
         if i > until:
             break
     return index2fullperformance(bd_t,path,faultpath,virtual_folder,best_index,r,gener)
-
-
 
 def add_development_of_fault_performance(bd_t, r, gener, faultpath,
                           best_performances,time_lost,baseline=False,
@@ -121,7 +120,7 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
     if title_tag.startswith("BO"):
 
         if virtual_energy:
-            BOfile = faultpath + virtual_folder +"/BO_output" + settings_tag + "/best_observations.dat"
+            BOfile = faultpath + virtual_folder +"/BO_output" + settings_tag + "_init4/best_observations.dat"
         else:
             BOfile = faultpath + normal_folder + "/BO_output" + settings_tag + "/best_observations.dat"
         parsed_file_list = read_spacedelimited(BOfile)
@@ -130,12 +129,18 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
         time_cumulant=0.0
         x=[]
         y=[]
+        count_full_eval=0
         for line in parsed_file_list:
             if i==1:
                 i+=1
                 continue # ignore the first line
             if virtual_energy:
                 best_performance,time_consumed=get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener,until=i)
+                if time_consumed == NUM_SECONDS:
+                    count_full_eval += 1
+                else:
+                    if time_consumed > NUM_SECONDS:
+                        raise Exception("time consumption cannot be greater than NUM_SECONDS")
             else:
                 best_performance=float(line[-1])
                 time_consumed=NUM_SECONDS
@@ -145,8 +150,9 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
             i+=1
     time_lost = np.append(time_lost, x)
     best_performances = np.append(best_performances, y)
-
-    return best_performances,  time_lost
+    percentage_eval = 100.0*count_full_eval/float(len(x))
+    print("full eval % = " +str(percentage_eval))
+    return best_performances,  time_lost, percentage_eval
 
 def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxindsnofault,faultpath,
                           best_performances,best_transfer,resilience, baseline=False,
@@ -210,6 +216,7 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
                 if virtual_energy:
                     # time_consumed = min(float(line[-1]), TICKS_PER_TRIAL)/TICKS_PER_SECOND
                     performance, time_consumed = index2fullperformance(bd_t,path,faultpath,virtual_folder,i,r,gener)
+
                     time_loss += time_consumed
                     performance_loss += (best_performance - performance)*(time_consumed/NUM_SECONDS) # multiply by trial proportion
                 else:
@@ -436,6 +443,8 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
     best_performance_data = []
     time_loss = []
 
+
+
     j = 0  #only one fitness function
     for i in range(len(bd_type)):
 
@@ -463,7 +472,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
                         continue
                     faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
 
-                    best_performances, time_lost = \
+                    best_performances, time_lost, percentage_eval = \
                         add_development_of_fault_performance(bd_type[i], r, gener, faultpath,
                           best_performances=[],time_lost=[],baseline=False,
                           title_tag=title_tag,virtual_energy=VE)
@@ -495,16 +504,17 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
             time = [[] for c in conditions]
             for c, condition in enumerate(conditions):
                 for t in range(max_evals[c]):
-                    mean = np.mean(best_performance_data[c][fault_category][t])
+                    data = best_performance_data[c][fault_category][t]/NUM_AGENTS
+                    mean = np.mean(data)
                     mean_lines[c].append(mean)
-                    sd = np.std(best_performance_data[c][fault_category][t])
+                    sd = np.std(data)
                     sd_lines1[c].append(mean-sd)
                     sd_lines2[c].append(mean+sd)
                     time[c] = np.append(time[c],np.mean(time_loss[c][index][t]))
 
 
 
-            additional_lines = [(time[0], [min_reference for t in time[0]]), (time[0], [max_reference for t in time[0]])]
+            additional_lines = [(time[0], [min_reference/NUM_AGENTS for t in time[0]]), (time[0], [max_reference/NUM_AGENTS for t in time[0]])]
             createPlot(mean_lines, x_values=time,
                            save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+".pdf", legend_labels=conditions,
                            colors=colors, markers=markers, xlabel="Time ($s$)",

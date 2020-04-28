@@ -77,9 +77,9 @@ faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
 faultnum["agents"]=12       # {1,2,...,12} agents included
 
-for FaultCategory in proximity_sensor ground_sensor actuator software software_food food_scarcity agents; do
+for FaultCategory in agents; do
     numfaults=${faultnum[${FaultCategory}]}
-    for FaultIndex in $(seq 1 ${num_faults}); do
+    for FaultIndex in 3 12 24; do
         for key in ${!descriptors[@]}; do
             DescriptorType=${key}
             BD_DIMS=${descriptors[${key}]}

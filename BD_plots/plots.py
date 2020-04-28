@@ -223,7 +223,7 @@ def add_line(x,y,plt):
 
 def get_plot(ax,index, xx, stats, colors, markers, markers_on,y_err=[],fill_between=[],legend_label=None):
     if y_err:
-        line = ax.errorbar(xx, stats[index],yerr=y_err[index], color=colors[index], marker=markers[index], markevery=markers_on, ms=16,
+        line = ax.errorbar(xx, stats[index],yerr=y_err[index], color=colors[index], marker=markers[index], markevery=markers_on, ms=8,
                     linewidth=4,label=legend_label)
     else:
         line, = ax.plot(xx, stats[index], color=colors[index], marker=markers[index], markevery=markers_on, ms=16,
@@ -302,8 +302,8 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
                 x = x_values[index]
             else:
                 x=x_values
-            num_steps = len(x) if len(x) < 20 else 20
-            interval_width = int(len(x) // num_steps)
+            #num_steps = len(x) if len(x) < 20 else 20
+            #interval_width = int(len(x) // num_steps)
             if scatter:
                 line = ax.scatter(x, stats[index], color=colors[index], marker=markers[index],s=1500)
             else:
@@ -311,7 +311,7 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
                     xx=index_x[index]
                 else:
                     xx= x if len(stats[index])==len(x) else x[0:len(stats[index])]
-                markers_on = range(0, len(xx), interval_width)
+                markers_on = range(0, len(xx), 1)
                 line=get_plot(ax,index,xx,stats,colors,markers,markers_on,y_err, fill_between,legend_labels[index])
 
             lines.append(line)

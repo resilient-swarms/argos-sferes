@@ -10,7 +10,7 @@
 
 using namespace limbo;
 
-const size_t max_evals = 30;
+const size_t max_evals = 100;
 
 #ifdef REAL_EXP
 size_t num_trials = 3;
@@ -94,7 +94,6 @@ struct Params
 #else
         BO_PARAM(double, alpha, 0.926734);
 #endif
-
     };
 
 #endif
@@ -106,7 +105,7 @@ struct Params
             std::vector<double> behav_descriptor; // the first entry of elem_archive should be the behaviour descriptor (see ln 19 in exhaustive_search_archive.hpp)
             float fit;
             unsigned controller;
-            bool checked=false;
+            bool checked = false;
         };
 
         struct classcomp
@@ -150,7 +149,7 @@ double get_fitness(size_t ctrl_index)
                           << " and not " << numbers.size();
 #ifdef VE
             fitness = numbers.back(); // only number usually; otherwise use first
-#else   
+#else
             fitness = numbers[0];
 #endif
             if (fitness > global::original_max)
@@ -338,7 +337,7 @@ double get_VE(size_t line_no, std::string VE_file)
     return 0.0f;
 }
 
-Params::archiveparams::archive_t load_archive(std::string archive_name, std::string VE_file = "")
+Params::archiveparams::archive_t load_archive(std::string archive_name, std::string VE_file = "", bool uniform = false)
 {
 
     Params::archiveparams::archive_t archive;
@@ -349,6 +348,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
         do_VE = true;
     }
 
+    float avg = 0.0f;
     /*size_t lastindex = archive_name.find_last_of(".");
     std::string extension = archive_name.substr(lastindex + 1);*/
 
@@ -398,15 +398,32 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
                 }
                 else if (i == (global::behav_dim + 1))
                 {
+
                     if (do_VE)
                     {
                         std::cout << "Line no " << line_no << std::endl;
-                        elem.fit = get_VE(line_no, VE_file);
-                    }
+                        if (uniform)
+                        {
+                            // do nothing yet except increment the average
+                            avg += get_VE(line_no, VE_file);
+                        }
+                        else
+                        {
+                            elem.fit = get_VE(line_no, VE_file);
+                        }
                     else
                     {
-                        elem.fit = data;
+                        if (uniform)
+                        {
+                            // do nothing yet except increment the average
+                            avg += data;
+                        }
+                        else{
+                            elem.fit = data;
+                        }
+                            
                     }
+
                 }
                 else
                 {
@@ -425,6 +442,14 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
     }
 
     std::cout << archive.size() << " elements loaded" << std::endl;
+    if (uniform)
+    {
+        for (Params::archiveparams::archive_t::iterator iter = Params::archiveparams::archive.begin();
+             iter != Params::archiveparams::archive.end(); ++iter)
+        {
+            iter->second.fit = avg;// set to the average across the archive
+        }
+    }
     return archive;
 }
 
@@ -510,5 +535,3 @@ void run_ite(const std::string &newname)
     print_individual_to_network(bd, Params::archiveparams::archive);
     rename_folder(global::results_path, newname);
 }
-
-
