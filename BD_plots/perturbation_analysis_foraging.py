@@ -442,6 +442,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
     settings = [("BO",False),("BO",True)]
     best_performance_data = []
     time_loss = []
+    percentage_eval_data = []
 
 
 
@@ -453,7 +454,6 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
             print(bd_type[i])
             best_performance_data.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)] )
             time_loss.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
-
             BD_dir = datadir+"/Foraging"
             # get all the data from the archive: no fault
 
@@ -483,10 +483,12 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
                             print(t)
                             best_performance_data[c][index][t] = np.append(best_performance_data[c][index][t],best_performances[t])
                             time_loss[c][index][t] = np.append(time_loss[c][index][t], time_lost[t])
+                        if VE:
+                            percentage_eval_data.append(percentage_eval)
                     else:
                         raise Exception("not supported")
 
-
+        final_performances=[]
         # get the mean and sd for each fault category for this condition (BO or BO-VE)
         for fault_category in range(num_fault_types):
             mean_lines = [[] for c in conditions]
@@ -502,7 +504,9 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
 
             # add the exhaustive search performance as a maximum
             time = [[] for c in conditions]
+
             for c, condition in enumerate(conditions):
+                time_up = True
                 for t in range(max_evals[c]):
                     data = best_performance_data[c][fault_category][t]/NUM_AGENTS
                     mean = np.mean(data)
@@ -511,6 +515,9 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
                     sd_lines1[c].append(mean-sd)
                     sd_lines2[c].append(mean+sd)
                     time[c] = np.append(time[c],np.mean(time_loss[c][index][t]))
+                    if np.mean(time_loss[c][index][t]) >= 3600.0 and time_up:
+                        final_performances=np.append(final_performances,data)
+                        time_up = False
 
 
 
@@ -523,6 +530,11 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
                            legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                            legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                            xaxis_style="plain", y_err=[], force=True, fill_between=(sd_lines1, sd_lines2))
+
+        r = np.corrcoef(percentage_eval_data,final_performances)
+        print("avg percentage eval " + str(np.mean(percentage_eval_data)))
+        print("sd percentage eval " + str(np.std(percentage_eval_data)))
+        print("correlation="+str(r))
 
 
 
