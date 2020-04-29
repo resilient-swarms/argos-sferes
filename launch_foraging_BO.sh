@@ -163,8 +163,12 @@ for FaultCategory in agents; do
                     export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
                     Outfolder=${ConfigFolder}/results${SUFFIX}/${TopOutputFolder}
                     echo "Outfolder ${Outfolder}"
-                    BO_folder=${Outfolder}/BO_output${output_tag}
-                    rm -rf ${BO_folder}
+                    if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ]; then
+                        export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
+                    else 
+                        export BO_OutputFolder=${Outfolder}${output_tag}
+                    fi
+                    rm -rf ${BO_OutputFolder}
                     rm ${Outfolder}/fitness
                     mkdir -p $Outfolder
                     echo "config ${ConfigFile}"
@@ -196,11 +200,6 @@ for FaultCategory in agents; do
 
                     # Call ARGoS
                     export COMMAND=${command}${tag}
-                    if [ "$run_type" = "BO" ]; then
-                        export BO_OutputFolder=${Outfolder}/BO_output
-                    else 
-                        export BO_OutputFolder=${Outfolder}
-                    fi
                     export ArchiveFolder=${ArchiveDir}
                     export BO_Executable=${bo_executable}${tag}
                     export ConfigFile
