@@ -6,11 +6,12 @@ data=$1
 run_type=$2
 if [ "$run_type" = "virtual" ]; then
     UseVirtual="True"
-	VirtualFolder="virtual_energy_exp"
+	TopOutputFolder="virtual_energy_exp"
     command="bin/ite_swarms_"
 elif [ "$run_type" = "random_search" ]; then
     command="bin/ite_baselines_"
     export BaselineChoice=" -b ${run_type}"
+    TopOutputFolder="baselines"
 else
     command="bin/ite_swarms_"
 fi
@@ -160,7 +161,7 @@ for FaultCategory in agents; do
                     ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
                     export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
                     export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
-                    Outfolder=${ConfigFolder}/results${SUFFIX}/${VirtualFolder}
+                    Outfolder=${ConfigFolder}/results${SUFFIX}/${TopOutputFolder}
                     echo "Outfolder ${Outfolder}"
                     BO_folder=${Outfolder}/BO_output${output_tag}
                     rm -rf ${BO_folder}
@@ -195,7 +196,6 @@ for FaultCategory in agents; do
 
                     # Call ARGoS
                     export COMMAND=${command}${tag}
-                    export BO_OutputFolder=${BO_folder}
                     export ArchiveFolder=${ArchiveDir}
                     export BO_Executable=${bo_executable}${tag}
                     export ConfigFile
