@@ -765,8 +765,8 @@ def determine_noise():
     nofaultpath = BD_dir + "/history/results"
     nofaultperfs, best_nofaultperfs, maxindsnofault = get_nofault_performances(nofaultpath, "20000", runs)
 
-    sd = [np.std(p) for p in nofaultperfs]
-    print(sd)
+    v = [np.var(p) for p in nofaultperfs]
+    print(v)
 
 if __name__ == "__main__":
     # significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
