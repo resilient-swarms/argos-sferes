@@ -133,6 +133,7 @@ for FaultIndex in $(seq 0 2); do
 
 						# Call ARGoS
 						export COMMAND=${command}${tag}
+                        export BO_OutputFolder=${Outfolder}/BO_output
                         export ArchiveFolder=${ArchiveDir}
                         export BO_Executable=${bo_executable}${tag}
                         export ConfigFile
