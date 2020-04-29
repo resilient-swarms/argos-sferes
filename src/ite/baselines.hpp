@@ -52,7 +52,8 @@ public:
     {
         proposal.init();
         float best_so_far = -std::numeric_limits<float>::infinity();
-        while (proposal.keys_left.size() > 0)
+        size_t num_evals=0;
+        while (proposal.keys_left.size() > 0 && num_evals < max_evals)
         {
             // choose new sample
             std::vector<double> sample = proposal.generate();
@@ -72,6 +73,7 @@ public:
                 os << sample[i] << " ";
             }
             os << fitness << std::endl;
+            num_evals++;
         }
     }
 };

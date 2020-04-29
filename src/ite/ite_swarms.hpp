@@ -11,7 +11,7 @@
 
 using namespace limbo;
 
-const size_t max_evals = 100;
+const size_t max_evals = 30;
 
 #ifdef REAL_EXP
 size_t num_trials = 3;
