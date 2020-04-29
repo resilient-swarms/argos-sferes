@@ -196,6 +196,7 @@ for FaultCategory in agents; do
 
                     # Call ARGoS
                     export COMMAND=${command}${tag}
+                    export BO_OutputFolder=${Outfolder}
                     export ArchiveFolder=${ArchiveDir}
                     export BO_Executable=${bo_executable}${tag}
                     export ConfigFile
