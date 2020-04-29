@@ -125,7 +125,7 @@ struct Params
     };
 };
 
-Params::archiveparams::archive_t load_archive(std::string archive_name, std::string VE_file);
+Params::archiveparams::archive_t load_archive(std::string archive_name, std::string VE_file, bool uniform);
 
 double get_fitness(size_t ctrl_index)
 {
@@ -411,6 +411,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
                         {
                             elem.fit = get_VE(line_no, VE_file);
                         }
+                    }
                     else
                     {
                         if (uniform)

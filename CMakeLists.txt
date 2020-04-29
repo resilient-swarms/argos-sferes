@@ -296,6 +296,12 @@ else(NOT BASELINE)
             ${Boost_LIBRARIES}
             ${TBB_LIBRARIES})
 
+        add_executable(ite_baselines_${tag}
+            src/ite/baselines.cpp)
+        target_link_libraries(ite_baselines_${tag}
+            ${Boost_LIBRARIES}
+            ${TBB_LIBRARIES})
+
         add_executable(tuning${tag}
             src/ite/tuning.cpp)
         message("CMAES LIB DIR" ${CMAES_LIB_DIR})

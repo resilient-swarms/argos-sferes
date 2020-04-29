@@ -1,6 +1,5 @@
 
-#include "src/ite/random_search.hpp"
-#include "src/ite/ite_swarms.hpp"
+#include "src/ite/baselines.hpp"
 
 //BO_DECLARE_DYN_PARAM(int, Params::stop_maxiterations, iterations);
 
@@ -90,7 +89,7 @@ int main(int argc, char **argv)
         choice = *(baseline_it + 1);
     }
     
-    /* run ite */
-    run_ite(newname);
+    /* run baseline */
+    run_baseline(choice, newname);
     return 0;
 }

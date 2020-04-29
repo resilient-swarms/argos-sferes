@@ -11,7 +11,9 @@ struct Proposal
     std::vector<std::vector<double>> keys_left;
     size_t current_index;
     std::string tag = "random_search";
-    Proposal()
+    std::random_device rd; //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen;      //Standard mersenne_twister_engine seeded with rd()
+    void init()
     {
         for (Params::archiveparams::archive_t::iterator iter = Params::archiveparams::archive.begin();
              iter != Params::archiveparams::archive.end(); ++iter)
@@ -19,9 +21,10 @@ struct Proposal
             std::vector<double> key = iter->first;
             keys_left.push_back(key);
         }
+        gen = std::mt19937(rd());
     }
     /* generate proposed behaviour */
-    std::vector<double> key generate()
+    std::vector<double> generate()
     {
         std::uniform_int_distribution<> dis(0, keys_left.size() - 1);
         current_index = dis(gen);
@@ -32,7 +35,7 @@ struct Proposal
     void update()
     {
         // remove index
-        ids_left.erase(ids_left.begin() + current_index);
+        keys_left.erase(keys_left.begin() + current_index);
     }
 };
 
@@ -41,20 +44,21 @@ class Baseline
 {
 public:
     Proposal_t proposal;
-    Baseline(Proposal_t &prop) : proposal(prop)
+    Baseline()
     {
     }
 
-    void run(std::ofstream& os)
+    void run(std::ofstream &os)
     {
+        proposal.init();
         float best_so_far = -std::numeric_limits<float>::infinity();
-        while (ids_left.size() > 0)
+        while (proposal.keys_left.size() > 0)
         {
             // choose new sample
             std::vector<double> sample = proposal.generate();
-            size_t ctrl_index = Params::archiveparams::archive.at(key);
+            Params::archiveparams::elem_archive el = Params::archiveparams::archive.at(sample);
             // run new sample
-            float fitness = perform_command(ctrl_index, global::current_config);
+            float fitness = perform_command(el.controller, global::current_config);
             if (fitness > best_so_far)
             {
                 best_so_far = fitness;
@@ -63,24 +67,23 @@ public:
             proposal.update();
 
             // write the statistic to file
-            for (size_t i 0; i < sample.size(); ++i)
+            for (size_t i = 0; i < sample.size(); ++i)
             {
                 os << sample[i] << " ";
             }
             os << fitness << std::endl;
-            
         }
     }
 };
 
-template <typename Proposal_t>
-void construct_and_run_baseline(const std::string &choice)
+void run_baseline(const std::string &choice, const std::string &prefix)
 {
+    std::string filename = prefix + choice;
+    std::ofstream writer(filename.c_str());
     if (choice == "random")
     {
-        Proposal random_proposal = Proposal();
-        Baseline<Proposal> baseline = Baseline<Proposal>(random_proposal);
-        baseline.run();
+        Baseline<Proposal> baseline;
+        baseline.run(writer);
     }
     else
     {

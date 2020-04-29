@@ -3,10 +3,14 @@
 #one: data-dir
 
 data=$1
-UseVirtual=$2
-if [ "$UseVirtual" = "True" ]; then
+run_type=$2
+if [ "$run_type" = "virtual" ]; then
+    UseVirtual="True"
 	VirtualFolder="virtual_energy_exp"
     command="bin/ite_swarms_"
+elif [ "$run_type" = "random_search" ]; then
+    command="bin/ite_baselines_"
+    export BaselineChoice=" -b ${run_type}"
 else
     command="bin/ite_swarms_"
 fi
