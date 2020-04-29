@@ -7,6 +7,7 @@
 #include <src/ite/exhaustive_search_archive.hpp>
 #include <src/ite/mean_archive.hpp>
 #include <stdio.h>
+#include <map>
 
 using namespace limbo;
 

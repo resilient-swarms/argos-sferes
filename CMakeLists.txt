@@ -113,6 +113,7 @@ option(BO "Bayesian Optimisation" OFF)
 option(ARGOS_PAR "Parallelisation" OFF)
 option(CAFFE "caffe neural networks" OFF)
 option(NN_INPUT_TYPE "control RAB" OFF)
+option(INCLUDE_CMAES "include libcmaes" OFF)
 
 #add_definitions(-DCOLLISION_STOP)  
 
@@ -267,16 +268,19 @@ else(NOT BASELINE)
         #    link_directories("${NLOPT_LIB_DIR}")
         #   add_definitions(-DUSE_NLOPT)
         #ENDIF()
-
-        SET(CMAES_INCLUDE_DIR "$ENV{CMAES_INCLUDE_DIR}")
-        SET(CMAES_LIB_DIR "$ENV{CMAES_LIB_DIR}")
-        IF(NOT CMAES_INCLUDE_DIR OR NOT CMAES_LIB_DIR)
-            MESSAGE( WARNING "CMAES not found. Please point the environment variables CMAES_INCLUDE_DIR and CMAES_LIB_DIR to your CMAES installation.")
-        ELSE()
-            include_directories("${CMAES_INCLUDE_DIR}")
-            link_directories("${CMAES_LIB_DIR}")
-            add_definitions(-DUSE_LIBCMAES)
-        ENDIF()
+        if(INCLUDE_CMAES)
+            
+            SET(CMAES_INCLUDE_DIR "$ENV{CMAES_INCLUDE_DIR}")
+            SET(CMAES_LIB_DIR "$ENV{CMAES_LIB_DIR}")
+            IF(NOT CMAES_INCLUDE_DIR OR NOT CMAES_LIB_DIR)
+                MESSAGE( WARNING "CMAES not found. Please point the environment variables CMAES_INCLUDE_DIR and CMAES_LIB_DIR to your CMAES installation.")
+            ELSE()
+                include_directories("${CMAES_INCLUDE_DIR}")
+                link_directories("${CMAES_LIB_DIR}")
+                add_definitions(-DUSE_LIBCMAES)
+            ENDIF()
+            SET(CMAES_LIB "${CMAES_LIB_DIR}/libcmaes.so")
+        endif()
 
         include_directories(${PROJECT_SOURCE_DIR}/src/ite) # location of ite-swarm includes
 
@@ -308,7 +312,7 @@ else(NOT BASELINE)
         target_link_libraries(tuning${tag}
           ${Boost_LIBRARIES}
           ${TBB_LIBRARIES}
-          ${CMAES_LIB_DIR}/libcmaes.so
+          ${CMAES_LIB}
           )
 
         add_executable(tuning_VE_${tag}
@@ -317,7 +321,7 @@ else(NOT BASELINE)
         target_link_libraries(tuning_VE_${tag}
           ${Boost_LIBRARIES}
           ${TBB_LIBRARIES}
-          ${CMAES_LIB_DIR}/libcmaes.so
+          ${CMAES_LIB}
           )
 
         set(CMAKE_CXX_FLAGS ${TMP_CMAKE_CXX_FLAGS} CACHE STRING "" FORCE)
