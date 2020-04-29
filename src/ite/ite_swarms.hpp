@@ -484,13 +484,23 @@ void print_individual_to_network(std::vector<double> bd,
 
 void rename_folder(std::string oldname, std::string newname)
 {
-    int result;
-    result = rename(oldname.c_str(), newname.c_str());
-    if (result == 0)
-        puts("File successfully renamed");
-    else
-        perror("Error renaming file");
+
+    std::cout << "renaming: " << oldname << " " << newname << std::endl;
+    std::string mv_cmd = "mv " + oldname + " " + newname;
+    if (system(mv_cmd.c_str()) != 0)
+    {
+        std::cerr << "Error executing simulation " << std::endl
+                  << mv_cmd << std::endl;
+        exit(-1);
+    }
+    // int result;
+    //ult = rename(oldname.c_str(), newname.c_str());
+    //if (result == 0)
+    //    puts("File successfully renamed");
+    //else
+    //    perror("Error renaming file");
 }
+
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
 
