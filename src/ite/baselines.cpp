@@ -59,10 +59,7 @@ int main(int argc, char **argv)
     else
     {
         global::argossim_bin_name = *(eval_it + 1);
-        for (size_t c = 0; c < num_configs; ++c)
-        {
-            global::argossim_config_name.push_back(*(eval_it + 2));
-        }
+        global::current_config = *(eval_it + 2);
     }
 
     std::string newname;

@@ -78,7 +78,8 @@ public:
 
 void run_baseline(const std::string &choice, const std::string &prefix)
 {
-    std::string filename = prefix + choice;
+    global::results_path =  prefix;
+    std::string filename = prefix + "/" + choice;
     std::ofstream writer(filename.c_str());
     if (choice == "random")
     {
