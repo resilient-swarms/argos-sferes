@@ -196,7 +196,11 @@ for FaultCategory in agents; do
 
                     # Call ARGoS
                     export COMMAND=${command}${tag}
-                    export BO_OutputFolder=${Outfolder}
+                    if [ "$run_type" = "BO" ]; then
+                        export BO_OutputFolder=${Outfolder}/BO_output
+                    else 
+                        export BO_OutputFolder=${Outfolder}
+                    fi
                     export ArchiveFolder=${ArchiveDir}
                     export BO_Executable=${bo_executable}${tag}
                     export ConfigFile
