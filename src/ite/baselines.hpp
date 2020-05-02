@@ -53,7 +53,9 @@ struct GradientAscent
     double alpha = 0.05;                      // learning rate
     //double step = 0.0625;                     // minmal step between two behaviours
     size_t iteration = 0;
+#ifdef PRINTING
     std::ofstream gradlog;
+#endif
     void init()
     {
         max_fitness = -std::numeric_limits<double>::infinity();
@@ -69,7 +71,9 @@ struct GradientAscent
             }
         }
         gen = std::mt19937(rd());
+#ifdef PRINTING
         gradlog = std::ofstream("/home/david/argos-sferes/gradient_log.txt", std::ios::app);
+#endif
     }
     void find_closest_match()
     {
@@ -110,13 +114,17 @@ struct GradientAscent
             current_index = dis(gen);
             current_key = keys_left[current_index];
             set_sample(current_key);
+#ifdef PRINTING
             gradlog << "new sample = " << current_sample << std::endl;
+#endif
             return current_key;
         }
         else
         {
             find_closest_match();
+#ifdef PRINTING
             gradlog << "new sample = " << current_sample << std::endl;
+#endif
             return current_key;
         }
     }
@@ -131,18 +139,23 @@ struct GradientAscent
             // follow gradient
             Eigen::Matrix<double, BEHAV_DIM, 1> delta = (current_sample - previous_sample);
             double delta_F = (current_fitness - previous_fitness) / max_fitness;
+#ifdef PRINTING
             gradlog << "previous F, current F = " << previous_fitness << "," << current_fitness << std::endl;
             gradlog << "previous x, current x = " << previous_sample << "," << current_sample << std::endl;
+#endif
+
             for (size_t i = 0; i < BEHAV_DIM; ++i)
             {
                 if (delta[i] != 0)
                 {
-                    delta[i] = delta_F /delta[i];// otherwise keep delta 0, because undefined
+                    delta[i] = delta_F / delta[i]; // otherwise keep delta 0, because undefined
                 }
             }
             current_sample = current_sample + alpha * delta;
+#ifdef PRINTING
             gradlog << "delta " << delta << std::endl;
             gradlog << "raw new sample = " << current_sample << std::endl;
+#endif
             // find the closest sample in the map
         }
         previous_fitness = current_fitness;
