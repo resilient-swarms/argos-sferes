@@ -12,6 +12,10 @@ elif [ "$run_type" = "random" ]; then
     command="bin/ite_baselines_"
     export BaselineChoice=" -b ${run_type}"
     TopOutputFolder="baselines"
+elif [ "$run_type" = "gradient" ]; then
+    command="bin/ite_baselines_"
+    export BaselineChoice=" -b ${run_type}"
+    TopOutputFolder="baselines"
 else
     command="bin/ite_swarms_"
 fi
