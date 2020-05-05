@@ -11,11 +11,11 @@ if [ "$run_type" = "virtual" ]; then
 elif [ "$run_type" = "random" ]; then
     command="bin/ite_baselines_"
     export BaselineChoice=" -b ${run_type}"
-    TopOutputFolder="baselines"
+    TopOutputFolder="baselines/random"
 elif [ "$run_type" = "gradient_closest" ]; then
     command="bin/ite_baselines_"
     export BaselineChoice=" -b ${run_type}"
-    TopOutputFolder="baselines"
+    TopOutputFolder="baselines/gradient_closest"
 else
     command="bin/ite_swarms_"
 fi

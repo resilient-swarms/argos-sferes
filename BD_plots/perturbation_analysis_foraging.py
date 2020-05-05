@@ -126,7 +126,7 @@ def get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_l
     return best_performances,  time_lost
 
 def get_baseline_development(faultpath, title_tag, best_performances,time_lost):
-    BOfile = faultpath + "/baselines/" + title_tag
+    BOfile = faultpath + "/baselines_" + title_tag + "/"+ title_tag
     parsed_file_list = read_spacedelimited(BOfile)
 
     i=1
@@ -464,7 +464,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
 
     # prepare the data for the two conditions
     conditions = ["CRBO","VE-CRBO E(0)=3","VE-CRBO E(0)=4","VE-CRBO E(0)=5","Random","Gradient-ascent"]
-    settings = [("BO",False,None),("BO",True,0),("BO",True,1),("BO",True,2),("random",False,None),("gradient",False,None)]
+    settings = [("BO",False,None),("BO",True,0),("BO",True,1),("BO",True,2),("random",False,None),("gradient_closest",False,None)]
     best_performance_data = []
     time_loss = []
     percentage_eval_data = [[] for fault in range(num_fault_types)]
