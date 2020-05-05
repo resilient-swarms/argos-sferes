@@ -77,18 +77,18 @@ perturbations_folder="experiments/harvesting/perturbations"
 
 declare -A faultnum
 
-faultnum["sensor"]=30
-faultnum["proximity_sensor"]=20
-faultnum["ground_sensor"]=20
-faultnum["actuator"]=20
-faultnum["software"]=6      # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
-faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
+faultnum["sensor"]=$(seq 1 30)
+faultnum["proximity_sensor"]=$(seq 1 20)
+faultnum["ground_sensor"]=$(seq 1 20)
+faultnum["actuator"]=$(seq 1 20)
+faultnum["software"]=$(seq 1 6)   # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
+faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
-faultnum["agents"]=12       # {1,2,...,12} agents included
+faultnum["agents"]="3 12 24"      # {1,2,...,12} agents included
 
-for FaultCategory in agents; do
-    numfaults=${faultnum[${FaultCategory}]}
-    for FaultIndex in 3 12 24; do
+for FaultCategory in proximity_sensor ground_sensor actuator software software_food food_scarcity agents; do
+    faults=${faultnum[${FaultCategory}]}
+    for FaultIndex in ${faults}; do
         for key in ${!descriptors[@]}; do
             DescriptorType=${key}
             BD_DIMS=${descriptors[${key}]}
