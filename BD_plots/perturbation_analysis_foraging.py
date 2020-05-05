@@ -12,7 +12,7 @@ import pickle
 NUM_AGENTS=6.0
 
 settings_tag="_100evaluations"
-VE_tag= "_100evaluations_init4"
+VE_tag= "_correction_init3"
 def bin_single_point(datapoint,minima, bins,bin_sizes):
     category = 0
     cum_prod = 1
@@ -70,8 +70,9 @@ def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, ge
     #     raise Exception("individual not found in faulty archive")
     timefile = faultpath + virtual_folder + "/BO_output" + tag + "/fitness" + str(archive_individual) + ".dat"
     parsed_file_list = read_tabdelimited(timefile)
-    time_consumed = min(float(parsed_file_list[0][1]),TICKS_PER_TRIAL)/TICKS_PER_SECOND #time_consumed = min(float(line[-1]), TICKS_PER_TRIAL)/TICKS_PER_SECOND
-
+    time_consumed =float(parsed_file_list[0][2])/TICKS_PER_SECOND #time_consumed = min(float(line[-1]), TICKS_PER_TRIAL)/TICKS_PER_SECOND
+    if time_consumed > NUM_SECONDS:
+        print(time_consumed)
     return performance, time_consumed
 
 def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener, until=None):
@@ -460,8 +461,8 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
             open(loadfilename, "rb"))
 
     # prepare the data for the two conditions
-    conditions = ["CRBO","VE-CRBO","Random"]
-    settings = [("BO",False),("BO",True),("random",False)]
+    conditions = ["CRBO","VE-CRBO","Random","Gradient-ascent"]
+    settings = [("BO",False),("BO",True),("random",False),("gradient",False)]
     best_performance_data = []
     time_loss = []
     percentage_eval_data = [[] for fault in range(num_fault_types)]
@@ -520,9 +521,9 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
             sd_lines2 = [[] for c in conditions]
             min_reference = np.mean(reference_faultinjection_data[i][fault_category])
             max_reference = np.mean(reference_performance_data[i][fault_category])
-            colors = ["C5", "C0","C1"]  # colors for the lines
+            colors = ["C5", "C0","C1","C2"]  # colors for the lines
             # (numsides, style, angle)
-            markers = ["*", "o","D"]  # markers for the lines
+            markers = ["*", "o","D","X"]  # markers for the lines
 
 
 
@@ -771,7 +772,7 @@ if __name__ == "__main__":
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                      title_tag="",virtual_energy=False)
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,30])
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,30,30])
 
 
 

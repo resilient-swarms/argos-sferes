@@ -5,6 +5,7 @@
 #include <src/core/statistics.h>
 #include <algorithm>
 
+
 FloreanoMondada::FloreanoMondada() : FitFun()
 {
     num_updates = argos::CSimulator::GetInstance().GetMaxSimulationClock();
@@ -597,11 +598,13 @@ void Foraging::apply(BaseLoopFunctions &cLoopFunctions)
     std::cout << fitness_per_trial[cLoopFunctions.m_unCurrentTrial] << std::endl;
 #endif
     fitness_per_trial[cLoopFunctions.m_unCurrentTrial]*= 6.0f/(float) cLoopFunctions.m_unNumberRobots ;// correct for the number of robots
+    float timecorrection = argos::CSimulator::GetInstance().GetMaxSimulationClock()/ (float)CSimulator::GetInstance().GetSpace().GetSimulationClock();
+    fitness_per_trial[cLoopFunctions.m_unCurrentTrial]*=timecorrection;
 }
-
 float Foraging::after_trials()
 {
     float meanfit = StatFuns::mean( fitness_per_trial);
     fitness_per_trial.clear();
     return meanfit;
 }
+

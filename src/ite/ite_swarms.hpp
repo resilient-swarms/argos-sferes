@@ -11,7 +11,7 @@
 
 using namespace limbo;
 
-const size_t max_evals = 30;
+const size_t max_evals = 100;
 
 #ifdef REAL_EXP
 size_t num_trials = 3;
@@ -50,7 +50,7 @@ struct Params
     struct kernel : public defaults::kernel
     {
 
-        BO_PARAM(double, noise, 30.0); // 0.001 is used in IT&E
+        BO_PARAM(double, noise, 0.0); // 0.001 is used in IT&E
     };
 
     // // using a default 90% above all other predicted gait performances in the map

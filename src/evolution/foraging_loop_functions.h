@@ -31,6 +31,7 @@ public:
     std::vector<bool> m_bRobotsHoldingFood = {};
     size_t numfoodCollected = 0;
     float avg_final_E = 0.0f;
+    float avg_time = 0.0f;
     CForagingLoopFunctions();
     virtual ~CForagingLoopFunctions() {}
 
@@ -50,8 +51,10 @@ public:
         if (virtual_energy != NULL)
         {
             avg_final_E /= (float)this->m_unNumberTrials;
+            avg_time /= (float)this->m_unNumberTrials;
             std::cout << "FINAL: avg_final_E " << avg_final_E << std::endl;
-            fitness_writer << fFitness << "\t" << avg_final_E << std::endl;
+             std::cout << "FINAL: avg_time " << avg_time << std::endl;
+            fitness_writer << fFitness << "\t" << avg_final_E << "\t" << avg_time << std::endl;
         }
         else
         {
@@ -72,12 +75,13 @@ public:
         std::cout << "sim clock " << (float)GetSpace().GetSimulationClock() << std::endl;
         avg_final_E += virtual_energy->E + (float)GetSpace().GetSimulationClock();
         std::cout << "avg_final_E " << avg_final_E << std::endl;
+        avg_time += (float)GetSpace().GetSimulationClock();
 #endif
     }
 
     virtual void end_trial()
     {
-        if (virtual_energy != NULL)
+        if (!stop_eval && virtual_energy != NULL) // already updated virtual_energy
         {
             virtual_energy_finish_trial();
         }

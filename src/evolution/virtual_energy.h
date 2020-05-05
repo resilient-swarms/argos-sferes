@@ -28,7 +28,7 @@ struct VirtualEnergy
     VirtualEnergy(float num_agents, float steps_to_1m)
     {
         // initialise
-        init_reward = 4.0 * steps_to_1m * num_agents;
+        init_reward = 2.0 * steps_to_1m * num_agents;
         food_reward = steps_to_1m;
         nest_reward = 5.0 * steps_to_1m;
         for (size_t i = 0; i < num_agents; ++i)
@@ -48,6 +48,7 @@ struct VirtualEnergy
             previous_state[i] = DEFAULT;
         }
         E = init_reward;
+        
     }
     /* main step function, increasing or decreasing energy depending on subgoal attainment */
     bool step(size_t  j, bool collide, VirtualState state);
