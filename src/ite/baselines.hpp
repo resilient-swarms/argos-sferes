@@ -6,7 +6,7 @@
 //modifies the stat-map to calculate averaged performance over all individuals
 
 // #define MAP_WRITE_PARENTS
-
+#define GRADIENT_LOG
 struct Proposal
 {
     double current_fitness;
@@ -45,6 +45,7 @@ struct GradientAscent
     std::random_device rd; //Will be used to obtain a seed for the random number engine
     std::mt19937 gen;      //Standard mersenne_twister_engine seeded with rd()
     std::vector<std::vector<double>> keys_left;
+    Params::archiveparams::archive_t keys_sampled;
     Eigen::Matrix<double, BEHAV_DIM, 1> current_sample, previous_sample, delta;
     std::vector<double> current_key;
     size_t current_index;
@@ -53,7 +54,7 @@ struct GradientAscent
     double alpha = 0.05;                      // learning rate
     //double step = 0.0625;                     // minmal step between two behaviours
     size_t iteration = 0;
-#ifdef PRINTING
+#ifdef GRADIENT_LOG
     std::ofstream gradlog;
 #endif
     void init()
@@ -71,7 +72,7 @@ struct GradientAscent
             }
         }
         gen = std::mt19937(rd());
-#ifdef PRINTING
+#ifdef GRADIENT_LOG
         gradlog = std::ofstream("/home/david/argos-sferes/gradient_log.txt", std::ios::app);
 #endif
     }
@@ -97,6 +98,28 @@ struct GradientAscent
         // finally, set the current sample to the current key
         set_sample(current_key);
     }
+    Params::archiveparams::archive_t::iterator sample_closest()
+    {
+        double mindist = std::numeric_limits<double>::infinity();
+        Params::archiveparams::archive_t::iterator closest;
+        for (Params::archiveparams::archive_t::iterator iter = keys_sampled.begin();
+             iter != keys_sampled.end(); ++iter)
+        {
+            std::vector<double> key = iter->first;
+
+            double sum_sq = 0.0;
+            for (size_t i = 0; i < BEHAV_DIM; ++i)
+            {
+                sum_sq += (key[i] - current_sample[i]) * (key[i] - current_sample[i]);
+            }
+            if (sum_sq < mindist)
+            {
+                mindist = sum_sq;
+                closest = iter;
+            }
+        }
+        return closest;
+    }
     void set_sample(const std::vector<double> &current_key)
     {
         // finally, set the current sample to the current key
@@ -114,52 +137,91 @@ struct GradientAscent
             current_index = dis(gen);
             current_key = keys_left[current_index];
             set_sample(current_key);
-#ifdef PRINTING
-            gradlog << "new sample = " << current_sample << std::endl;
-#endif
             return current_key;
         }
         else
         {
             find_closest_match();
-#ifdef PRINTING
-            gradlog << "new sample = " << current_sample << std::endl;
-#endif
             return current_key;
         }
+    }
+
+    void new_sample_naive()
+    {
+
+        // follow gradient
+        Eigen::Matrix<double, BEHAV_DIM, 1> delta = (current_sample - previous_sample);
+        double delta_F = (current_fitness - previous_fitness) / max_fitness;
+
+        for (size_t i = 0; i < BEHAV_DIM; ++i)
+        {
+            if (delta[i] != 0)
+            {
+                delta[i] = delta_F / delta[i]; // otherwise keep delta 0, because undefined
+            }
+        }
+        current_sample = current_sample + alpha * delta;
+    }
+
+    void new_sample()
+    {
+        // follow gradient
+        Params::archiveparams::archive_t::iterator close_sample = sample_closest();
+        double closest_delta_F = (current_fitness - close_sample->second.fit) / max_fitness;
+        Eigen::Matrix<double, BEHAV_DIM, 1> delta;
+        for (size_t i = 0; i < BEHAV_DIM; ++i)
+        {
+            delta[i] = (current_sample[i] - close_sample->first[i]);
+            if (delta[i] != 0)
+            {
+                delta[i] = closest_delta_F / delta[i]; // otherwise keep delta 0, because undefined
+            }
+#ifdef GRADIENT_LOG
+            gradlog << delta[i] << "\t";
+            gradlog.flush();
+#endif
+        }
+
+        current_sample = current_sample + alpha * delta;
+#ifdef GRADIENT_LOG
+        gradlog << "\n";
+#endif
     }
     /* update the proposal mechanism based on the recent sample */
     void update()
     {
+
         // remove index
         keys_left.erase(keys_left.begin() + current_index);
+#ifdef GRADIENT_LOG
+        for (size_t i = 0; i < BEHAV_DIM; ++i)
+        {
+            gradlog << current_key[i] << "\t";
+        }
+        gradlog << current_fitness << "\t";
+#endif
         iteration++;
         if (iteration > 1)
         {
-            // follow gradient
-            Eigen::Matrix<double, BEHAV_DIM, 1> delta = (current_sample - previous_sample);
-            double delta_F = (current_fitness - previous_fitness) / max_fitness;
-#ifdef PRINTING
-            gradlog << "previous F, current F = " << previous_fitness << "," << current_fitness << std::endl;
-            gradlog << "previous x, current x = " << previous_sample << "," << current_sample << std::endl;
-#endif
-
+            new_sample();
+            // find the closest sample in the map
+        }
+        else
+        {
+#ifdef GRADIENT_LOG
             for (size_t i = 0; i < BEHAV_DIM; ++i)
             {
-                if (delta[i] != 0)
-                {
-                    delta[i] = delta_F / delta[i]; // otherwise keep delta 0, because undefined
-                }
+                gradlog << 0 << "\t" ;
             }
-            current_sample = current_sample + alpha * delta;
-#ifdef PRINTING
-            gradlog << "delta " << delta << std::endl;
-            gradlog << "raw new sample = " << current_sample << std::endl;
+            gradlog << std::endl;
+            gradlog.flush();
 #endif
-            // find the closest sample in the map
         }
         previous_fitness = current_fitness;
         previous_sample = current_sample;
+        //finally, you can add the sample that was previously used to the list
+        keys_sampled[current_key] = Params::archiveparams::archive[current_key]; // (conversion to key will be later so this is previous)
+        keys_sampled[current_key].fit = current_fitness;
     }
 };
 
@@ -213,7 +275,7 @@ void run_baseline(const std::string &choice, const std::string &prefix)
         Baseline<Proposal> baseline;
         baseline.run(writer);
     }
-    else if (choice == "gradient")
+    else if (choice == "gradient_closest")
     {
         Baseline<GradientAscent> baseline;
         baseline.run(writer);

@@ -12,7 +12,8 @@ import pickle
 NUM_AGENTS=6.0
 
 settings_tag="_100evaluations"
-VE_tag= "_correction_init3"
+VE_tags= ["_correction2_init"+str(j) for j in range(3,6)]
+global VE_tag
 def bin_single_point(datapoint,minima, bins,bin_sizes):
     category = 0
     cum_prod = 1
@@ -95,6 +96,7 @@ def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener, until=No
 
 
 def get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy):
+
     if virtual_energy:
         BOfile = faultpath + virtual_folder +"/BO_output"+VE_tag+"/best_observations.dat"
     else:
@@ -461,18 +463,23 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
             open(loadfilename, "rb"))
 
     # prepare the data for the two conditions
-    conditions = ["CRBO","VE-CRBO","Random","Gradient-ascent"]
-    settings = [("BO",False),("BO",True),("random",False),("gradient",False)]
+    conditions = ["CRBO","VE-CRBO E(0)=3","VE-CRBO E(0)=4","VE-CRBO E(0)=5","Random","Gradient-ascent"]
+    settings = [("BO",False,None),("BO",True,0),("BO",True,1),("BO",True,2),("random",False,None),("gradient",False,None)]
     best_performance_data = []
     time_loss = []
     percentage_eval_data = [[] for fault in range(num_fault_types)]
-
+    global VE_tag
 
     j = 0  #only one fitness function
     for i in range(len(bd_type)):
 
         for c, condition in enumerate(conditions):
-            title_tag, VE = settings[c]
+            title_tag, VE, VE_tag_index = settings[c]
+
+            if VE_tag_index is not None:
+                VE_tag = VE_tags[VE_tag_index]
+            else:
+                VE_tag =None
             print(bd_type[i])
             best_performance_data.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)] )
             time_loss.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
@@ -521,9 +528,9 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
             sd_lines2 = [[] for c in conditions]
             min_reference = np.mean(reference_faultinjection_data[i][fault_category])
             max_reference = np.mean(reference_performance_data[i][fault_category])
-            colors = ["C5", "C0","C1","C2"]  # colors for the lines
+            colors = ["C5", "C0","C1","C2", "C3","C4"]  # colors for the lines
             # (numsides, style, angle)
-            markers = ["*", "o","D","X"]  # markers for the lines
+            markers = ["*", "o","D","X","v","+"]  # markers for the lines
 
 
 
@@ -531,7 +538,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
             time = [[] for c in conditions]
             percentage.append(np.mean(percentage_eval_data[fault_category]))
             for c, condition in enumerate(conditions):
-                tag,VE=settings[c]
+                tag,VE, VE_tag_index=settings[c]
                 time_up = True
                 for t in range(max_evals[c]):
                     data = best_performance_data[c][fault_category][t]/NUM_AGENTS
@@ -549,7 +556,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
 
             additional_lines = [(time[0], [min_reference/NUM_AGENTS for t in time[0]]), (time[0], [max_reference/NUM_AGENTS for t in time[0]])]
             createPlot(mean_lines, x_values=time,
-                           save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+settings_tag+VE_tag+".pdf", legend_labels=conditions,
+                           save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+"ALL.pdf", legend_labels=conditions,
                            colors=colors, markers=markers, xlabel="Time ($s$)",
                            ylabel="Best performance",
                            xlim=[0, 4000], xscale="linear", yscale="linear", ylim=None,
@@ -772,7 +779,7 @@ if __name__ == "__main__":
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                      title_tag="",virtual_energy=False)
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,30,30])
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,100,100,30,30])
 
 
 
