@@ -12,6 +12,7 @@ import pickle
 NUM_AGENTS=6.0
 
 settings_tag="_100evaluations"
+uniform_tag=""
 VE_tags= ["_correction2_init"+str(j) for j in [3,4,5,6,8]]
 global VE_tag
 def bin_single_point(datapoint,minima, bins,bin_sizes):
@@ -95,10 +96,12 @@ def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener, until=No
     return index2fullperformance(bd_t,path,faultpath,virtual_folder,best_index,r,gener, VE_tag )
 
 
-def get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy):
+def get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform):
 
     if virtual_energy:
         BOfile = faultpath + virtual_folder +"/BO_output"+VE_tag+"/best_observations.dat"
+    elif uniform:
+        BOfile = faultpath + normal_folder + "/BO_output" + uniform_tag + "/best_observations.dat"
     else:
         BOfile = faultpath + normal_folder + "/BO_output" + settings_tag + "/best_observations.dat"
     parsed_file_list = read_spacedelimited(BOfile)
@@ -173,10 +176,8 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
     else:
         normal_folder ="/results" + str(runs[r])
     path=faultpath+"/fitness" if baseline else faultpath+normal_folder+"/analysis" + str(gener) + "_handcrafted.dat"
-
-    temp = np.array(list(get_ind_performances_uniquearchive(path).values())).flatten()
     if title_tag.startswith("BO"):
-        return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy)
+        return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform)
     else:
         return get_baseline_development(faultpath + normal_folder, title_tag, best_performances,time_lost)
 
@@ -464,10 +465,9 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
     loadfilename = "data/faulttype/summary_statistics_fault.pkl" # no title tag = exhaustive search
     reference_performance_data,reference_faultinjection_data, _, _, _ = pickle.load(
             open(loadfilename, "rb"))
-    conditions = ["CRBO", "CRBO-Uniform","VE-CRBO E(0)=3", "VE-CRBO E(0)=4", "VE-CRBO E(0)=5", "VE-CRBO E(0)=6", "VE-CRBO E(0)=8",
+    conditions = ["CRBO", "CRBO-Uniform","VE-CRBO E(0)=5",
                   "Random", "Gradient-ascent"]
-    settings = [("BO", False, None), ("BO",False,None),("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),
-                ("BO", True, 4), ("random", False, None), ("gradient_closest", False, None)]
+    settings = [("BO", False, None), ("BO",False,None),("BO", True, 2), ("random", False, None), ("gradient_closest", False, None)]
     num_VE_conditions = 5
     if from_file:
         best_performance_data, time_loss, percentage_eval_data = pickle.load(open("foraging_perturbation_results.pkl","rb"))
@@ -810,7 +810,7 @@ if __name__ == "__main__":
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                      title_tag="",virtual_energy=False)
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,100,100,100,100,30,30],from_file=True)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,100,30,30],from_file=False)
 
 
 
