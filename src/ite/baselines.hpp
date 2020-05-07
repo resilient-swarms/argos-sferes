@@ -6,7 +6,7 @@
 //modifies the stat-map to calculate averaged performance over all individuals
 
 // #define MAP_WRITE_PARENTS
-#define GRADIENT_LOG
+//#define GRADIENT_LOG
 struct Proposal
 {
     double current_fitness;

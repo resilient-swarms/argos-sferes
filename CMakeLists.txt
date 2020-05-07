@@ -286,7 +286,7 @@ else(NOT BASELINE)
 
         message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
         set(TMP_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-        set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -g -march=native" CACHE STRING "" FORCE)  
+        set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -g -march=native -nostartfiles" CACHE STRING "" FORCE)  
         set(tag BO${tag})
         add_executable(ite_swarms_${tag}
             src/ite/ite_swarms.cpp)
