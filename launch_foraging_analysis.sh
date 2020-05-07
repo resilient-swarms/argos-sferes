@@ -180,8 +180,8 @@ for FaultCategory in proximity_sensor ; do
                         export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
                         export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
                         Outfolder=${ConfigFolder}/results${SUFFIX}
-		    
-		    mkdir -p $Outfolder
+                    fi
+		            mkdir -p $Outfolder
                     echo "config ${ConfigFile}"
                     touch ${ConfigFile}
                     sed -e "s|THREADS|0|" \

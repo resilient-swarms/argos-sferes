@@ -8,6 +8,9 @@ if [ "$run_type" = "virtual" ]; then
     UseVirtual="True"
 	TopOutputFolder="virtual_energy_exp"
     command="bin/ite_swarms_"
+elif [ "$run_type" = "uniform" ]; then
+	TopOutputFolder="uniform"
+    command="bin/ite_swarms_uniform_"
 elif [ "$run_type" = "random" ]; then
     command="bin/ite_baselines_"
     export BaselineChoice=" -b ${run_type}"
@@ -24,6 +27,7 @@ output_tag=$3
 export Generation=20000
 
 echo "doing generation ${Generation}"
+echo "using executable prefix ${command}"
 sleep 2.5
 
 # Create a data diretory
@@ -167,11 +171,12 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
                     Outfolder=${ConfigFolder}/results${SUFFIX}/${TopOutputFolder}
                     echo "Outfolder ${Outfolder}"
-                    if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ]; then
+                    if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else 
                         export BO_OutputFolder=${Outfolder}${output_tag}
                     fi
+                    echo "BO outputfolder = ${BO_OutputFolder}"
                     rm -rf ${BO_OutputFolder}
                     rm ${Outfolder}/fitness
                     mkdir -p $Outfolder

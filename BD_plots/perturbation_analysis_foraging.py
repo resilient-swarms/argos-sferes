@@ -12,7 +12,7 @@ import pickle
 NUM_AGENTS=6.0
 
 settings_tag="_100evaluations"
-VE_tags= ["_correction2_init"+str(j) for j in range(3,6)]
+VE_tags= ["_correction2_init"+str(j) for j in [3,4,5,6,8]]
 global VE_tag
 def bin_single_point(datapoint,minima, bins,bin_sizes):
     category = 0
@@ -126,7 +126,7 @@ def get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_l
     return best_performances,  time_lost
 
 def get_baseline_development(faultpath, title_tag, best_performances,time_lost):
-    BOfile = faultpath + "/baselines_" + title_tag + "/"+ title_tag
+    BOfile = faultpath + "/baselines/"+ title_tag + "/" + title_tag
     parsed_file_list = read_spacedelimited(BOfile)
 
     i=1
@@ -150,7 +150,7 @@ def get_baseline_development(faultpath, title_tag, best_performances,time_lost):
 
 def add_development_of_fault_performance(bd_t, r, gener, faultpath,
                           best_performances,time_lost,baseline=False,
-                          title_tag="",virtual_energy=False):
+                          title_tag="",virtual_energy=False,uniform=False):
     """
 
     :param j: fitfun index
@@ -168,7 +168,10 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
     :return:
     """
     virtual_folder="/results" + str(runs[r]) + "/virtual_energy_exp"
-    normal_folder ="/results" + str(runs[r])
+    if uniform:
+        normal_folder = "/results" + str(runs[r]) + "/uniform"
+    else:
+        normal_folder ="/results" + str(runs[r])
     path=faultpath+"/fitness" if baseline else faultpath+normal_folder+"/analysis" + str(gener) + "_handcrafted.dat"
 
     temp = np.array(list(get_ind_performances_uniquearchive(path).values())).flatten()
@@ -440,7 +443,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                             median=True)
 
 
-def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
+def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],from_file=False):
     """
 
     performance: defined as the performance on all the perturbed environments
@@ -461,156 +464,184 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100]):
     loadfilename = "data/faulttype/summary_statistics_fault.pkl" # no title tag = exhaustive search
     reference_performance_data,reference_faultinjection_data, _, _, _ = pickle.load(
             open(loadfilename, "rb"))
+    conditions = ["CRBO", "CRBO-Uniform","VE-CRBO E(0)=3", "VE-CRBO E(0)=4", "VE-CRBO E(0)=5", "VE-CRBO E(0)=6", "VE-CRBO E(0)=8",
+                  "Random", "Gradient-ascent"]
+    settings = [("BO", False, None), ("BO",False,None),("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),
+                ("BO", True, 4), ("random", False, None), ("gradient_closest", False, None)]
+    num_VE_conditions = 5
+    if from_file:
+        best_performance_data, time_loss, percentage_eval_data = pickle.load(open("foraging_perturbation_results.pkl","rb"))
+    else:
+        # prepare the data for the two conditions
+        best_performance_data = []
+        time_loss = []
+        percentage_eval_data = [[[] for fault in range(num_fault_types)] for j in range(num_VE_conditions)]
+        global VE_tag
 
-    # prepare the data for the two conditions
-    conditions = ["CRBO","VE-CRBO E(0)=3","VE-CRBO E(0)=4","VE-CRBO E(0)=5","Random","Gradient-ascent"]
-    settings = [("BO",False,None),("BO",True,0),("BO",True,1),("BO",True,2),("random",False,None),("gradient_closest",False,None)]
-    best_performance_data = []
-    time_loss = []
-    percentage_eval_data = [[] for fault in range(num_fault_types)]
-    global VE_tag
+        j = 0  #only one fitness function
+        for i in range(len(bd_type)):
 
-    j = 0  #only one fitness function
-    for i in range(len(bd_type)):
+            for c, condition in enumerate(conditions):
+                print(condition)
+                title_tag, VE, VE_tag_index = settings[c]
+                uniform = condition.endswith("Uniform")
+                if VE_tag_index is not None:
+                    VE_tag = VE_tags[VE_tag_index]
+                else:
+                    VE_tag =None
+                print(bd_type[i])
+                best_performance_data.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)] )
+                time_loss.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
+                BD_dir = datadir+"/Foraging"
+                # get all the data from the archive: no fault
+
+                nofaultpath=BD_dir + "/" + bd_type[i] + "/results"
+                nofaultperfs, best_nofaultperfs, maxindsnofault = get_nofault_performances(nofaultpath,gener,runs)
+
+
+                for fault in foraging_perturbations:
+                    print("fault %s"%(fault))
+                    for r, run in enumerate(runs):
+                        if fault=="software_foodp3f2" and run==5:
+                            print("skipping")
+                            continue
+                        if fault=="software_foodp4f1" and run==3:
+                            print("skipping")
+                            continue
+                        faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
+
+                        best_performances, time_lost = \
+                            add_development_of_fault_performance(bd_type[i], r, gener, faultpath,
+                              best_performances=[],time_lost=[],baseline=False,
+                              title_tag=title_tag,virtual_energy=VE,uniform=uniform)
+
+                        if by_faulttype:
+                            faulttype,index=get_fault_type(fault)
+                            for t in range(max_evals[c]):
+                                best_performance_data[c][index][t] = np.append(best_performance_data[c][index][t],best_performances[t])
+                                time_loss[c][index][t] = np.append(time_loss[c][index][t], time_lost[t])
+                            if VE:
+                                percentage_eval_data[VE_tag_index][index].append(sum([time_lost[i] - time_lost[i-1] for i in range(1,len(time_lost))])/(NUM_SECONDS*max_evals[c]))
+                        else:
+                            raise Exception("not supported")
+            all_data = (best_performance_data,time_loss,percentage_eval_data)
+            pickle.dump(all_data,open("foraging_perturbation_results.pkl","wb"))
+    final_performances=[]
+    percentage=[]
+    # get the mean and sd for each fault category for this condition (BO or BO-VE)
+    bd_index=0
+    for fault_category in range(num_fault_types):
+        percentage.append([])
+        mean_lines = [[] for c in conditions]
+        sd_lines1 = [[] for c in conditions]
+        sd_lines2 = [[] for c in conditions]
+        min_reference = np.mean(reference_faultinjection_data[bd_index][fault_category])
+        max_reference = np.mean(reference_performance_data[bd_index][fault_category])
+        colors = ["C7", "C0","C1","C2", "C3","C4", "C5","C6"]  # colors for the lines
+        # (numsides, style, angle)
+        markers = ["*", "o","D","X","v","+", "$\dagger$","^"]  # markers for the lines
+
+
+
+        # add the exhaustive search performance as a maximum
+        time = [[] for c in conditions]
+        for c, condition in enumerate(conditions):
+            tag, VE, VE_tag_index = settings[c]
+            if VE_tag_index is not None:
+                percentage[fault_category].append(np.mean(percentage_eval_data[VE_tag_index][fault_category]))
+
+            for t in range(max_evals[c]):
+                data = best_performance_data[c][fault_category][t]/NUM_AGENTS
+                mean = np.mean(data)
+                mean_lines[c].append(mean)
+                sd = np.std(data)
+                sd_lines1[c].append(mean-sd)
+                sd_lines2[c].append(mean+sd)
+                time[c] = np.append(time[c],np.mean(time_loss[c][fault_category][t]))
+                if VE and np.mean(time_loss[c][fault_category][t]) >= 3600.0:
+                    final_performances=np.append(final_performances,mean - min_reference)
+                    break
+
+
+
+        additional_lines = [(time[0], [min_reference/NUM_AGENTS for t in time[0]]), (time[0], [max_reference/NUM_AGENTS for t in time[0]])]
+        createPlot(mean_lines, x_values=time,
+                   save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+"ALL.pdf", legend_labels=conditions,
+                   colors=colors, markers=markers, xlabel="Time ($s$)",
+                   ylabel="Best performance",
+                   xlim=[0, 4000], xscale="linear", yscale="linear", ylim=None,
+                   legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
+                   legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
+                   xaxis_style="plain", y_err=[], force=True) #, fill_between=(sd_lines1, sd_lines2))
+
+
+    print("avg percentage eval " + str(percentage))
+    r = np.corrcoef(percentage, final_performances)
+    print("correlation="+str(r))
+
+
+
+# def test_significance(bd_type,by_faulttype,data_type):
+#
+#
+#     best_performance_data, best_transfer_data, trial_data, performance_loss_data, num_trials = pickle.load(open("data/faulttype/summary_statistics_fault.pkl", "rb"))
+#     best_BOperformance_data, best_BOtransfer_data, trial_BOdata, performance_BOloss_data, num_BOtrials = pickle.load(open("data/faulttype/summary_statistics_faultBO.pkl", "rb"))
+#     best_BOVEperformance_data, best_BOVWtransfer_data, trial_BOVEdata, performance_BOVEloss_data, num_BOVEtrials = pickle.load(open("data/faulttype/summary_statistics_faultBOVE.pkl", "rb"))
+#
+#     for f in range(num_fault_types):
+#         print(foraging_fault_types[f])
+#         for i in range(len(bd_type)):
+#                 print("compare exhaustive before and after")
+#                 x = best_performance_data[i][f]
+#                 y = best_transfer_data[i][f]
+#                 stat,p = ranksums(x,y)
+#                 print("%s after vs %s before: U=%.2f, p=%.6f"%(bd_type[i],bd_type[i],stat,p))
+#                 delta, label= cliffs_delta(stat,x,y)
+#                 print("Cliffs delta: %.3f   %s"%(delta,label))
+#
+#                 print("-------------------------------------")
+#
+#                 print("compare exhaustive to BO")
+#                 y = best_BOperformance_data[i][f]
+#                 x = best_performance_data[i][f]
+#                 stat, p = ranksums(x, y)
+#                 print("%s exhaustive vs %s BO: U=%.2f, p=%.6f" % (bd_type[i], bd_type[i], stat, p))
+#                 delta, label = cliffs_delta(stat, x, y)
+#                 print("Cliffs delta: %.3f   %s" % (delta, label))
+#
+#
+#                 print("--------------------------------------")
+#                 print("compare BO  virtual vs BO")
+#                 y = best_BOperformance_data[i][f]
+#                 x = best_BOVEperformance_data[i][f]
+#                 stat, p = ranksums(x, y)
+#                 print("%s virtual_energy vs %s BO: U=%.2f, p=%.6f" % (bd_type[i], bd_type[i], stat, p))
+#                 delta, label = cliffs_delta(stat, x, y)
+#                 print("Cliffs delta: %.3f   %s" % (delta, label))
+#
+#
+#                 print("")
+
+
+def test_significance(bd_type,by_faulttype,data_type, max_evals):
+    conditions = ["CRBO", "VE-CRBO E(0)=3", "VE-CRBO E(0)=4", "VE-CRBO E(0)=5", "VE-CRBO E(0)=6", "VE-CRBO E(0)=8",
+                  "Random", "Gradient-ascent"]
+    settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),
+                ("BO", True, 4), ("random", False, None), ("gradient_closest", False, None)]
+    num_VE_conditions = 5
+    best_performance_data, time_loss, percentage_eval_data = pickle.load(open("foraging_perturbation_results.pkl", "rb"))
+    percentage = []
+    for fault_category in range(num_fault_types):
 
         for c, condition in enumerate(conditions):
-            title_tag, VE, VE_tag_index = settings[c]
-
-            if VE_tag_index is not None:
-                VE_tag = VE_tags[VE_tag_index]
-            else:
-                VE_tag =None
-            print(bd_type[i])
-            best_performance_data.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)] )
-            time_loss.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
-            BD_dir = datadir+"/Foraging"
-            # get all the data from the archive: no fault
-
-            nofaultpath=BD_dir + "/" + bd_type[i] + "/results"
-            nofaultperfs, best_nofaultperfs, maxindsnofault = get_nofault_performances(nofaultpath,gener,runs)
+            tag, VE, VE_tag_index = settings[c]
+            for t in range(max_evals[c]):
+                if np.mean(time_loss[c][fault_category][t]) >= 3600.0:
+                    p = best_performance_data[c][fault_category][t]
+                    final_performances = np.append(final_performances, p)
+                    break
 
 
-            for fault in foraging_perturbations:
-                print("fault %s"%(fault))
-                for r, run in enumerate(runs):
-                    if fault=="software_foodp3f2" and run==5:
-                        print("skipping")
-                        continue
-                    if fault=="software_foodp4f1" and run==3:
-                        print("skipping")
-                        continue
-                    if "food_scarcityp1" in fault and run==3:
-                        print("skipping")
-                        continue
-                    faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
-
-                    best_performances, time_lost = \
-                        add_development_of_fault_performance(bd_type[i], r, gener, faultpath,
-                          best_performances=[],time_lost=[],baseline=False,
-                          title_tag=title_tag,virtual_energy=VE)
-
-                    if by_faulttype:
-                        faulttype,index=get_fault_type(fault)
-                        for t in range(max_evals[c]):
-                            best_performance_data[c][index][t] = np.append(best_performance_data[c][index][t],best_performances[t])
-                            time_loss[c][index][t] = np.append(time_loss[c][index][t], time_lost[t])
-                        if VE:
-                            percentage_eval_data[index].append(sum([time_lost[i] - time_lost[i-1] for i in range(1,len(time_lost))])/(NUM_SECONDS*max_evals[c]))
-                    else:
-                        raise Exception("not supported")
-
-        final_performances=[]
-        percentage=[]
-        # get the mean and sd for each fault category for this condition (BO or BO-VE)
-        for fault_category in range(num_fault_types):
-            mean_lines = [[] for c in conditions]
-            sd_lines1 = [[] for c in conditions]
-            sd_lines2 = [[] for c in conditions]
-            min_reference = np.mean(reference_faultinjection_data[i][fault_category])
-            max_reference = np.mean(reference_performance_data[i][fault_category])
-            colors = ["C5", "C0","C1","C2", "C3","C4"]  # colors for the lines
-            # (numsides, style, angle)
-            markers = ["*", "o","D","X","v","+"]  # markers for the lines
-
-
-
-            # add the exhaustive search performance as a maximum
-            time = [[] for c in conditions]
-            percentage.append(np.mean(percentage_eval_data[fault_category]))
-            for c, condition in enumerate(conditions):
-                tag,VE, VE_tag_index=settings[c]
-                time_up = True
-                for t in range(max_evals[c]):
-                    data = best_performance_data[c][fault_category][t]/NUM_AGENTS
-                    mean = np.mean(data)
-                    mean_lines[c].append(mean)
-                    sd = np.std(data)
-                    sd_lines1[c].append(mean-sd)
-                    sd_lines2[c].append(mean+sd)
-                    time[c] = np.append(time[c],np.mean(time_loss[c][index][t]))
-                    if VE and np.mean(time_loss[c][index][t]) >= 3600.0 and time_up:
-                        final_performances=np.append(final_performances,mean - min_reference)
-                        time_up = False
-
-
-
-            additional_lines = [(time[0], [min_reference/NUM_AGENTS for t in time[0]]), (time[0], [max_reference/NUM_AGENTS for t in time[0]])]
-            createPlot(mean_lines, x_values=time,
-                           save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+"ALL.pdf", legend_labels=conditions,
-                           colors=colors, markers=markers, xlabel="Time ($s$)",
-                           ylabel="Best performance",
-                           xlim=[0, 4000], xscale="linear", yscale="linear", ylim=None,
-                           legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
-                           legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
-                           xaxis_style="plain", y_err=[], force=True, fill_between=(sd_lines1, sd_lines2))
-
-        r = np.corrcoef(percentage,final_performances)
-        print("avg percentage eval " + str(np.mean(percentage)))
-        print("sd percentage eval " + str(np.std(percentage)))
-        print("correlation="+str(r))
-
-
-
-def test_significance(bd_type,by_faulttype,data_type):
-
-
-    best_performance_data, best_transfer_data, trial_data, performance_loss_data, num_trials = pickle.load(open("data/faulttype/summary_statistics_fault.pkl", "rb"))
-    best_BOperformance_data, best_BOtransfer_data, trial_BOdata, performance_BOloss_data, num_BOtrials = pickle.load(open("data/faulttype/summary_statistics_faultBO.pkl", "rb"))
-    best_BOVEperformance_data, best_BOVWtransfer_data, trial_BOVEdata, performance_BOVEloss_data, num_BOVEtrials = pickle.load(open("data/faulttype/summary_statistics_faultBOVE.pkl", "rb"))
-
-    for f in range(num_fault_types):
-        print(foraging_fault_types[f])
-        for i in range(len(bd_type)):
-                print("compare exhaustive before and after")
-                x = best_performance_data[i][f]
-                y = best_transfer_data[i][f]
-                stat,p = ranksums(x,y)
-                print("%s after vs %s before: U=%.2f, p=%.6f"%(bd_type[i],bd_type[i],stat,p))
-                delta, label= cliffs_delta(stat,x,y)
-                print("Cliffs delta: %.3f   %s"%(delta,label))
-
-                print("-------------------------------------")
-
-                print("compare exhaustive to BO")
-                y = best_BOperformance_data[i][f]
-                x = best_performance_data[i][f]
-                stat, p = ranksums(x, y)
-                print("%s exhaustive vs %s BO: U=%.2f, p=%.6f" % (bd_type[i], bd_type[i], stat, p))
-                delta, label = cliffs_delta(stat, x, y)
-                print("Cliffs delta: %.3f   %s" % (delta, label))
-
-
-                print("--------------------------------------")
-                print("compare BO  virtual vs BO")
-                y = best_BOperformance_data[i][f]
-                x = best_BOVEperformance_data[i][f]
-                stat, p = ranksums(x, y)
-                print("%s virtual_energy vs %s BO: U=%.2f, p=%.6f" % (bd_type[i], bd_type[i], stat, p))
-                delta, label = cliffs_delta(stat, x, y)
-                print("Cliffs delta: %.3f   %s" % (delta, label))
-
-
-                print("")
 
 def make_significance_table(fitfunlabels,conditionlabels,qed_index,table_type="resilience"):
 
@@ -779,7 +810,7 @@ if __name__ == "__main__":
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                      title_tag="",virtual_energy=False)
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,100,100,30,30])
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,100,100,100,100,30,30],from_file=True)
 
 
 

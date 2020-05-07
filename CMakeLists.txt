@@ -300,6 +300,12 @@ else(NOT BASELINE)
             ${Boost_LIBRARIES}
             ${TBB_LIBRARIES})
 
+        add_executable(ite_swarms_uniform_${tag}
+            src/ite/ite_swarms_uniform.cpp)
+        target_link_libraries(ite_swarms_uniform_${tag}
+            ${Boost_LIBRARIES}
+            ${TBB_LIBRARIES})
+
         add_executable(ite_baselines_${tag}
             src/ite/baselines.cpp)
         target_link_libraries(ite_baselines_${tag}

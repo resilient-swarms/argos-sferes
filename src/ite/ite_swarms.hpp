@@ -11,7 +11,7 @@
 
 using namespace limbo;
 
-const size_t max_evals = 100;
+const size_t max_evals = 30;
 
 #ifdef REAL_EXP
 size_t num_trials = 3;
@@ -446,8 +446,10 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
     std::cout << archive.size() << " elements loaded" << std::endl;
     if (uniform)
     {
-        for (Params::archiveparams::archive_t::iterator iter = Params::archiveparams::archive.begin();
-             iter != Params::archiveparams::archive.end(); ++iter)
+        avg/=(float)archive.size();
+        std::cout << "uniform prior with avg = " << avg << std::endl;
+        for (Params::archiveparams::archive_t::iterator iter = archive.begin();
+             iter != archive.end(); ++iter)
         {
             iter->second.fit = avg;// set to the average across the archive
         }
