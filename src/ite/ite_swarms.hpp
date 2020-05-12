@@ -11,7 +11,7 @@
 
 using namespace limbo;
 
-const size_t max_evals = 30;
+const size_t max_evals = 100;
 
 #ifdef REAL_EXP
 size_t num_trials = 3;
@@ -149,7 +149,7 @@ double get_fitness(size_t ctrl_index)
                 std::cerr << "Warning ... we were expecting a single number in the fitness file "
                           << " and not " << numbers.size();
 #ifdef VE
-            fitness = numbers.back(); // only number usually; otherwise use first
+            fitness = numbers[1]; // only number usually; otherwise use first
 #else
             fitness = numbers[0];
 #endif
@@ -324,12 +324,12 @@ double get_VE(size_t line_no, std::string VE_file)
                 numbers.push_back(num);
             }
 
-            if (numbers.size() != 2)
+            if (numbers.size() !=3 )
             {
-                throw std::runtime_error("lines in VE file should have two numbers");
+                throw std::runtime_error("lines in VE file should have three numbers");
             }
 
-            return numbers.back();
+            return numbers[1];
         }
 
         ++temp_line_no;
