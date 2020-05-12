@@ -13,7 +13,8 @@ NUM_AGENTS=6.0
 
 settings_tag="_100evaluations"
 uniform_tag=""
-VE_tags= ["_correction2_init"+str(j) for j in [3,4,5,6,8]]
+#VE_tags= ["_VE_init"+str(j) for j in [3,4,5,6,8]]
+global VE_tags
 global VE_tag
 def bin_single_point(datapoint,minima, bins,bin_sizes):
     category = 0
@@ -38,7 +39,7 @@ def bin_single_point(datapoint,minima, bins,bin_sizes):
 #             gather_bds(prefix,generation,bd_type,fitfuns,faults,runs,history_type)
 
 
-def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, gener, tag):
+def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, gener, tag, estimate):
     # get the corresponding BD
     samp = faultpath + virtual_folder + "/BO_output" + tag + "/samples.dat"
     samp_list = read_spacedelimited(samp)
@@ -60,14 +61,8 @@ def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, ge
             break
     if archive_individual is None:
         raise Exception("sample not found in normal archive")
-    # look up that individual's performance in the faulty environment
-    parsed_file_list = read_spacedelimited(path)
 
-    performance=0.0
-    for item in parsed_file_list:
-        indiv = item[0]
-        if indiv == archive_individual:
-            performance = float(item[-1])
+
     # if performance is None:
     #     raise Exception("individual not found in faulty archive")
     timefile = faultpath + virtual_folder + "/BO_output" + tag + "/fitness" + str(archive_individual) + ".dat"
@@ -75,9 +70,20 @@ def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, ge
     time_consumed =float(parsed_file_list[0][2])/TICKS_PER_SECOND #time_consumed = min(float(line[-1]), TICKS_PER_TRIAL)/TICKS_PER_SECOND
     if time_consumed > NUM_SECONDS:
         print(time_consumed)
+    if estimate:
+        performance = float(parsed_file_list[0][0])
+    else:
+        # look up that individual's performance in the faulty environment
+        parsed_file_list = read_spacedelimited(path)
+
+        performance = 0.0
+        for item in parsed_file_list:
+            indiv = item[0]
+            if indiv == archive_individual:
+                performance = float(item[-1])
     return performance, time_consumed
 
-def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener, until=None):
+def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener, until=None,estimate=True):
     # look up best observation of virtual energy
     obs = faultpath + virtual_folder + "/BO_output" + VE_tag + "/observations.dat"
     obs_list = read_spacedelimited(obs)
@@ -93,10 +99,10 @@ def get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener, until=No
         i +=1
         if i > until:
             break
-    return index2fullperformance(bd_t,path,faultpath,virtual_folder,best_index,r,gener, VE_tag )
+    return index2fullperformance(bd_t,path,faultpath,virtual_folder,best_index,r,gener, VE_tag,estimate )
 
 
-def get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform):
+def get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform,estimate):
 
     if virtual_energy:
         BOfile = faultpath + virtual_folder +"/BO_output"+VE_tag+"/best_observations.dat"
@@ -116,7 +122,7 @@ def get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_l
             i+=1
             continue # ignore the first line
         if virtual_energy:
-            best_performance,time_consumed=get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener,until=i)
+            best_performance,time_consumed=get_best_performance_VE(path,faultpath,virtual_folder,bd_t,r,gener,until=i,estimate=estimate)
         else:
             best_performance=float(line[-1])
             time_consumed=NUM_SECONDS
@@ -153,21 +159,8 @@ def get_baseline_development(faultpath, title_tag, best_performances,time_lost):
 
 def add_development_of_fault_performance(bd_t, r, gener, faultpath,
                           best_performances,time_lost,baseline=False,
-                          title_tag="",virtual_energy=False,uniform=False):
+                          title_tag="",virtual_energy=False,uniform=False,estimate=True):
     """
-
-    :param j: fitfun index
-    :param r: run index
-    :param best_nofaultperfs:
-    :param maxindsnofault:
-    :param faultpath:
-    :param best_performances:
-    :param performances:
-    :param best_transfer:
-    :param transfer:
-    :param recovery:
-    :param resilience:
-    :param baseline:
     :return:
     """
     virtual_folder="/results" + str(runs[r]) + "/virtual_energy_exp"
@@ -177,7 +170,7 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
         normal_folder ="/results" + str(runs[r])
     path=faultpath+"/fitness" if baseline else faultpath+normal_folder+"/analysis" + str(gener) + "_handcrafted.dat"
     if title_tag.startswith("BO"):
-        return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform)
+        return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform,estimate)
     else:
         return get_baseline_development(faultpath + normal_folder, title_tag, best_performances,time_lost)
 
@@ -443,8 +436,26 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                            conditionalcolumnlabels=[("besttransfer","float2"),("bestperformance","float2"),("resilience","float2")],
                             median=True)
 
-
-def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],from_file=False):
+def write_conditional(performance_list,index,file,max_reference,min_reference):
+    U, p = ranksums(performance_list[0],performance_list[index])
+    m_temp=np.mean(performance_list[index])
+    if p < 0.05:
+        if U > 0 :
+            file.write("$\mathbf{%.2f}$ (+) "%(m_temp))
+        else:
+            file.write("$\mathbf{%.2f}$ (-) " % (m_temp))
+    else:
+        if U > 0:
+            file.write("$%.2f$ " % (m_temp))
+        else:
+            file.write("$%.2f$ " % (m_temp))
+    if index==0:
+        ref=100*(m_temp/min_reference)
+        file.write(" $(%.1f%%)$ &"%(ref))
+    else:
+        #ref=100*(m_temp/min_reference)
+        file.write(" &")
+def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],from_file=False, comparison=False, estimate=True):
     """
 
     performance: defined as the performance on all the perturbed environments
@@ -465,10 +476,32 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
     loadfilename = "data/faulttype/summary_statistics_fault.pkl" # no title tag = exhaustive search
     reference_performance_data,reference_faultinjection_data, _, _, _ = pickle.load(
             open(loadfilename, "rb"))
-    conditions = ["CRBO", "CRBO-Uniform","VE-CRBO E(0)=5",
-                  "Random", "Gradient-ascent"]
-    settings = [("BO", False, None), ("BO",False,None),("BO", True, 2), ("random", False, None), ("gradient_closest", False, None)]
-    num_VE_conditions = 5
+    if comparison=="baselines":
+        conditions = ["SRBO", "SRBO-Uniform",
+                      "Random", "Gradient-ascent"]
+        settings = [ ("BO", False, None), ("BO",False,None),
+                   ("random", False, None), ("gradient_closest", False, None)]
+        plottag="ALL"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
+
+        num_VE_conditions=5
+    elif comparison=="fest":
+        conditions = ["SRBO", "VE-SRBO E(0)=3","VE-SRBO E(0)=4","VE-SRBO E(0)=5","VE-SRBO E(0)=6","VE-SRBO E(0)=8"]
+        settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
+        plottag="fest_params"
+        VE_tags = ["_nocollision_init" + str(j) for j in [3, 4, 5, 6, 8]]
+        num_VE_conditions = 5
+    elif comparison=="VE":
+        conditions = ["SRBO", "VE-SRBO E(0)=3","VE-SRBO E(0)=5","VE-SRBO E(0)=6"]
+        settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 2), ("BO", True, 3)]
+        plottag="VE_params"
+        num_VE_conditions = 5
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
+    else:
+        raise Exception()
+
+    if estimate:
+        plottag+="estimate"
     if from_file:
         best_performance_data, time_loss, percentage_eval_data = pickle.load(open("foraging_perturbation_results.pkl","rb"))
     else:
@@ -513,7 +546,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
                         best_performances, time_lost = \
                             add_development_of_fault_performance(bd_type[i], r, gener, faultpath,
                               best_performances=[],time_lost=[],baseline=False,
-                              title_tag=title_tag,virtual_energy=VE,uniform=uniform)
+                              title_tag=title_tag,virtual_energy=VE,uniform=uniform,estimate=estimate)
 
                         if by_faulttype:
                             faulttype,index=get_fault_type(fault)
@@ -527,28 +560,68 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
             all_data = (best_performance_data,time_loss,percentage_eval_data)
             pickle.dump(all_data,open("foraging_perturbation_results.pkl","wb"))
     final_performances=[]
+
     percentage=[]
     # get the mean and sd for each fault category for this condition (BO or BO-VE)
     bd_index=0
+    percentage_file = open("percentage_trial"+plottag+".txt","w")
+    table30_file = open("performance_table"+plottag+"30.txt","w")
+    table10_file = open("performance_table" + plottag + "10.txt", "w")
+    table20_file = open("performance_table" + plottag + "20.txt", "w")
+    table1_file = open("performance_table" + plottag + "1.txt", "w")
+
     for fault_category in range(num_fault_types):
         percentage.append([])
+        performances30 = [None for c in conditions]
+        performances10 =  [None for c in conditions]
+        performances20 =  [None for c in conditions]
+        performances1 = [None for c in conditions]
         mean_lines = [[] for c in conditions]
         sd_lines1 = [[] for c in conditions]
         sd_lines2 = [[] for c in conditions]
-        min_reference = np.mean(reference_faultinjection_data[bd_index][fault_category])
-        max_reference = np.mean(reference_performance_data[bd_index][fault_category])
-        colors = ["C7", "C0","C1","C2", "C3","C4", "C5","C6"]  # colors for the lines
+        min_reference = np.mean(reference_faultinjection_data[bd_index][fault_category])/NUM_AGENTS
+        max_reference = np.mean(reference_performance_data[bd_index][fault_category])/NUM_AGENTS
+        colors = ["C8", "C0","C1","C2", "C3","C4", "C5","C6","C7"]  # colors for the lines
         # (numsides, style, angle)
-        markers = ["*", "o","D","X","v","+", "$\dagger$","^"]  # markers for the lines
+        markers = ["*", "o","D","X","v","+", "$\dagger$","^","$\spadesuit$"]  # markers for the lines
 
-
-
+        percentage_file.write(foraging_fault_types[fault_category] + " & ")
+        table30_file.write(foraging_fault_types[fault_category] + " & ")
+        table10_file.write(foraging_fault_types[fault_category] + " & ")
+        table20_file.write(foraging_fault_types[fault_category] + " & ")
+        table1_file.write(foraging_fault_types[fault_category] + " & ")
         # add the exhaustive search performance as a maximum
         time = [[] for c in conditions]
+
+
         for c, condition in enumerate(conditions):
             tag, VE, VE_tag_index = settings[c]
             if VE_tag_index is not None:
                 percentage[fault_category].append(np.mean(percentage_eval_data[VE_tag_index][fault_category]))
+                m_p = np.mean(percentage_eval_data[VE_tag_index][fault_category]) * 100.0
+                sd_p = np.std(percentage_eval_data[VE_tag_index][fault_category]) * 100.0
+                percentage_file.write(" & $%.1f$ " % (m_p))
+            # after equivalent of 3 evals
+            t_3600 = None
+            p_3600 = None
+            p_sd_3600 = None
+            mindist_3600 = float("inf")
+            # after equivalent of 10 evals
+            t_1200 = None
+            p_1200 = None
+            p_sd_1200 = None
+            mindist_1200 = float("inf")
+            # after equivalent of 20 evals
+            t_2400 = None
+            p_2400 = None
+            p_sd_2400 = None
+            mindist_2400 = float("inf")
+
+            # after equivalent of 1 evals
+            t_120 = None
+            p_120 = None
+            p_sd_120 = None
+            mindist_120 = float("inf")
 
             for t in range(max_evals[c]):
                 data = best_performance_data[c][fault_category][t]/NUM_AGENTS
@@ -558,26 +631,82 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
                 sd_lines1[c].append(mean-sd)
                 sd_lines2[c].append(mean+sd)
                 time[c] = np.append(time[c],np.mean(time_loss[c][fault_category][t]))
-                if VE and np.mean(time_loss[c][fault_category][t]) >= 3600.0:
+                consumed = np.mean(time_loss[c][fault_category][t])
+                if consumed >=0*NUM_SECONDS and consumed <=2*NUM_SECONDS: # try to find closest to 360
+                    dist = abs(consumed - 1*NUM_SECONDS)
+                    if dist < mindist_120:
+                        t_120 = consumed
+                        p_120 = mean
+                        p_sd_120 = sd
+                        mindist_120= dist
+                        performances1[c] = data
+                elif consumed >=29*NUM_SECONDS and consumed <=31*NUM_SECONDS: # try to find closest to 360
+                    dist = abs(consumed - 30*NUM_SECONDS)
+                    if dist < mindist_3600:
+                        t_3600 = consumed
+                        p_3600 = mean
+                        p_sd_3600 = sd
+                        mindist_3600 = dist
+                        performances30[c] = data
+                elif consumed >=9*NUM_SECONDS and consumed <=11*NUM_SECONDS: # try to find closest to 1200
+                    dist = abs(consumed - 10*NUM_SECONDS)
+                    if dist < mindist_1200:
+                        t_1200 = consumed
+                        p_1200 = mean
+                        p_sd_1200 = sd
+                        mindist_1200 = dist
+                        performances10[c] = data
+                elif consumed >=19*NUM_SECONDS and consumed <=21*NUM_SECONDS: # try to find closest to 2400
+                    dist = abs(consumed - 20*NUM_SECONDS)
+                    if dist < mindist_2400:
+                        t_2400 = consumed
+                        p_2400 = mean
+                        p_sd_2400 = sd
+                        mindist_2400 = dist
+                        performances20[c] = data
+                elif VE and np.mean(time_loss[c][fault_category][t]) >= 3600.0:
                     final_performances=np.append(final_performances,mean - min_reference)
                     break
+            print(str(t_1200) + " " + str(p_1200) + " " + str(p_sd_1200))
+            print(str(t_2400) + " " + str(p_2400) + " " + str(p_sd_2400))
+            print(str(t_3600) + " " + str(p_3600) + " " + str(p_sd_3600))
 
 
 
-        additional_lines = [(time[0], [min_reference/NUM_AGENTS for t in time[0]]), (time[0], [max_reference/NUM_AGENTS for t in time[0]])]
+            #table_file.write("$%.2f \pm %.2f$ & $%.2f \pm %.2f$ &"%(p_360,p_sd_360,p_2400,p_sd_2400))
+
+
+
+
+        percentage_file.write("\n")
+
+        for c, condition in enumerate(conditions):
+            write_conditional(performances1, c, table1_file, max_reference, min_reference)
+            write_conditional(performances10,c,table10_file,max_reference,min_reference)
+            write_conditional(performances20, c, table20_file,max_reference,min_reference)
+            write_conditional(performances30, c, table30_file,max_reference,min_reference)
+        # table10_file.write("$\mathbf{%.2f}$ (+) &" % ((np.mean(performances10[0]) - min_reference)/(max_reference - min_reference)))
+        # table20_file.write("$\mathbf{%.2f}$ (+) &" % ((performances20[0] - min_reference)/(max_reference - min_reference)))
+        # table30_file.write("$\mathbf{%.2f}$ (+) &" % ((performances30[0] - min_reference)/(max_reference - min_reference)))
+        table1_file.write("\n")
+        table10_file.write("\n")
+        table20_file.write("\n")
+        table30_file.write("\n")
+        additional_lines = [(time[0], [min_reference for t in time[0]]), (time[0], [max_reference for t in time[0]])]
         createPlot(mean_lines, x_values=time,
-                   save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+"ALL.pdf", legend_labels=conditions,
+                   save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+plottag+".pdf", legend_labels=conditions,
                    colors=colors, markers=markers, xlabel="Time ($s$)",
                    ylabel="Best performance",
-                   xlim=[0, 4000], xscale="linear", yscale="linear", ylim=None,
+                   xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,max_reference+0.10],
                    legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                    legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                    xaxis_style="plain", y_err=[], force=True) #, fill_between=(sd_lines1, sd_lines2))
 
 
     print("avg percentage eval " + str(percentage))
-    r = np.corrcoef(percentage, final_performances)
-    print("correlation="+str(r))
+
+    #r = np.corrcoef(percentage, final_performances)
+    #print("correlation="+str(r))
 
 
 
@@ -624,7 +753,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
 
 def test_significance(bd_type,by_faulttype,data_type, max_evals):
-    conditions = ["CRBO", "VE-CRBO E(0)=3", "VE-CRBO E(0)=4", "VE-CRBO E(0)=5", "VE-CRBO E(0)=6", "VE-CRBO E(0)=8",
+    conditions = ["SRBO", "VE-SRBO E(0)=3", "VE-SRBO E(0)=4", "VE-SRBO E(0)=5", "VE-SRBO E(0)=6", "VE-SRBO E(0)=8",
                   "Random", "Gradient-ascent"]
     settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),
                 ("BO", True, 4), ("random", False, None), ("gradient_closest", False, None)]
@@ -809,8 +938,12 @@ if __name__ == "__main__":
     #determine_noise()
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                      title_tag="",virtual_energy=False)
+    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,100,100,100,100],from_file=False,comparison="VE",estimate=False)
+    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=False)
+    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=True)
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,100,30,30],from_file=False)
+
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
 
 
 

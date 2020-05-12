@@ -8,17 +8,37 @@ if [ "$run_type" = "virtual" ]; then
     UseVirtual="True"
 	TopOutputFolder="virtual_energy_exp"
     command="bin/ite_swarms_"
+    SimTime=120
+    trials=8
+elif [ "$run_type" = "virtual_single" ]; then
+    UseVirtual="True"
+	TopOutputFolder="virtual_energy_exp"
+    command="bin/ite_swarms_"
+    SimTime=960
+    trials=1
+elif [ "$run_type" = "BO_single" ]; then
+    UseVirtual="True"
+	TopOutputFolder="single_exp"
+    command="bin/ite_swarms_"
+    SimTime=960
+    trials=1
 elif [ "$run_type" = "uniform" ]; then
 	TopOutputFolder="uniform"
     command="bin/ite_swarms_uniform_"
+    SimTime=120
+    trials=8
 elif [ "$run_type" = "random" ]; then
     command="bin/ite_baselines_"
     export BaselineChoice=" -b ${run_type}"
     TopOutputFolder="baselines/random"
+    SimTime=120
+    trials=8
 elif [ "$run_type" = "gradient_closest" ]; then
     command="bin/ite_baselines_"
     export BaselineChoice=" -b ${run_type}"
     TopOutputFolder="baselines/gradient_closest"
+    SimTime=120
+    trials=8
 else
     command="bin/ite_swarms_"
 fi
@@ -67,7 +87,7 @@ voronoi["history"]=""
 # descriptors["baseline"]=""
 # voronoi["baseline"]=""
 
-SimTime=120
+
 
 echo "doing generation ${FINALGEN_ARCHIVE}"
 sleep 2.5
@@ -171,7 +191,8 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
                     Outfolder=${ConfigFolder}/results${SUFFIX}/${TopOutputFolder}
                     echo "Outfolder ${Outfolder}"
-                    if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ]; then
+                    if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ]
+                    || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else 
                         export BO_OutputFolder=${Outfolder}${output_tag}
@@ -183,7 +204,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     echo "config ${ConfigFile}"
                     touch ${ConfigFile}
                     sed -e "s|THREADS|0|" \
-                        -e "s|TRIALS|8|" \
+                        -e "s|TRIALS|${trials}|" \
                         -e "s|ROBOTS|${robots}|" \
                         -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
                         -e "s|SEED|${Replicates}|" \
