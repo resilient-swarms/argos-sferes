@@ -66,14 +66,17 @@ FIT_MAP(FitObstacleMapElites){
             for (size_t j = 0; j < cLoopFunctions.m_unNumberRobots; ++j)
                 cLoopFunctions.m_pcvecController[j]->nn = ind.nn_cpy();
             // auto start = high_resolution_clock::now(); 
-        #if PRINTING==1 || BAYESIAN_OPT==1
+        #if PRINTING==1 || BAYESIAN_OPT==1 || PRINT_NETWORK==1
             
 	        std::cout<<"writing individual to .dot file"<<std::endl;
             std::ofstream ofs("nn.dot");
             ind.nn().write(ofs);
             std::cout << "Finish writing network" << std::endl;
-            //NNSerialiser ser = NNSerialiser();
-            //ser.Save<Indiv>(ind);
+            NNSerialiser ser = NNSerialiser();
+            ser.Save<Indiv>(ind);
+            #ifdef PRINT_NETWORK // use either just to print a network or else not interested in the full trial's outcome
+                return;
+            #endif
 
         #endif
             float fFitness = cLoopFunctions.run_all_trials(cSimulator);

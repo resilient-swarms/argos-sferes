@@ -457,7 +457,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
     return archive;
 }
 
-void print_individual_to_network(std::vector<double> bd,
+std::string print_individual_to_network(std::vector<double> bd,
                                  Params::archiveparams::archive_t &archive)
 {
 
@@ -482,7 +482,10 @@ void print_individual_to_network(std::vector<double> bd,
                   << sim_cmd << std::endl;
         exit(-1);
     }
+    return std::to_string(ctrl_index);
 }
+
+
 
 void rename_folder(std::string oldname, std::string newname)
 {
@@ -506,6 +509,27 @@ void rename_folder(std::string oldname, std::string newname)
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
 
+
+#ifdef HETEROGENEOUS
+typedef kernel::MaternFiveHalves<Params> Kernel_t;
+typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
+//typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
+typedef mean::MeanArchive<Params> Mean_t;
+// here, GPArchive, a custom module, writes the maps after each iteration
+//    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
+//            stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
+//            stat::Observations<Params>, stat::BestSamples<Params>, stat::GPArchive<Params>> Stat_t;
+
+// without the gparchive stats module in case you have not installed it.
+typedef boost::fusion::vector<>
+    Stat_t;
+
+typedef init::NoInit<Params> Init_t;
+typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
+typedef acqui::UCB<Params, GP_t> Acqui_t;
+typedef bayes_opt::BOptimizerAsync<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;
+
+#else
 typedef kernel::MaternFiveHalves<Params> Kernel_t;
 typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
 //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
@@ -549,3 +573,4 @@ void run_ite(const std::string &newname)
     print_individual_to_network(bd, Params::archiveparams::archive);
     rename_folder(global::results_path, newname);
 }
+#endif

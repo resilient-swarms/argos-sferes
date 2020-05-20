@@ -455,110 +455,70 @@ def write_conditional(performance_list,index,file,max_reference,min_reference):
     else:
         #ref=100*(m_temp/min_reference)
         file.write(" &")
-def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],from_file=False, comparison=False, estimate=True):
-    """
+def prepare_data(VE_tags, conditions, settings, max_evals,num_VE_conditions, gener, estimate, by_faulttype):
+    # prepare the data for the two conditions
+    best_performance_data = []
+    time_loss = []
+    percentage_eval_data = [[[] for fault in range(num_fault_types)] for j in range(num_VE_conditions)]
+    global VE_tag
 
-    performance: defined as the performance on all the perturbed environments
-    transfer: defined as each individuals' drop in performance
-    resilience: the best performance's drop in performance
+    j = 0  # only one fitness function
+    for i in range(len(bd_type)):
 
+        for c, condition in enumerate(conditions):
+            print(condition)
+            title_tag, VE, VE_tag_index = settings[c]
+            uniform = condition.endswith("Uniform")
+            if VE_tag_index is not None:
+                VE_tag = VE_tags[VE_tag_index]
+            else:
+                VE_tag = None
+            print(bd_type[i])
+            best_performance_data.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
+            time_loss.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
+            BD_dir = datadir + "/Foraging"
+            # get all the data from the archive: no fault
 
+            nofaultpath = BD_dir + "/" + bd_type[i] + "/results"
+            nofaultperfs, best_nofaultperfs, maxindsnofault = get_nofault_performances(nofaultpath, gener, runs)
 
-    :param fitfuns:
-    :param bd_type:
-    :param runs:
-    :param faults:
-    :param gener:
-    :return:
-    """
+            for fault in foraging_perturbations:
+                print("fault %s" % (fault))
+                for r, run in enumerate(runs):
+                    if fault == "software_foodp3f2" and run == 5:
+                        print("skipping")
+                        continue
+                    if fault == "software_foodp4f1" and run == 3:
+                        print("skipping")
+                        continue
+                    faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
 
-    # get the reference performances
-    loadfilename = "data/faulttype/summary_statistics_fault.pkl" # no title tag = exhaustive search
-    reference_performance_data,reference_faultinjection_data, _, _, _ = pickle.load(
-            open(loadfilename, "rb"))
-    if comparison=="baselines":
-        conditions = ["SRBO", "SRBO-Uniform",
-                      "Random", "Gradient-ascent"]
-        settings = [ ("BO", False, None), ("BO",False,None),
-                   ("random", False, None), ("gradient_closest", False, None)]
-        plottag="ALL"
-        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
+                    best_performances, time_lost = \
+                        add_development_of_fault_performance(bd_type[i], r, gener, faultpath,
+                                                             best_performances=[], time_lost=[], baseline=False,
+                                                             title_tag=title_tag, virtual_energy=VE, uniform=uniform,
+                                                             estimate=estimate)
 
-        num_VE_conditions=5
-    elif comparison=="fest":
-        conditions = ["SRBO", "VE-SRBO E(0)=3","VE-SRBO E(0)=4","VE-SRBO E(0)=5","VE-SRBO E(0)=6","VE-SRBO E(0)=8"]
-        settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
-        plottag="fest_params"
-        VE_tags = ["_nocollision_init" + str(j) for j in [3, 4, 5, 6, 8]]
-        num_VE_conditions = 5
-    elif comparison=="VE":
-        conditions = ["SRBO", "VE-SRBO E(0)=3","VE-SRBO E(0)=5","VE-SRBO E(0)=6"]
-        settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 2), ("BO", True, 3)]
-        plottag="VE_params"
-        num_VE_conditions = 5
-        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
-    else:
-        raise Exception()
-
-    if estimate:
-        plottag+="estimate"
-    if from_file:
-        best_performance_data, time_loss, percentage_eval_data = pickle.load(open("foraging_perturbation_results.pkl","rb"))
-    else:
-        # prepare the data for the two conditions
-        best_performance_data = []
-        time_loss = []
-        percentage_eval_data = [[[] for fault in range(num_fault_types)] for j in range(num_VE_conditions)]
-        global VE_tag
-
-        j = 0  #only one fitness function
-        for i in range(len(bd_type)):
-
-            for c, condition in enumerate(conditions):
-                print(condition)
-                title_tag, VE, VE_tag_index = settings[c]
-                uniform = condition.endswith("Uniform")
-                if VE_tag_index is not None:
-                    VE_tag = VE_tags[VE_tag_index]
-                else:
-                    VE_tag =None
-                print(bd_type[i])
-                best_performance_data.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)] )
-                time_loss.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
-                BD_dir = datadir+"/Foraging"
-                # get all the data from the archive: no fault
-
-                nofaultpath=BD_dir + "/" + bd_type[i] + "/results"
-                nofaultperfs, best_nofaultperfs, maxindsnofault = get_nofault_performances(nofaultpath,gener,runs)
-
-
-                for fault in foraging_perturbations:
-                    print("fault %s"%(fault))
-                    for r, run in enumerate(runs):
-                        if fault=="software_foodp3f2" and run==5:
-                            print("skipping")
-                            continue
-                        if fault=="software_foodp4f1" and run==3:
-                            print("skipping")
-                            continue
-                        faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
-
-                        best_performances, time_lost = \
-                            add_development_of_fault_performance(bd_type[i], r, gener, faultpath,
-                              best_performances=[],time_lost=[],baseline=False,
-                              title_tag=title_tag,virtual_energy=VE,uniform=uniform,estimate=estimate)
-
-                        if by_faulttype:
-                            faulttype,index=get_fault_type(fault)
-                            for t in range(max_evals[c]):
-                                best_performance_data[c][index][t] = np.append(best_performance_data[c][index][t],best_performances[t])
-                                time_loss[c][index][t] = np.append(time_loss[c][index][t], time_lost[t])
+                    if by_faulttype:
+                        faulttype, index = get_fault_type(fault)
+                        for t in range(max_evals[c]):
+                            best_performance_data[c][index][t] = np.append(best_performance_data[c][index][t],
+                                                                           best_performances[t])
                             if VE:
-                                percentage_eval_data[VE_tag_index][index].append(sum([time_lost[i] - time_lost[i-1] for i in range(1,len(time_lost))])/(NUM_SECONDS*max_evals[c]))
-                        else:
-                            raise Exception("not supported")
-            all_data = (best_performance_data,time_loss,percentage_eval_data)
-            pickle.dump(all_data,open("foraging_perturbation_results.pkl","wb"))
+                                time_loss[c][index][t] = np.append(time_loss[c][index][t], time_lost[t]/NUM_TRIALS)
+                            else:
+                                time_loss[c][index][t] = np.append(time_loss[c][index][t], time_lost[t])
+                        if VE:
+                            percentage_eval_data[VE_tag_index][index].append(
+                                sum([time_lost[i] - time_lost[i - 1] for i in range(1, len(time_lost))]) / (
+                                            NUM_SECONDS * max_evals[c]))
+
+                    else:
+                        raise Exception("not supported")
+        all_data = (best_performance_data, time_loss, percentage_eval_data)
+        pickle.dump(all_data, open("foraging_perturbation_results.pkl", "wb"))
+    return all_data
+def analyse_development_data(best_performance_data,percentage_eval_data,time_loss,max_evals,conditions, plottag, reference_faultinjection_data, reference_performance_data, settings):
     final_performances=[]
 
     percentage=[]
@@ -630,8 +590,8 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
                 sd = np.std(data)
                 sd_lines1[c].append(mean-sd)
                 sd_lines2[c].append(mean+sd)
-                time[c] = np.append(time[c],np.mean(time_loss[c][fault_category][t]))
                 consumed = np.mean(time_loss[c][fault_category][t])
+                time[c] = np.append(time[c],consumed)
                 if consumed >=0*NUM_SECONDS and consumed <=2*NUM_SECONDS: # try to find closest to 360
                     dist = abs(consumed - 1*NUM_SECONDS)
                     if dist < mindist_120:
@@ -664,7 +624,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
                         p_sd_2400 = sd
                         mindist_2400 = dist
                         performances20[c] = data
-                elif VE and np.mean(time_loss[c][fault_category][t]) >= 3600.0:
+                elif VE and consumed >= 3600.0:
                     final_performances=np.append(final_performances,mean - min_reference)
                     break
             print(str(t_1200) + " " + str(p_1200) + " " + str(p_sd_1200))
@@ -680,18 +640,18 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
         percentage_file.write("\n")
 
-        for c, condition in enumerate(conditions):
-            write_conditional(performances1, c, table1_file, max_reference, min_reference)
-            write_conditional(performances10,c,table10_file,max_reference,min_reference)
-            write_conditional(performances20, c, table20_file,max_reference,min_reference)
-            write_conditional(performances30, c, table30_file,max_reference,min_reference)
-        # table10_file.write("$\mathbf{%.2f}$ (+) &" % ((np.mean(performances10[0]) - min_reference)/(max_reference - min_reference)))
-        # table20_file.write("$\mathbf{%.2f}$ (+) &" % ((performances20[0] - min_reference)/(max_reference - min_reference)))
-        # table30_file.write("$\mathbf{%.2f}$ (+) &" % ((performances30[0] - min_reference)/(max_reference - min_reference)))
-        table1_file.write("\n")
-        table10_file.write("\n")
-        table20_file.write("\n")
-        table30_file.write("\n")
+        # for c, condition in enumerate(conditions):
+        #     write_conditional(performances1, c, table1_file, max_reference, min_reference)
+        #     write_conditional(performances10,c,table10_file,max_reference,min_reference)
+        #     write_conditional(performances20, c, table20_file,max_reference,min_reference)
+        #     write_conditional(performances30, c, table30_file,max_reference,min_reference)
+        # # table10_file.write("$\mathbf{%.2f}$ (+) &" % ((np.mean(performances10[0]) - min_reference)/(max_reference - min_reference)))
+        # # table20_file.write("$\mathbf{%.2f}$ (+) &" % ((performances20[0] - min_reference)/(max_reference - min_reference)))
+        # # table30_file.write("$\mathbf{%.2f}$ (+) &" % ((performances30[0] - min_reference)/(max_reference - min_reference)))
+        # table1_file.write("\n")
+        # table10_file.write("\n")
+        # table20_file.write("\n")
+        # table30_file.write("\n")
         additional_lines = [(time[0], [min_reference for t in time[0]]), (time[0], [max_reference for t in time[0]])]
         createPlot(mean_lines, x_values=time,
                    save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+plottag+".pdf", legend_labels=conditions,
@@ -701,9 +661,60 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
                    legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                    legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                    xaxis_style="plain", y_err=[], force=True) #, fill_between=(sd_lines1, sd_lines2))
+def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],from_file=False, comparison=False, estimate=True):
+    """
+
+    performance: defined as the performance on all the perturbed environments
+    transfer: defined as each individuals' drop in performance
+    resilience: the best performance's drop in performance
 
 
-    print("avg percentage eval " + str(percentage))
+
+    :param fitfuns:
+    :param bd_type:
+    :param runs:
+    :param faults:
+    :param gener:
+    :return:
+    """
+
+    # get the reference performances
+    loadfilename = "data/faulttype/summary_statistics_fault.pkl" # no title tag = exhaustive search
+    reference_performance_data,reference_faultinjection_data, _, _, _ = pickle.load(
+            open(loadfilename, "rb"))
+    if comparison=="baselines":
+        conditions = ["SRBO", "SRBO-Uniform",
+                      "Random", "Gradient-ascent"]
+        settings = [ ("BO", False, None), ("BO",False,None),
+                   ("random", False, None), ("gradient_closest", False, None)]
+        plottag="ALL"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
+
+        num_VE_conditions=5
+    elif comparison=="fest":
+        conditions = ["SRBO", "VE-SRBO E(0)=3","VE-SRBO E(0)=4","VE-SRBO E(0)=5","VE-SRBO E(0)=6","VE-SRBO E(0)=8"]
+        settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
+        plottag="fest_params"
+        VE_tags = ["_nocollision_init" + str(j) for j in [3, 4, 5, 6, 8]]
+        num_VE_conditions = 5
+    elif comparison=="VE":
+        conditions = ["SRBO", "VE-SRBO E(0)=5", "VE-SRBO E(0)=10"]
+        settings = [("BO", False, None), ("BO", True, 0),("BO", True, 1)]
+        plottag="VE_params"
+        num_VE_conditions = 5
+        VE_tags = ["_init" + str(j) + "_single" for j in [5,10]]
+    else:
+        raise Exception()
+
+    if estimate:
+        plottag+="estimate"
+    if from_file:
+        best_performance_data, time_loss, percentage_eval_data = pickle.load(open("foraging_perturbation_results.pkl","rb"))
+    else:
+        best_performance_data, time_loss, percentage_eval_data = prepare_data(VE_tags,conditions, settings, max_evals,num_VE_conditions, gener, estimate,by_faulttype)
+
+    analyse_development_data(best_performance_data,percentage_eval_data,time_loss,max_evals,conditions, plottag, reference_faultinjection_data, reference_performance_data, settings)
+
 
     #r = np.corrcoef(percentage, final_performances)
     #print("correlation="+str(r))
@@ -938,12 +949,12 @@ if __name__ == "__main__":
     #determine_noise()
     significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                      title_tag="",virtual_energy=False)
-    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,100,100,100,100],from_file=False,comparison="VE",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,100,100,100,100],from_file=True,comparison="VE",estimate=False)
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=False)
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=True)
 
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
+    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
 
 
 

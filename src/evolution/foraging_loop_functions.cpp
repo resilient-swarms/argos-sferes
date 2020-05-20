@@ -3,6 +3,7 @@
 #include "src/evolution/foraging_nn_controller.h"
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
+
 /****************************************/
 /****************************************/
 
@@ -46,8 +47,47 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    }
    catch (CARGoSException &ex)
    {
-      THROW_ARGOSEXCEPTION_NESTED("Error initializing centroids_folder", ex);
+      THROW_ARGOSEXCEPTION_NESTED("Error in virtual init ", ex);
    }
+#ifdef HETEROGENEOUS
+   try
+   {
+      GetNodeAttribute(t_node, "ticks_per_subtrial", ticks_per_subtrial);
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing num ticks per subtrial", ex);
+   }
+
+   try
+   {
+      GetNodeAttribute(t_node, "num_subtrials", num_subtrials);
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing number of subtrials", ex);
+   }
+
+
+   try
+   {
+      GetNodeAttribute(t_node, "network_config", network_config);
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing network config", ex);
+   }
+
+   try
+   {
+      GetNodeAttribute(t_node, "network_binary", network_binary);
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing networkd binary", ex);
+   }
+
+#endif
 }
 
 /****************************************/
@@ -76,7 +116,6 @@ void CForagingLoopFunctions::Reset()
    {
       m_cVisitedFood.push_back(0);
    }
-   numfoodCollected = 0;
 
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
@@ -84,6 +123,10 @@ void CForagingLoopFunctions::Reset()
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
       cController.holdingFood = false;
+#ifdef HETEROGENEOUS
+      cController.worker = ForagingThymioNN::Worker(num_subtrials, i);
+      select_new_controller(cController);
+#endif
    }
 
    if (virtual_energy != NULL)
@@ -386,6 +429,9 @@ void CForagingLoopFunctions::PostStep()
 
             /* Increase the food count */
             fitfun->fitness_per_trial[m_unCurrentTrial]++;
+#ifdef HETEROGENEOUS
+            ++cController.worker.numFoodCollected;
+#endif
 #ifdef PRINTING
             std::cout << cThym->GetId() << " dropped off food. Total collected: " << fitfun->fitness_per_trial[m_unCurrentTrial] << std::endl;
 #endif
@@ -447,7 +493,7 @@ void CForagingLoopFunctions::PostStep()
          }
          else
          {
-            if (stats != NULL) // 
+            if (stats != NULL) //
             {
                stats->count_nestvisitwithoutholdingfood(); // not holding food but still visited nest = waste of time
             }
@@ -470,6 +516,21 @@ void CForagingLoopFunctions::PostStep()
 
          virtual_energy->step(j, cThym->GetEmbodiedEntity().IsCollidingWithSomething(), virtualState);
       }
+
+#ifdef HETEROGENEOUS
+      // subtract tick; check if trial has finished; if so, get a new sample from BO and initialise new network
+      --cController.num_ticks_left;
+      if (cController.num_ticks_left == 0)
+      {
+         --cController.num_trials_left;
+         if (cController.num_trials_left == 0)
+         {
+            select_new_controller(cController);
+         }
+         cController.num_ticks_left = ticks_per_subtrial;
+      }
+
+#endif
    }
    for (size_t f = 0; f < m_cVisitedFood.size(); ++f)
    {

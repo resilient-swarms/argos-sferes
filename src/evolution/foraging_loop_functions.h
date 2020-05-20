@@ -6,6 +6,10 @@
 #include "src/evolution/virtual_energy.h"
 #include "src/evolution/foraging_stats.h"
 
+#ifdef HETEROGENEOUS
+#include <src/ite/ite_swarms.hpp>
+#endif
+
 class CForagingLoopFunctions : public BaseEvolutionLoopFunctions
 {
 
@@ -13,6 +17,25 @@ public:
     ForagingStats *stats;
     VirtualEnergy *virtual_energy;
     CFloorEntity *m_pcFloor;
+#ifdef HETEROGENEOUS
+    size_t num_subtrials;
+    size_t ticks_per_subtrial;
+    Opt_t opt;
+    ControllerEval state_fun;//state function; just for its parameters
+
+    std::string network_config, network_binary, archive_file; 
+    void select_new_controller(ForagingThymioNN& cController){
+            opt.optimize_step<ForagingThymioNN,ControllerEval>(cController,state_fun);
+            Eigen::VectorXd result = cController.worker.new_sample;
+            std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+            cController.controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
+            std::cout << "select controller " << cController.controller_index << std::endl;
+            cController.init_network();
+            cController.num_trials_left = num_subtrials;
+            // reset the controller (food_items_collected,)
+            cController.Reset();
+    }
+#endif
     const float nest_x = 0.32;
     const int HARVEST_TIME = 50; // 50 time steps
     std::vector<float> m_fFoodSquareRadius = {
@@ -29,7 +52,7 @@ public:
     bool forcePositions = false;
     std::vector<int> m_cVisitedFood = {}; // how much time steps left until harvestable
     std::vector<bool> m_bRobotsHoldingFood = {};
-    size_t numfoodCollected = 0;
+
     float avg_final_E = 0.0f;
     float avg_time = 0.0f;
     CForagingLoopFunctions();
@@ -53,7 +76,7 @@ public:
             avg_final_E /= (float)this->m_unNumberTrials;
             avg_time /= (float)this->m_unNumberTrials;
             std::cout << "FINAL: avg_final_E " << avg_final_E << std::endl;
-             std::cout << "FINAL: avg_time " << avg_time << std::endl;
+            std::cout << "FINAL: avg_time " << avg_time << std::endl;
             fitness_writer << fFitness << "\t" << avg_final_E << "\t" << avg_time << std::endl;
         }
         else

@@ -114,8 +114,10 @@ option(ARGOS_PAR "Parallelisation" OFF)
 option(CAFFE "caffe neural networks" OFF)
 option(NN_INPUT_TYPE "control RAB" OFF)
 option(INCLUDE_CMAES "include libcmaes" OFF)
+option(HETEROGENEOUS "heterogeneous swarm" OFF)
 
 #add_definitions(-DCOLLISION_STOP)  
+
 
 
     
@@ -250,15 +252,13 @@ else(NOT BASELINE)
          MESSAGE( FATAL_ERROR "Please choose an input type for the neural network (NN_DIM_TYPE={0,1,2})")
     endif()
 
+    set(LIMBO_PATH ${PROJECT_SOURCE_DIR}/limbo/src) # location of limbo - where https://github.com/resibots/limbo.git has been cloned
+    include_directories(${LIMBO_PATH})
+
+
     # process BO option
     if(BO)
         message("Bayesian Optimisation is defined")
-
-        #######################################################################
-        # For ite-swarms
-        set(LIMBO_PATH ${PROJECT_SOURCE_DIR}/limbo/src) # location of limbo - where https://github.com/resibots/limbo.git has been cloned
-        include_directories(${LIMBO_PATH})
-
         #SET(NLOPT_INCLUDE_DIR "$ENV{NLOPT_INCLUDE_DIR}")
         #SET(NLOPT_LIB_DIR "$ENV{NLOPT_LIB_DIR}")
         #IF(NOT NLOPT_INCLUDE_DIR OR NOT NLOPT_LIB_DIR)
@@ -287,7 +287,11 @@ else(NOT BASELINE)
         message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
         set(TMP_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
         set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -g -march=native" CACHE STRING "" FORCE)  
+        #######################################################################
+        # For ite-swarms
         set(tag BO${tag})
+        if(NOT HETEROGENEOUS)
+
         add_executable(ite_swarms_${tag}
             src/ite/ite_swarms.cpp)
         target_link_libraries(ite_swarms_${tag}
@@ -329,7 +333,7 @@ else(NOT BASELINE)
           ${TBB_LIBRARIES}
           ${CMAES_LIB}
           )
-
+        endif()
         set(CMAKE_CXX_FLAGS ${TMP_CMAKE_CXX_FLAGS} CACHE STRING "" FORCE)
         #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -llibcmaes -lm -lglog -lgflags ")
         message(FLAGS ${CMAKE_CXX_FLAGS})
@@ -338,14 +342,20 @@ else(NOT BASELINE)
 
         # For the argos simulator called by ite-swarms Eval function
         add_definitions(-DBAYESIAN_OPT)
+        if(HETEROGENEOUS)
+            add_definitions(-DPRINT_NETWORK)
+        endif()
         set(RECORD_FITNESS ON)
         set(EXECUTABLE ${tag})
         set(EXEC_FILE BO.cpp)
+        
     else(NOT BO)
         message("Bayesian Optimisation is NOT defined")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
 	    message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
-
+        if(HETEROGENEOUS)
+            add_definitions(-DHETEROGENEOUS)
+        endif()
         if(${ARGOS_PAR} EQUAL 1)
             message("using parallel (1)")
             add_definitions(-DARGOS_PARALLEL) 
@@ -406,6 +416,7 @@ else(NOT BASELINE)
             src/evolution/params.h
             src/evolution/foraging_loop_functions.h
             src/evolution/foraging_loop_functions.cpp
+            src/evolution/evol_loop_functions.h
             src/evolution/virtual_energy.h
             src/evolution/virtual_energy.cpp
 	        )
@@ -554,6 +565,7 @@ add_library(base_loopfunctions${tag} SHARED
     src/core/statistics.cpp
     src/core/environment_generator.h
     src/core/environment_generator.cpp
+    #src/evolution/descriptors.cpp
 
 )
 
@@ -580,6 +592,8 @@ add_executable(${EXECUTABLE} src/${EXEC_FILE})
 target_link_libraries(${CONTROL}
     base_controller
     communication
+    descriptors${tag}
+    arena_utils${tag}
     argos3core_simulator
     #argos3plugin_simulator_actuators
     argos3plugin_simulator_thymio
@@ -589,6 +603,7 @@ target_link_libraries(${CONTROL}
     ${Boost_LIBRARIES}
     ${TBB_LIBRARIES}
     ${Caffe_LIBRARIES}
+    ${CMAES_LIB}
 )
 
 # link the loop functions
@@ -597,6 +612,8 @@ target_link_libraries(${LOOPFUN}
     base_loopfunctions${tag}
     ${CONTROL}
     base_controller
+    descriptors${tag}
+    arena_utils${tag}
     argos3core_simulator
     #argos3plugin_simulator_actuators
     argos3plugin_simulator_dynamics2d
@@ -609,6 +626,7 @@ target_link_libraries(${LOOPFUN}
     ${Boost_LIBRARIES}
     ${TBB_LIBRARIES}
     ${AdditionalLibs}
+    ${CMAES_LIB}
 )
 
 # link the executable based on BASELINE setting (only difference so far is descriptor)
@@ -617,6 +635,7 @@ if(BASELINE)
         ${LOOPFUN}
         base_loopfunctions${tag}
         ${CONTROL}
+        descriptors${tag}
         fitness_functions${tag}
         arena_utils${tag}
         statistics
@@ -625,6 +644,7 @@ if(BASELINE)
         ${Boost_LIBRARIES}
         ${TBB_LIBRARIES}
         ${AdditionalLibs}
+        ${CMAES_LIB}
         
 )
 else(NOT BASELINE)
@@ -641,6 +661,7 @@ else(NOT BASELINE)
         ${Boost_LIBRARIES}
         ${TBB_LIBRARIES}
         ${AdditionalLibs}
+        ${CMAES_LIB}
 )
 endif()
 

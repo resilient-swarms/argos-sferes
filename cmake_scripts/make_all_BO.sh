@@ -1,6 +1,8 @@
 #!/bin/bash
 
 
+
+
 for dim in 3 10 ; do
     cd ~/argos-sferes
     mkdir build_${dim}D

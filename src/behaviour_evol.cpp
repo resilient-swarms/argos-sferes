@@ -24,11 +24,11 @@ int main(int argc, char **argv)
     std::ofstream cLOGERRFile(std::string("ARGoS_LOGERR_" + argos::ToString(getpid())).c_str(), std::ios::out);
     argos::LOGERR.DisableColoredOutput();
     argos::LOGERR.GetStream().rdbuf(cLOGERRFile.rdbuf());
-    argos::LOG << "starting "<< argv[1] << std::endl;// tell which job it is
-    argos::LOGERR << "starting "<< argv[1] << std::endl;// tell which job it is
+    argos::LOG << "starting " << argv[1] << std::endl;    // tell which job it is
+    argos::LOGERR << "starting " << argv[1] << std::endl; // tell which job it is
 #endif
 
-    std::cout << "TAG = "<< TAG << std::endl;
+    std::cout << "TAG = " << TAG << std::endl;
     /*
      * Initialize ARGoS
      */
@@ -53,12 +53,39 @@ int main(int argc, char **argv)
     //     check_sums<boost::array<double, 1024>>(1.0f, EAParams::ea::centroids[i],16);
     // }
 #endif
+
+#ifdef HETEROGENEOUS
+    static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
+
+    global::results_path = cLoopFunctions.output_folder + "/BO_output";
+    global::argossim_bin_name = cLoopFunctions.network_binary;
+    global::argossim_config_name.push_back(cLoopFunctions.network_config);
+    Params::archiveparams::archive = load_archive(argv[2]);
+
+#endif
+
 #ifdef ARGOS_PARALLEL
     init_shared_mem<EAParams>();
-    configure_and_run_ea<parallel_ea_t>(argc,argv);
+    configure_and_run_ea<parallel_ea_t>(argc, argv);
 #else
-    configure_and_run_ea<serial_ea_t>(argc,argv);
+    configure_and_run_ea<serial_ea_t>(argc, argv);
 #endif
+
+#ifdef HETEROGENEOUS
+
+    auto val = cLoopFunctions.opt.best_observation();
+    Eigen::VectorXd result = cLoopFunctions.opt.best_sample().transpose();
+
+    std::cout << val << " res  " << result.transpose() << std::endl;
+
+    std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+
+    // now look up the behaviour descriptor in the archive file
+    // and save to BOOST_SERIALISATION_NVP
+    print_individual_to_network(bd, Params::archiveparams::archive);
+
+#endif
+
     /*
     * Dispose of ARGoS stuff
     */
