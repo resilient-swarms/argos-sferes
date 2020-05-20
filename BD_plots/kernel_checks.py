@@ -28,7 +28,7 @@ observations=[1.0,0.5,0.2]
 Kn=K(samples) + noise*np.identity(3)
 K_inv = np.linalg.inv(Kn)
 
-sigma(samples[0],samples)
-sigma(samples[1],samples)
-sigma(samples[2],samples)
-sigma(np.array([0.1,0.1,0.1]),samples)
+print(sigma(samples[0],samples))
+print(sigma(samples[1],samples))
+print(sigma(samples[2],samples))
+print(sigma(np.array([0.1,0.1,0.1]),samples))
