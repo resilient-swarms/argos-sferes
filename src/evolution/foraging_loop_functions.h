@@ -6,7 +6,9 @@
 #include "src/evolution/virtual_energy.h"
 #include "src/evolution/foraging_stats.h"
 
-#ifdef HETEROGENEOUS
+
+
+#if HETEROGENEOUS & !PRINT_NETWORK
 #include <src/ite/ite_swarms.hpp>
 #endif
 
@@ -17,13 +19,13 @@ public:
     ForagingStats *stats;
     VirtualEnergy *virtual_energy;
     CFloorEntity *m_pcFloor;
-#ifdef HETEROGENEOUS
+#if HETEROGENEOUS & !PRINT_NETWORK
     size_t num_subtrials;
     size_t ticks_per_subtrial;
     Opt_t opt;
     ControllerEval state_fun;//state function; just for its parameters
 
-    std::string network_config, network_binary, archive_file; 
+    //std::string network_config, network_binary, archive_file; 
     void select_new_controller(ForagingThymioNN& cController){
             opt.optimize_step<ForagingThymioNN,ControllerEval>(cController,state_fun);
             Eigen::VectorXd result = cController.worker.new_sample;
@@ -32,6 +34,7 @@ public:
             std::cout << "select controller " << cController.controller_index << std::endl;
             cController.init_network();
             cController.num_trials_left = num_subtrials;
+            cController.num_ticks_left = ticks_per_subtrial;
             // reset the controller (food_items_collected,)
             cController.Reset();
     }

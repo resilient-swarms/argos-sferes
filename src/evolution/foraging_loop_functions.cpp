@@ -3,7 +3,6 @@
 #include "src/evolution/foraging_nn_controller.h"
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
-
 /****************************************/
 /****************************************/
 
@@ -49,7 +48,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error in virtual init ", ex);
    }
-#ifdef HETEROGENEOUS
+#if HETEROGENEOUS &! PRINT_NETWORK
    try
    {
       GetNodeAttribute(t_node, "ticks_per_subtrial", ticks_per_subtrial);
@@ -67,8 +66,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing number of subtrials", ex);
    }
-
-
+   std::string network_config, network_binary;
    try
    {
       GetNodeAttribute(t_node, "network_config", network_config);
@@ -77,16 +75,35 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing network config", ex);
    }
-
+    global::argossim_config_name.push_back(network_config);
    try
    {
-      GetNodeAttribute(t_node, "network_binary", network_binary);
+      GetNodeAttribute(t_node, "network_binary", global::argossim_bin_name);
    }
    catch (CARGoSException &ex)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing networkd binary", ex);
    }
 
+   // select new controller now
+   opt.optimize_init<ControllerEval>(state_fun);
+   for (size_t i = 0; i < m_unNumberRobots; ++i)
+   {
+      /* Get handle to foot-bot entity and controller */
+      argos::CThymioEntity *cThym = m_pcvecRobot[i];
+      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+      cController.worker = ForagingThymioNN::Worker(num_subtrials, i);
+      opt.select_controller<ForagingThymioNN, ControllerEval>(cController);
+      Eigen::VectorXd result = cController.worker.new_sample;
+      std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+      cController.controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
+      std::cout << "select controller " << cController.controller_index << std::endl;
+      cController.init_network();
+      cController.num_trials_left = num_subtrials;
+      cController.num_ticks_left = ticks_per_subtrial;
+      // reset the controller (food_items_collected,)
+      //cController.Reset();// will happen automatically
+   }
 #endif
 }
 
@@ -122,11 +139,7 @@ void CForagingLoopFunctions::Reset()
       /* Get handle to foot-bot entity and controller */
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
-      cController.holdingFood = false;
-#ifdef HETEROGENEOUS
-      cController.worker = ForagingThymioNN::Worker(num_subtrials, i);
-      select_new_controller(cController);
-#endif
+      //cController.Reset(); will happen automatically
    }
 
    if (virtual_energy != NULL)
@@ -527,7 +540,6 @@ void CForagingLoopFunctions::PostStep()
          {
             select_new_controller(cController);
          }
-         cController.num_ticks_left = ticks_per_subtrial;
       }
 
 #endif

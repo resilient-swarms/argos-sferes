@@ -119,4 +119,4 @@ void ForagingThymioNN::init_fault_config(TConfigurationNode &t_node)
 /****************************************/
 /****************************************/
 
-REGISTER_CONTROLLER(ForagingThymioNN, "foraging_nn_controller")
+REGISTER_CONTROLLER(ForagingThymioNN, "foraging_nn_controller"+ std::string(TAG))

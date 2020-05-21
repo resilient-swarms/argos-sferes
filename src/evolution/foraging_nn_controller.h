@@ -28,7 +28,7 @@
 class ForagingThymioNN : public BaseController {
 
 public:
-#ifdef HETEROGENEOUS
+#if  HETEROGENEOUS & !PRINT_NETWORK
     struct Worker
     {
         size_t max_trials, trials_completed;
@@ -62,11 +62,12 @@ public:
         }
     } worker;
     std::string controller_index;
+    int num_ticks_left;
+    int num_trials_left;
 #endif
    bool  holdingFood=false;
    int foodID=-1;// index used to track the "SOFTWARE_FOOD" fault
-   size_t num_ticks_left;
-   size_t num_trials_left;
+
    
    ForagingThymioNN();
    virtual ~ForagingThymioNN();
@@ -74,7 +75,7 @@ public:
    virtual void ControlStep();
    virtual void Reset() {
         holdingFood=false;
-#ifdef HETEROGENEOUS
+#if HETEROGENEOUS & !PRINT_NETWORK
         worker.numFoodCollected = 0;
 #endif
     };

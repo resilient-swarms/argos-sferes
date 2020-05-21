@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="120"
+    <experiment length="12000"
                 ticks_per_second="5"
                 random_seed="1" />
   </framework>
@@ -16,8 +16,9 @@
   <!-- *************** -->
   <controllers>
 
-    <foraging_nn_controller id="tnn"
-                               library="lib/libforaging_nn_controller.so">
+    <foraging_nn_controller3DREAL id="tnn"
+                               library="lib/libforaging_nn_controller3DREAL.so">
+				
       <actuators>
         <differential_steering implementation="default" />
 	<!--<thymio_led            implementation="default" medium="leds"/> -->
@@ -35,7 +36,7 @@
 	/>
         
       </params>      
-      </foraging_nn_controller>
+      </foraging_nn_controller3DREAL>
   </controllers>
 
   <!-- ****************** -->
@@ -53,8 +54,10 @@
 		  track_stats="False"
 		  ticks_per_subtrial="600"
 		  num_subtrials="8"
-		  network_binary="BO3DREAL"
+		  network_binary="bin/BO3DREAL"
 		  network_config="experiments/harvesting/harvesting_printnetwork.argos"
+		  archive_path="/home/david/Data/Foraging/history/results1"
+		  generation="20000"
                     />
 
   <!-- *********************** -->

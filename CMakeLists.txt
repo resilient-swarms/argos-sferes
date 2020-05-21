@@ -211,46 +211,12 @@ else(NOT BASELINE)
     if(ANALYSIS)
         set(tag ${tag}ANA)
     endif()
-
-
-    # process NN_INPUT_TYPE
-    if(${NN_INPUT_TYPE} EQUAL 0)
-        set(CONTROL "nn_controller")
-        message("using proximity and RAB (NN_INPUT_TYPE=0)")
-        set(exec_prefix "behaviour_evol")
-            # Descend into the controllers directory
-        add_library(nn_controller SHARED
-            src/evolution/nn_controller.h
-            src/evolution/nn_controller.cpp)
-
-        
-        add_definitions(-DNN_DIM_TYPE=0)
-
-    elseif(${NN_INPUT_TYPE} EQUAL 1)
-        set(CONTROL "foraging_nn_controller")
+    if(${NN_INPUT_TYPE} EQUAL 1)
         message("using foraging-nn controller: proximity and ground (NN_INPUT_TYPE=1)")
         set(tag ${tag}REAL)
-        set(exec_prefix "behaviour_evol")
-        add_definitions(-DNN_DIM_TYPE=1)
-            # Descend into the controllers directory
-        add_library(foraging_nn_controller SHARED
-            src/evolution/foraging_nn_controller.h
-            src/evolution/foraging_nn_controller.cpp)
-    elseif(${NN_INPUT_TYPE} EQUAL 2)
-        set(CONTROL "nn_controller")
-        message("using rab-control (NN_INPUT_TYPE=2)")
-        set(exec_prefix "behaviour_evol")
-        add_definitions(-DNN_DIM_TYPE=2)
-        add_library(nn_controller SHARED
-            src/evolution/nn_controller.h
-            src/evolution/nn_controller.cpp)
-        add_library(station_controller SHARED
-        src/core/station_controller.cpp
-         src/core/station_controller.h)
-        list(APPEND CONTROL "station_controller")
-    else()
-         MESSAGE( FATAL_ERROR "Please choose an input type for the neural network (NN_DIM_TYPE={0,1,2})")
     endif()
+
+
 
     set(LIMBO_PATH ${PROJECT_SOURCE_DIR}/limbo/src) # location of limbo - where https://github.com/resibots/limbo.git has been cloned
     include_directories(${LIMBO_PATH})
@@ -344,12 +310,16 @@ else(NOT BASELINE)
         add_definitions(-DBAYESIAN_OPT)
         if(HETEROGENEOUS)
             add_definitions(-DPRINT_NETWORK)
+        else(NOT HETEROGENEOUS)
+            set(RECORD_FITNESS ON)
         endif()
-        set(RECORD_FITNESS ON)
+        
         set(EXECUTABLE ${tag})
         set(EXEC_FILE BO.cpp)
         
     else(NOT BO)
+
+        
         message("Bayesian Optimisation is NOT defined")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
 	    message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
@@ -357,6 +327,7 @@ else(NOT BASELINE)
             add_definitions(-DHETEROGENEOUS)
         endif()
         if(${ARGOS_PAR} EQUAL 1)
+            set(exec_prefix "behaviour_evol")
             message("using parallel (1)")
             add_definitions(-DARGOS_PARALLEL) 
             set(EXECUTABLE ${exec_prefix}${tag})
@@ -367,6 +338,7 @@ else(NOT BASELINE)
             set(EXECUTABLE envir_evol${tag})
             set(EXEC_FILE envir_evol.cpp)
         else()
+            set(exec_prefix "behaviour_evol")
             message("using serial (0)")
             set(EXECUTABLE ${exec_prefix}${tag})
             set(EXEC_FILE ${exec_prefix}.cpp)
@@ -375,6 +347,45 @@ else(NOT BASELINE)
     
     add_definitions(-DTAG="${tag}")
     message("TAG" ${tag})
+
+        # process NN_INPUT_TYPE
+    if(${NN_INPUT_TYPE} EQUAL 0)
+        set(CONTROL "nn_controller")
+        message("using proximity and RAB (NN_INPUT_TYPE=0)")
+        set(exec_prefix "behaviour_evol")
+            # Descend into the controllers directory
+        add_library(nn_controller${tag} SHARED
+            src/evolution/nn_controller.h
+            src/evolution/nn_controller.cpp)
+
+        
+        add_definitions(-DNN_DIM_TYPE=0)
+
+    elseif(${NN_INPUT_TYPE} EQUAL 1)
+        message("using foraging-nn controller: proximity and ground (NN_INPUT_TYPE=1)")
+        set(CONTROL "foraging_nn_controller${tag}")
+        add_definitions(-DNN_DIM_TYPE=1)
+            # Descend into the controllers directory
+        add_library(foraging_nn_controller${tag} SHARED
+            src/evolution/foraging_nn_controller.h
+            src/evolution/foraging_nn_controller.cpp)
+    elseif(${NN_INPUT_TYPE} EQUAL 2)
+        set(CONTROL "nn_controller")
+        message("using rab-control (NN_INPUT_TYPE=2)")
+        set(exec_prefix "behaviour_evol")
+        add_definitions(-DNN_DIM_TYPE=2)
+        add_library(nn_controller${tag} SHARED
+            src/evolution/nn_controller.h
+            src/evolution/nn_controller.cpp)
+        add_library(station_controller${tag} SHARED
+        src/core/station_controller.cpp
+         src/core/station_controller.h)
+        list(APPEND CONTROL "station_controller")
+    else()
+         MESSAGE( FATAL_ERROR "Please choose an input type for the neural network (NN_DIM_TYPE={0,1,2})")
+    endif()
+
+
     if(ARGOS_COMPILE_QTOPENGL)
         message("QT")
         if(${NN_INPUT_TYPE} EQUAL 1)

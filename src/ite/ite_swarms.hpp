@@ -475,7 +475,7 @@ std::string print_individual_to_network(std::vector<double> bd,
                           "-n " + std::to_string(ctrl_index) + " " +
                           "-o " + global::results_path + "/nn" + std::to_string(ctrl_index) + ".dot " +
                           "-d " + global::results_path;
-
+    std::cout << "Will execute command " << sim_cmd << std::endl;
     if (system(sim_cmd.c_str()) != 0)
     {
         std::cerr << "Error executing simulation " << std::endl

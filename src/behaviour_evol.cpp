@@ -28,6 +28,13 @@ int main(int argc, char **argv)
     argos::LOGERR << "starting " << argv[1] << std::endl; // tell which job it is
 #endif
 
+#ifdef HETEROGENEOUS
+    global::archive_path = std::string(argv[2]);
+    global::gen_to_load = std::atoi(argv[3]);
+    global::results_path = std::string(argv[4]);
+    Params::archiveparams::archive = load_archive(global::archive_path + "/archive_" + std::to_string(global::gen_to_load) + ".dat");
+#endif
+
     std::cout << "TAG = " << TAG << std::endl;
     /*
      * Initialize ARGoS
@@ -54,16 +61,6 @@ int main(int argc, char **argv)
     // }
 #endif
 
-#ifdef HETEROGENEOUS
-    static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
-
-    global::results_path = cLoopFunctions.output_folder + "/BO_output";
-    global::argossim_bin_name = cLoopFunctions.network_binary;
-    global::argossim_config_name.push_back(cLoopFunctions.network_config);
-    Params::archiveparams::archive = load_archive(argv[2]);
-
-#endif
-
 #ifdef ARGOS_PARALLEL
     init_shared_mem<EAParams>();
     configure_and_run_ea<parallel_ea_t>(argc, argv);
@@ -72,6 +69,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef HETEROGENEOUS
+    static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
 
     auto val = cLoopFunctions.opt.best_observation();
     Eigen::VectorXd result = cLoopFunctions.opt.best_sample().transpose();

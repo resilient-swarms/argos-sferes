@@ -18,8 +18,8 @@
   <!-- *************** -->
   <controllers>
 
-    <foraging_nn_controller id="tnn"
-                               library="lib/libforaging_nn_controller.so">
+    <foraging_nn_controllerBO3DREAL id="tnn"
+                               library="lib/libforaging_nn_controllerBO3DREAL.so">
       <actuators>
         <differential_steering implementation="default" />
 	<!--<thymio_led            implementation="default" medium="leds"/> -->
@@ -37,7 +37,7 @@
 	/>
         
       </params>      
-      </foraging_nn_controller>
+      </foraging_nn_controllerBO3DREAL>
   </controllers>
 
   <!-- ****************** -->

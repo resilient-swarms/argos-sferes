@@ -19,11 +19,13 @@ def small_k(x,samp):
 
 
 def sigma(x,samp):
+    print("k(x,x)"+str(k(x,x)))
+    print("kKk" + str(small_k(x,samp).dot(K_inv).dot(small_k(x,samp))))
     return k(x,x) - small_k(x,samp).dot(K_inv).dot(small_k(x,samp))
 
 
-noise=0.05
-samples=[np.array([0,0.50,1.0]),np.array([1.0,0.50,1.0]),np.array([0.0,0.50,0.0])]
+noise=0.40
+samples=[np.array([0,0.50,1.0]),np.array([1.0,0.45,1.0]),np.array([0.0,0.50,0.0])]
 observations=[1.0,0.5,0.2]
 Kn=K(samples) + noise*np.identity(3)
 K_inv = np.linalg.inv(Kn)
