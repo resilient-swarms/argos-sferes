@@ -48,7 +48,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error in virtual init ", ex);
    }
-#if HETEROGENEOUS &! PRINT_NETWORK
+#if HETEROGENEOUS & !PRINT_NETWORK
    try
    {
       GetNodeAttribute(t_node, "ticks_per_subtrial", ticks_per_subtrial);
@@ -75,7 +75,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing network config", ex);
    }
-    global::argossim_config_name.push_back(network_config);
+   global::argossim_config_name.push_back(network_config);
    try
    {
       GetNodeAttribute(t_node, "network_binary", global::argossim_bin_name);
@@ -101,6 +101,13 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       cController.init_network();
       cController.num_trials_left = num_subtrials;
       cController.num_ticks_left = ticks_per_subtrial;
+      std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
+      if (system(sim_cmd.c_str()) != 0)
+      {
+         std::cerr << "Error executing simulation " << std::endl
+                   << sim_cmd << std::endl;
+         exit(-1);
+      }
       // reset the controller (food_items_collected,)
       //cController.Reset();// will happen automatically
    }
@@ -536,9 +543,11 @@ void CForagingLoopFunctions::PostStep()
       if (cController.num_ticks_left == 0)
       {
          --cController.num_trials_left;
+         cController.num_ticks_left = ticks_per_subtrial;
          if (cController.num_trials_left == 0)
          {
             select_new_controller(cController);
+            cController.num_trials_left = num_subtrials;
          }
       }
 

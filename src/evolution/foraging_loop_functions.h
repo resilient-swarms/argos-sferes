@@ -6,8 +6,6 @@
 #include "src/evolution/virtual_energy.h"
 #include "src/evolution/foraging_stats.h"
 
-
-
 #if HETEROGENEOUS & !PRINT_NETWORK
 #include <src/ite/ite_swarms.hpp>
 #endif
@@ -23,20 +21,26 @@ public:
     size_t num_subtrials;
     size_t ticks_per_subtrial;
     Opt_t opt;
-    ControllerEval state_fun;//state function; just for its parameters
+    ControllerEval state_fun; //state function; just for its parameters
 
-    //std::string network_config, network_binary, archive_file; 
-    void select_new_controller(ForagingThymioNN& cController){
-            opt.optimize_step<ForagingThymioNN,ControllerEval>(cController,state_fun);
-            Eigen::VectorXd result = cController.worker.new_sample;
-            std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
-            cController.controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
-            std::cout << "select controller " << cController.controller_index << std::endl;
-            cController.init_network();
-            cController.num_trials_left = num_subtrials;
-            cController.num_ticks_left = ticks_per_subtrial;
-            // reset the controller (food_items_collected,)
-            cController.Reset();
+    //std::string network_config, network_binary, archive_file;
+    void select_new_controller(ForagingThymioNN &cController)
+    {
+        opt.optimize_step<ForagingThymioNN, ControllerEval>(cController, state_fun);
+        Eigen::VectorXd result = cController.worker.new_sample;
+        std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+        cController.controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
+        std::cout << "select controller " << cController.controller_index << std::endl;
+        cController.init_network();
+        // reset the controller (food_items_collected,)
+        cController.Reset();
+        std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
+        if (system(sim_cmd.c_str()) != 0)
+        {
+            std::cerr << "Error executing simulation " << std::endl
+                      << sim_cmd << std::endl;
+            exit(-1);
+        }
     }
 #endif
     const float nest_x = 0.32;
