@@ -14,17 +14,20 @@ def K(x):
            mat[i,j]=k(x[i],x[j])
      return mat
 
-def small_k(x,samp):
-    return np.array([k(x,s)  for s in samp])
-
+def small_k(x,samp,transpose=False):
+    mat = np.array([[k(x,s)  for s in samp]]) #1 x N
+    if transpose:
+        return mat.T
+    else:
+        return mat
 
 def sigma(x,samp):
     print("k(x,x)"+str(k(x,x)))
-    print("kKk" + str(small_k(x,samp).dot(K_inv).dot(small_k(x,samp))))
-    return k(x,x) - small_k(x,samp).dot(K_inv).dot(small_k(x,samp))
+    print("kKk" + str(small_k(x,samp).dot(K_inv).dot(small_k(x,samp,True))))
+    return k(x,x) - small_k(x,samp).dot(K_inv).dot(small_k(x,samp,True))
 
 
-noise=0.40
+noise=0.001
 samples=[np.array([0,0.50,1.0]),np.array([1.0,0.45,1.0]),np.array([0.0,0.50,0.0])]
 observations=[1.0,0.5,0.2]
 Kn=K(samples) + noise*np.identity(3)

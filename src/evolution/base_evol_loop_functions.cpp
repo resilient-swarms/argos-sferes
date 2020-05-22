@@ -12,7 +12,7 @@
 #include "caffe/sgd_solvers.hpp"
 #endif
 
-#define PROXI_SENS_OFFSET 
+#define PROXI_SENS_OFFSET
 
 /****************************************/
 /****************************************/
@@ -47,11 +47,11 @@ bool BaseEvolutionLoopFunctions::check_BD_choice(const std::string choice)
     }
     else if (choice == "neural" || choice == "neuralcycles")
     {
-       if (BEHAV_DIM != 2)
-       {
-           throw std::runtime_error(choice + " should be 2-dimensional");
-       }
-       return true;
+        if (BEHAV_DIM != 2)
+        {
+            throw std::runtime_error(choice + " should be 2-dimensional");
+        }
+        return true;
     }
     else if (choice == "cvt_mutualinfo")
     {
@@ -110,13 +110,13 @@ void BaseEvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new IntuitiveHistoryDescriptor(this);
         }
-         else if (s == "neural")
+        else if (s == "neural")
         {
-          this->descriptor = new NeuralDescriptor();
+            this->descriptor = new NeuralDescriptor();
         }
         else if (s == "neuralcycles")
         {
-          this->descriptor = new NeuralCyclesDescriptor();
+            this->descriptor = new NeuralCyclesDescriptor();
         }
         else if (s.find("sdbc") != std::string::npos)
         {
@@ -166,6 +166,11 @@ void BaseEvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         else if (s == "analysis")
         {
             // wait for manual initialisation in analysis.cpp
+        }
+        else if (s == "identification")
+        {
+            this->descriptor = new IdentificationDescriptor(m_unNumberRobots);
+
         }
         else
         {
@@ -272,7 +277,6 @@ void BaseEvolutionLoopFunctions::before_trials(argos::CSimulator &cSimulator)
     descriptor->before_trials(*this);
 }
 
-
 void BaseEvolutionLoopFunctions::start_trial(argos::CSimulator &cSimulator)
 {
     stop_eval = false;
@@ -349,7 +353,64 @@ size_t BaseEvolutionLoopFunctions::get_quadrant_bin() const
     }
     return bin;
 }
+/* get activation of groups of inputs */
+std::vector<float> BaseEvolutionLoopFunctions::get_inputgroup_activations(std::vector<size_t> end_indexes, float thresh, size_t start) const
+{
+    std::vector<float> activations;
+    for (size_t i = 0; i < end_indexes.size(); ++i)
+    {
+        bool found = false;
+        size_t end = end_indexes[i];
+        for (size_t j = start; j <= end; ++j)
+        {
+            if (inputs[j] > thresh)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (found)
+        {
+            activations.push_back(1.0);
+        }
+        else
+        {
+            activations.push_back(0.0);
+        }
+        start = end + 1;
+    }
 
+    return activations;
+}
+
+std::vector<float> BaseEvolutionLoopFunctions::get_inputgroup_activations_smaller(std::vector<size_t> end_indexes, float thresh, size_t start) const
+{
+    std::vector<float> activations;
+    for (size_t i = 0; i < end_indexes.size(); ++i)
+    {
+        bool found = false;
+        size_t end = end_indexes[i];
+        for (size_t j = start; j <= end; ++j)
+        {
+            if (inputs[j] < thresh)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (found)
+        {
+            activations.push_back(1.0);
+        }
+        else
+        {
+            activations.push_back(0.0);
+        }
+        start = end + 1;
+    }
+
+    return activations;
+}
 // /* get activation bin for the activations of each sensory quadrant get joint activation bin for the actuators (used for Spirit)*/
 // size_t BaseEvolutionLoopFunctions::get_quadrant_binRAB() const
 // {
@@ -422,13 +483,12 @@ size_t BaseEvolutionLoopFunctions::get_quadrant_bin() const
 size_t BaseEvolutionLoopFunctions::get_quadrant_binRAB() const
 {
 
-
     // proximity sensors: (quadrants)
     size_t bin = 0;
     // front left:
     for (int i = 0; i <= 1; ++i)
-    { 
-        if (inputs[i] < 0.00)  // note : after normalisation, -1 is maximal sensory firing and 1 is minimal sensory firing, 0.0 represents middle
+    {
+        if (inputs[i] < 0.00) // note : after normalisation, -1 is maximal sensory firing and 1 is minimal sensory firing, 0.0 represents middle
         {
             //std::cout<<"left proximity"<<std::endl;
             bin += 32;
@@ -465,7 +525,7 @@ size_t BaseEvolutionLoopFunctions::get_quadrant_binRAB() const
     // now the RAB sensors in halfs (180 degrees; front vs back)
 
     // 0:90 degrees
-    bool bin_front=false;
+    bool bin_front = false;
     for (int i = 7; i <= 8; ++i)
     {
         if (inputs[i] < 0.00) // note : after normalisation, -1 is maximal sensory firing and 1 is minimal sensory firing, 0.0 represents middle
@@ -478,7 +538,7 @@ size_t BaseEvolutionLoopFunctions::get_quadrant_binRAB() const
     }
 
     // 90:180 degrees
-    bool bin_back=false;
+    bool bin_back = false;
     for (int i = 9; i <= 10; ++i)
     {
         if (inputs[i] < 0.00)
@@ -491,11 +551,11 @@ size_t BaseEvolutionLoopFunctions::get_quadrant_binRAB() const
     }
 
     // 180:270 degrees
-    if ( !bin_back )
+    if (!bin_back)
     {
         for (int i = 11; i <= 12; ++i)
         {
-            
+
             if (inputs[i] < 0.00)
             {
                 //std::cout<<"RAB [180:270] degrees " <<std::endl;
@@ -506,11 +566,11 @@ size_t BaseEvolutionLoopFunctions::get_quadrant_binRAB() const
     }
 
     // 270:360 degrees
-    if ( !bin_front )
+    if (!bin_front)
     {
         for (int i = 13; i <= 14; ++i)
         {
-            
+
             if (inputs[i] < 0.00)
             {
                 //std::cout<<"RAB [270:360] degrees "<<std::endl;

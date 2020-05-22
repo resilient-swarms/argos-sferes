@@ -24,24 +24,7 @@ public:
     ControllerEval state_fun; //state function; just for its parameters
 
     //std::string network_config, network_binary, archive_file;
-    void select_new_controller(ForagingThymioNN &cController)
-    {
-        opt.optimize_step<ForagingThymioNN, ControllerEval>(cController, state_fun);
-        Eigen::VectorXd result = cController.worker.new_sample;
-        std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
-        cController.controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
-        std::cout << "select controller " << cController.controller_index << std::endl;
-        cController.init_network();
-        // reset the controller (food_items_collected,)
-        cController.Reset();
-        std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
-        if (system(sim_cmd.c_str()) != 0)
-        {
-            std::cerr << "Error executing simulation " << std::endl
-                      << sim_cmd << std::endl;
-            exit(-1);
-        }
-    }
+    void select_new_controller(ForagingThymioNN &cController);
 #endif
     const float nest_x = 0.32;
     const int HARVEST_TIME = 50; // 50 time steps

@@ -4,6 +4,12 @@
 #include <argos3/core/utility/configuration/argos_configuration.h>
 /* 2D vector definition */
 
+#if HETEROGENEOUS & !PRINT_NETWORK
+
+#include <src/ite/ite_swarms.hpp>
+
+#endif
+
 /****************************************/
 /****************************************/
 
@@ -20,6 +26,19 @@ void ForagingThymioNN::init_network()
     nn = ser.Load();
     nn.init();
 }
+
+#if HETEROGENEOUS & !PRINT_NETWORK
+
+void ForagingThymioNN::select_net(std::vector<double> bd, size_t num_subtrials, size_t ticks_per_subtrial, bool init)
+{
+    controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
+    std::cout << "select controller " << controller_index << std::endl;
+    init_network();
+    num_trials_left = num_subtrials;
+    num_ticks_left = ticks_per_subtrial;
+}
+
+#endif
 
 /****************************************/
 /****************************************/
@@ -119,4 +138,4 @@ void ForagingThymioNN::init_fault_config(TConfigurationNode &t_node)
 /****************************************/
 /****************************************/
 
-REGISTER_CONTROLLER(ForagingThymioNN, "foraging_nn_controller"+ std::string(TAG))
+REGISTER_CONTROLLER(ForagingThymioNN, "foraging_nn_controller" + std::string(TAG))

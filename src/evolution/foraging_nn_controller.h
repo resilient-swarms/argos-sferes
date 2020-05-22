@@ -31,12 +31,13 @@ public:
 #if  HETEROGENEOUS & !PRINT_NETWORK
     struct Worker
     {
+        bool initial_phase;
         size_t max_trials, trials_completed;
         size_t index;
-        Eigen::VectorXd new_sample;
+        Eigen::VectorXd new_sample, F;
         size_t numFoodCollected = 0;
         Worker(){}
-        Worker(size_t trials,size_t i) : max_trials(trials), trials_completed(0), index(i){};
+        Worker(size_t trials,size_t i) : max_trials(trials), trials_completed(0), index(i), initial_phase(true){};
         /* call from outside limbo */
         void finish_trial()
         {
@@ -48,6 +49,7 @@ public:
             if (trials_completed == max_trials)
             {
                 trials_completed = 0;
+                initial_phase=false;
                 return true;
             }
             else
@@ -60,10 +62,25 @@ public:
         {
             return numFoodCollected*(float) num_workers;
         }
+        /* get the sample with the identification */
+        Eigen::VectorXd get_sample()
+        {
+            Eigen::VectorXd vec_joined(new_sample.size() + F.size());
+            vec_joined << new_sample, F;
+            return vec_joined;
+        }
+
+        /* get the worker index; all 0 in the initial phase */
+        size_t get_index()
+        {
+            return initial_phase ? 0 : index;
+        }
     } worker;
     std::string controller_index;
     int num_ticks_left;
     int num_trials_left;
+    
+    void select_net(std::vector<double> bd,size_t num_subtrials, size_t ticks_per_subtrial, bool init=false);
 #endif
    bool  holdingFood=false;
    int foodID=-1;// index used to track the "SOFTWARE_FOOD" fault

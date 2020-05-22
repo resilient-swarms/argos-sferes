@@ -87,29 +87,28 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 
    // select new controller now
    opt.optimize_init<ControllerEval>(state_fun);
-   for (size_t i = 0; i < m_unNumberRobots; ++i)
+   /* initial phase: select controller for one robot and then put others with the same as well */
+   argos::CThymioEntity *cThym = m_pcvecRobot[0];
+   ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+   cController.worker = ForagingThymioNN::Worker(num_subtrials, 0);
+   opt.select_controller<ForagingThymioNN, ControllerEval>(cController);
+   Eigen::VectorXd result = cController.worker.new_sample;
+   std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+   cController.select_net(bd, num_subtrials, ticks_per_subtrial);
+   for (size_t i = 1; i < m_unNumberRobots; ++i)
    {
-      /* Get handle to foot-bot entity and controller */
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
-      cController.worker = ForagingThymioNN::Worker(num_subtrials, i);
-      opt.select_controller<ForagingThymioNN, ControllerEval>(cController);
-      Eigen::VectorXd result = cController.worker.new_sample;
-      std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
-      cController.controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
-      std::cout << "select controller " << cController.controller_index << std::endl;
-      cController.init_network();
-      cController.num_trials_left = num_subtrials;
-      cController.num_ticks_left = ticks_per_subtrial;
-      std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
-      if (system(sim_cmd.c_str()) != 0)
-      {
-         std::cerr << "Error executing simulation " << std::endl
-                   << sim_cmd << std::endl;
-         exit(-1);
-      }
+      cController.select_net(bd, num_subtrials, ticks_per_subtrial);
       // reset the controller (food_items_collected,)
       //cController.Reset();// will happen automatically
+   }
+   std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
+   if (system(sim_cmd.c_str()) != 0)
+   {
+      std::cerr << "Error removing nvp " << std::endl
+                << sim_cmd << std::endl;
+      exit(-1);
    }
 #endif
 }
@@ -154,6 +153,37 @@ void CForagingLoopFunctions::Reset()
       virtual_energy->reset();
    }
 }
+
+#if HETEROGENEOUS & !PRINT_NETWORK
+
+void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController)
+{
+   if (cController.worker.initial_phase)
+   {
+      // finish descriptor
+      current_robot = cController.worker.index;
+      std::vector<float> ident = alltrials_descriptor();
+      cController.worker.F = Eigen::VectorXd(ident.size());
+      for(size_t i=0; i < ident.size(); ++i)
+      {
+         cController.worker.F[i] = ident[i];
+      }
+   }
+   opt.optimize_step<ForagingThymioNN, ControllerEval>(cController, state_fun);
+   Eigen::VectorXd result = cController.worker.new_sample;
+   std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+   cController.select_net(bd, num_subtrials, ticks_per_subtrial);
+   // reset the controller (food_items_collected,)
+   cController.Reset();
+   std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
+   if (system(sim_cmd.c_str()) != 0)
+   {
+      std::cerr << "Error removing nvp " << std::endl
+                << sim_cmd << std::endl;
+      exit(-1);
+   }
+}
+#endif
 
 std::vector<size_t> CForagingLoopFunctions::priority_robotplacement()
 {

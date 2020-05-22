@@ -24,8 +24,6 @@ void write_individual(std::vector<float> bd, float fitness, size_t individual, s
 	ofs.close();
 }
 
-
-
 /***********************************************/
 
 Descriptor::Descriptor(size_t dims) : behav_dim(dims)
@@ -62,9 +60,8 @@ std::vector<float> Descriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFun
 
 			if (!StatFuns::in_range(final_bd[i], 0.0f, 1.0f))
 			{
-				std::cout<<"bd" << i << " not in [0,1]:"<< final_bd[i] << std::endl;
-                StatFuns::clip(final_bd[i],0.0f,1.0f);
-
+				std::cout << "bd" << i << " not in [0,1]:" << final_bd[i] << std::endl;
+				StatFuns::clip(final_bd[i], 0.0f, 1.0f);
 			}
 		}
 	}
@@ -93,9 +90,8 @@ void AverageDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 		this->bd[i][current_trial] /= (float)num_updates;
 		if (!StatFuns::in_range(this->bd[i][current_trial], 0.0f, 1.0))
 		{
-			 std::cout<<"bd" << i << " not in [0,1]:"<< bd[i][current_trial] << std::endl;
-            StatFuns::clip(bd[i][current_trial],0.0f,1.0f);
-
+			std::cout << "bd" << i << " not in [0,1]:" << bd[i][current_trial] << std::endl;
+			StatFuns::clip(bd[i][current_trial], 0.0f, 1.0f);
 		};
 	}
 }
@@ -103,146 +99,143 @@ void AverageDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 
 NeuralDescriptor::NeuralDescriptor()
 {
-    nb_input_output = ParamsDnn::dnn::nb_inputs + ParamsDnn::dnn::nb_outputs;
-    max_nb_neurons = ParamsDnn::dnn::max_nb_neurons * 2;
-    max_nb_connections = ParamsDnn::dnn::max_nb_conns * 2;
+	nb_input_output = ParamsDnn::dnn::nb_inputs + ParamsDnn::dnn::nb_outputs;
+	max_nb_neurons = ParamsDnn::dnn::max_nb_neurons * 2;
+	max_nb_connections = ParamsDnn::dnn::max_nb_conns * 2;
 }
 
 void NeuralDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-    //nb connections
-    unsigned nb_connections = cLoopFunctions.m_pcvecController[0]->nn.get_nb_connections();
-    if (nb_connections > max_nb_connections) // cap the bd so at least the evolution will not throw an exception
-    {
-        // a bd of 1 now means the nb_connections is >= max_nb_connections
-        this->bd[0][current_trial] = 1;
-    } else
-    {
-        float prc_connections = nb_connections / max_nb_connections;
-        this->bd[0][current_trial] = prc_connections;
-    }
+	//nb connections
+	unsigned nb_connections = cLoopFunctions.m_pcvecController[0]->nn.get_nb_connections();
+	if (nb_connections > max_nb_connections) // cap the bd so at least the evolution will not throw an exception
+	{
+		// a bd of 1 now means the nb_connections is >= max_nb_connections
+		this->bd[0][current_trial] = 1;
+	}
+	else
+	{
+		float prc_connections = nb_connections / max_nb_connections;
+		this->bd[0][current_trial] = prc_connections;
+	}
 
-    //nb neurons
-    unsigned nb_neurons = cLoopFunctions.m_pcvecController[0]->nn.get_nb_neurons() - nb_input_output;
-    if (nb_neurons > max_nb_neurons) // cap the bd so at least the evolution will not throw an exception
-    {
-        // a bd of 1 now means the nb_neurons is >= max_nb_neurons
-        this->bd[1][current_trial] = 1;
-    } else
-    {
-        float prc_neurons = nb_neurons / max_nb_neurons;
-        this->bd[1][current_trial] = prc_neurons;
-    }
+	//nb neurons
+	unsigned nb_neurons = cLoopFunctions.m_pcvecController[0]->nn.get_nb_neurons() - nb_input_output;
+	if (nb_neurons > max_nb_neurons) // cap the bd so at least the evolution will not throw an exception
+	{
+		// a bd of 1 now means the nb_neurons is >= max_nb_neurons
+		this->bd[1][current_trial] = 1;
+	}
+	else
+	{
+		float prc_neurons = nb_neurons / max_nb_neurons;
+		this->bd[1][current_trial] = prc_neurons;
+	}
 }
 
 void NeuralCyclesDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-    this->bd[0][current_trial] = strongly_connected(cLoopFunctions);
+	this->bd[0][current_trial] = strongly_connected(cLoopFunctions);
 
-    // Degree ditribution of all the input nodes when k=0.
-    // i.e. what proportion of the input nodes have 0 outgoing connections
-    auto g = cLoopFunctions.m_pcvecController[0]->nn.get_graph();
-    auto input_nodes = cLoopFunctions.m_pcvecController[0]->nn.get_inputs();
-    int k_degree = 0;
-    for (int i = 0; i < input_nodes.size(); i++)
-    {
-        if (g.out_edge_list(input_nodes[i]).size() == 0)
-        {
-            k_degree++;
-        }
-    }
+	// Degree ditribution of all the input nodes when k=0.
+	// i.e. what proportion of the input nodes have 0 outgoing connections
+	auto g = cLoopFunctions.m_pcvecController[0]->nn.get_graph();
+	auto input_nodes = cLoopFunctions.m_pcvecController[0]->nn.get_inputs();
+	int k_degree = 0;
+	for (int i = 0; i < input_nodes.size(); i++)
+	{
+		if (g.out_edge_list(input_nodes[i]).size() == 0)
+		{
+			k_degree++;
+		}
+	}
 #ifdef PRINTING
-    std::cout << "Total number of input nodes: " << input_nodes.size() << std::endl;
-    std::cout << "Total number of input nodes with degree 0: " << k_degree << std::endl;
+	std::cout << "Total number of input nodes: " << input_nodes.size() << std::endl;
+	std::cout << "Total number of input nodes with degree 0: " << k_degree << std::endl;
 #endif
-    float prc = k_degree / (float)input_nodes.size();
-    this->bd[1][current_trial] = prc;
+	float prc = k_degree / (float)input_nodes.size();
+	this->bd[1][current_trial] = prc;
 }
 
 float NeuralCyclesDescriptor::strongly_connected(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-    using namespace boost;
+	using namespace boost;
 
-    auto g = cLoopFunctions.m_pcvecController[0]->nn.get_graph();
-    typedef decltype(g) Graph;
-    typedef Graph::vertex_iterator VertexIterator;
-    typedef Graph::vertex_descriptor VertexDesc;
-    typedef std::map<VertexDesc, size_t> VertexDescMap;
+	auto g = cLoopFunctions.m_pcvecController[0]->nn.get_graph();
+	typedef decltype(g) Graph;
+	typedef Graph::vertex_iterator VertexIterator;
+	typedef Graph::vertex_descriptor VertexDesc;
+	typedef std::map<VertexDesc, size_t> VertexDescMap;
 
-    // make vertex index map
-    VertexDescMap idxMap;
-    associative_property_map<VertexDescMap> indexMap(idxMap);
-    VertexIterator di, dj;
-    tie(di, dj) = vertices(g);
-    for(int i = 0; di != dj; ++di,++i){
-        put(indexMap, (*di), i);
-    }
+	// make vertex index map
+	VertexDescMap idxMap;
+	associative_property_map<VertexDescMap> indexMap(idxMap);
+	VertexIterator di, dj;
+	tie(di, dj) = vertices(g);
+	for (int i = 0; di != dj; ++di, ++i)
+	{
+		put(indexMap, (*di), i);
+	}
 
-    // Calculate the strongly connected subgraph
-    // potential alternative implimentation: hawick_circuits
-    std::map<VertexDesc, size_t> compMap;
-    associative_property_map<VertexDescMap> componentMap(compMap);
-    int num = strong_components(g, componentMap, vertex_index_map(indexMap));
-    // Note: neurons not in a cycle are represented as a subgraph of size = 1
-    // this is unfortunately the same as a recurrent connection.
+	// Calculate the strongly connected subgraph
+	// potential alternative implimentation: hawick_circuits
+	std::map<VertexDesc, size_t> compMap;
+	associative_property_map<VertexDescMap> componentMap(compMap);
+	int num = strong_components(g, componentMap, vertex_index_map(indexMap));
+	// Note: neurons not in a cycle are represented as a subgraph of size = 1
+	// this is unfortunately the same as a recurrent connection.
 
-    // Get the size of each subgraph
-    std::vector<int> mean_comp_size(num);
-    for (std::map<VertexDesc, size_t>::iterator it = compMap.begin(); it != compMap.end(); ++it)
-    {
-       mean_comp_size[it->second]++;
-   }
+	// Get the size of each subgraph
+	std::vector<int> mean_comp_size(num);
+	for (std::map<VertexDesc, size_t>::iterator it = compMap.begin(); it != compMap.end(); ++it)
+	{
+		mean_comp_size[it->second]++;
+	}
 
-   unsigned nb_comps = 0; // number of cycles
-   unsigned nb_neurons_comp = 0; // total number of neurons in a cycle
-   for (int i = 0; i < mean_comp_size.size(); i++)
-   {
-       if (mean_comp_size[i] > 1)
-       {
-           nb_comps++;
-           nb_neurons_comp += mean_comp_size[i];
-       }
-   }
-   // get all recurrent connections of the graph separately and add them to the totals
-   Graph::edge_iterator ei, ei_end;
-   for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
-       if (source(*ei, g) == target(*ei, g))
-       {
-           nb_comps++;
-           nb_neurons_comp++;
-       }
-   }
+	unsigned nb_comps = 0;		  // number of cycles
+	unsigned nb_neurons_comp = 0; // total number of neurons in a cycle
+	for (int i = 0; i < mean_comp_size.size(); i++)
+	{
+		if (mean_comp_size[i] > 1)
+		{
+			nb_comps++;
+			nb_neurons_comp += mean_comp_size[i];
+		}
+	}
+	// get all recurrent connections of the graph separately and add them to the totals
+	Graph::edge_iterator ei, ei_end;
+	for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
+	{
+		if (source(*ei, g) == target(*ei, g))
+		{
+			nb_comps++;
+			nb_neurons_comp++;
+		}
+	}
 
-   //number of neurons in the graph neurons
-   auto nb_neurons = cLoopFunctions.m_pcvecController[0]->nn.get_nb_neurons();
+	//number of neurons in the graph neurons
+	auto nb_neurons = cLoopFunctions.m_pcvecController[0]->nn.get_nb_neurons();
 
 #ifdef PRINTING
-   std::cout << "Total number of cycles: " << nb_comps << std::endl;
-   std::cout << "Total number of neurons in cycles: " << nb_neurons_comp << std::endl;
-   std::cout << "Total number of neurons: " << nb_neurons << std::endl;
+	std::cout << "Total number of cycles: " << nb_comps << std::endl;
+	std::cout << "Total number of neurons in cycles: " << nb_neurons_comp << std::endl;
+	std::cout << "Total number of neurons: " << nb_neurons << std::endl;
 #endif
 
-   if (nb_neurons == 0) // cannot divide by 0
-   {
-       return 0;
-   } else
-   {
-       // the proportion of all neurons that are in cycles
-       return (float)nb_neurons_comp / (float)nb_neurons;
-   }
+	if (nb_neurons == 0) // cannot divide by 0
+	{
+		return 0;
+	}
+	else
+	{
+		// the proportion of all neurons that are in cycles
+		return (float)nb_neurons_comp / (float)nb_neurons;
+	}
 }
-
-
-
-
-
-
 
 /*********************************************************************************/
 
-
-
-IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(BaseEvolutionLoopFunctions *cLoopFunctions,size_t behav_dim) : Descriptor(behav_dim)
+IntuitiveHistoryDescriptor::IntuitiveHistoryDescriptor(BaseEvolutionLoopFunctions *cLoopFunctions, size_t behav_dim) : Descriptor(behav_dim)
 {
 
 	//define member variables
@@ -292,16 +285,16 @@ void IntuitiveHistoryDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunc
 	float avg_deviation = deviation / (max_deviation * (float)num_updates);
 	this->bd[1][current_trial] = avg_deviation;
 
-// #if BEHAV_DIM == 3
+	// #if BEHAV_DIM == 3
 	float coverage = coverageCalc.get_coverage();
 	this->bd[2][current_trial] = coverage;
-// #endif
+	// #endif
 
 #ifdef PRINTING
 	std::cout << "uniformity" << uniformity << std::endl;
 	std::cout << "Max deviation" << max_deviation << std::endl;
 	std::cout << "deviation" << avg_deviation << std::endl;
-// #if BEHAV_DIM == 3
+	// #if BEHAV_DIM == 3
 	std::cout << "coverage" << coverage << std::endl;
 // #endif
 #endif
@@ -313,9 +306,6 @@ float Entity::distance(const Entity &e1, const Entity &e2)
 {
 	return StatFuns::get_minkowski_distance(e1.position, e2.position);
 }
-
-
-
 
 /******************************************************************/
 
@@ -731,7 +721,7 @@ void SDBC::after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 	add_group_sizes();				// in case group sizes are variable, group size is descriptor
 	add_group_meanstates();			// for each group calculate mean state (if it has features)
 	add_between_group_dispersion(); // calculate distances between groups
-	add_within_group_dispersion();  // calculate distances within groups
+	add_within_group_dispersion();	// calculate distances within groups
 	if (include_closest_robot)
 	{
 		add_closest_robot_dist(cLoopFunctions); // calculate closest robot distance
@@ -780,9 +770,8 @@ void SDBC::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 
 		if (!StatFuns::in_range(bd[i][current_trial], 0.0f, 1.0f))
 		{
-			std::cout<<"bd" << i << " not in [0,1]:"<< bd[i][current_trial] << std::endl;
-            StatFuns::clip(bd[i][current_trial],0.0f,1.0f);
-
+			std::cout << "bd" << i << " not in [0,1]:" << bd[i][current_trial] << std::endl;
+			StatFuns::clip(bd[i][current_trial], 0.0f, 1.0f);
 		};
 	}
 }
@@ -1106,7 +1095,7 @@ CVT_RAB_Spirit::CVT_RAB_Spirit(size_t behav_dim) : CVT_Spirit(behav_dim)
 }
 
 /*after getting outputs, can update the descriptor if needed*/
-void CVT_RAB_Spirit::set_output_descriptor(size_t robot_index,BaseEvolutionLoopFunctions &cLoopFunctions)
+void CVT_RAB_Spirit::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	size_t sens_bin = cLoopFunctions.get_quadrant_binRAB();
 	size_t act_bin = cLoopFunctions.get_joint_actuator_bin(num_actuator_bins);
@@ -1230,7 +1219,7 @@ void SubjectiveHistoryDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoo
 /*reset BD at the start of a trial*/
 void SubjectiveHistoryDescriptor::start_trial()
 {
-	if(num_updates%frequency==0)
+	if (num_updates % frequency == 0)
 	{
 		file_writer << std::fixed << "T" << current_trial << ":\n";
 	}
@@ -1238,7 +1227,7 @@ void SubjectiveHistoryDescriptor::start_trial()
 /*after getting inputs, can update the descriptor if needed*/
 void SubjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-	if(num_updates%frequency==0)
+	if (num_updates % frequency == 0)
 	{
 		for (size_t i = 0; i < cLoopFunctions.inputs.size(); ++i)
 		{
@@ -1250,7 +1239,7 @@ void SubjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, BaseE
 /*after getting outputs, can update the descriptor if needed*/
 void SubjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-	if(num_updates%frequency==0)
+	if (num_updates % frequency == 0)
 	{
 		for (size_t i = 0; i < cLoopFunctions.outf.size() - 1; ++i)
 		{
@@ -1262,7 +1251,7 @@ void SubjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, Base
 /*after the looping over robots*/
 void SubjectiveHistoryDescriptor::after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-	if(num_updates%frequency==0)
+	if (num_updates % frequency == 0)
 	{
 		file_writer << "\n";
 	}
@@ -1292,7 +1281,7 @@ void ObjectiveHistoryDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoop
 /*reset BD at the start of a trial*/
 void ObjectiveHistoryDescriptor::start_trial()
 {
-	if(num_updates%frequency==0)
+	if (num_updates % frequency == 0)
 	{
 		file_writer << std::fixed << "T" << current_trial << ":\n";
 	}
@@ -1300,7 +1289,7 @@ void ObjectiveHistoryDescriptor::start_trial()
 /*after getting inputs, can update the descriptor if needed*/
 void ObjectiveHistoryDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-	if(num_updates%frequency==0)
+	if (num_updates % frequency == 0)
 	{
 		CVector3 pos = cLoopFunctions.get_position(cLoopFunctions.m_pcvecRobot[robot_index]);
 		file_writer << std::fixed << std::setprecision(2) << pos.GetX() << "," << pos.GetY();
@@ -1315,7 +1304,7 @@ void ObjectiveHistoryDescriptor::set_output_descriptor(size_t robot_index, BaseE
 /*after the looping over robots*/
 void ObjectiveHistoryDescriptor::after_robotloop(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-	if(num_updates%frequency==0)
+	if (num_updates % frequency == 0)
 	{
 		file_writer << "\n";
 	}
@@ -1399,4 +1388,61 @@ void AnalysisDescriptor::analyse_individual(BaseEvolutionLoopFunctions &cLoopFun
 			write_individual(bd, fFitness, individual, file_name + desc.first + ".dat");
 		}
 	}
+}
+
+void IdentificationDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+void IdentificationDescriptor::start_trial()
+{
+}
+
+
+void IdentificationDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+	//the proportion of times the front-left proximity sensors are activated (above 0.5)
+
+	//Pm is the proportion of times the front-mid proximity sensor is activated
+
+	//Pr  is the proportion of times the front-right  proximity sensors are activated
+	//Pb is the proportion of times the back proximity sensors are activated
+	//Gwhite is the proportion of times the ground sensors are maximal (white)
+	//Gblack is the proportion of time the ground sensors are minimal (black)
+
+	//proximity
+	std::vector<float> activations = cLoopFunctions.get_inputgroup_activations({1, 2, 4, 6}, 0.50);
+	//white
+	activations.push_back(cLoopFunctions.get_inputgroup_activations({8}, 0.85, 7)[0]);
+	//black
+	activations.push_back(cLoopFunctions.get_inputgroup_activations_smaller({8}, 0.15, 7)[0]);
+
+	size_t offset = robot_index * 6;
+	// now add activations to the bd
+	for (size_t i = 0; i < 6; ++i)
+	{
+		bd_vec[offset + i] += activations[i];
+	}
+	++updates[robot_index];
+}
+
+/*end the trial*/
+void IdentificationDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+
+}
+
+std::vector<float> IdentificationDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+	size_t offset = cLoopFunctions.current_robot * 6;
+	for (size_t i = offset; i < offset + 6; ++i)
+	{
+		this->bd_vec[i] /= (float)updates[cLoopFunctions.current_robot];
+		if (!StatFuns::in_range(this->bd_vec[i], 0.0f, 1.0))
+		{
+			std::cout << "bd" << i << " not in [0,1]:" << bd_vec[i] << std::endl;
+			StatFuns::clip(bd_vec[i], 0.0f, 1.0f);
+		};
+	}
+	return std::vector<float>(bd_vec.begin()+ offset,bd_vec.begin()+ offset + 6);
 }

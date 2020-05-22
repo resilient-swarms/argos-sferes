@@ -49,6 +49,9 @@ public:
     typedef CThymioNNController ControllerType;
 #endif
 
+#if HETEROGENEOUS &! PRINT_NETWORK
+    size_t current_robot;
+#endif
     BaseEvolutionLoopFunctions();
     virtual ~BaseEvolutionLoopFunctions();
     virtual std::string get_controller_id()
@@ -139,6 +142,12 @@ public:
 
     /* get activation bin for the activations of each sensory quadrant, assuming use proximity+RAB sensors */
     size_t get_quadrant_binRAB() const;
+
+    /* get activation of groups of inputs */
+    std::vector<float> get_inputgroup_activations(std::vector<size_t> end_indexes, float thresh, size_t start=0) const;
+
+    /* get activation of groups of inputs */
+    std::vector<float> get_inputgroup_activations_smaller(std::vector<size_t> end_indexes, float thresh, size_t start=0) const;
 
     /* get joint activation bin for the actuators */
     size_t get_joint_actuator_bin(size_t num_bins) const;

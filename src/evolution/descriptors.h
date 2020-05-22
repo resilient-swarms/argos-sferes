@@ -23,20 +23,16 @@
 class BaseEvolutionLoopFunctions;
 class RunningStat;
 
-
 /* write behavioural descriptor to a file similar to map_elites */
 static void write_individual(std::vector<float> bd, float fitness, size_t individual, std::string filename);
 
 class Descriptor
 {
 public:
-  Descriptor(size_t num_bd=BEHAV_DIM);
+  Descriptor(size_t num_bd = BEHAV_DIM);
   bool geometric_median;
   size_t num_updates, current_trial;
   size_t behav_dim;
-
-  
-
 
   /* final value of bd*/
   std::vector<std::vector<float>> bd;
@@ -81,32 +77,31 @@ public:
   virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
-
 class NeuralDescriptor : public Descriptor
 {
-   /* Get the number of connections and neurons in the NN; 2D ONLY for now.
+  /* Get the number of connections and neurons in the NN; 2D ONLY for now.
       */
 public:
-   NeuralDescriptor();
-   float max_nb_neurons;
-   float max_nb_connections;
-   unsigned nb_input_output;
+  NeuralDescriptor();
+  float max_nb_neurons;
+  float max_nb_connections;
+  unsigned nb_input_output;
 
-   /*end the trial*/
-   virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
+  /*end the trial*/
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 class NeuralCyclesDescriptor : public Descriptor
 {
-   /* Get the number of connections and neurons in the NN; 2D ONLY for now.
+  /* Get the number of connections and neurons in the NN; 2D ONLY for now.
       */
 public:
-   NeuralCyclesDescriptor() {}
+  NeuralCyclesDescriptor() {}
 
-   static float strongly_connected (BaseEvolutionLoopFunctions &cLoopFunctions);
+  static float strongly_connected(BaseEvolutionLoopFunctions &cLoopFunctions);
 
-   /*end the trial*/
-   virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
+  /*end the trial*/
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 class IntuitiveHistoryDescriptor : public Descriptor
@@ -116,7 +111,7 @@ class IntuitiveHistoryDescriptor : public Descriptor
     *  after all trials, gather statistics of the observed history
     */
 public:
-  IntuitiveHistoryDescriptor(BaseEvolutionLoopFunctions *cLoopFunctions,size_t behav_dim=3);
+  IntuitiveHistoryDescriptor(BaseEvolutionLoopFunctions *cLoopFunctions, size_t behav_dim = 3);
   CoverageCalc coverageCalc;
 
   argos::CVector3 center;
@@ -181,17 +176,17 @@ struct SpeedAttributeSetter : public RobotAttributeSetter
     float v_turn = cLoopFunctions.actual_turn_velocity_01(robot_index);
 
     std::vector<float> new_vec = {v_lin, v_turn};
-// #ifdef PRINTING
-//     std::cout << "v_lin, v_turn =" << v_lin << "," << v_turn << std::endl;
-//     if (!StatFuns::in_range(v_lin, 0.0f, 1.0f))
-//     {
-//       throw std::runtime_error("v_lin not in [0,1]");
-//     }
-//     if (!StatFuns::in_range(v_turn, 0.0f, 1.0f))
-//     {
-//       throw std::runtime_error("v_turn not in [0,1]");
-//     }
-// #endif
+    // #ifdef PRINTING
+    //     std::cout << "v_lin, v_turn =" << v_lin << "," << v_turn << std::endl;
+    //     if (!StatFuns::in_range(v_lin, 0.0f, 1.0f))
+    //     {
+    //       throw std::runtime_error("v_lin not in [0,1]");
+    //     }
+    //     if (!StatFuns::in_range(v_turn, 0.0f, 1.0f))
+    //     {
+    //       throw std::runtime_error("v_turn not in [0,1]");
+    //     }
+    // #endif
     return new_vec;
   }
 };
@@ -281,7 +276,7 @@ public:
   std::vector<std::string> variable_groups;
 
   std::vector<std::vector<float>> temp_bd; // accumulate the features over time
-  SDBC(BaseEvolutionLoopFunctions *cLoopFunctions, std::string init_type, size_t bd=BEHAV_DIM);
+  SDBC(BaseEvolutionLoopFunctions *cLoopFunctions, std::string init_type, size_t bd = BEHAV_DIM);
 
   /* minimal robot distance */
   float minimal_robot_distance(BaseEvolutionLoopFunctions *cLoopFunctions);
@@ -467,19 +462,19 @@ class CVT_Spirit : public Descriptor
   /* most of the code remains the same as CVT_Spirit except the meaning of the bins and the number 
   number of bins */
 public:
-  CVT_Spirit(size_t behav_dim=400);
+  CVT_Spirit(size_t behav_dim = 400);
 
   /* smoothing factor */
   const float alpha_smooth = 1.0;
 
   /* number of joint sensory bins */
-  size_t num_joint_sensory_bins=16;
+  size_t num_joint_sensory_bins = 16;
 
   /* number of actuator bins */
-  size_t num_actuator_bins=5;
+  size_t num_actuator_bins = 5;
 
   /* number of joint actuator bins */
-  size_t num_joint_actuator_bins=25; // assuming two actuators
+  size_t num_joint_actuator_bins = 25; // assuming two actuators
 
   /* track the frequencies of the different bins for all groups*/
   std::vector<std::vector<float>> freqs; // for each sensory state the action probabilities
@@ -512,11 +507,10 @@ class CVT_RAB_Spirit : public CVT_Spirit
 {
   // extends the CVT_Spirit class to calculate the sensory bin based on RAB sensors additionally
 public:
-  CVT_RAB_Spirit(size_t behav_dim=4600);
+  CVT_RAB_Spirit(size_t behav_dim = 4600);
 
   /*after getting outputs, can update the descriptor if needed*/
   virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
-
 };
 
 class MultiAgent_Spirit : public CVT_Spirit
@@ -667,7 +661,6 @@ public:
   virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
-
 #ifdef CAFFE_NETS
 template <typename SolverType>
 class TransitionDescriptor : public Descriptor
@@ -745,12 +738,12 @@ public:
 
 class SubjectiveHistoryDescriptor : public Descriptor
 {
-  public:
-  const size_t frequency=10;
+public:
+  const size_t frequency = 10;
   std::ofstream file_writer;
 
   /* descriptor not used for evolution but for recording state-action history*/
-  SubjectiveHistoryDescriptor(const std::string& filename);
+  SubjectiveHistoryDescriptor(const std::string &filename);
 
   /* prepare for trials*/
   virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
@@ -770,12 +763,12 @@ class SubjectiveHistoryDescriptor : public Descriptor
 
 class ObjectiveHistoryDescriptor : public Descriptor
 {
-  public:
-  const size_t frequency=10;
+public:
+  const size_t frequency = 10;
   std::ofstream file_writer;
 
   /* descriptor not used for evolution but for recording state-action history*/
-  ObjectiveHistoryDescriptor(const std::string& filename);
+  ObjectiveHistoryDescriptor(const std::string &filename);
 
   /* prepare for trials*/
   virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
@@ -799,13 +792,11 @@ class AnalysisDescriptor : public Descriptor
    */
 public:
   /* map that contains the slave desccriptors */
-  std::map<std::string,Descriptor*> slave_descriptors;
+  std::map<std::string, Descriptor *> slave_descriptors;
   size_t individual;
   std::string file_name;
   const size_t max_history_trials = 5;
-  AnalysisDescriptor(size_t individ, std::string file_n,std::map<std::string,Descriptor*> slaves);
-
-
+  AnalysisDescriptor(size_t individ, std::string file_n, std::map<std::string, Descriptor *> slaves);
 
   /* prepare for trials*/
   virtual void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
@@ -824,9 +815,37 @@ public:
 
   /* get the descriptor by its id-string and then print it to file prefixed by filename, suffixed by the descriptor name*/
   void analyse_individual(BaseEvolutionLoopFunctions &cLoopFunctions, float fFitness);
+};
 
+class IdentificationDescriptor : public Descriptor
+{
+public:
+  size_t current_robot;        // robot from which to set/get information now
+  std::vector<size_t> updates; //for each robot, how many updates
+  std::vector<float> bd_vec;
+  IdentificationDescriptor(size_t num_robots)
+  {
+    for (size_t i = 0; i < num_robots; ++i)
+    {
+      updates.push_back(0);
+      for(size_t i=0; i < 6; ++i)
+      {
+        bd_vec.push_back(0);
+      }
+    }
+  }
 
+  void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 
+  void start_trial();
+  /*after getting inputs, can update the descriptor if needed*/
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  /*end the trial*/
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  /*summarise BD at the end of trials*/
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
 #endif
