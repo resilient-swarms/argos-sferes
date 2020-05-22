@@ -1,11 +1,13 @@
 import numpy as np
+
+import matplotlib.pyplot as PLT
 ro=0.4
 
 def euclid(x,y):
     return np.sqrt(np.sum(np.square(x-y)))
 
 def k(x,y,dist=euclid):
-     return (1. + (5./ro* dist(x,y) + 5./(3.*ro**2)*dist(x,y)**2 )*(np.exp(-5./ro*dist(x,y))))
+     return (1. + (np.sqrt(5.)*dist(x,y)/ro + 5.*dist(x,y)**2 /(3.*ro**2) ))*(np.exp(-np.sqrt(5.)/ro*dist(x,y)))
 
 def K(x):
      mat=np.zeros(shape=(len(x),len(x)),dtype=float)
@@ -33,7 +35,16 @@ observations=[1.0,0.5,0.2]
 Kn=K(samples) + noise*np.identity(3)
 K_inv = np.linalg.inv(Kn)
 
+
+print(k(samples[0],samples[0]))
 print(sigma(samples[0],samples))
 print(sigma(samples[1],samples))
 print(sigma(samples[2],samples))
 print(sigma(np.array([0.1,0.1,0.1]),samples))
+
+
+x_values=np.linspace(0,1,10)
+reference=0
+y_values=[k(0,x) for x in x_values]
+PLT.plot(x_values,y_values)
+PLT.savefig("kernel.pdf")
