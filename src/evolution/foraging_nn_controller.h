@@ -69,11 +69,11 @@ public:
             return vec_joined;
         }
 
-        /* get the worker index; all 0 in the initial phase */
-        size_t get_index()
-        {
-            return initial_phase ? 0 : index;
-        }
+        // /* get the worker index; all 0 in the initial phase; not needed due to ID vector distinguishing them */
+        // size_t get_index()
+        // {
+        //     return initial_phase ? 0 : index;
+        // }
     } worker;
     std::string controller_index;
     int num_ticks_left;

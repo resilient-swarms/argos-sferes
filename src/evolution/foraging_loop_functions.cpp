@@ -91,14 +91,16 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    argos::CThymioEntity *cThym = m_pcvecRobot[0];
    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
    cController.worker = ForagingThymioNN::Worker(num_subtrials, 0);
-   cController.worker.new_sample =  opt.select_sample<ControllerEval>();
-   Eigen::VectorXd result = cController.worker.new_sample;
+   Eigen::VectorXd result = opt.select_sample<ControllerEval>();
+   cController.worker.new_sample = result.head(BEHAV_DIM);
    std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
    cController.select_net(bd, num_subtrials, ticks_per_subtrial);
    for (size_t i = 1; i < m_unNumberRobots; ++i)
    {
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+      cController.worker = ForagingThymioNN::Worker(num_subtrials, i);
+      cController.worker.new_sample = result.head(BEHAV_DIM);
       cController.select_net(bd, num_subtrials, ticks_per_subtrial);
       // reset the controller (food_items_collected,)
       //cController.Reset();// will happen automatically
@@ -159,9 +161,8 @@ void CForagingLoopFunctions::Reset()
 void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController)
 {
 
-   cController.worker.finish_trial();
    bool all_trials_finished = cController.worker.reset();
-   if (cController.worker.initial_phase &&  all_trials_finished)
+   if (cController.worker.initial_phase && all_trials_finished)
    {
       // finish descriptor
       current_robot = cController.worker.index;
@@ -171,23 +172,34 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       {
          cController.worker.F[i] = ident[i];
       }
-      cController.worker.initial_phase=false;
+      cController.worker.initial_phase = false;
    }
-   Eigen::VectorXd x = cController.worker.get_sample();
-   Eigen::VectorXd f = Eigen::VectorXd::Constant(1, cController.worker.fitness(m_unNumberRobots));
-   size_t worker_index = cController.worker.get_index();
-   cController.worker.new_sample = opt.optimize_step<ControllerEval>(x,f,worker_index, state_fun, all_trials_finished);
-   if (all_trials_finished)
+
+   if (!cController.worker.initial_phase) //update trial info
    {
-      Eigen::VectorXd result = cController.worker.new_sample;
-      std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
-      cController.select_net(bd, num_subtrials, ticks_per_subtrial);
-      std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
-      if (system(sim_cmd.c_str()) != 0)
+      Eigen::VectorXd x = cController.worker.get_sample();
+      Eigen::VectorXd f = Eigen::VectorXd::Constant(1, cController.worker.fitness(m_unNumberRobots));
+      size_t worker_index = cController.worker.index;
+      argos::LOG << "worker " << worker_index << std::endl;
+      argos::LOG << "all trials finished " << all_trials_finished << std::endl;
+      argos::LOG << "initial phase " << cController.worker.initial_phase << std::endl;
+      
+      argos::LOG.Flush();
+      x = opt.optimize_step<ControllerEval>(x, f, worker_index, state_fun, all_trials_finished);
+      if (all_trials_finished) // select new sample
       {
-         std::cerr << "Error removing nvp " << std::endl
-                   << sim_cmd << std::endl;
-         exit(-1);
+         cController.worker.new_sample = x.head(BEHAV_DIM);
+         argos::LOG << "new sample" << x << std::endl;
+         std::vector<double> bd(cController.worker.new_sample.data(),
+                                cController.worker.new_sample.data() + cController.worker.new_sample.rows() * cController.worker.new_sample.cols());
+         cController.select_net(bd, num_subtrials, ticks_per_subtrial);
+         std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
+         if (system(sim_cmd.c_str()) != 0)
+         {
+            std::cerr << "Error removing nvp " << std::endl
+                      << sim_cmd << std::endl;
+            exit(-1);
+         }
       }
    }
    // reset the controller (food_items_collected,)
@@ -582,11 +594,13 @@ void CForagingLoopFunctions::PostStep()
       --cController.num_ticks_left;
       if (cController.num_ticks_left == 0)
       {
+         cController.worker.finish_trial();
+         select_new_controller(cController);
          --cController.num_trials_left;
          cController.num_ticks_left = ticks_per_subtrial;
          if (cController.num_trials_left == 0)
          {
-            select_new_controller(cController);
+            
             cController.num_trials_left = num_subtrials;
          }
       }

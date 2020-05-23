@@ -31,8 +31,13 @@ void ForagingThymioNN::init_network()
 
 void ForagingThymioNN::select_net(std::vector<double> bd, size_t num_subtrials, size_t ticks_per_subtrial, bool init)
 {
+    for (size_t i = 0; i < global::normalID.size(); ++i)
+    {
+        bd.push_back(global::normalID[i]);
+    }
     controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
-    std::cout << "select controller " << controller_index << std::endl;
+    argos::LOG << "select controller " << controller_index << std::endl;
+    argos::LOG.Flush();
     init_network();
     num_trials_left = num_subtrials;
     num_ticks_left = ticks_per_subtrial;

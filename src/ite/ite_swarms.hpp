@@ -12,9 +12,7 @@
 using namespace limbo;
 
 const size_t max_evals = 100;
-#if HETEROGENEOUS
-    const size_t num_ID_features = 6;
-#endif
+
 #ifdef REAL_EXP
 size_t num_trials = 3;
 #else
@@ -23,17 +21,21 @@ size_t num_trials = 1; //trials done internally
 
 namespace global
 {
-std::string results_path;
-std::string hyper_results_path;
-std::ofstream hyper_log("hyperlog.txt");
-std::string argossim_bin_name;
-std::vector<std::string> argossim_config_name;
-std::string current_config;
-std::string archive_path;
-size_t num_trials;
-float original_max = -std::numeric_limits<float>::infinity();
-unsigned gen_to_load;
-unsigned behav_dim = BEHAV_DIM; // number of dimensions of MAP
+#if HETEROGENEOUS
+    const size_t num_ID_features = 6;
+    std::vector<double> normalID;
+#endif
+    std::string results_path;
+    std::string hyper_results_path;
+    std::ofstream hyper_log("hyperlog.txt");
+    std::string argossim_bin_name;
+    std::vector<std::string> argossim_config_name;
+    std::string current_config;
+    std::string archive_path;
+    size_t num_trials;
+    float original_max = -std::numeric_limits<float>::infinity();
+    unsigned gen_to_load;
+    unsigned behav_dim = BEHAV_DIM; // number of dimensions of MAP
 } // namespace global
 
 struct Params
@@ -277,8 +279,8 @@ struct RealEval
 };
 struct ControllerEval
 {
-#if HETEREOGENEOUS &! PRINT_NETWORK
-    BO_PARAM(size_t, dim_in, BEHAV_DIM + num_ID_features); //global::behav_dim
+#if HETEROGENEOUS & !PRINT_NETWORK
+    BO_PARAM(size_t, dim_in, BEHAV_DIM + global::num_ID_features); //global::behav_dim
 #else
     BO_PARAM(size_t, dim_in, BEHAV_DIM); //global::behav_dim
 #endif
@@ -330,7 +332,7 @@ double get_VE(size_t line_no, std::string VE_file)
                 numbers.push_back(num);
             }
 
-            if (numbers.size() !=3 )
+            if (numbers.size() != 3)
             {
                 throw std::runtime_error("lines in VE file should have three numbers");
             }
@@ -344,11 +346,14 @@ double get_VE(size_t line_no, std::string VE_file)
     return 0.0f;
 }
 #if HETEROGENEOUS & !PRINT_NETWORK
-Params::archiveparams::archive_t load_archive(std::string archive_name, std::vector<double> normal_ID = {0.5,0.5,0.5,0.5,0.5,0.5}, std::string VE_file = "", bool uniform = false)
+Params::archiveparams::archive_t load_archive(std::string archive_name, std::vector<double> normal_ID = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5}, std::string VE_file = "", bool uniform = false)
+{
+
+    global::normalID = normal_ID;
 #else
 Params::archiveparams::archive_t load_archive(std::string archive_name, std::string VE_file = "", bool uniform = false)
-#endif
 {
+#endif
 
     Params::archiveparams::archive_t archive;
 
@@ -395,7 +400,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
 
             Params::archiveparams::elem_archive elem;
 #if HETEROGENEOUS & !PRINT_NETWORK
-            std::vector<double> candidate(global::behav_dim + num_ID_features);
+            std::vector<double> candidate(global::behav_dim + global::num_ID_features);
 #else
             std::vector<double> candidate(global::behav_dim);
 #endif
@@ -433,26 +438,24 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
                             // do nothing yet except increment the average
                             avg += data;
                         }
-                        else{
+                        else
+                        {
                             elem.fit = data;
                         }
-                            
                     }
-
                 }
                 else
                 {
                     throw std::runtime_error("not possible value of i");
                 }
             }
-#if HETEROGENEOUS  & !PRINT_NETWORK
-            for (size_t c=0; c < normal_ID.size(); ++c )
+#if HETEROGENEOUS & !PRINT_NETWORK
+            for (size_t c = 0; c < normal_ID.size(); ++c)
             {
                 candidate[global::behav_dim + c] = normal_ID[c];
             }
 #endif
             archive[candidate] = elem;
-
 
             ++line_no;
         }
@@ -466,19 +469,19 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
     std::cout << archive.size() << " elements loaded" << std::endl;
     if (uniform)
     {
-        avg/=(float)archive.size();
+        avg /= (float)archive.size();
         std::cout << "uniform prior with avg = " << avg << std::endl;
         for (Params::archiveparams::archive_t::iterator iter = archive.begin();
              iter != archive.end(); ++iter)
         {
-            iter->second.fit = avg;// set to the average across the archive
+            iter->second.fit = avg; // set to the average across the archive
         }
     }
     return archive;
 }
 
 std::string print_individual_to_network(std::vector<double> bd,
-                                 Params::archiveparams::archive_t &archive)
+                                        Params::archiveparams::archive_t &archive)
 {
 
     /*size_t lastindex = archive_name.find_last_of(".");
@@ -505,8 +508,6 @@ std::string print_individual_to_network(std::vector<double> bd,
     return std::to_string(ctrl_index);
 }
 
-
-
 void rename_folder(std::string oldname, std::string newname)
 {
 
@@ -526,9 +527,7 @@ void rename_folder(std::string oldname, std::string newname)
     //    perror("Error renaming file");
 }
 
-
 Params::archiveparams::archive_t Params::archiveparams::archive;
-
 
 #ifdef HETEROGENEOUS
 typedef kernel::MaternFiveHalves<Params> Kernel_t;
