@@ -1,7 +1,7 @@
 import numpy as np
 
 import matplotlib.pyplot as PLT
-ro=0.4
+ro=0.01
 
 def euclid(x,y):
     return np.sqrt(np.sum(np.square(x-y)))
@@ -29,7 +29,7 @@ def sigma(x,samp):
     return k(x,x) - small_k(x,samp).dot(K_inv).dot(small_k(x,samp,True))
 
 
-noise=0.001
+noise=0.01
 samples=[np.array([0,0.50,1.0]),np.array([1.0,0.45,1.0]),np.array([0.0,0.50,0.0])]
 observations=[1.0,0.5,0.2]
 Kn=K(samples) + noise*np.identity(3)
@@ -37,14 +37,16 @@ K_inv = np.linalg.inv(Kn)
 
 
 print(k(samples[0],samples[0]))
-print(sigma(samples[0],samples))
-print(sigma(samples[1],samples))
-print(sigma(samples[2],samples))
-print(sigma(np.array([0.1,0.1,0.1]),samples))
+print("sigma "  + str(sigma(samples[0],samples)))
+print("sigma "  + str(sigma(samples[1],samples)))
+print("sigma "  + str(sigma(samples[2],samples)))
+print("sigma "  + str(sigma(np.array([0.1,0.1,0.1]),samples)))
 
 
-x_values=np.linspace(0,1,10)
+x_values=np.linspace(0,1,100)
 reference=0
 y_values=[k(0,x) for x in x_values]
 PLT.plot(x_values,y_values)
 PLT.savefig("kernel.pdf")
+
+

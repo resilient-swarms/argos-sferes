@@ -49,7 +49,6 @@ public:
             if (trials_completed == max_trials)
             {
                 trials_completed = 0;
-                initial_phase=false;
                 return true;
             }
             else

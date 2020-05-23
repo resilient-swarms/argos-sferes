@@ -32,7 +32,8 @@ int main(int argc, char **argv)
     global::archive_path = std::string(argv[2]);
     global::gen_to_load = std::atoi(argv[3]);
     global::results_path = std::string(argv[4]);
-    Params::archiveparams::archive = load_archive(global::archive_path + "/archive_" + std::to_string(global::gen_to_load) + ".dat");
+    std::vector<double> normal_ID = {0.5,0.5,0.5,0.5,0.5,0.5};
+    Params::archiveparams::archive = load_archive(global::archive_path + "/archive_" + std::to_string(global::gen_to_load) + ".dat",normal_ID);
 #endif
 
     std::cout << "TAG = " << TAG << std::endl;

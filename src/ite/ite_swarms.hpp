@@ -12,7 +12,9 @@
 using namespace limbo;
 
 const size_t max_evals = 100;
-
+#if HETEROGENEOUS
+    const size_t num_ID_features = 6;
+#endif
 #ifdef REAL_EXP
 size_t num_trials = 3;
 #else
@@ -275,7 +277,11 @@ struct RealEval
 };
 struct ControllerEval
 {
+#if HETEREOGENEOUS &! PRINT_NETWORK
+    BO_PARAM(size_t, dim_in, BEHAV_DIM + num_ID_features); //global::behav_dim
+#else
     BO_PARAM(size_t, dim_in, BEHAV_DIM); //global::behav_dim
+#endif
     BO_PARAM(size_t, dim_out, 1);
 
     // the function to be optimized
@@ -337,8 +343,11 @@ double get_VE(size_t line_no, std::string VE_file)
     throw std::runtime_error("line_no not reached !");
     return 0.0f;
 }
-
+#if HETEROGENEOUS & !PRINT_NETWORK
+Params::archiveparams::archive_t load_archive(std::string archive_name, std::vector<double> normal_ID = {0.5,0.5,0.5,0.5,0.5,0.5}, std::string VE_file = "", bool uniform = false)
+#else
 Params::archiveparams::archive_t load_archive(std::string archive_name, std::string VE_file = "", bool uniform = false)
+#endif
 {
 
     Params::archiveparams::archive_t archive;
@@ -385,7 +394,11 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
                 init_i = 1;
 
             Params::archiveparams::elem_archive elem;
+#if HETEROGENEOUS & !PRINT_NETWORK
+            std::vector<double> candidate(global::behav_dim + num_ID_features);
+#else
             std::vector<double> candidate(global::behav_dim);
+#endif
             for (size_t i = 0; i < (global::behav_dim + 1 + 1); i++)
             {
                 double data = numbers[init_i + i];
@@ -432,7 +445,14 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
                     throw std::runtime_error("not possible value of i");
                 }
             }
+#if HETEROGENEOUS  & !PRINT_NETWORK
+            for (size_t c=0; c < normal_ID.size(); ++c )
+            {
+                candidate[global::behav_dim + c] = normal_ID[c];
+            }
+#endif
             archive[candidate] = elem;
+
 
             ++line_no;
         }
