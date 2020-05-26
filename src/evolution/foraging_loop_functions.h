@@ -22,8 +22,27 @@ public:
     size_t ticks_per_subtrial;
     Opt_t opt;
     ControllerEval state_fun; //state function; just for its parameters
-
+    std::string stop_crit;
+    
     //std::string network_config, network_binary, archive_file;
+    bool stop_criterion(ForagingThymioNN &cController)
+    {
+        
+        if (stop_crit=="both")
+        {
+            return  cController.collision_stop() || cController.reward_stop();
+        }
+        else if(stop_crit=="collision")
+        {
+            return  cController.collision_stop();
+        }
+        else if (stop_crit=="reward"){
+            return cController.reward_stop();
+        }
+        else{
+            return true;
+        }
+    }
     void select_new_controller(ForagingThymioNN &cController);
 #endif
     const float nest_x = 0.32;

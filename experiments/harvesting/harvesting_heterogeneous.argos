@@ -56,8 +56,8 @@
 		  num_subtrials="2"
 		  network_binary="bin/BO3DREAL"
 		  network_config="experiments/harvesting/harvesting_printnetwork.argos"
-		  archive_path="/home/david/Data/Foraging/history/results1"
-		  generation="20000"
+		  stop="collision"
+		  
                     />
 
   <!-- *********************** -->

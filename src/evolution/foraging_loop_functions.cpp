@@ -82,7 +82,15 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    }
    catch (CARGoSException &ex)
    {
-      THROW_ARGOSEXCEPTION_NESTED("Error initializing networkd binary", ex);
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing network binary", ex);
+   }
+   try
+   {
+      GetNodeAttribute(t_node, "stop", stop_crit);
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing stopping criterion", ex);
    }
 
    // select new controller now
@@ -592,16 +600,18 @@ void CForagingLoopFunctions::PostStep()
 #ifdef HETEROGENEOUS
       // subtract tick; check if trial has finished; if so, get a new sample from BO and initialise new network
       --cController.num_ticks_left;
-      if (cController.num_ticks_left == 0)
+      bool stop = stop_criterion(cController);
+      if (stop || cController.num_ticks_left == 0 )
       {
-         cController.worker.finish_trial();
+         cController.worker.finish_trial(stop);
          select_new_controller(cController);
          --cController.num_trials_left;
          cController.num_ticks_left = ticks_per_subtrial;
-         if (cController.num_trials_left == 0)
+         if (stop || cController.num_trials_left == 0)
          {
             
             cController.num_trials_left = num_subtrials;
+            cController.reset_stopvals();
          }
       }
 

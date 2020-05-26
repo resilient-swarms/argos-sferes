@@ -14,8 +14,6 @@
 #include "src/core/base_controller.h"
 #include "src/evolution/serialisation_functions.hpp"
 
-
-
 /*
  * All the ARGoS stuff in the 'argos' namespace.
  * With this statement, you save typing argos:: every time.
@@ -25,10 +23,11 @@
 /*
  * A controller is simply an implementation of the CCI_Controller class.
  */
-class ForagingThymioNN : public BaseController {
+class ForagingThymioNN : public BaseController
+{
 
 public:
-#if  HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS & !PRINT_NETWORK
     struct Worker
     {
         bool initial_phase;
@@ -36,12 +35,19 @@ public:
         size_t index;
         Eigen::VectorXd new_sample, F;
         size_t numFoodCollected = 0;
-        Worker(){}
-        Worker(size_t trials,size_t i) : max_trials(trials), trials_completed(0), index(i), initial_phase(true){};
+        Worker() {}
+        Worker(size_t trials, size_t i) : max_trials(trials), trials_completed(0), index(i), initial_phase(true){};
         /* call from outside limbo */
-        void finish_trial()
+        void finish_trial(bool stop)
         {
-            ++trials_completed;
+            if (stop)
+            {
+                trials_completed=max_trials;
+            }
+            else
+            {
+                ++trials_completed;
+            }
         }
         /* call inside the optimization_step if a worker has finished trial */
         bool reset()
@@ -59,7 +65,7 @@ public:
         /* convert food collected to fitness consistent with map */
         double fitness(size_t num_workers)
         {
-            return numFoodCollected*(float) num_workers;
+            return numFoodCollected * (float)num_workers;
         }
         /* get the sample with the identification */
         Eigen::VectorXd get_sample()
@@ -78,27 +84,49 @@ public:
     std::string controller_index;
     int num_ticks_left;
     int num_trials_left;
-    
-    void select_net(std::vector<double> bd,size_t num_subtrials, size_t ticks_per_subtrial, bool init=false);
+    float collision_value = 0.0,  reward_value=0.0f;  // running average of collision (1/0)
+    float maximum_performance;    // maximum performance (avg over trials) so far for all controllers
+    float norm_trial_performance; // performance of normal controller on single trial
+    bool collision_stop()
+    {
+        if(worker.initial_phase)
+        {
+            return false;// always finish complete identif. phase
+        }
+        float collision_thresh = 0.90;
+        return collision_value > collision_thresh;
+    }
+    bool reward_stop()
+    {
+        // float collision_thresh = 0.80;
+        // return cController.reward_value < reward_thresh;
+        return false; //not yet implemented
+    }
+    void reset_stopvals()
+    {
+        collision_value=0.0f;
+        reward_value=0.0f;
+    }
+    void select_net(std::vector<double> bd, size_t num_subtrials, size_t ticks_per_subtrial, bool init = false);
 #endif
-   bool  holdingFood=false;
-   int foodID=-1;// index used to track the "SOFTWARE_FOOD" fault
+    bool holdingFood = false;
+    int foodID = -1; // index used to track the "SOFTWARE_FOOD" fault
 
-   
-   ForagingThymioNN();
-   virtual ~ForagingThymioNN();
+    ForagingThymioNN();
+    virtual ~ForagingThymioNN();
 
-   virtual void ControlStep();
-   virtual void Reset() {
-        holdingFood=false;
+    virtual void ControlStep();
+    virtual void Reset()
+    {
+        holdingFood = false;
 #if HETEROGENEOUS & !PRINT_NETWORK
         worker.numFoodCollected = 0;
 #endif
     };
-   virtual void Destroy(){};
-   virtual void init_sensact(argos::TConfigurationNode& t_node);
-   virtual void init_fault_config(TConfigurationNode &t_node);
-   void init_network();
+    virtual void Destroy(){};
+    virtual void init_sensact(argos::TConfigurationNode &t_node);
+    virtual void init_fault_config(TConfigurationNode &t_node);
+    void init_network();
     std::vector<Real> GetNormalizedSensorReadings();
 
     std::vector<float> inputs;

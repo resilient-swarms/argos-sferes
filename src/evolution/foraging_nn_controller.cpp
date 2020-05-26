@@ -88,9 +88,26 @@ std::vector<Real> ForagingThymioNN::GetNormalizedSensorReadings()
     std::cout << "Ground read " << tGroundReads << std::endl;
 
 #endif
+
+#if HETEROGENEOUS & !PRINT_NETWORK
+    float collided=0.0f;
+#endif
+
     //m_pcLeds->SetProxHIntensity(tProxReads);// don't need it; maybe useful for debugging
     for (UInt8 i = 0; i < tProxReads.size(); ++i)
+    {
         norm_readings.push_back((1.0f - tProxReads[i].Value) * 2.0f - 1.0f);
+#if HETEROGENEOUS & !PRINT_NETWORK
+        if (tProxReads[i].Value > 0.90)
+        {
+            collided=1.0f;
+        }
+    }
+    collision_value = 0.95 * collision_value + 0.05 * collided;
+
+#else
+    }
+#endif
 
     for (UInt8 i = 0; i < tGroundReads.size(); ++i)
     {
