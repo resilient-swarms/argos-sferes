@@ -4,7 +4,12 @@
 
 #include <limbo/limbo.hpp>
 
+#ifdef HETEROGENEOUS
+#include <src/ite/exhaustive_constrained_search.hpp>
+
+#else
 #include <src/ite/exhaustive_search_archive.hpp>
+#endif
 #include <src/ite/mean_archive.hpp>
 #include <stdio.h>
 #include <map>
@@ -118,17 +123,26 @@ struct Params
             /* to sort the std::map */
             bool operator()(const std::vector<double> &lhs, const std::vector<double> &rhs) const
             {
-                assert(lhs.size() == global::behav_dim && rhs.size() == global::behav_dim);
+#if HETEROGENEOUS
+                size_t dim = global::behav_dim + global::num_ID_features;
+#else
+                size_t dim = global::behav_dim;
+#endif
+                assert(lhs.size() == rhs.size() && lhs.size() == dim);
                 size_t i = 0;
-                while (i < (global::behav_dim - 1) && std::round(lhs[i] * 100.0) / 100.0 == std::round(rhs[i] * 100.0) / 100.0) //lhs[i]==rhs[i])
+                while (i < dim - 1 && std::round(lhs[i] * 100.0) / 100.0 == std::round(rhs[i] * 100.0) / 100.0) //lhs[i]==rhs[i])
                     i++;
                 return std::round(lhs[i] * 100.0) / 100.0 < std::round(rhs[i] * 100.0) / 100.0; //lhs[i]<rhs[i];
             }
         };
         typedef std::map<std::vector<double>, elem_archive, classcomp> archive_t;
         static std::map<std::vector<double>, elem_archive, classcomp> archive;
+#ifdef HETEROGENEOUS
+        static std::map<std::vector<double>, elem_archive, classcomp> old_archive;
+#endif
     };
 };
+typedef typename Params::archiveparams::archive_t::const_iterator archive_it_t;
 
 Params::archiveparams::archive_t load_archive(std::string archive_name, std::string VE_file, bool uniform);
 
@@ -454,6 +468,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
             {
                 candidate[global::behav_dim + c] = normal_ID[c];
             }
+            elem.behav_descriptor = candidate;
 #endif
             archive[candidate] = elem;
 
@@ -478,6 +493,23 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
         }
     }
     return archive;
+}
+
+void fill_map_with_identifier(std::vector<float> ident)
+{
+    std::cout << "Map was size " << Params::archiveparams::archive.size()<< std::endl;
+    for (archive_it_t it = Params::archiveparams::old_archive.begin(); it != Params::archiveparams::old_archive.end(); ++it)
+    {
+        std::vector<double> bd = it->first;
+        for (size_t i = 0; i < ident.size(); ++i)
+        {
+            bd[BEHAV_DIM + i] = (double)ident[i];
+        }
+        Params::archiveparams::elem_archive elem = it->second;
+        elem.behav_descriptor = bd;
+        Params::archiveparams::archive[bd] = elem;
+    }
+    std::cout << "Map is now size " <<  Params::archiveparams::archive.size() << std::endl;
 }
 
 std::string print_individual_to_network(std::vector<double> bd,
@@ -530,8 +562,9 @@ void rename_folder(std::string oldname, std::string newname)
 Params::archiveparams::archive_t Params::archiveparams::archive;
 
 #ifdef HETEROGENEOUS
+Params::archiveparams::archive_t Params::archiveparams::old_archive;
 typedef kernel::MaternFiveHalves<Params> Kernel_t;
-typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
+typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
 //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
 typedef mean::MeanArchive<Params> Mean_t;
 // here, GPArchive, a custom module, writes the maps after each iteration

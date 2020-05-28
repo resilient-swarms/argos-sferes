@@ -99,7 +99,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    argos::CThymioEntity *cThym = m_pcvecRobot[0];
    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
    cController.worker = ForagingThymioNN::Worker(num_subtrials, 0);
-   Eigen::VectorXd result = opt.select_sample<ControllerEval>();
+   Eigen::VectorXd result = opt.select_sample<ControllerEval>({});
    cController.worker.new_sample = result.head(BEHAV_DIM);
    std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
    cController.select_net(bd, num_subtrials, ticks_per_subtrial);
@@ -120,6 +120,8 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
                 << sim_cmd << std::endl;
       exit(-1);
    }
+   Params::archiveparams::old_archive = Params::archiveparams::archive;// this old archive will now just be auxiliary
+   Params::archiveparams::archive = {};
 #endif
 }
 
@@ -181,6 +183,8 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
          cController.worker.F[i] = ident[i];
       }
       cController.worker.initial_phase = false;
+      // fill the map with corresponding identification vector
+      fill_map_with_identifier(ident);
    }
 
    if (!cController.worker.initial_phase) //update trial info
@@ -198,8 +202,7 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       {
          cController.worker.new_sample = x.head(BEHAV_DIM);
          argos::LOG << "new sample" << x << std::endl;
-         std::vector<double> bd(cController.worker.new_sample.data(),
-                                cController.worker.new_sample.data() + cController.worker.new_sample.rows() * cController.worker.new_sample.cols());
+         std::vector<double> bd(x.data(), x.data() + x.rows() * x.cols());
          cController.select_net(bd, num_subtrials, ticks_per_subtrial);
          std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
          if (system(sim_cmd.c_str()) != 0)
