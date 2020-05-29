@@ -561,9 +561,10 @@ void rename_folder(std::string oldname, std::string newname)
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
 
-#ifdef HETEROGENEOUS
+#if HETEROGENEOUS
 Params::archiveparams::archive_t Params::archiveparams::old_archive;
-typedef kernel::MaternFiveHalves<Params> Kernel_t;
+
+typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
 typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
 //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
 typedef mean::MeanArchive<Params> Mean_t;
