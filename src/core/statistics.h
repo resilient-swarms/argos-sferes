@@ -123,6 +123,11 @@ class RunningStat
 
         return n > 1 ? _S / (float)(n - 1) : _M * _M;
     }
+    float standard_error()
+    {
+
+        return var()/(float) n;
+    }
     float std()
     {
         return sqrt(var());
