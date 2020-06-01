@@ -111,7 +111,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       cController.worker.new_sample = result.head(BEHAV_DIM);
       cController.select_net(bd, num_subtrials, ticks_per_subtrial);
       // reset the controller (food_items_collected,)
-      //cController.Reset();// will happen automatically
+      cController.Reset();
    }
    std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
    if (system(sim_cmd.c_str()) != 0)
@@ -186,18 +186,18 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       // fill the map with corresponding identification vector
       fill_map_with_identifier(ident);
    }
-
+   opt.push_fitness(cController.worker.index, cController.worker.fitness(m_unNumberRobots));
    if (!cController.worker.initial_phase) //update trial info
    {
       Eigen::VectorXd x = cController.worker.get_sample();
-      Eigen::VectorXd f = Eigen::VectorXd::Constant(1, cController.worker.fitness(m_unNumberRobots));
+      
       size_t worker_index = cController.worker.index;
       argos::LOG << "worker " << worker_index << std::endl;
       argos::LOG << "all trials finished " << all_trials_finished << std::endl;
       argos::LOG << "initial phase " << cController.worker.initial_phase << std::endl;
       
       argos::LOG.Flush();
-      x = opt.optimize_step<ControllerEval>(x, f, worker_index, state_fun, all_trials_finished);
+      x = opt.optimize_step<ControllerEval>(x, worker_index, state_fun, all_trials_finished);
       if (all_trials_finished) // select new sample
       {
          cController.worker.new_sample = x.head(BEHAV_DIM);

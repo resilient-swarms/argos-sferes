@@ -43,6 +43,7 @@ public:
             if (stop)
             {
                 trials_completed=max_trials;
+                
             }
             else
             {
@@ -62,7 +63,9 @@ public:
                 return false;
             }
         }
-        /* convert food collected to fitness consistent with map */
+        /* at the end of trial, convert food collected to fitness consistent with map;
+            also reset the number of foods collected for the next trial
+         */
         double fitness(size_t num_workers)
         {
             return numFoodCollected * (float)num_workers;
