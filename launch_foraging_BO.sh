@@ -17,10 +17,10 @@ elif [ "$run_type" = "virtual_single" ]; then
     SimTime=960
     trials=1
 elif [ "$run_type" = "BO_single" ]; then
-    UseVirtual="True"
+    UseVirtual="False"
 	TopOutputFolder="single_exp"
     command="bin/behaviour_evol"
-    SimTime=96000   # 960*max_evals=96,000
+    SimTime=28800   # 960*max_evals=28,800 with 30 evals
     trials=1
     ticks_per_subtrial=600 #120*5
 	num_subtrials=8
@@ -130,8 +130,10 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
             else
                 if [ "$run_type" = "BO_single" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
+                    bd="identification"
                 else
                     tag=BO${CVT}${BD_DIMS}DREAL
+                    bd=${DescriptorType}
                 fi
                 SwarmBehaviour="/"
                 sleep 5
@@ -218,7 +220,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
                         -e "s|SEED|${Replicates}|" \
                         -e "s|FITFUN_TYPE|${FitfunType}|" \
-                        -e "s|DESCRIPTOR_TYPE|${DescriptorType}|" \
+                        -e "s|DESCRIPTOR_TYPE|${bd}|" \
                         -e "s|OUTPUTFOLDER|${Outfolder}|" \
                         -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                         -e "s|SENSOR_RANGE|0.11|" \

@@ -6,7 +6,9 @@
 #SBATCH --job-name=map_evaluation
 
 
-jobtocome="${COMMAND} ${ConfigFile} ${ArchiveFolder} ${Generation} ${BO_OutputFolder} -d ${BO_OutputFolder}"
+jobtocome="${COMMAND} ${ConfigFile} ${ArchiveFolder} ${Generation} ${BO_OutputFolder} -d ${BO_OutputFolder} --load \
+        ${ArchiveFolder}/gen_${Generation} -n 2713 -o outputfile"
+      
 
 echo "Starting the following command: "${jobtocome}
 ulimit -c 0

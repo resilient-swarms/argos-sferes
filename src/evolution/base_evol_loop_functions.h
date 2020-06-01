@@ -49,9 +49,7 @@ public:
     typedef CThymioNNController ControllerType;
 #endif
 
-#if HETEROGENEOUS &! PRINT_NETWORK
     size_t current_robot;
-#endif
     BaseEvolutionLoopFunctions();
     virtual ~BaseEvolutionLoopFunctions();
     virtual std::string get_controller_id()
