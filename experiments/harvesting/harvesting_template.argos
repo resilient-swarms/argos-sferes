@@ -16,8 +16,8 @@
   <!-- *************** -->
   <controllers>
 
-    <foraging_nn_controller id="tnn"
-                               library="lib/libforaging_nn_controller.so">
+    <foraging_nn_controllerBEHAVIOUR_TAG id="tnn"
+                               library="lib/libforaging_nn_controllerBEHAVIOUR_TAG.so">
       <actuators>
         <differential_steering implementation="default" />
 	<!-- <thymio_led            implementation="default" medium="leds"/>   -->
@@ -35,7 +35,7 @@
      />
         
       </params>  
-      </foraging_nn_controller>
+      </foraging_nn_controllerBEHAVIOUR_TAG>
   </controllers>
 
   <!-- ****************** -->
@@ -51,6 +51,11 @@
                 centroids_folder="CENTROIDSFOLDER"
 		  use_virtual="USE_VIRTUAL"
 		  track_stats="TRACK_STATS"
+		  ticks_per_subtrial="TICKS_PER_SUB"
+		  num_subtrials="NUM_SUB"
+		  network_binary="NETWORK_BINARY"
+		  network_config="NETWORK_CONFIG"
+		  stop="STOP"
                     />
 
   <!-- *********************** -->

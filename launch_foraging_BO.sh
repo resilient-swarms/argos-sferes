@@ -13,15 +13,20 @@ if [ "$run_type" = "virtual" ]; then
 elif [ "$run_type" = "virtual_single" ]; then
     UseVirtual="True"
 	TopOutputFolder="virtual_energy_exp"
-    command="bin/ite_swarms_"
+    command="bin/behaviour_evol"
     SimTime=960
     trials=1
 elif [ "$run_type" = "BO_single" ]; then
     UseVirtual="True"
 	TopOutputFolder="single_exp"
-    command="bin/ite_swarms_"
-    SimTime=960
+    command="bin/behaviour_evol"
+    SimTime=96000   # 960*max_evals=96,000
     trials=1
+    ticks_per_subtrial=600 #120*5
+	num_subtrials=8
+	network_binary=bin/BO3DREAL
+    network_config=experiments/harvesting/harvesting_printnetwork.argos
+	stop=collision
 elif [ "$run_type" = "uniform" ]; then
 	TopOutputFolder="uniform"
     command="bin/ite_swarms_uniform_"
@@ -123,7 +128,11 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                 echo "SwarmBehaviour = "${SwarmBehaviour}
                 sleep 5
             else
-                tag=BO${CVT}${BD_DIMS}DREAL
+                if [ "$run_type" = "BO_single" ]; then
+                    tag=${CVT}${BD_DIMS}DREAL
+                else
+                    tag=BO${CVT}${BD_DIMS}DREAL
+                fi
                 SwarmBehaviour="/"
                 sleep 5
             fi
@@ -191,7 +200,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
                     Outfolder=${ConfigFolder}/results${SUFFIX}/${TopOutputFolder}
                     echo "Outfolder ${Outfolder}"
-                    if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ]
+                    if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ] \
                     || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else 
@@ -221,6 +230,11 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|FOOD_ID|${food}|" \
                         -e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
                         -e "s|USE_VIRTUAL|${UseVirtual}|" \
+                        -e "s|TICKS_PER_SUB|${ticks_per_subtrial}|" \
+		                -e "s|NUM_SUB|${num_subtrials}|" \
+		                -e "s|NETWORK_BINARY|${network_binary}|" \
+                        -e "s|NETWORK_CONFIG|${network_config}|" \
+		                -e "s|STOP|${stop}|" \
                         experiments/harvesting/harvesting_template.argos \
                         >${ConfigFile}
 
@@ -234,8 +248,16 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     export BO_Executable=${bo_executable}${tag}
                     export ConfigFile
 
-                    echo "submitting ite job"
-                    bash submit_ite.sh
+                   
+                    if [ "$run_type" = "BO_single" ];then
+                         echo "submitting single job"
+                         sleep 10
+                        bash submit_single.sh
+                    else
+                        echo "submitting ite job"
+                        sleep 10
+                        bash submit_ite.sh
+                    fi
                 done
             done
         done
