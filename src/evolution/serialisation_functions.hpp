@@ -16,7 +16,7 @@ using namespace robots_nn;
 
 class NNSerialiser {
 private:
-    std::string savefile = "BOOST_SERIALIZATION_NVP";
+    std::string savefile;
 public:
     NNSerialiser(){};
     NNSerialiser(std::string name)
@@ -28,7 +28,7 @@ public:
     /// save data (neural network) to text archive file (must be implemented in the header)
     template<typename Indiv>
     void Save(Indiv &ind) {
-	std::cout<<"Serialising individual"<<std::endl;
+	    std::cout<<"Serialising individual"<<std::endl;
         std::ofstream ofs(savefile.c_str());
         text_oarchive oa(ofs);
         /// save genotype to text archive file

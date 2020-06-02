@@ -12,7 +12,6 @@
 using namespace std::chrono; 
   
 
-
 namespace sferes
 {
 // ********** Main Class ***********
@@ -72,7 +71,7 @@ FIT_MAP(FitObstacleMapElites){
             std::ofstream ofs("nn.dot");
             ind.nn().write(ofs);
             std::cout << "Finish writing network" << std::endl;
-            NNSerialiser ser = NNSerialiser();
+            NNSerialiser ser = NNSerialiser(cLoopFunctions.savefile);
             ser.Save<Indiv>(ind);
             #ifdef PRINT_NETWORK // use either just to print a network or else not interested in the full trial's outcome
                 return;

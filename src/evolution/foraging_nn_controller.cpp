@@ -10,6 +10,10 @@
 
 #endif
 
+#if PRINT_NETWORK
+#include <src/evolution/serialisation_functions.hpp>
+#endif
+
 /****************************************/
 /****************************************/
 
@@ -22,8 +26,10 @@ ForagingThymioNN::ForagingThymioNN()
 
 void ForagingThymioNN::init_network()
 {
-    NNSerialiser ser = NNSerialiser();
+    std::cout << "loading network" << savefile << std::endl;
+    NNSerialiser ser = NNSerialiser(savefile);
     nn = ser.Load();
+    std::cout << "init network" << std::endl;
     nn.init();
 }
 
@@ -90,7 +96,7 @@ std::vector<Real> ForagingThymioNN::GetNormalizedSensorReadings()
 #endif
 
 #if HETEROGENEOUS & !PRINT_NETWORK
-    float collided=0.0f;
+    float collided = 0.0f;
 #endif
 
     //m_pcLeds->SetProxHIntensity(tProxReads);// don't need it; maybe useful for debugging
@@ -100,7 +106,7 @@ std::vector<Real> ForagingThymioNN::GetNormalizedSensorReadings()
 #if HETEROGENEOUS & !PRINT_NETWORK
         if (tProxReads[i].Value > 0.90)
         {
-            collided=1.0f;
+            collided = 1.0f;
         }
     }
     collision_value = 0.95 * collision_value + 0.05 * collided;
@@ -154,6 +160,16 @@ void ForagingThymioNN::init_fault_config(TConfigurationNode &t_node)
     {
         THROW_ARGOSEXCEPTION_NESTED("Error initializing type of experiment to run, and fault to simulate.", ex);
     }
+#ifndef PRINT_NETWORK
+    try
+    {
+        GetNodeAttribute(sub_node, "savefile", savefile);
+    }
+    catch (CARGoSException &ex)
+    {
+        THROW_ARGOSEXCEPTION_NESTED("Error initializing type of experiment to run, and fault to simulate.", ex);
+    }
+#endif
     foodID = std::stoi(food_id);
     BaseController::init_fault_config(t_node);
 }

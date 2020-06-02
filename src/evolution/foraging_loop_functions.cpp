@@ -48,6 +48,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error in virtual init ", ex);
    }
+
 #if HETEROGENEOUS & !PRINT_NETWORK
    try
    {
@@ -113,14 +114,14 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       // reset the controller (food_items_collected,)
       cController.Reset();
    }
-   std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
+   std::string sim_cmd = "rm " + cController.savefile;
    if (system(sim_cmd.c_str()) != 0)
    {
       std::cerr << "Error removing nvp " << std::endl
                 << sim_cmd << std::endl;
       exit(-1);
    }
-   Params::archiveparams::old_archive = Params::archiveparams::archive;// this old archive will now just be auxiliary
+   Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
    Params::archiveparams::archive = {};
 #endif
 }
@@ -190,12 +191,12 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
    if (!cController.worker.initial_phase) //update trial info
    {
       Eigen::VectorXd x = cController.worker.get_sample();
-      
+
       size_t worker_index = cController.worker.index;
       argos::LOG << "worker " << worker_index << std::endl;
       argos::LOG << "all trials finished " << all_trials_finished << std::endl;
       argos::LOG << "initial phase " << cController.worker.initial_phase << std::endl;
-      
+
       argos::LOG.Flush();
       x = opt.optimize_step<ControllerEval>(x, worker_index, state_fun, all_trials_finished);
       if (all_trials_finished) // select new sample
@@ -204,7 +205,7 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
          argos::LOG << "new sample" << x << std::endl;
          std::vector<double> bd(x.data(), x.data() + x.rows() * x.cols());
          cController.select_net(bd, num_subtrials, ticks_per_subtrial);
-         std::string sim_cmd = "rm BOOST_SERIALIZATION_NVP";
+         std::string sim_cmd = "rm " + cController.savefile;
          if (system(sim_cmd.c_str()) != 0)
          {
             std::cerr << "Error removing nvp " << std::endl
@@ -604,7 +605,7 @@ void CForagingLoopFunctions::PostStep()
       // subtract tick; check if trial has finished; if so, get a new sample from BO and initialise new network
       --cController.num_ticks_left;
       bool stop = stop_criterion(cController);
-      if (stop || cController.num_ticks_left == 0 )
+      if (stop || cController.num_ticks_left == 0)
       {
          cController.worker.finish_trial(stop);
          select_new_controller(cController);
@@ -612,7 +613,7 @@ void CForagingLoopFunctions::PostStep()
          cController.num_ticks_left = ticks_per_subtrial;
          if (stop || cController.num_trials_left == 0)
          {
-            
+
             cController.num_trials_left = num_subtrials;
             cController.reset_stopvals();
          }

@@ -24,10 +24,13 @@ int main(int argc, char **argv)
     cSimulator.LoadExperiment();
 
     static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
+
+
 #ifdef CVT
     EAParams::ea::centroids = load_centroids(cLoopFunctions.centroids_folder + "/centroids_" + std::to_string(EAParams::ea::number_of_clusters) + "_" + std::to_string(EAParams::ea::number_of_dimensions) + ".dat");
 #endif
 #ifdef PRINT_NETWORK
+    cLoopFunctions.savefile=cLoopFunctions.output_folder+"/BOOST_SERIALIZATION_NVP";
     configure_and_run_ea<serial_ea_t>(argc, argv);
 #ifdef RECORD_FIT
     throw std::runtime_error("do not use RECORD_FIT if printing network");

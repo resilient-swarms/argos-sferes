@@ -203,6 +203,7 @@ public:
 #endif
 
 public:
+    std::string savefile;
     bool stop_eval;
     CRandom::CRNG *m_pcRNG;
     float tick_time;

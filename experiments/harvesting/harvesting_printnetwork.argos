@@ -34,6 +34,7 @@
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" 
 			id_food_source="-1"
+
 	/>
         
       </params>      

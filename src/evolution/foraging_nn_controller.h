@@ -114,7 +114,7 @@ public:
 #endif
     bool holdingFood = false;
     int foodID = -1; // index used to track the "SOFTWARE_FOOD" fault
-
+    std::string savefile;
     ForagingThymioNN();
     virtual ~ForagingThymioNN();
 
