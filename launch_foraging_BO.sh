@@ -235,15 +235,16 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|TICKS_PER_SUB|${ticks_per_subtrial}|" \
 		                -e "s|NUM_SUB|${num_subtrials}|" \
 		                -e "s|NETWORK_BINARY|${network_binary}|" \
-                        -e "s|NETWORK_CONFIG|${BO_OutputFolder}/${network_config}|" \
+                        -e "s|NETWORK_CONFIG|${Outfolder}/${network_config}|" \
 		                -e "s|STOP|${stop}|" \
                         experiments/harvesting/harvesting_template.argos \
                         >${ConfigFile}
                         if [ ! -z "${network_config}" ]; then
-                            sed -e "s|OUTPUTFOLDER|${BO_OutputFolder}/${network_config}|" \
+                            touch ${Outfolder}/${network_config}
+			    sed -e "s|OUTPUTFOLDER|${BO_OutputFolder}|" \
                                 -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                                 experiments/harvesting/harvesting_printnetwork_template.argos \
-                                >${BO_OutputFolder}/${network_config}
+                                > ${Outfolder}/${network_config}
                         fi 
                     if [ ! -z "${CVT}" ]; then
                         echo ${CVT}
@@ -259,7 +260,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     if [ "$run_type" = "BO_single" ];then
                          echo "submitting single job"
                          sleep 10
-                        bash submit_single.sh
+                        sbatch submit_single.sh
                     else
                         echo "submitting ite job"
                         sleep 10
