@@ -56,6 +56,7 @@
 		  network_binary="NETWORK_BINARY"
 		  network_config="NETWORK_CONFIG"
 		  stop="STOP"
+		  savefile="OUTPUTFOLDER/BOOST_SERIALIZATION_NVP"
                     />
 
   <!-- *********************** -->
