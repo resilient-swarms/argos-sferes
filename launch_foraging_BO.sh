@@ -25,7 +25,7 @@ elif [ "$run_type" = "BO_single" ]; then
     ticks_per_subtrial=600 #120*5
 	num_subtrials=8
 	network_binary=bin/BO3DREAL
-    network_config=experiments/harvesting/harvesting_printnetwork.argos
+    network_config=harvesting_printnetwork.argos
 	stop=collision
 elif [ "$run_type" = "uniform" ]; then
 	TopOutputFolder="uniform"
@@ -235,7 +235,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|TICKS_PER_SUB|${ticks_per_subtrial}|" \
 		                -e "s|NUM_SUB|${num_subtrials}|" \
 		                -e "s|NETWORK_BINARY|${network_binary}|" \
-                        -e "s|NETWORK_CONFIG|${network_config}|" \
+                        -e "s|NETWORK_CONFIG|${BO_OutputFolder}/${network_config}|" \
 		                -e "s|STOP|${stop}|" \
                         experiments/harvesting/harvesting_template.argos \
                         >${ConfigFile}
