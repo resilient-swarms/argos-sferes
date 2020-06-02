@@ -32,6 +32,7 @@
 			fault_behavior="FAULT_TYPE" 
 	                id_faulty_robot="FAULT_ID"
 			id_food_source="FOOD_ID"
+			savefile="OUTPUTFOLDER/BOOST_SERIALIZATION_NVP"
      />
         
       </params>  
@@ -56,7 +57,7 @@
 		  network_binary="NETWORK_BINARY"
 		  network_config="NETWORK_CONFIG"
 		  stop="STOP"
-		  savefile="OUTPUTFOLDER/BOOST_SERIALIZATION_NVP"
+		  
                     />
 
   <!-- *********************** -->
