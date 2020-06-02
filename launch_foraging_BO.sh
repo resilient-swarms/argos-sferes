@@ -221,7 +221,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|SEED|${Replicates}|" \
                         -e "s|FITFUN_TYPE|${FitfunType}|" \
                         -e "s|DESCRIPTOR_TYPE|${bd}|" \
-                        -e "s|OUTPUTFOLDER|${Outfolder}|" \
+                        -e "s|OUTPUTFOLDER|${BO_OutputFolder}|" \
                         -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                         -e "s|SENSOR_RANGE|0.11|" \
                         -e "s|NOISE_LEVEL|0.05|" \
@@ -240,7 +240,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         experiments/harvesting/harvesting_template.argos \
                         >${ConfigFile}
                         if [ ! -z "${network_config}" ]; then
-                            sed -e "s|OUTPUTFOLDER|${Outfolder}|" \
+                            sed -e "s|OUTPUTFOLDER|${BO_OutputFolder}|" \
                                 -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                                 experiments/harvesting/harvesting_printnetwork_template.argos \
                                 >${network_config}
