@@ -111,11 +111,6 @@
   <!-- * Visualization * -->
  <!-- ****************** -->
 <visualization>
-  <qt-opengl>
-      <camera>
-        <placement idx="0" position="0.0,2.0,3" look_at="2.0,2.0,0" lens_focal_length="20" />
-      </camera>
-    </qt-opengl>
   </visualization>
  
 
