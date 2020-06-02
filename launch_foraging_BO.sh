@@ -239,7 +239,12 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
 		                -e "s|STOP|${stop}|" \
                         experiments/harvesting/harvesting_template.argos \
                         >${ConfigFile}
-
+                        if [ ! -z "${network_config}" ]; then
+                            sed -e "s|OUTPUTFOLDER|${Outfolder}|" \
+                                -e "s|CENTROIDSFOLDER|experiments/centroids|" \
+                                experiments/harvesting/harvesting_printnetwork_template.argos \
+                                >${network_config}
+                        fi 
                     if [ ! -z "${CVT}" ]; then
                         echo ${CVT}
                     fi
