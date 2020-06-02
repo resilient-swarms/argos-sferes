@@ -35,7 +35,7 @@ namespace limbo {
                     }
                     if(temp.tail(constraint_size) != constraint)
                     {
-                        std::cout<< "Skipping bd not according to constraint: \n"<< temp;
+                        //std::cout<< "Skipping bd not according to constraint: \n"<< temp;
                         continue;
                     }
                     float new_acqui = eval(f, temp);
