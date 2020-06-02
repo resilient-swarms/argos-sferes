@@ -31,12 +31,13 @@ public:
     struct Worker
     {
         bool initial_phase;
+        size_t total_time;
         size_t max_trials, trials_completed;
         size_t index;
         Eigen::VectorXd new_sample, F;
         size_t numFoodCollected = 0;
         Worker() {}
-        Worker(size_t trials, size_t i) : max_trials(trials), trials_completed(0), index(i), initial_phase(true){};
+        Worker(size_t trials, size_t i) : total_time(0), max_trials(trials), trials_completed(0), index(i), initial_phase(true){};
         /* call from outside limbo */
         void finish_trial(bool stop)
         {

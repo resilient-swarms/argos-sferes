@@ -188,6 +188,7 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       fill_map_with_identifier(ident);
    }
    opt.push_fitness(cController.worker.index, cController.worker.fitness(m_unNumberRobots));
+   opt.push_time((double) cController.worker.total_time,all_trials_finished);
    if (!cController.worker.initial_phase) //update trial info
    {
       Eigen::VectorXd x = cController.worker.get_sample();
@@ -604,6 +605,7 @@ void CForagingLoopFunctions::PostStep()
 #ifdef HETEROGENEOUS
       // subtract tick; check if trial has finished; if so, get a new sample from BO and initialise new network
       --cController.num_ticks_left;
+      ++cController.worker.total_time;
       bool stop = stop_criterion(cController);
       if (stop || cController.num_ticks_left == 0)
       {

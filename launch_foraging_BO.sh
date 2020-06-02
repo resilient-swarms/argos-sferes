@@ -240,6 +240,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         experiments/harvesting/harvesting_template.argos \
                         >${ConfigFile}
                         if [ ! -z "${network_config}" ]; then
+                           touch ${BO_OutputFolder}/${network_config}
                             sed -e "s|OUTPUTFOLDER|${BO_OutputFolder}/${network_config}|" \
                                 -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                                 experiments/harvesting/harvesting_printnetwork_template.argos \

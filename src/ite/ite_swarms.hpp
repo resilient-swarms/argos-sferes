@@ -574,8 +574,7 @@ typedef mean::MeanArchive<Params> Mean_t;
 //            stat::Observations<Params>, stat::BestSamples<Params>, stat::GPArchive<Params>> Stat_t;
 
 // without the gparchive stats module in case you have not installed it.
-typedef boost::fusion::vector<>
-    Stat_t;
+typedef boost::fusion::vector<limbo::stat::AsyncStats<Params>> Stat_t;
 
 typedef init::NoInit<Params> Init_t;
 typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
@@ -593,10 +592,9 @@ typedef mean::MeanArchive<Params> Mean_t;
 //            stat::Observations<Params>, stat::BestSamples<Params>, stat::GPArchive<Params>> Stat_t;
 
 // without the gparchive stats module in case you have not installed it.
-typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
-                              stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
-                              stat::Observations<Params>, stat::BestSamples<Params>>
-    Stat_t;
+typedef boost::fusion::vector<limbo::stat::BestObservations<Params>,
+                              limbo::stat::ConsoleSummary<Params>, limbo::stat::AggregatedObservations<Params>, limbo::stat::BestAggregatedObservations<Params>,
+                              limbo::stat::Observations<Params>, limbo::stat::BestSamples<Params>> Stat_t;
 
 typedef init::NoInit<Params> Init_t;
 typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
