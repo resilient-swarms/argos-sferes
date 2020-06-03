@@ -27,7 +27,8 @@ class ForagingThymioNN : public BaseController
 {
 
 public:
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS 
+    #ifndef RECORD_FIT  // only need worker when optimising
     struct Worker
     {
         bool initial_phase;
@@ -60,7 +61,6 @@ public:
         //     return initial_phase ? 0 : index;
         // }
     } worker;
-    std::string controller_index;
     int num_ticks_left;
     int num_trials_left;
     float collision_value = 0.0,  reward_value=0.0f;  // running average of collision (1/0)
@@ -86,7 +86,11 @@ public:
         collision_value=0.0f;
         reward_value=0.0f;
     }
-    void select_net(std::vector<double> bd, size_t num_subtrials, size_t ticks_per_subtrial, bool init = false);
+    void select_net(std::vector<double> bd, size_t num_subtrials, size_t ticks_per_subtrial);
+    #endif
+    void select_net(std::vector<double> bd);
+
+    
 #endif
     bool holdingFood = false;
     int foodID = -1; // index used to track the "SOFTWARE_FOOD" fault
@@ -98,7 +102,7 @@ public:
     virtual void Reset()
     {
         holdingFood = false;
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS & !RECORD_FIT
         worker.numFoodCollected = 0;
 #endif
     };

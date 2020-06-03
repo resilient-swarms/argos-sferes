@@ -17,7 +17,7 @@ public:
     ForagingStats *stats;
     VirtualEnergy *virtual_energy;
     CFloorEntity *m_pcFloor;
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS & !RECORD_FIT
     size_t num_subtrials;
     size_t ticks_per_subtrial;
     Opt_t opt;

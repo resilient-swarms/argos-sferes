@@ -6,7 +6,8 @@
 
 #ifdef HETEROGENEOUS
 #include <src/ite/exhaustive_constrained_search.hpp>
-
+#include  <ios>
+	
 #else
 #include <src/ite/exhaustive_search_archive.hpp>
 #endif
@@ -27,6 +28,7 @@ size_t num_trials = 1; //trials done internally
 namespace global
 {
 #if HETEROGENEOUS
+    std::vector<std::string> best_stats_file;
     const size_t num_ID_features = 6;
     std::vector<double> normalID;
 #endif
@@ -497,7 +499,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
 
 void fill_map_with_identifier(std::vector<float> ident)
 {
-    std::cout << "Map was size " << Params::archiveparams::archive.size()<< std::endl;
+    std::cout << "Map was size " << Params::archiveparams::archive.size() << std::endl;
     for (archive_it_t it = Params::archiveparams::old_archive.begin(); it != Params::archiveparams::old_archive.end(); ++it)
     {
         std::vector<double> bd = it->first;
@@ -509,7 +511,7 @@ void fill_map_with_identifier(std::vector<float> ident)
         elem.behav_descriptor = bd;
         Params::archiveparams::archive[bd] = elem;
     }
-    std::cout << "Map is now size " <<  Params::archiveparams::archive.size() << std::endl;
+    std::cout << "Map is now size " << Params::archiveparams::archive.size() << std::endl;
 }
 
 std::string print_individual_to_network(std::vector<double> bd,
@@ -544,10 +546,18 @@ void rename_folder(std::string oldname, std::string newname)
 {
 
     std::cout << "renaming: " << oldname << " " << newname << std::endl;
-    std::string mv_cmd = "mv " + oldname + " " + newname;
+    std::string mv_cmd = "mv " + oldname + "/* " + newname+"/ ";
     if (system(mv_cmd.c_str()) != 0)
     {
-        std::cerr << "Error executing simulation " << std::endl
+        std::cerr << "Error moving files " << std::endl
+                  << mv_cmd << std::endl;
+        exit(-1);
+    }
+
+    std::string rm_cmd = "rm -rf "+oldname;
+    if (system(mv_cmd.c_str()) != 0)
+    {
+        std::cerr << "Error removing old folder " << std::endl
                   << mv_cmd << std::endl;
         exit(-1);
     }
@@ -574,12 +584,63 @@ typedef mean::MeanArchive<Params> Mean_t;
 //            stat::Observations<Params>, stat::BestSamples<Params>, stat::GPArchive<Params>> Stat_t;
 
 // without the gparchive stats module in case you have not installed it.
-typedef boost::fusion::vector<limbo::stat::AsyncStats<Params>> Stat_t;
+typedef boost::fusion::vector<limbo::stat::AsyncStats<Params>, limbo::stat::AsyncStatsBest<Params>> Stat_t;
 
 typedef init::NoInit<Params> Init_t;
 typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
 typedef acqui::UCB<Params, GP_t> Acqui_t;
 typedef bayes_opt::BOptimizerAsync<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;
+
+#if RECORD_FIT
+std::vector<double> get_best_bd(size_t i)
+{
+    std::ifstream fin;
+    fin.open(global::best_stats_file[i]);
+    if (fin.is_open())
+    {
+        fin.seekg(-1, std::ios_base::end); // go to one spot before the EOF
+
+        bool keepLooping = true;
+        while (keepLooping)
+        {
+            char ch;
+            fin.get(ch); // Get current byte's data
+
+            if ((int)fin.tellg() <= 1)
+            {                        // If the data was at or before the 0th byte
+                fin.seekg(0);        // The first line is the last line
+                keepLooping = false; // So stop there
+            }
+            else if (ch == '\n')
+            {                        // If the data was a newline
+                keepLooping = false; // Stop at the current position.
+            }
+            else
+            {                                 // If the data was neither a newline nor at the 0 byte
+                fin.seekg(-2, std::ios_base::cur); // Move to the front of that data, then to the front of the data before it
+            }
+        }
+
+        std::string lastLine;
+        getline(fin, lastLine); // Read the current line
+        std::istringstream iss(lastLine);
+        std::vector<double> bd;
+        double num;
+        while (iss >> num)
+        {
+            if (i >= 1 && i <= global::behav_dim)
+            {
+                bd.push_back(num);
+            }
+        }
+        fin.close();
+        return bd;
+    }
+    throw std::runtime_error("did not find anything");
+    return std::vector<double>();
+}
+
+#endif
 
 #else
 typedef kernel::MaternFiveHalves<Params> Kernel_t;
@@ -594,7 +655,8 @@ typedef mean::MeanArchive<Params> Mean_t;
 // without the gparchive stats module in case you have not installed it.
 typedef boost::fusion::vector<limbo::stat::BestObservations<Params>,
                               limbo::stat::ConsoleSummary<Params>, limbo::stat::AggregatedObservations<Params>, limbo::stat::BestAggregatedObservations<Params>,
-                              limbo::stat::Observations<Params>, limbo::stat::BestSamples<Params>> Stat_t;
+                              limbo::stat::Observations<Params>, limbo::stat::BestSamples<Params>>
+    Stat_t;
 
 typedef init::NoInit<Params> Init_t;
 typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
@@ -624,4 +686,7 @@ void run_ite(const std::string &newname)
     print_individual_to_network(bd, Params::archiveparams::archive);
     rename_folder(global::results_path, newname);
 }
+
+
+
 #endif

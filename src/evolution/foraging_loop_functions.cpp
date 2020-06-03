@@ -50,6 +50,16 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    }
 
 #if HETEROGENEOUS & !PRINT_NETWORK
+#if RECORD_FIT
+   for (size_t i = 0; i < m_unNumberRobots; ++i)
+   {
+      // get the best bd
+      std::vector<double> bd = get_best_bd(i);
+      argos::CThymioEntity *cThym = m_pcvecRobot[i];
+      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+      cController.select_net(bd);
+   }
+#else
    try
    {
       GetNodeAttribute(t_node, "ticks_per_subtrial", ticks_per_subtrial);
@@ -124,6 +134,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
    Params::archiveparams::archive = {};
 #endif
+#endif
 }
 
 /****************************************/
@@ -167,9 +178,9 @@ void CForagingLoopFunctions::Reset()
    }
 }
 
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS & !RECORD_FIT
 
-void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController,bool all_trials_finished)
+void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController, bool all_trials_finished)
 {
    if (cController.worker.initial_phase && all_trials_finished)
    {
@@ -186,7 +197,7 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       fill_map_with_identifier(ident);
    }
    opt.push_fitness(cController.worker.index, cController.worker.fitness(m_unNumberRobots));
-   opt.push_time((double) cController.worker.total_time,all_trials_finished);
+   opt.push_time((double)cController.worker.total_time, all_trials_finished);
    if (!cController.worker.initial_phase) //update trial info
    {
       Eigen::VectorXd x = cController.worker.get_sample();
@@ -203,7 +214,7 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
          cController.worker.new_sample = x.head(BEHAV_DIM);
          argos::LOG << "new sample" << x << std::endl;
          std::vector<double> bd(x.data(), x.data() + x.rows() * x.cols());
-         cController.select_net(bd, num_subtrials, ticks_per_subtrial);
+         cController.select_net(bd);
          std::string sim_cmd = "rm " + cController.savefile;
          if (system(sim_cmd.c_str()) != 0)
          {
@@ -512,7 +523,7 @@ void CForagingLoopFunctions::PostStep()
 
             /* Increase the food count */
             fitfun->fitness_per_trial[m_unCurrentTrial]++;
-#ifdef HETEROGENEOUS
+#if  HETEROGENEOUS & !RECORD_FIT
             ++cController.worker.numFoodCollected;
 #endif
 #ifdef PRINTING
@@ -600,7 +611,7 @@ void CForagingLoopFunctions::PostStep()
          virtual_energy->step(j, cThym->GetEmbodiedEntity().IsCollidingWithSomething(), virtualState);
       }
 
-#ifdef HETEROGENEOUS
+#if HETEROGENEOUS & !RECORD_FIT
       // subtract tick; check if trial has finished; if so, get a new sample from BO and initialise new network
       --cController.num_ticks_left;
       ++cController.worker.total_time;
@@ -608,8 +619,8 @@ void CForagingLoopFunctions::PostStep()
       if (stop || cController.num_ticks_left == 0)
       {
          --cController.num_trials_left;
-         bool alltrialsfinished=stop || cController.num_trials_left == 0;
-         select_new_controller(cController,alltrialsfinished);
+         bool alltrialsfinished = stop || cController.num_trials_left == 0;
+         select_new_controller(cController, alltrialsfinished);
          cController.num_ticks_left = ticks_per_subtrial;
          if (alltrialsfinished)
          {

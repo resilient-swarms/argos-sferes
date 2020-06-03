@@ -32,7 +32,11 @@ int main(int argc, char **argv)
     global::archive_path = std::string(argv[2]);
     global::gen_to_load = std::atoi(argv[3]);
     global::results_path = std::string(argv[4]);
+#if RECORD_FIT
     std::vector<double> normal_ID = {0.5,0.5,0.5,0.5,0.5,0.5};
+#else
+    std::vector<double> normal_ID = {};
+#endif
     Params::archiveparams::archive = load_archive(global::archive_path + "/archive_" + std::to_string(global::gen_to_load) + ".dat",normal_ID);
 #endif
 
@@ -69,20 +73,9 @@ int main(int argc, char **argv)
     configure_and_run_ea<serial_ea_t>(argc, argv);
 #endif
 
-#ifdef HETEROGENEOUS
+#if HETEROGENEOUS &! RECORD_FIT
     static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
-
-    auto val = cLoopFunctions.opt.best_observation();
-    Eigen::VectorXd result = cLoopFunctions.opt.best_sample().transpose();
-
-    std::cout << val << " res  " << result.transpose() << std::endl;
-
-    std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
-
-    // now look up the behaviour descriptor in the archive file
-    // and save to BOOST_SERIALISATION_NVP
-    print_individual_to_network(bd, Params::archiveparams::archive);
-
+    rename_folder(cLoopFunctions.opt.res_dir(),global::results_path);
 #endif
 
     /*
@@ -90,6 +83,8 @@ int main(int argc, char **argv)
     */
     argos::CSimulator::GetInstance().Destroy();
 
+    
+    
     /* All is OK */
     return 0;
 }

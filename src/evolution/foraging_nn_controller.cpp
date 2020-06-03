@@ -33,22 +33,35 @@ void ForagingThymioNN::init_network()
     nn.init();
 }
 
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS
 
-void ForagingThymioNN::select_net(std::vector<double> bd, size_t num_subtrials, size_t ticks_per_subtrial, bool init)
+void ForagingThymioNN::select_net(std::vector<double> bd)
 {
     // for (size_t i = 0; i < global::normalID.size(); ++i)
     // {
     //     bd.push_back(global::normalID[i]);
     // }
-    controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
+    std::string controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
+    argos::LOG << "select controller " << controller_index << std::endl;
+    argos::LOG.Flush();
+    init_network();
+}
+#ifndef RECORD_FIT
+
+void ForagingThymioNN::select_net(std::vector<double> bd, size_t num_subtrials, size_t ticks_per_subtrial)
+{
+    // for (size_t i = 0; i < global::normalID.size(); ++i)
+    // {
+    //     bd.push_back(global::normalID[i]);
+    // }
+    std::string controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
     argos::LOG << "select controller " << controller_index << std::endl;
     argos::LOG.Flush();
     init_network();
     num_trials_left = num_subtrials;
     num_ticks_left = ticks_per_subtrial;
 }
-
+#endif
 #endif
 
 /****************************************/
@@ -95,7 +108,7 @@ std::vector<Real> ForagingThymioNN::GetNormalizedSensorReadings()
 
 #endif
 
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS & !RECORD_FIT
     float collided = 0.0f;
 #endif
 
@@ -103,7 +116,7 @@ std::vector<Real> ForagingThymioNN::GetNormalizedSensorReadings()
     for (UInt8 i = 0; i < tProxReads.size(); ++i)
     {
         norm_readings.push_back((1.0f - tProxReads[i].Value) * 2.0f - 1.0f);
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS & !RECORD_FIT
         if (tProxReads[i].Value > 0.90)
         {
             collided = 1.0f;
