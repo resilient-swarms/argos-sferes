@@ -169,10 +169,8 @@ void CForagingLoopFunctions::Reset()
 
 #if HETEROGENEOUS & !PRINT_NETWORK
 
-void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController)
+void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController,bool all_trials_finished)
 {
-
-   bool all_trials_finished = cController.worker.reset();
    if (cController.worker.initial_phase && all_trials_finished)
    {
       // finish descriptor
@@ -609,13 +607,12 @@ void CForagingLoopFunctions::PostStep()
       bool stop = stop_criterion(cController);
       if (stop || cController.num_ticks_left == 0)
       {
-         cController.worker.finish_trial(stop);
-         select_new_controller(cController);
          --cController.num_trials_left;
+         bool alltrialsfinished=stop || cController.num_trials_left == 0;
+         select_new_controller(cController,alltrialsfinished);
          cController.num_ticks_left = ticks_per_subtrial;
-         if (stop || cController.num_trials_left == 0)
+         if (alltrialsfinished)
          {
-
             cController.num_trials_left = num_subtrials;
             cController.reset_stopvals();
          }

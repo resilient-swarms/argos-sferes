@@ -109,7 +109,7 @@ std::vector<Real> ForagingThymioNN::GetNormalizedSensorReadings()
             collided = 1.0f;
         }
     }
-    collision_value = 0.95 * collision_value + 0.05 * collided;
+    collision_value = 0.99 * collision_value + 0.01 * collided;
 
 #else
     }

@@ -37,33 +37,8 @@ public:
         Eigen::VectorXd new_sample, F;
         size_t numFoodCollected = 0;
         Worker() {}
-        Worker(size_t trials, size_t i) : total_time(0), max_trials(trials), trials_completed(0), index(i), initial_phase(true){};
-        /* call from outside limbo */
-        void finish_trial(bool stop)
-        {
-            if (stop)
-            {
-                trials_completed=max_trials;
-                
-            }
-            else
-            {
-                ++trials_completed;
-            }
-        }
-        /* call inside the optimization_step if a worker has finished trial */
-        bool reset()
-        {
-            if (trials_completed == max_trials)
-            {
-                trials_completed = 0;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+        Worker(size_t trials, size_t i) : total_time(0), index(i), initial_phase(true){};
+
         /* at the end of trial, convert food collected to fitness consistent with map;
             also reset the number of foods collected for the next trial
          */

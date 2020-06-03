@@ -43,7 +43,7 @@ public:
             return true;
         }
     }
-    void select_new_controller(ForagingThymioNN &cController);
+    void select_new_controller(ForagingThymioNN &cController,bool alltrialsfinished);
 #endif
     const float nest_x = 0.32;
     const int HARVEST_TIME = 50; // 50 time steps

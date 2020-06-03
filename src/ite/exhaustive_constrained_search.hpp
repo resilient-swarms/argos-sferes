@@ -38,8 +38,10 @@ namespace limbo {
                         //std::cout<< "Skipping bd not according to constraint: \n"<< temp;
                         continue;
                     }
+                    
                     float new_acqui = eval(f, temp);
-
+                    std::cout << "temp: "<<temp.transpose()<<std::endl;
+                    std::cout << "fit: " << new_acqui << std::endl;
                     if (best_acqui < new_acqui || it == Params::archiveparams::archive.begin()) {
                         best_acqui = new_acqui;
                         result = temp;
