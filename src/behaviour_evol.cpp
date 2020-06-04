@@ -12,6 +12,7 @@
 /****************************************/
 /****************************************/
 
+
 int main(int argc, char **argv)
 {
 #if ARGOS_PARALLEL
@@ -29,15 +30,15 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef HETEROGENEOUS
-    global::archive_path = std::string(argv[2]);
+    global::archive_path = argv[2];
     global::gen_to_load = std::atoi(argv[3]);
-    global::results_path = std::string(argv[4]);
+    global::results_path = argv[4];
 #if RECORD_FIT
     std::vector<double> normal_ID = {};
 #else
     std::vector<double> normal_ID = {0.5,0.5,0.5,0.5,0.5,0.5};
 #endif
-    Params::archiveparams::archive = load_archive(global::archive_path + "/archive_" + std::to_string(global::gen_to_load) + ".dat",normal_ID);
+    Params::archiveparams::archive = load_archive(std::string(global::archive_path) + "/archive_" + std::to_string(global::gen_to_load) + ".dat",normal_ID);
 #endif
 
     std::cout << "TAG = " << TAG << std::endl;

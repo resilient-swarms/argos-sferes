@@ -1,3 +1,7 @@
+
+#ifndef ITE_SWARMS_HPP
+#define ITE_SWARMS_HPP
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -15,6 +19,9 @@
 #include <stdio.h>
 #include <map>
 
+#include <src/ite/global.hpp>
+
+
 using namespace limbo;
 
 const size_t max_evals = 100;
@@ -25,25 +32,7 @@ size_t num_trials = 3;
 size_t num_trials = 1; //trials done internally
 #endif
 
-namespace global
-{
-#if HETEROGENEOUS
-    std::vector<std::string> best_stats_file;
-    const size_t num_ID_features = 6;
-    std::vector<double> normalID;
-#endif
-    std::string results_path;
-    std::string hyper_results_path;
-    std::ofstream hyper_log("hyperlog.txt");
-    std::string argossim_bin_name;
-    std::vector<std::string> argossim_config_name;
-    std::string current_config;
-    std::string archive_path;
-    size_t num_trials;
-    float original_max = -std::numeric_limits<float>::infinity();
-    unsigned gen_to_load;
-    unsigned behav_dim = BEHAV_DIM; // number of dimensions of MAP
-} // namespace global
+
 
 struct Params
 {
@@ -150,7 +139,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
 
 double get_fitness(size_t ctrl_index)
 {
-    std::ifstream monFlux((global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat").c_str(), std::ios::out);
+    std::ifstream monFlux((std::string(global::results_path) + "/fitness" + std::to_string(ctrl_index) + ".dat").c_str(), std::ios::out);
     std::cout << "Loading fitness" << ctrl_index << " file " << std::endl;
     double fitness;
     if (monFlux)
@@ -197,12 +186,12 @@ double perform_command(size_t ctrl_index, std::string config_file)
     std::cout << config_file << std::endl;
     std::string sim_cmd = global::argossim_bin_name + " " +
                           config_file + " " +
-                          global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat " +
+                          std::string(global::results_path) + "/fitness" + std::to_string(ctrl_index) + ".dat " +
                           "--load " +
-                          global::archive_path + "/gen_" + std::to_string(global::gen_to_load) + " " +
+                          std::string(global::archive_path) + "/gen_" + std::to_string(global::gen_to_load) + " " +
                           "-n " + std::to_string(ctrl_index) + " " +
-                          "-o " + global::results_path + "/nn" + std::to_string(ctrl_index) + ".dot " +
-                          "-d " + global::results_path + " >> BOlog.txt";
+                          "-o " + std::string(global::results_path) + "/nn" + std::to_string(ctrl_index) + ".dot " +
+                          "-d " + std::string(global::results_path) + " >> BOlog.txt";
     if (system(sim_cmd.c_str()) != 0)
     {
         std::cerr << "Error executing simulation " << std::endl
@@ -238,14 +227,14 @@ struct RealEval
         std::vector<double> numbers;
         for (size_t trial = 0; trial < num_trials; ++trial)
         {
-            std::string fitfile = global::results_path + "/fitness" + std::to_string(ctrl_index) + "t" + std::to_string(trial) + ".dat";
+            std::string fitfile = std::string(global::results_path) + "/fitness" + std::to_string(ctrl_index) + "t" + std::to_string(trial) + ".dat";
             std::string sim_cmd = global::argossim_bin_name + " " +
                                   global::argossim_config_name[0] + " " +
                                   fitfile + " --load " +
-                                  global::archive_path + "/gen_" + std::to_string(global::gen_to_load) + " " +
+                                  std::string(global::archive_path) + "/gen_" + std::to_string(global::gen_to_load) + " " +
                                   "-n " + std::to_string(ctrl_index) + " " +
-                                  "-o " + global::results_path + "/nn" + std::to_string(ctrl_index) + ".dot " +
-                                  "-d " + global::results_path;
+                                  "-o " + std::string(global::results_path) + "/nn" + std::to_string(ctrl_index) + ".dot " +
+                                  "-d " + std::string(global::results_path);
             std::cout << "Will execute individual " << std::to_string(ctrl_index) << std::endl;
             std::cout << "Please run the following command manually " << std::endl;
             std::cout << sim_cmd << std::endl;
@@ -520,18 +509,17 @@ std::string print_individual_to_network(std::vector<double> bd,
 
     /*size_t lastindex = archive_name.find_last_of(".");
     std::string extension = archive_name.substr(lastindex + 1);*/
-
     Params::archiveparams::elem_archive elem = archive[bd]; // get the element in the archive
     // get the controller id
     size_t ctrl_index = elem.controller;
     std::cout << "will now evaluate individual=" + std::to_string(ctrl_index) << std::endl;
     std::string sim_cmd = global::argossim_bin_name + " " +
                           global::argossim_config_name[0] + " " +
-                          global::results_path + "/fitness" + std::to_string(ctrl_index) + ".dat " +
-                          "--load " + global::archive_path + "/gen_" + std::to_string(global::gen_to_load) + " " +
+                          std::string(global::results_path) + "/fitness" + std::to_string(ctrl_index) + ".dat " +
+                          "--load " + std::string(global::archive_path) + "/gen_" + std::to_string(global::gen_to_load) + " " +
                           "-n " + std::to_string(ctrl_index) + " " +
-                          "-o " + global::results_path + "/nn" + std::to_string(ctrl_index) + ".dot " +
-                          "-d " + global::results_path;
+                          "-o " + std::string(global::results_path) + "/nn" + std::to_string(ctrl_index) + ".dot " +
+                          "-d " + std::string(global::results_path);
     std::cout << "Will execute command " << sim_cmd << std::endl;
     if (system(sim_cmd.c_str()) != 0)
     {
@@ -688,4 +676,5 @@ void run_ite(const std::string &newname)
     rename_folder(global::results_path, newname);
 }
 
+#endif
 #endif

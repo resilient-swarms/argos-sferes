@@ -6,7 +6,7 @@
 #include "src/evolution/virtual_energy.h"
 #include "src/evolution/foraging_stats.h"
 
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS
 #include <src/ite/ite_swarms.hpp>
 #endif
 

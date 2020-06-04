@@ -14,6 +14,7 @@
 #include "src/core/base_controller.h"
 #include "src/evolution/serialisation_functions.hpp"
 
+
 /*
  * All the ARGoS stuff in the 'argos' namespace.
  * With this statement, you save typing argos:: every time.

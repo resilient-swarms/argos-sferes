@@ -4,14 +4,10 @@
 #include <argos3/core/utility/configuration/argos_configuration.h>
 /* 2D vector definition */
 
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS
 
 #include <src/ite/ite_swarms.hpp>
 
-#endif
-
-#if PRINT_NETWORK
-#include <src/evolution/serialisation_functions.hpp>
 #endif
 
 /****************************************/
