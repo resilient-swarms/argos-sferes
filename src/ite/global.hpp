@@ -12,7 +12,11 @@ namespace global
 {
 #if HETEROGENEOUS
     std::vector<std::string> best_stats_file;
+#if RECORD_FIT
+    const size_t num_ID_features = 0;
+#else
     const size_t num_ID_features = 6;
+#endif
     std::vector<double> normalID;
 #endif
     char* results_path;

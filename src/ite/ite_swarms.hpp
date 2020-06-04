@@ -130,6 +130,7 @@ struct Params
         static std::map<std::vector<double>, elem_archive, classcomp> archive;
 #ifdef HETEROGENEOUS
         static std::map<std::vector<double>, elem_archive, classcomp> old_archive;
+    
 #endif
     };
 };
@@ -284,7 +285,7 @@ struct RealEval
 };
 struct ControllerEval
 {
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS
     BO_PARAM(size_t, dim_in, BEHAV_DIM + global::num_ID_features); //global::behav_dim
 #else
     BO_PARAM(size_t, dim_in, BEHAV_DIM); //global::behav_dim
@@ -350,7 +351,7 @@ double get_VE(size_t line_no, std::string VE_file)
     throw std::runtime_error("line_no not reached !");
     return 0.0f;
 }
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS
 Params::archiveparams::archive_t load_archive(std::string archive_name, std::vector<double> normal_ID = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5}, std::string VE_file = "", bool uniform = false)
 {
 
@@ -404,7 +405,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
                 init_i = 1;
 
             Params::archiveparams::elem_archive elem;
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS 
             std::vector<double> candidate(global::behav_dim + global::num_ID_features);
 #else
             std::vector<double> candidate(global::behav_dim);
@@ -454,7 +455,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
                     throw std::runtime_error("not possible value of i");
                 }
             }
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS
             for (size_t c = 0; c < normal_ID.size(); ++c)
             {
                 candidate[global::behav_dim + c] = normal_ID[c];
@@ -503,13 +504,12 @@ void fill_map_with_identifier(std::vector<float> ident)
     std::cout << "Map is now size " << Params::archiveparams::archive.size() << std::endl;
 }
 
-std::string print_individual_to_network(std::vector<double> bd,
-                                        Params::archiveparams::archive_t &archive)
+std::string print_individual_to_network(std::vector<double> bd)
 {
 
     /*size_t lastindex = archive_name.find_last_of(".");
     std::string extension = archive_name.substr(lastindex + 1);*/
-    Params::archiveparams::elem_archive elem = archive[bd]; // get the element in the archive
+    Params::archiveparams::elem_archive elem = Params::archiveparams::archive.at(bd); // get the element in the archive
     // get the controller id
     size_t ctrl_index = elem.controller;
     std::cout << "will now evaluate individual=" + std::to_string(ctrl_index) << std::endl;

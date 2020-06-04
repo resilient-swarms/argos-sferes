@@ -68,12 +68,20 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing network binary", ex);
    }
+
+#if RECORD_FIT
+   std::vector<double> normal_ID = {};
+#else
+   std::vector<double> normal_ID = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+#endif
+   Params::archiveparams::archive = load_archive(std::string(global::archive_path) + "/archive_" + std::to_string(global::gen_to_load) + ".dat", normal_ID);
+
 #if RECORD_FIT
 
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
       // get the best bd
-      std::string stats_filename = output_folder + "/async_stats_best"+std::to_string(i)+".dat";
+      std::string stats_filename = output_folder + "/async_stats_best" + std::to_string(i) + ".dat";
       std::vector<double> bd = get_best_bd(stats_filename);
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());

@@ -37,7 +37,7 @@ void ForagingThymioNN::select_net(std::vector<double> bd)
     // {
     //     bd.push_back(global::normalID[i]);
     // }
-    std::string controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
+    std::string controller_index = print_individual_to_network(bd);
     argos::LOG << "select controller " << controller_index << std::endl;
     argos::LOG.Flush();
     init_network();
@@ -50,7 +50,7 @@ void ForagingThymioNN::select_net(std::vector<double> bd, size_t num_subtrials, 
     // {
     //     bd.push_back(global::normalID[i]);
     // }
-    std::string controller_index = print_individual_to_network(bd, Params::archiveparams::archive);
+    std::string controller_index = print_individual_to_network(bd);
     argos::LOG << "select controller " << controller_index << std::endl;
     argos::LOG.Flush();
     init_network();

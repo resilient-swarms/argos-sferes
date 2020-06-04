@@ -220,8 +220,6 @@ else(NOT BASELINE)
 
     set(LIMBO_PATH ${PROJECT_SOURCE_DIR}/limbo/src) # location of limbo - where https://github.com/resibots/limbo.git has been cloned
     include_directories(${LIMBO_PATH})
-
-
     # process BO option
     if(BO)
         message("Bayesian Optimisation is defined")
@@ -252,7 +250,7 @@ else(NOT BASELINE)
 
         message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
         set(TMP_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-        set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -g -march=native" CACHE STRING "" FORCE)  
+        set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O3 -g " CACHE STRING "" FORCE)  
         #######################################################################
         # For ite-swarms
         set(tag BO${tag})
@@ -321,7 +319,7 @@ else(NOT BASELINE)
 
         
         message("Bayesian Optimisation is NOT defined")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g -march=native " )  
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -g  " )  
 	    message("CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
         if(HETEROGENEOUS)
             add_definitions(-DHETEROGENEOUS)
@@ -400,6 +398,7 @@ else(NOT BASELINE)
             src/evolution/virtual_energy.cpp
             src/evolution/foraging_loop_functions.h
             src/evolution/foraging_loop_functions.cpp
+            src/ite/ite_swarms.hpp
              src/core/robotid_vis.h
             src/core/robotid_vis.cpp)
 	    
