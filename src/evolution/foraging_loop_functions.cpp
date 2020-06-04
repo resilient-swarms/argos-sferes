@@ -49,12 +49,32 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       THROW_ARGOSEXCEPTION_NESTED("Error in virtual init ", ex);
    }
 
-#if HETEROGENEOUS & !PRINT_NETWORK
+#if HETEROGENEOUS
+   std::string network_config, network_binary;
+   try
+   {
+      GetNodeAttribute(t_node, "network_config", network_config);
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing network config", ex);
+   }
+   global::argossim_config_name.push_back(network_config);
+   try
+   {
+      GetNodeAttribute(t_node, "network_binary", global::argossim_bin_name);
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing network binary", ex);
+   }
 #if RECORD_FIT
+
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
       // get the best bd
-      std::vector<double> bd = get_best_bd(i);
+      std::string stats_filename = output_folder + "/async_stats_best"+std::to_string(i)+".dat";
+      std::vector<double> bd = get_best_bd(stats_filename);
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
       cController.select_net(bd);
@@ -77,24 +97,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing number of subtrials", ex);
    }
-   std::string network_config, network_binary;
-   try
-   {
-      GetNodeAttribute(t_node, "network_config", network_config);
-   }
-   catch (CARGoSException &ex)
-   {
-      THROW_ARGOSEXCEPTION_NESTED("Error initializing network config", ex);
-   }
-   global::argossim_config_name.push_back(network_config);
-   try
-   {
-      GetNodeAttribute(t_node, "network_binary", global::argossim_bin_name);
-   }
-   catch (CARGoSException &ex)
-   {
-      THROW_ARGOSEXCEPTION_NESTED("Error initializing network binary", ex);
-   }
+
    try
    {
       GetNodeAttribute(t_node, "stop", stop_crit);
@@ -523,7 +526,7 @@ void CForagingLoopFunctions::PostStep()
 
             /* Increase the food count */
             fitfun->fitness_per_trial[m_unCurrentTrial]++;
-#if  HETEROGENEOUS & !RECORD_FIT
+#if HETEROGENEOUS & !RECORD_FIT
             ++cController.worker.numFoodCollected;
 #endif
 #ifdef PRINTING

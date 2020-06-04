@@ -6,8 +6,8 @@
 
 #ifdef HETEROGENEOUS
 #include <src/ite/exhaustive_constrained_search.hpp>
-#include  <ios>
-	
+#include <ios>
+
 #else
 #include <src/ite/exhaustive_search_archive.hpp>
 #endif
@@ -546,7 +546,7 @@ void rename_folder(std::string oldname, std::string newname)
 {
 
     std::cout << "renaming: " << oldname << " " << newname << std::endl;
-    std::string mv_cmd = "mv " + oldname + "/* " + newname+"/ ";
+    std::string mv_cmd = "mv " + oldname + "/* " + newname + "/ ";
     if (system(mv_cmd.c_str()) != 0)
     {
         std::cerr << "Error moving files " << std::endl
@@ -554,7 +554,7 @@ void rename_folder(std::string oldname, std::string newname)
         exit(-1);
     }
 
-    std::string rm_cmd = "rm -rf "+oldname;
+    std::string rm_cmd = "rm -rf " + oldname;
     if (system(mv_cmd.c_str()) != 0)
     {
         std::cerr << "Error removing old folder " << std::endl
@@ -592,49 +592,50 @@ typedef acqui::UCB<Params, GP_t> Acqui_t;
 typedef bayes_opt::BOptimizerAsync<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;
 
 #if RECORD_FIT
-std::vector<double> get_best_bd(size_t i)
+std::vector<double> get_best_bd(std::string stats_filename)
 {
-    std::ifstream fin;
-    fin.open(global::best_stats_file[i]);
-    if (fin.is_open())
+    std::ifstream linecount, read;
+    linecount.open(stats_filename.c_str());
+    size_t length;
+    if (linecount.is_open())
     {
-        fin.seekg(-1, std::ios_base::end); // go to one spot before the EOF
-
-        bool keepLooping = true;
-        while (keepLooping)
+        length = 0;
+        std::string line;
+        while (std::getline(linecount, line))
         {
-            char ch;
-            fin.get(ch); // Get current byte's data
-
-            if ((int)fin.tellg() <= 1)
-            {                        // If the data was at or before the 0th byte
-                fin.seekg(0);        // The first line is the last line
-                keepLooping = false; // So stop there
-            }
-            else if (ch == '\n')
-            {                        // If the data was a newline
-                keepLooping = false; // Stop at the current position.
-            }
-            else
-            {                                 // If the data was neither a newline nor at the 0 byte
-                fin.seekg(-2, std::ios_base::cur); // Move to the front of that data, then to the front of the data before it
-            }
+            ++length;
         }
+    }
+    linecount.close();
+    read.open(stats_filename.c_str());
+    if (read.is_open())
+    {
 
-        std::string lastLine;
-        getline(fin, lastLine); // Read the current line
-        std::istringstream iss(lastLine);
-        std::vector<double> bd;
-        double num;
-        while (iss >> num)
+        // loop backward over the file
+        int i = 0;
+        std::vector<double> numbers;
+        std::string line;
+        while (std::getline(read, line))
         {
-            if (i >= 1 && i <= global::behav_dim)
+            if (i == length - 1)
             {
-                bd.push_back(num);
+                std::istringstream iss(line);
+
+                double num;
+                int j = 0;
+                while (iss >> num)
+                {
+                    if (j >= 1 && j <= global::behav_dim)
+                    {
+                        numbers.push_back(num);
+                    }
+                    ++j;
+                }
             }
+            ++i;
         }
-        fin.close();
-        return bd;
+        read.close();
+        return numbers;
     }
     throw std::runtime_error("did not find anything");
     return std::vector<double>();
@@ -686,7 +687,5 @@ void run_ite(const std::string &newname)
     print_individual_to_network(bd, Params::archiveparams::archive);
     rename_folder(global::results_path, newname);
 }
-
-
 
 #endif

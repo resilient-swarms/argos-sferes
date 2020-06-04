@@ -33,9 +33,9 @@ int main(int argc, char **argv)
     global::gen_to_load = std::atoi(argv[3]);
     global::results_path = std::string(argv[4]);
 #if RECORD_FIT
-    std::vector<double> normal_ID = {0.5,0.5,0.5,0.5,0.5,0.5};
-#else
     std::vector<double> normal_ID = {};
+#else
+    std::vector<double> normal_ID = {0.5,0.5,0.5,0.5,0.5,0.5};
 #endif
     Params::archiveparams::archive = load_archive(global::archive_path + "/archive_" + std::to_string(global::gen_to_load) + ".dat",normal_ID);
 #endif
