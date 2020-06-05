@@ -93,6 +93,7 @@ while remaining_indexes:
         x = bds[i]
         M = mu(priors[i],x,samples,np.array(observations),np.array(queried_priors))
         print("mu =" + str(M))
+        print("update effect = " , M-priors[i]) # inverse relation between update effect size and noise
         if M > max_acq:
             max_acq=M
             max_ind=i
