@@ -92,7 +92,7 @@ while remaining_indexes:
     for i in range(len(remaining_indexes)):
         x = bds[i]
         M = mu(priors[i],x,samples,np.array(observations),np.array(queried_priors))
-        #print("mu =" + str(M))
+        print("mu =" + str(M))
         if M > max_acq:
             max_acq=M
             max_ind=i
@@ -107,15 +107,14 @@ while remaining_indexes:
     prior=priors[j]
 
     samples.append(x)
-    observations.append(np.random.randint(0,5)) # evaluate the point
+    observations.append(np.random.randint(0,3)) # low values (0-2) give negative means
     queried_priors.append(prior)
-    noises.append(observations[-1]*observations[-1])
-    #noises.append(0) # no negative values seen here
-    #noises.append(25) # no negative values seen here
-    #noises.append(5) # no negative values seen here
+    noises.append(noise)
+    #noises.append(observations[-1] * observations[-1]) # large/variable noise is not cause of negative values
     #update the kernel matrix
-    noise_mat=np.array(noises).dot(np.identity(len(samples)))
-    Kn = K(samples) + noise_mat
+    noise_mat = np.array(noises)*np.identity(len(samples))
+    Kn = K(samples)
+    Kn = Kn + noise_mat
     K_inv = np.linalg.inv(Kn)
 
 
