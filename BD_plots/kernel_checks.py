@@ -109,7 +109,7 @@ while remaining_indexes:
     samples.append(x)
     observations.append(np.random.randint(0,3)) # low values (0-2) give negative means
     queried_priors.append(prior)
-    noises.append(noise)
+    noises.append(400) # only extreme noise seems to avoid negative values
     #noises.append(observations[-1] * observations[-1]) # large/variable noise is not cause of negative values
     #update the kernel matrix
     noise_mat = np.array(noises)*np.identity(len(samples))
