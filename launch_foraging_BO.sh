@@ -27,6 +27,15 @@ elif [ "$run_type" = "BO_single" ]; then
 	network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
 	stop=collision
+elif [ "$run_type" = "BO_single_record" ]; then
+    UseVirtual="False"
+	TopOutputFolder="single_exp"
+    command="bin/behaviour_evol"
+    SimTime=120  # 960*max_evals=28,800 with 30 evals
+    trials=8
+	network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+	
 elif [ "$run_type" = "uniform" ]; then
 	TopOutputFolder="uniform"
     command="bin/ite_swarms_uniform_"
@@ -130,6 +139,9 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
             else
                 if [ "$run_type" = "BO_single" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
+                    bd="identification"
+                elif [ "$run_type" = "BO_single_record" ]; then
+                    tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="identification"
                 else
                     tag=BO${CVT}${BD_DIMS}DREAL
