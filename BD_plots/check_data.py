@@ -129,6 +129,24 @@ def check_BO_complete_foraging(datadir,descriptors,runs):
                     print("could not find:")
                     print(perturbed)
 
+def check_BO_single_complete_foraging(datadir,descriptors,runs):
+
+
+    for desc in descriptors:
+        print(desc)
+        filename = datadir + "/Foraging/" +  desc
+        for run in runs:
+
+            for perturbation in foraging_perturbations:
+
+                perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/single_exp/BO_output/fitness"
+                if not path.exists(perturbed):
+                    print("could not find:")
+                    print(perturbed)
+                lines = read_spacedelimited(perturbed)
+                if not lines:
+                    print("no line(s) found ", perturbed)
+
 if __name__ == "__main__":
     # check_archives_complete(30000,
     #                         "/home/david/Data",
@@ -139,13 +157,13 @@ if __name__ == "__main__":
     #                         translation="handcrafted"
     #                         )
 
-    check_archives_complete_foraging(20000,
-                            "/home/david/Data",
-                            ["history"],
-                            range(1,6),
-                            translation="handcrafted"
-                            )
-
-    # check_BO_complete_foraging( "/home/david/Data",
+    # check_archives_complete_foraging(20000,
+    #                         "/home/david/Data",
     #                         ["history"],
-    #                         range(1,6))
+    #                         range(1,6),
+    #                         translation="handcrafted"
+    #                         )
+
+    check_BO_single_complete_foraging( "/home/david/Data",
+                            ["history"],
+                            range(1,6))
