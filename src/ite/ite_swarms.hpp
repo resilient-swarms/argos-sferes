@@ -21,7 +21,6 @@
 
 #include <src/ite/global.hpp>
 
-
 using namespace limbo;
 
 const size_t max_evals = 100;
@@ -31,8 +30,6 @@ size_t num_trials = 3;
 #else
 size_t num_trials = 1; //trials done internally
 #endif
-
-
 
 struct Params
 {
@@ -125,12 +122,12 @@ struct Params
                     i++;
                 return std::round(lhs[i] * 100.0) / 100.0 < std::round(rhs[i] * 100.0) / 100.0; //lhs[i]<rhs[i];
             }
-	    /* to check inequality for constraints */
+            /* to check inequality for constraints */
             static bool inequality(const Eigen::VectorXd &lhs, const Eigen::VectorXd &rhs)
             {
 #if HETEROGENEOUS
                 size_t dim = global::behav_dim + global::num_ID_features;
-#else 
+#else
                 size_t dim = global::behav_dim;
 #endif
                 assert(lhs.size() == rhs.size() && lhs.size() == dim);
@@ -139,13 +136,12 @@ struct Params
                     i++;
                 return std::round(lhs[i] * 100.0) / 100.0 < std::round(rhs[i] * 100.0) / 100.0; //lhs[i]<rhs[i];
             }
-
         };
         typedef std::map<std::vector<double>, elem_archive, classcomp> archive_t;
         static std::map<std::vector<double>, elem_archive, classcomp> archive;
 #ifdef HETEROGENEOUS
         static std::map<std::vector<double>, elem_archive, classcomp> old_archive;
-    
+
 #endif
     };
 };
@@ -420,7 +416,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
                 init_i = 1;
 
             Params::archiveparams::elem_archive elem;
-#if HETEROGENEOUS 
+#if HETEROGENEOUS
             std::vector<double> candidate(global::behav_dim + global::num_ID_features);
 #else
             std::vector<double> candidate(global::behav_dim);
