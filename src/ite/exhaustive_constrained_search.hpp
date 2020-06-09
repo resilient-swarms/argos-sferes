@@ -33,9 +33,12 @@ namespace limbo {
                     {
                         continue;// no need to check again, assuming static environment
                     }
-                    if(temp.tail(constraint_size) != constraint)
+                    float norm = (temp.tail(constraint_size) - constraint).norm() ;
+                    if(norm > 0.001)
                     {
-                        //std::cout<< "Skipping bd not according to constraint: \n"<< temp;
+                        std::cout <<"norm = "<<norm<<std::endl;
+                        std::cout<< "Skipping bd not according to constraint: \n"<< temp;
+                        std::cout<<"constraint:\n"<<constraint;
                         continue;
                     }
                     

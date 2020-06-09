@@ -35,7 +35,7 @@ elif [ "$run_type" = "BO_single_record" ]; then
     trials=8
 	network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	
+	stop="" # will default to false stopping criterion always
 elif [ "$run_type" = "uniform" ]; then
 	TopOutputFolder="uniform"
     command="bin/ite_swarms_uniform_"
@@ -273,7 +273,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     if [[ "$run_type" == BO_single* ]];then
                          echo "submitting single job"
                          #sleep 10
-                        sbatch submit_single.sh
+                        bash submit_single.sh
                     else
                         echo "submitting ite job"
                         #sleep 10

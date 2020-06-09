@@ -40,7 +40,7 @@ public:
             return cController.reward_stop();
         }
         else{
-            return true;
+            return false;
         }
     }
     void select_new_controller(ForagingThymioNN &cController,bool alltrialsfinished);

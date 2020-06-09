@@ -173,7 +173,7 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
         return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform,estimate)
     elif title_tag=="single_exp":
         lines=read_spacedelimited(faultpath+normal_folder+"/single_exp/BO_output/fitness")
-        fitness=float(lines[0][0])
+        fitness=float(lines[-1][0])
         return [3600.],[fitness]
     else:
         return get_baseline_development(faultpath + normal_folder, title_tag, best_performances,time_lost)
