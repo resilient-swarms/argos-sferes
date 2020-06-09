@@ -125,6 +125,21 @@ struct Params
                     i++;
                 return std::round(lhs[i] * 100.0) / 100.0 < std::round(rhs[i] * 100.0) / 100.0; //lhs[i]<rhs[i];
             }
+	    /* to check inequality for constraints */
+            static bool inequality(const Eigen::VectorXd &lhs, const Eigen::VectorXd &rhs)
+            {
+#if HETEROGENEOUS
+                size_t dim = global::behav_dim + global::num_ID_features;
+#else 
+                size_t dim = global::behav_dim;
+#endif
+                assert(lhs.size() == rhs.size() && lhs.size() == dim);
+                size_t i = 0;
+                while (i < dim - 1 && std::round(lhs[i] * 100.0) / 100.0 == std::round(rhs[i] * 100.0) / 100.0) //lhs[i]==rhs[i])
+                    i++;
+                return std::round(lhs[i] * 100.0) / 100.0 < std::round(rhs[i] * 100.0) / 100.0; //lhs[i]<rhs[i];
+            }
+
         };
         typedef std::map<std::vector<double>, elem_archive, classcomp> archive_t;
         static std::map<std::vector<double>, elem_archive, classcomp> archive;

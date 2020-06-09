@@ -220,8 +220,8 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     else 
                         export BO_OutputFolder=${Outfolder}${output_tag}
                     fi
-                    echo "BO outputfolder = ${BO_OutputFolder}"
-                    #rm -rf ${BO_OutputFolder}
+		    echo "BO outputfolder = ${BO_OutputFolder}"
+                    rm ${BO_OutputFolder}/fitness
                     #rm ${Outfolder}/fitness
                     mkdir -p $Outfolder
                     echo "config ${ConfigFile}"
@@ -273,12 +273,13 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     if [[ "$run_type" == BO_single* ]];then
                          echo "submitting single job"
                          #sleep 10
-                        bash submit_single.sh
+                        sbatch submit_single.sh
                     else
                         echo "submitting ite job"
                         #sleep 10
                         bash submit_ite.sh
                     fi
+		
                 done
             done
         done

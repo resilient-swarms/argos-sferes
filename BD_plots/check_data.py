@@ -164,6 +164,6 @@ if __name__ == "__main__":
     #                         translation="handcrafted"
     #                         )
 
-    check_BO_single_complete_foraging( "/home/david/Data",
+    check_BO_single_complete_foraging( "/scratch/dmb1m19/",
                             ["history"],
                             range(1,6))

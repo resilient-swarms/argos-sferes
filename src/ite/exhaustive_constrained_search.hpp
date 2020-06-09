@@ -1,6 +1,7 @@
 #ifndef EXHAUSTIVE_CONSTRAINED_SEARCH_ARCHIVE_HPP_
 #define EXHAUSTIVE_CONSTRAINED_SEARCH_ARCHIVE_HPP_
 
+
 #include <set>
 #include <iterator>
 
@@ -25,18 +26,33 @@ namespace limbo {
                     
                     
                     Eigen::VectorXd temp(it->first.size());
-                    for (size_t i = 0; i < it->first.size(); i++)
+		    Eigen::VectorXd constraint_check(it->first.size());
+                    //std::cout << "start filling vectors of size " << it->first.size() << std::endl;
+		    for (size_t i = 0; i < it->first.size(); i++)
+		    {
+                        //std::cout << i << std::endl;
                         temp[i] = it->first[i];
+			if(i< BEHAV_DIM || constraint_size == 0)
+		        {
+			    constraint_check[i] = it->first[i];
+			}
+			else{
+			
+			    constraint_check[i] = constraint[i-BEHAV_DIM];
+			}		
+		    }
 
-                    bool checked = Params::archiveparams::archive.at(it->first).checked;
-                    if (checked )
+                    auto el = Params::archiveparams::archive.at(it->first);
+                    if (el.checked )
                     {
                         continue;// no need to check again, assuming static environment
                     }
-                    float norm = (temp.tail(constraint_size) - constraint).norm() ;
-                    if(norm > 0.001)
+		    //std::cout << "not checked yet" << std::endl;
+		    //std::cout << "will compare to constraint" << std::endl;
+		    //std::cout << "temp=\n"<<temp;
+		    //std::cout << "constraint_check\n" << constraint_check;
+                    if(Params::archiveparams::classcomp::inequality(temp,constraint_check) || Params::archiveparams::classcomp::inequality(constraint_check,temp))
                     {
-                        std::cout <<"norm = "<<norm<<std::endl;
                         std::cout<< "Skipping bd not according to constraint: \n"<< temp;
                         std::cout<<"constraint:\n"<<constraint;
                         continue;
