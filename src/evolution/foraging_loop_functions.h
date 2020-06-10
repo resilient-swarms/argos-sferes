@@ -8,6 +8,7 @@
 
 #if HETEROGENEOUS
 #include <src/ite/ite_swarms.hpp>
+#include <src/ite/baselines.hpp>
 #endif
 
 class CForagingLoopFunctions : public BaseEvolutionLoopFunctions
@@ -18,10 +19,13 @@ public:
     VirtualEnergy *virtual_energy;
     CFloorEntity *m_pcFloor;
 #if HETEROGENEOUS & !RECORD_FIT
+    std::string optimisation;
     size_t num_subtrials;
     size_t ticks_per_subtrial;
-    Opt_t opt;
+    Opt_t opt;// in case we want bayesian optimisation
+    std::vector<Proposal*> proposals;//in case we want random search
     ControllerEval state_fun; //state function; just for its parameters
+    
     std::string stop_crit;
     
     //std::string network_config, network_binary, archive_file;
@@ -44,6 +48,10 @@ public:
         }
     }
     void select_new_controller(ForagingThymioNN &cController,bool alltrialsfinished);
+    void select_new_controller_random(ForagingThymioNN &cController,bool alltrialsfinished);
+    void init_BO();
+    void init_randomsearch();
+
 #endif
     const float nest_x = 0.32;
     const int HARVEST_TIME = 50; // 50 time steps

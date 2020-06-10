@@ -62,7 +62,7 @@ int main(int argc, char **argv)
         global::current_config = *(eval_it + 2);
     }
 
-    std::string newname;
+    char* newname;
     // Results directory
     if ((folder_it + 1 > cmd_args.end()) || (folder_it + 1 == map_it))
     {

@@ -27,6 +27,28 @@ elif [ "$run_type" = "BO_single" ]; then
 	network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
 	stop=collision
+    optimisation="BO"
+elif [ "$run_type" = "random_single" ]; then
+    UseVirtual="False"
+	TopOutputFolder="single_exp_random"
+    command="bin/behaviour_evol"
+    SimTime=28800   # 960*max_evals=28,800 with 30 evals
+    trials=1
+    ticks_per_subtrial=600 #120*5
+	num_subtrials=8
+	network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+	stop=collision
+    optimisation="random"
+elif [ "$run_type" = "random_single_record" ]; then
+    UseVirtual="False"
+	TopOutputFolder="single_exp"
+    command="bin/behaviour_evol"
+    SimTime=120  # 960*max_evals=28,800 with 30 evals
+    trials=8
+	network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+	stop="" # will default to false stopping criterion always
 elif [ "$run_type" = "BO_single_record" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp"
@@ -137,7 +159,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                 echo "SwarmBehaviour = "${SwarmBehaviour}
                 sleep 5
             else
-                if [ "$run_type" = "BO_single" ]; then
+                if [ "$run_type" = "BO_single" ] || [ "$run_type" = "random_single" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="identification"
                 elif [ "$run_type" = "BO_single_record" ]; then
@@ -215,12 +237,13 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     Outfolder=${ConfigFolder}/results${SUFFIX}/${TopOutputFolder}
                     echo "Outfolder ${Outfolder}"
                     if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ] \
-                    || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ]; then
+                    || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ] ||
+                    [ "$run_type" = "random_single" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else 
                         export BO_OutputFolder=${Outfolder}${output_tag}
                     fi
-		    echo "BO outputfolder = ${BO_OutputFolder}"
+		            echo "BO outputfolder = ${BO_OutputFolder}"
                     rm ${BO_OutputFolder}/fitness
                     #rm ${Outfolder}/fitness
                     mkdir -p $Outfolder
@@ -249,6 +272,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
 		                -e "s|NETWORK_BINARY|${network_binary}|" \
                         -e "s|NETWORK_CONFIG|${Outfolder}/${network_config}|" \
 		                -e "s|STOP|${stop}|" \
+                        -e "s|OPTIMISATION|${optimisation}|" \
                         experiments/harvesting/harvesting_template.argos \
                         >${ConfigFile}
                         if [ ! -z "${network_config}" ]; then
@@ -270,10 +294,10 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     export ConfigFile
 
                    
-                    if [[ "$run_type" == BO_single* ]];then
+                    if [[ "$run_type" == BO_single* ]] || [[ "$run_type" == random_single ]];then
                          echo "submitting single job"
-                         #sleep 10
-                        sbatch submit_single.sh
+                         #sleep 1sh
+                         bash submit_single.sh
                     else
                         echo "submitting ite job"
                         #sleep 10

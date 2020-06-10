@@ -68,11 +68,27 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing network binary", ex);
    }
-
+   std::vector<double> normal_ID;
 #if RECORD_FIT
-   std::vector<double> normal_ID = {};
+   normal_ID = {};
 #else
-   std::vector<double> normal_ID = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+   try
+   {
+      GetNodeAttribute(t_node, "optimisation", optimisation);
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing stopping criterion", ex);
+   }
+   if (optimisation == "BO")
+   {
+      normal_ID = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+   }
+   else
+   {
+      normal_ID = {};
+   }
+
 #endif
    Params::archiveparams::archive = load_archive(std::string(global::archive_path) + "/archive_" + std::to_string(global::gen_to_load) + ".dat", normal_ID);
 
@@ -115,6 +131,21 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       THROW_ARGOSEXCEPTION_NESTED("Error initializing stopping criterion", ex);
    }
 
+   if (optimisation == "BO")
+   {
+      init_BO();
+   }
+   else
+   {
+      init_randomsearch();
+   }
+#endif
+#endif
+}
+
+#if HETEROGENEOUS & !RECORD_FIT
+void CForagingLoopFunctions::init_BO()
+{
    // select new controller now
    opt.optimize_init<ControllerEval>(state_fun);
    /* initial phase: select controller for one robot and then put others with the same as well */
@@ -144,10 +175,39 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    }
    Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
    Params::archiveparams::archive = {};
-#endif
-#endif
 }
 
+void CForagingLoopFunctions::init_randomsearch()
+{
+   for (size_t i = 0; i < m_unNumberRobots; ++i)
+   {
+      argos::CThymioEntity *cThym = m_pcvecRobot[i];
+      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+      proposals.push_back(new Proposal());
+      std::string res_dir = opt.res_dir();
+      std::cout << "res dir " << res_dir << std::endl;
+      proposals[i]->init(res_dir, i);
+      std::vector<double> bd = proposals[i]->generate();
+      cController.worker.new_sample = Eigen::VectorXd(bd.size());
+      for (size_t i = 0; i < bd.size(); ++i)
+      {
+         cController.worker.new_sample[i] = bd[i];
+      }
+      proposals[i]->update();
+      cController.select_net(bd, num_subtrials, ticks_per_subtrial);
+      // reset the controller (food_items_collected,)
+      cController.Reset();
+      std::string sim_cmd = "rm " + cController.savefile;
+      if (system(sim_cmd.c_str()) != 0)
+      {
+         std::cerr << "Error removing nvp " << std::endl
+                   << sim_cmd << std::endl;
+         exit(-1);
+      }
+   }
+}
+
+#endif
 /****************************************/
 /****************************************/
 void CForagingLoopFunctions::food_scarcity()
@@ -233,6 +293,35 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
                       << sim_cmd << std::endl;
             exit(-1);
          }
+      }
+   }
+   // reset the controller (food_items_collected,)
+   cController.Reset();
+}
+
+void CForagingLoopFunctions::select_new_controller_random(ForagingThymioNN &cController, bool all_trials_finished)
+{
+
+   if (all_trials_finished) // select new sample
+   {
+
+      size_t i = cController.worker.index;
+
+      proposals[i]->print_stats(i, (double)cController.worker.total_time, cController.worker.new_sample, cController.worker.fitness(m_unNumberRobots));
+      std::vector<double> bd = proposals[i]->generate();
+      cController.worker.new_sample = Eigen::VectorXd(bd.size());
+      for (size_t i = 0; i < bd.size(); ++i)
+      {
+         cController.worker.new_sample[i] = bd[i];
+      }
+      proposals[i]->update();
+      cController.select_net(bd);
+      std::string sim_cmd = "rm " + cController.savefile;
+      if (system(sim_cmd.c_str()) != 0)
+      {
+         std::cerr << "Error removing nvp " << std::endl
+                   << sim_cmd << std::endl;
+         exit(-1);
       }
    }
    // reset the controller (food_items_collected,)
@@ -631,7 +720,14 @@ void CForagingLoopFunctions::PostStep()
       {
          --cController.num_trials_left;
          bool alltrialsfinished = stop || cController.num_trials_left == 0;
-         select_new_controller(cController, alltrialsfinished);
+         if (optimisation == "BO")
+         {
+            select_new_controller(cController, alltrialsfinished);
+         }
+         else
+         {
+            select_new_controller_random(cController, alltrialsfinished);
+         }
          cController.num_ticks_left = ticks_per_subtrial;
          if (alltrialsfinished)
          {

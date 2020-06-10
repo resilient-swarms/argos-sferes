@@ -172,9 +172,12 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
     if title_tag.startswith("BO"):
         return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform,estimate)
     elif title_tag=="single_exp":
-        lines=read_spacedelimited(faultpath+normal_folder+"/single_exp/BO_output/fitness")
-        fitness=float(lines[-1][0])
-        return [3600.],[fitness]
+        try:
+            lines=read_spacedelimited(faultpath+normal_folder+"/single_exp/BO_output/fitness")
+            fitness=float(lines[-1][0])
+            return [fitness],  [3600.]
+        except:
+            return [],[]
     else:
         return get_baseline_development(faultpath + normal_folder, title_tag, best_performances,time_lost)
 
@@ -505,17 +508,18 @@ def prepare_data(VE_tags, conditions, settings, max_evals,num_VE_conditions, gen
 
                     if by_faulttype:
                         faulttype, index = get_fault_type(fault)
-                        for t in range(max_evals[c]):
-                            best_performance_data[c][index][t] = np.append(best_performance_data[c][index][t],
-                                                                           best_performances[t])
+                        if len(best_performances)>0:
+                            for t in range(max_evals[c]):
+                                best_performance_data[c][index][t] = np.append(best_performance_data[c][index][t],
+                                                                               best_performances[t])
+                                if VE:
+                                    time_loss[c][index][t] = np.append(time_loss[c][index][t], time_lost[t]/NUM_TRIALS)
+                                else:
+                                    time_loss[c][index][t] = np.append(time_loss[c][index][t], time_lost[t])
                             if VE:
-                                time_loss[c][index][t] = np.append(time_loss[c][index][t], time_lost[t]/NUM_TRIALS)
-                            else:
-                                time_loss[c][index][t] = np.append(time_loss[c][index][t], time_lost[t])
-                        if VE:
-                            percentage_eval_data[VE_tag_index][index].append(
-                                sum([time_lost[i] - time_lost[i - 1] for i in range(1, len(time_lost))]) / (
-                                            NUM_SECONDS * max_evals[c]))
+                                percentage_eval_data[VE_tag_index][index].append(
+                                    sum([time_lost[i] - time_lost[i - 1] for i in range(1, len(time_lost))]) / (
+                                                NUM_SECONDS * max_evals[c]))
 
                     else:
                         raise Exception("not supported")
@@ -631,7 +635,6 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
             # p_120 = None
             # p_sd_120 = None
             # mindist_120 = float("inf")
-
             for t in range(max_evals[c]):
                 data = best_performance_data[c][fault_category][t]/NUM_AGENTS
                 mean = np.mean(data)
