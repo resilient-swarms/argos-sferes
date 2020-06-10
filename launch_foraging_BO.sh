@@ -20,7 +20,7 @@ elif [ "$run_type" = "BO_single" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp"
     command="bin/behaviour_evol"
-    SimTime=28800   # 960*max_evals=28,800 with 30 evals
+    SimTime=5000  # 960*max_evals=28,800 with 30 evals
     trials=1
     ticks_per_subtrial=600 #120*5
 	num_subtrials=8

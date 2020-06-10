@@ -543,6 +543,14 @@ std::string print_individual_to_network(std::vector<double> bd)
 
 void rename_folder(std::string oldname, std::string newname)
 {
+    std::cout << "removing .dot files\n";
+    std::string dot_cmd = "rm " + newname + "/*.dot ";
+    if (system(dot_cmd.c_str()) != 0)
+    {
+        std::cerr << "Error removing dot files " << std::endl
+                  << dot_cmd << std::endl;
+        exit(-1);
+    }
 
     std::cout << "renaming: " << oldname << " " << newname << std::endl;
     std::string mv_cmd = "mv " + oldname + "/* " + newname + "/ ";
@@ -554,10 +562,10 @@ void rename_folder(std::string oldname, std::string newname)
     }
 
     std::string rm_cmd = "rm -rf " + oldname;
-    if (system(mv_cmd.c_str()) != 0)
+    if (system(rm_cmd.c_str()) != 0)
     {
         std::cerr << "Error removing old folder " << std::endl
-                  << mv_cmd << std::endl;
+                  << rm_cmd << std::endl;
         exit(-1);
     }
     // int result;
