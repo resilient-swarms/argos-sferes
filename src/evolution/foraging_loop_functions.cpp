@@ -609,6 +609,15 @@ void CForagingLoopFunctions::PostStep()
       CVector2 cPos;
       cPos.Set(cThym->GetEmbodiedEntity().GetOriginAnchor().Position.GetX(),
                cThym->GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
+
+#if HETEROGENEOUS & !RECORD_FIT
+      float collided = 0.0f;
+      if (cThym->GetEmbodiedEntity().IsCollidingWithSomething())
+      {
+         collided = 1.0f;
+      }
+      cController.collision_value = 0.99 * cController.collision_value + 0.01 * collided;
+#endif
       VirtualState virtualState = VirtualState::DEFAULT;
       /* The thymio has a food item and does not drop it due to software fault*/
       if (cController.holdingFood)
@@ -693,6 +702,7 @@ void CForagingLoopFunctions::PostStep()
             }
          }
       }
+
       // adjust state where needed
       if (cController.holdingFood)
       {

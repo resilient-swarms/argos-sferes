@@ -104,25 +104,15 @@ std::vector<Real> ForagingThymioNN::GetNormalizedSensorReadings()
 
 #endif
 
-#if HETEROGENEOUS & !RECORD_FIT
-    float collided = 0.0f;
-#endif
+
 
     //m_pcLeds->SetProxHIntensity(tProxReads);// don't need it; maybe useful for debugging
     for (UInt8 i = 0; i < tProxReads.size(); ++i)
     {
         norm_readings.push_back((1.0f - tProxReads[i].Value) * 2.0f - 1.0f);
-#if HETEROGENEOUS & !RECORD_FIT
-        if (tProxReads[i].Value > 0.90)
-        {
-            collided = 1.0f;
-        }
-    }
-    collision_value = 0.99 * collision_value + 0.01 * collided;
 
-#else
     }
-#endif
+
 
     for (UInt8 i = 0; i < tGroundReads.size(); ++i)
     {
