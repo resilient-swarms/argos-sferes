@@ -16,13 +16,12 @@ struct Proposal
     std::random_device rd; //Will be used to obtain a seed for the random number engine
     std::mt19937 gen;      //Standard mersenne_twister_engine seeded with rd()
 #if HETEROGENEOUS & !RECORD_FIT
-    std::ofstream stats, best_stats;
+    std::string res_dir;
     Eigen::VectorXd best_sample;
     double best_observation;
-    void init(const std::string& res_dir,size_t worker_index)
+    void init(const std::string &results_dir, size_t worker_index)
     {
-        best_stats = std::ofstream(res_dir + "/async_stats_best"+std::to_string(worker_index)+".dat");
-        stats = std::ofstream(res_dir + "/async_stats"+std::to_string(worker_index)+".dat");
+        res_dir = results_dir;
         init();
     }
 #endif
@@ -55,7 +54,9 @@ struct Proposal
     //mimick the stats used in limbo
     void print_stats(size_t worker_index, double time, const Eigen::VectorXd &sample, double observation)
     {
-        if(observation > best_observation)
+        std::ofstream best_stats(res_dir + "/async_stats_best" + std::to_string(worker_index) + ".dat");
+        std::ofstream stats(res_dir + "/async_stats" + std::to_string(worker_index) + ".dat");
+        if (observation > best_observation)
         {
             best_observation = observation;
             best_sample = sample;
