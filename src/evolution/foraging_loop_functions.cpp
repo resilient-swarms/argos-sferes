@@ -729,6 +729,10 @@ void CForagingLoopFunctions::PostStep()
       if (stop || cController.num_ticks_left == 0)
       {
          --cController.num_trials_left;
+         if(stop)
+         {
+            cController.worker.numFoodCollected = 0;
+         }
          bool alltrialsfinished = stop || cController.num_trials_left == 0;
          if (optimisation == "BO")
          {
