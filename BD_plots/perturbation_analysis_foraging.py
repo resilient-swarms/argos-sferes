@@ -734,9 +734,9 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
     reference_performance_data,reference_faultinjection_data, _, _, _ = pickle.load(
             open(loadfilename, "rb"))
     if comparison=="baselines":
-        conditions = ["H-SRBO","H-Random","SRBO", "SRBO-Uniform",
+        conditions = ["H-SRBO", "SRBO-Uniform",
                       "Random", "Gradient-ascent"]
-        settings = [ ("single_exp", False, None), ("single_exp_random", False, None),  ("BO", False, None), ("BO",False,None),
+        settings = [ ("single_exp", False, None), ("BO", False, None), ("BO",False,None),
                    ("random", False, None), ("gradient_closest", False, None)]
         plottag="ALL"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
@@ -1005,7 +1005,7 @@ if __name__ == "__main__":
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=True)
 
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,30,30,30,30],from_file=False,comparison="baselines",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,30,30,30,30],from_file=False,comparison="baselines",estimate=False)
 
 
 

@@ -731,7 +731,8 @@ void CForagingLoopFunctions::PostStep()
          --cController.num_trials_left;
          if(stop)
          {
-            cController.worker.numFoodCollected = 0;
+            cController.worker.numFoodCollected = 0;// new fitness estimate will be 0
+            opt.clear_fitness(cController.worker.index);//clear previous estimates --> after one push of 0 will stop with mean=0 and sd=0
          }
          bool alltrialsfinished = stop || cController.num_trials_left == 0;
          if (optimisation == "BO")
