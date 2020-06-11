@@ -129,7 +129,7 @@ void BaseLoopFunctions::robot_trial_setup(size_t m_unTrial, const CRange<Real> x
     } while (failed);
     num_tries += num_additional_tries;
 }
-void BaseLoopFunctions::place_robots()
+void BaseLoopFunctions::place_robots(size_t num_trials)
 {
     // set RAB range
     for (int i = 0; i < m_unNumberRobots; ++i)
@@ -151,7 +151,7 @@ void BaseLoopFunctions::place_robots()
     Real minY = 0.50f;
     Real maxY = size.GetY() - 0.50;
     m_vecInitSetup.clear();
-    for (size_t m_unTrial = 0; m_unTrial < m_unNumberTrials; ++m_unTrial)
+    for (size_t m_unTrial = 0; m_unTrial < num_trials; ++m_unTrial)
     {
 
         m_vecInitSetup.push_back(std::vector<SInitSetup>(m_unNumberRobots));
@@ -231,7 +231,7 @@ void BaseLoopFunctions::Init(TConfigurationNode &t_node)
     }
     //init_generator(t_node);
     init_robots(t_node);
-    place_robots();
+    place_robots(m_unNumberTrials);
     init_fitfuns(t_node);
 
     /* process outputfolder */

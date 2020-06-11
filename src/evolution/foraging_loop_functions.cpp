@@ -130,7 +130,14 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing stopping criterion", ex);
    }
-
+   try
+   {
+      GetNodeAttribute(t_node, "reset", reset);
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
+   }
    if (optimisation == "BO")
    {
       init_BO();
@@ -138,6 +145,10 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    else
    {
       init_randomsearch();
+   }
+   if (reset)
+   {
+      place_robots(num_subtrials);
    }
 #endif
 #endif
@@ -729,10 +740,10 @@ void CForagingLoopFunctions::PostStep()
       if (stop || cController.num_ticks_left == 0)
       {
          --cController.num_trials_left;
-         if(stop)
+         if (stop)
          {
-            cController.worker.numFoodCollected = 0;// new fitness estimate will be 0
-            opt.clear_fitness(cController.worker.index);//clear previous estimates --> after one push of 0 will stop with mean=0 and sd=0
+            cController.worker.numFoodCollected = 0;     // new fitness estimate will be 0
+            opt.clear_fitness(cController.worker.index); //clear previous estimates --> after one push of 0 will stop with mean=0 and sd=0
          }
          bool alltrialsfinished = stop || cController.num_trials_left == 0;
          if (optimisation == "BO")
@@ -744,6 +755,20 @@ void CForagingLoopFunctions::PostStep()
             select_new_controller_random(cController, alltrialsfinished);
          }
          cController.num_ticks_left = ticks_per_subtrial;
+         if (reset)
+         {
+            CPhysicsModel *model;
+            //model = &entity->GetPhysicsModel("dyn2d_0");
+            //model->UpdateEntityStatus();
+            size_t trial = num_subtrials - cController.num_trials_left - 1;
+            if (!cThym->GetEmbodiedEntity().MoveTo(
+                    m_vecInitSetup[trial][j].Position,    // to this position
+                    m_vecInitSetup[trial][j].Orientation, // with this orientation
+                    false                                 // this is not a check, leave the robot there
+                    ))
+            {
+            }
+         }
          if (alltrialsfinished)
          {
             cController.num_trials_left = num_subtrials;

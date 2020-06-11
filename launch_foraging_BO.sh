@@ -28,6 +28,7 @@ elif [ "$run_type" = "BO_single" ]; then
     network_config=harvesting_printnetwork.argos
 	stop=$4
     optimisation="BO"
+    reset=true
 elif [ "$run_type" = "random_single" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_random"
@@ -40,6 +41,7 @@ elif [ "$run_type" = "random_single" ]; then
     network_config=harvesting_printnetwork.argos
 	stop=collision
     optimisation="random"
+    reset=true
 elif [ "$run_type" = "random_single_record" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_random"
@@ -272,7 +274,8 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
 		                -e "s|NETWORK_BINARY|${network_binary}|" \
                         -e "s|NETWORK_CONFIG|${Outfolder}/${network_config}|" \
 		                -e "s|STOP|${stop}|" \
-                        -e "s|OPTIMISATION|${optimisation}|" \
+                        -e "s|OPTIMISATION|${optimisation}|"  \
+                        -e "s|RESET|${reset}|" \
                         experiments/harvesting/harvesting_template.argos \
                         >${ConfigFile}
                         if [ ! -z "${network_config}" ]; then

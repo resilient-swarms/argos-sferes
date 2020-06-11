@@ -58,6 +58,7 @@
 		  network_config="NETWORK_CONFIG"
 		  stop="STOP"
 		  optimisation="OPTIMISATION"
+		  reset="RESET"
                     />
 
   <!-- *********************** -->

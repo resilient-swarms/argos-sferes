@@ -22,6 +22,7 @@ public:
     std::string optimisation;
     size_t num_subtrials;
     size_t ticks_per_subtrial;
+    bool reset;
     Opt_t opt;// in case we want bayesian optimisation
     std::vector<Proposal*> proposals;//in case we want random search
     ControllerEval state_fun; //state function; just for its parameters

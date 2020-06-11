@@ -58,7 +58,7 @@ public:
     virtual BaseController *get_controller(size_t robot);
 
     /* place robots on initial positions */
-    void place_robots();
+    void place_robots(size_t num_trials);
     virtual bool try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
     virtual std::vector<size_t> priority_robotplacement();
     void robot_trial_setup(size_t m_unTrial, const CRange<Real> x_range, const CRange<Real> y_range,size_t& num_tries);
