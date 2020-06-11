@@ -42,7 +42,7 @@ elif [ "$run_type" = "random_single" ]; then
     optimisation="random"
 elif [ "$run_type" = "random_single_record" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp"
+	TopOutputFolder="random_single_exp"
     command="bin/behaviour_evol"
     SimTime=120  # 960*max_evals=28,800 with 30 evals
     trials=8
@@ -162,7 +162,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                 if [ "$run_type" = "BO_single" ] || [ "$run_type" = "random_single" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="identification"
-                elif [ "$run_type" = "BO_single_record" ]; then
+                elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="identification"
                 else
@@ -238,7 +238,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     echo "Outfolder ${Outfolder}"
                     if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ] \
                     || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ] ||
-                    [ "$run_type" = "random_single" ]; then
+                    [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else 
                         export BO_OutputFolder=${Outfolder}${output_tag}
@@ -294,7 +294,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     export ConfigFile
 
                    
-                    if [[ "$run_type" == BO_single* ]] || [[ "$run_type" == random_single ]];then
+                    if [[ "$run_type" == BO_single* ]] || [[ "$run_type" == random_single* ]];then
                          echo "submitting single job"
                          #sleep 1sh
                          bash submit_single.sh
