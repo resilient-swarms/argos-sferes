@@ -42,7 +42,7 @@ elif [ "$run_type" = "random_single" ]; then
     optimisation="random"
 elif [ "$run_type" = "random_single_record" ]; then
     UseVirtual="False"
-	TopOutputFolder="random_single_exp"
+	TopOutputFolder="single_exp_random"
     command="bin/behaviour_evol"
     SimTime=120  # 960*max_evals=28,800 with 30 evals
     trials=8
