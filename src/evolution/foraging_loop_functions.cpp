@@ -200,9 +200,9 @@ void CForagingLoopFunctions::init_randomsearch()
       proposals[i]->init(res_dir, i);
       std::vector<double> bd = proposals[i]->generate();
       cController.worker.new_sample = Eigen::VectorXd(bd.size());
-      for (size_t i = 0; i < bd.size(); ++i)
+      for (size_t j = 0; j < bd.size(); ++j)
       {
-         cController.worker.new_sample[i] = bd[i];
+         cController.worker.new_sample[j] = bd[j];
       }
       cController.worker.index = i;
       proposals[i]->update();
@@ -322,9 +322,9 @@ void CForagingLoopFunctions::select_new_controller_random(ForagingThymioNN &cCon
       proposals[i]->print_stats(i, (double)cController.worker.total_time, cController.worker.new_sample, cController.worker.fitness(m_unNumberRobots));
       std::vector<double> bd = proposals[i]->generate();
       cController.worker.new_sample = Eigen::VectorXd(bd.size());
-      for (size_t i = 0; i < bd.size(); ++i)
+      for (size_t j = 0; j < bd.size(); ++j)
       {
-         cController.worker.new_sample[i] = bd[i];
+         cController.worker.new_sample[j] = bd[j];
       }
       proposals[i]->update();
       cController.select_net(bd);
