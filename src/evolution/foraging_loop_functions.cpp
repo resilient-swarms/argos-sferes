@@ -204,6 +204,7 @@ void CForagingLoopFunctions::init_randomsearch()
       {
          cController.worker.new_sample[i] = bd[i];
       }
+      cController.worker.index = i;
       proposals[i]->update();
       cController.select_net(bd, num_subtrials, ticks_per_subtrial);
       // reset the controller (food_items_collected,)
