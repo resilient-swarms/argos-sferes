@@ -190,10 +190,12 @@ void CForagingLoopFunctions::init_BO()
 
 void CForagingLoopFunctions::init_randomsearch()
 {
+   opt.optimize_init<ControllerEval>(state_fun);//just to get some useful stats
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+     
       proposals.push_back(new Proposal());
       std::string res_dir = opt.res_dir();
       std::cout << "res dir " << res_dir << std::endl;
@@ -313,13 +315,13 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
 
 void CForagingLoopFunctions::select_new_controller_random(ForagingThymioNN &cController, bool all_trials_finished)
 {
-
+   opt.push_fitness(cController.worker.index, cController.worker.fitness(m_unNumberRobots));
    if (all_trials_finished) // select new sample
    {
 
       size_t i = cController.worker.index;
 
-      proposals[i]->print_stats(i, (double)cController.worker.total_time, cController.worker.new_sample, cController.worker.fitness(m_unNumberRobots));
+      proposals[i]->print_stats(i, (double)cController.worker.total_time, cController.worker.new_sample, opt.get_mean_fitness(i) );
       std::vector<double> bd = proposals[i]->generate();
       cController.worker.new_sample = Eigen::VectorXd(bd.size());
       for (size_t j = 0; j < bd.size(); ++j)

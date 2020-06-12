@@ -18,7 +18,7 @@ struct Proposal
 #if HETEROGENEOUS & !RECORD_FIT
     std::string res_dir;
     Eigen::VectorXd best_sample;
-    double best_observation;
+    double best_observation = -INFINITY;
     void init(const std::string &results_dir, size_t worker_index)
     {
         res_dir = results_dir;
