@@ -173,10 +173,11 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
         return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform,estimate)
     elif "single_exp" in title_tag:
         try:
-            lines=read_spacedelimited(faultpath+normal_folder+"/"+title_tag+"/BO_output/fitness")
+            lines=read_spacedelimited(faultpath+normal_folder+"/"+title_tag+"/BO_output"+VE_tag+"/fitness")
             fitness=float(lines[-1][0])
             return [fitness],  [3600.]
-        except:
+        except Exception as e:
+            print(e)
             return [],[]
     else:
         return get_baseline_development(faultpath + normal_folder, title_tag, best_performances,time_lost)
@@ -476,10 +477,13 @@ def prepare_data(VE_tags, conditions, settings, max_evals,num_VE_conditions, gen
             print(condition)
             title_tag, VE, VE_tag_index = settings[c]
             uniform = condition.endswith("Uniform")
-            if VE_tag_index is not None:
-                VE_tag = VE_tags[VE_tag_index]
+            if "single_exp" in title_tag:
+                VE_tag = VE_tag_index # a string
             else:
-                VE_tag = None
+                if VE_tag_index is not None:
+                    VE_tag = VE_tags[VE_tag_index]
+                else:
+                    VE_tag = None
             print(bd_type[i])
             best_performance_data.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
             time_loss.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
@@ -608,11 +612,11 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
 
         for c, condition in enumerate(conditions):
             tag, VE, VE_tag_index = settings[c]
-            if VE_tag_index is not None:
-                percentage[fault_category].append(np.mean(percentage_eval_data[VE_tag_index][fault_category]))
-                m_p = np.mean(percentage_eval_data[VE_tag_index][fault_category]) * 100.0
-                sd_p = np.std(percentage_eval_data[VE_tag_index][fault_category]) * 100.0
-                percentage_file.write(" & $%.1f$ " % (m_p))
+            # if VE_tag_index is not None:
+            #     percentage[fault_category].append(np.mean(percentage_eval_data[VE_tag_index][fault_category]))
+            #     m_p = np.mean(percentage_eval_data[VE_tag_index][fault_category]) * 100.0
+            #     sd_p = np.std(percentage_eval_data[VE_tag_index][fault_category]) * 100.0
+            #     percentage_file.write(" & $%.1f$ " % (m_p))
             # after equivalent of 30 evals
             t_3600 = None
             p_3600 = None
@@ -734,14 +738,14 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
     reference_performance_data,reference_faultinjection_data, _, _, _ = pickle.load(
             open(loadfilename, "rb"))
     if comparison=="baselines":
-        conditions = ["H-SRBO", "SRBO-Uniform",
+        conditions = ["H-SRBO", "H-SRBO2", "SRBO-Uniform",
                       "Random", "Gradient-ascent"]
-        settings = [ ("single_exp", False, None), ("BO", False, None), ("BO",False,None),
+        settings = [ ("single_exp", False, "reset_nocollisionstop"), ("single_exp", False, "reset_collisionstop"),("BO", False, None), ("BO",False,None),
                    ("random", False, None), ("gradient_closest", False, None)]
         plottag="ALL"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
 
-        num_VE_conditions=5
+        num_VE_conditions=6
     elif comparison=="fest":
         conditions = ["SRBO", "VE-SRBO E(0)=3","VE-SRBO E(0)=4","VE-SRBO E(0)=5","VE-SRBO E(0)=6","VE-SRBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
@@ -1005,7 +1009,7 @@ if __name__ == "__main__":
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=True)
 
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,30,30,30,30],from_file=False,comparison="baselines",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,30,30,30,30],from_file=False,comparison="baselines",estimate=False)
 
 
 
