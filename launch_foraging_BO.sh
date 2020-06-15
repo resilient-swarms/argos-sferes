@@ -52,7 +52,7 @@ elif [ "$run_type" = "random_single" ]; then
 	num_subtrials=8
 	network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop=collision
+	stop=""
     optimisation="random"
     reset=true
 elif [ "$run_type" = "random_single_record" ]; then
@@ -316,7 +316,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     if [[ "$run_type" == BO_single* ]] || [[ "$run_type" == random_single* ]];then
                          echo "submitting single job"
                          #sleep 1sh
-                         bash submit_single.sh
+                         sbatch submit_single.sh
                     else
                         echo "submitting ite job"
                         #sleep 10

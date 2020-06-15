@@ -54,8 +54,8 @@ struct Proposal
     //mimick the stats used in limbo
     void print_stats(size_t worker_index, double time, const Eigen::VectorXd &sample, double observation)
     {
-        std::ofstream best_stats(res_dir + "/async_stats_best" + std::to_string(worker_index) + ".dat");
-        std::ofstream stats(res_dir + "/async_stats" + std::to_string(worker_index) + ".dat");
+        std::ofstream best_stats(res_dir + "/async_stats_best" + std::to_string(worker_index) + ".dat",std::ios::app);
+        std::ofstream stats(res_dir + "/async_stats" + std::to_string(worker_index) + ".dat",std::ios::app);
         if (observation > best_observation)
         {
             best_observation = observation;
