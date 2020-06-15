@@ -1398,7 +1398,6 @@ void IdentificationDescriptor::start_trial()
 {
 }
 
-
 void IdentificationDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	//the proportion of times the front-left proximity sensors are activated (above 0.5)
@@ -1429,7 +1428,6 @@ void IdentificationDescriptor::set_input_descriptor(size_t robot_index, BaseEvol
 /*end the trial*/
 void IdentificationDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-
 }
 
 std::vector<float> IdentificationDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
@@ -1444,5 +1442,86 @@ std::vector<float> IdentificationDescriptor::after_trials(BaseEvolutionLoopFunct
 			StatFuns::clip(bd_vec[i], 0.0f, 1.0f);
 		};
 	}
-	return std::vector<float>(bd_vec.begin()+ offset,bd_vec.begin()+ offset + 6);
+	return std::vector<float>(bd_vec.begin() + offset, bd_vec.begin() + offset + 6);
+}
+
+void PerfectIdentificationDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+void PerfectIdentificationDescriptor::start_trial()
+{
+}
+
+void PerfectIdentificationDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+/*end the trial*/
+void PerfectIdentificationDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+std::vector<float> PerfectIdentificationDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+	size_t index = cLoopFunctions.current_robot;
+	argos::CThymioEntity *cThym = cLoopFunctions.m_pcvecRobot[index];
+    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+	if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_NONE)
+	{ // ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
+		return {0, 0, 0, 0, 0, 0};
+	}
+	//proximity sensor faults
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMIN)
+	{
+		// ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
+		return {0.5, 0.5, 0, 0, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMAX)
+	{
+		// ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
+		return {1, 0.5, 0, 0, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETRANDOM)
+	{
+		// ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
+		return {0, 1, 0, 0, 0, 0};
+	}
+	//ground sensor faults
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETMIN)
+	{
+		// ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
+		return {0, 0, 0.5, 0.5, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETMAX)
+	{
+		// ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
+		return {0, 0, 1, 0.5, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETRANDOM)
+	{
+		// ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
+		return {0, 0, 0, 1, 0, 0};
+	}
+	//actuator faults
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_LWHEEL_SETHALF)
+	{
+		// ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
+		return {0, 0, 0, 0, 1, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_RWHEEL_SETHALF)
+	{
+		// ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
+		return {0, 0, 0, 0, 0, 1};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_BWHEELS_SETHALF)
+	{
+		// ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
+		return {0, 0, 0, 0, 1, 1};
+	}
+	else
+	{
+		throw std::runtime_error("fault identification vector not implemented");
+		return {};
+	}
 }

@@ -741,7 +741,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         conditions = ["H-SRBO", "H-SRBO2", "H-Random", "SRBO","SRBO-Uniform",
                       "Random", "Gradient-ascent"]
         settings = [ ("single_exp", False, "reset_nocollisionstop"), ("single_exp", False, "reset_collisionstop"),
-                     ("random_single_exp", False, "reset_nocollisionstop"),
+                     ("single_exp_random", False, "reset_nocollisionstop"),
                      ("BO", False, None), ("BO",False,None),
                    ("random", False, None), ("gradient_closest", False, None)]
         plottag="ALL"
@@ -1011,7 +1011,7 @@ if __name__ == "__main__":
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=True)
 
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,30,30,30,30],from_file=False,comparison="baselines",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,1,30,30,30,30],from_file=False,comparison="baselines",estimate=False)
 
 
 

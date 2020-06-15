@@ -29,6 +29,19 @@ elif [ "$run_type" = "BO_single" ]; then
 	stop=$4
     optimisation="BO"
     reset=true
+elif [ "$run_type" = "BO_single_known" ]; then
+    UseVirtual="False"
+	TopOutputFolder="single_exp"
+    command="bin/behaviour_evol"
+    SimTime=28800  # 960*max_evals=28,800 with 30 evals
+    trials=1
+    ticks_per_subtrial=600 #120*5
+	num_subtrials=8
+	network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+	stop=$4
+    optimisation="BO"
+    reset=true
 elif [ "$run_type" = "random_single" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_random"
@@ -164,6 +177,9 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                 if [ "$run_type" = "BO_single" ] || [ "$run_type" = "random_single" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="identification"
+                elif [ "$run_type" = "BO_single_known" ]; then
+                    tag=${CVT}${BD_DIMS}DREAL
+                    bd="perfect_identification"
                 elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="identification"

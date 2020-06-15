@@ -30,7 +30,7 @@
       <params>
         <wheel_turning max_speed="10"/>
  	<experiment_run swarm_behavior="/"
-			fault_behavior="FAULT_NONE" 
+			fault_behavior="FILE:experiments/harvesting/perturbations/run1_proximity_sensorp1.txt" 
 	                id_faulty_robot="-1" 
 			id_food_source="-1"
 			savefile="experiments/harvesting/BOOST_SERIALIZATION_NVP"
@@ -47,7 +47,7 @@
                   label="foraging_loopfunctions3DREAL"
                   trials="1"
                   robots="6"
-                  descriptortype="identification"    
+                  descriptortype="perfect_identification"    
                   fitfuntype="Foraging"
                   output_folder="experiments/harvesting"
                   centroids_folder="CENTROIDSFOLDER"
@@ -58,6 +58,8 @@
 		  network_binary="bin/BO3DREAL"
 		  network_config="experiments/harvesting/harvesting_printnetwork.argos"
 		  stop="collision"
+		  optimisation="BO"
+		  reset="true"
 		  
                     />
 
