@@ -50,7 +50,7 @@ public:
     }
     void select_new_controller(ForagingThymioNN &cController,bool alltrialsfinished);
     void select_new_controller_random(ForagingThymioNN &cController,bool alltrialsfinished);
-    void init_BO();
+    void init_BO(bool variable_noise);
     void init_randomsearch();
 
 #endif

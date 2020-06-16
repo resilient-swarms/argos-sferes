@@ -140,7 +140,16 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    }
    if (optimisation == "BO")
    {
-      init_BO();
+      bool variable_noise;
+      try
+      {
+         GetNodeAttribute(t_node, "variable_noise", variable_noise);
+      }
+      catch (CARGoSException &ex)
+      {
+         THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
+      }
+      init_BO(variable_noise);
    }
    else
    {
@@ -155,10 +164,10 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 }
 
 #if HETEROGENEOUS & !RECORD_FIT
-void CForagingLoopFunctions::init_BO()
+void CForagingLoopFunctions::init_BO(bool variable_noise)
 {
    // select new controller now
-   opt.optimize_init<ControllerEval>(state_fun);
+   opt.optimize_init<ControllerEval>(state_fun,variable_noise);
    /* initial phase: select controller for one robot and then put others with the same as well */
    argos::CThymioEntity *cThym = m_pcvecRobot[0];
    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
@@ -190,12 +199,12 @@ void CForagingLoopFunctions::init_BO()
 
 void CForagingLoopFunctions::init_randomsearch()
 {
-   opt.optimize_init<ControllerEval>(state_fun);//just to get some useful stats
+   opt.optimize_init<ControllerEval>(state_fun); //just to get some useful stats
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
-     
+
       proposals.push_back(new Proposal());
       std::string res_dir = opt.res_dir();
       std::cout << "res dir " << res_dir << std::endl;
@@ -321,7 +330,7 @@ void CForagingLoopFunctions::select_new_controller_random(ForagingThymioNN &cCon
 
       size_t i = cController.worker.index;
 
-      proposals[i]->print_stats(i, (double)cController.worker.total_time, cController.worker.new_sample, opt.get_mean_fitness(i) );
+      proposals[i]->print_stats(i, (double)cController.worker.total_time, cController.worker.new_sample, opt.get_mean_fitness(i));
       std::vector<double> bd = proposals[i]->generate();
       cController.worker.new_sample = Eigen::VectorXd(bd.size());
       for (size_t j = 0; j < bd.size(); ++j)
