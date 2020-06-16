@@ -31,7 +31,7 @@ elif [ "$run_type" = "BO_single" ]; then
     reset=true
 elif [ "$run_type" = "BO_single_known" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp"
+	TopOutputFolder="single_exp_known"
     command="bin/behaviour_evol"
     SimTime=28800  # 960*max_evals=28,800 with 30 evals
     trials=1
@@ -42,6 +42,20 @@ elif [ "$run_type" = "BO_single_known" ]; then
 	stop=$4
     optimisation="BO"
     reset=true
+elif [ "$run_type" = "BO_single_known_record" ]; then
+    UseVirtual="False"
+        TopOutputFolder="single_exp_known"
+    command="bin/behaviour_evol"
+    SimTime=28800  # 960*max_evals=28,800 with 30 evals
+    trials=1
+    ticks_per_subtrial=600 #120*5
+        num_subtrials=8
+        network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+        stop=$4
+    optimisation="BO"
+    reset=true
+
 elif [ "$run_type" = "random_single" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_random"
@@ -183,6 +197,10 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                 elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="identification"
+		elif [ "$run_type" = "BO_single_known_record" ]; then
+                    tag=${CVT}${BD_DIMS}DREAL_RECORD
+                    bd="perfect_identification"
+
                 else
                     tag=BO${CVT}${BD_DIMS}DREAL
                     bd=${DescriptorType}
@@ -256,7 +274,8 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     echo "Outfolder ${Outfolder}"
                     if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ] \
                     || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ] ||
-                    [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ]; then
+                    [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ] || [ "$run_type" = "BO_single_known_record" ] \
+		    || [ "$run_type" = "BO_single_known" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else 
                         export BO_OutputFolder=${Outfolder}${output_tag}
