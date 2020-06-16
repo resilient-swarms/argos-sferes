@@ -149,6 +149,13 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       {
          THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
       }
+      if(variable_noise)
+      {
+         std::cout << "using noise in BO" << std::endl;
+      }
+      else{
+         std::cout << "NOT using noise in BO" << std::endl;
+      }
       init_BO(variable_noise);
    }
    else

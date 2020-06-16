@@ -29,6 +29,7 @@ elif [ "$run_type" = "BO_single" ]; then
 	stop=$4
     optimisation="BO"
     reset=true
+    variable_noise=false
 elif [ "$run_type" = "BO_single_known" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_known"
@@ -42,6 +43,7 @@ elif [ "$run_type" = "BO_single_known" ]; then
 	stop=$4
     optimisation="BO"
     reset=true
+    variable_noise=true
 elif [ "$run_type" = "BO_single_known_record" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_known"
@@ -307,6 +309,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
 		                -e "s|STOP|${stop}|" \
                         -e "s|OPTIMISATION|${optimisation}|"  \
                         -e "s|RESET|${reset}|" \
+                        -e "s|VARIABLE_NOISE|${variable_noise}|" \
                         experiments/harvesting/harvesting_template.argos \
                         >${ConfigFile}
                         if [ ! -z "${network_config}" ]; then
@@ -331,7 +334,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     if [[ "$run_type" == BO_single* ]] || [[ "$run_type" == random_single* ]];then
                          echo "submitting single job"
                          #sleep 1sh
-                         sbatch submit_single.sh
+                         bash submit_single.sh
                     else
                         echo "submitting ite job"
                         #sleep 10

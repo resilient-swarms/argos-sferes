@@ -59,6 +59,7 @@
 		  stop="STOP"
 		  optimisation="OPTIMISATION"
 		  reset="RESET"
+		  variable_noise="VARIABLE_NOISE"
                     />
 
   <!-- *********************** -->
