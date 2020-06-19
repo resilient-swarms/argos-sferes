@@ -16,7 +16,7 @@ namespace limbo
             template <typename F>
             Eigen::VectorXd operator()(const F &f, const Eigen::VectorXd &init, bool bounded, const Eigen::VectorXd &constraint) const
             {
-                std::cout << "In ExhaustiveSearchArchive operator " << std::endl;
+                std::cout << "In ExhaustiveConstrainedSearchArchive operator " << std::endl;
 
                 float best_acqui = -INFINITY;
                 Eigen::VectorXd result;

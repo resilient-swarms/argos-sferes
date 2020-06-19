@@ -3,6 +3,14 @@
 #include "src/evolution/foraging_nn_controller.h"
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
+
+
+#if HETEROGENEOUS
+std::vector<Eigen::VectorXd> Params::busy_samples;
+double Params::L;
+double Params::M;
+#endif
+
 /****************************************/
 /****************************************/
 
@@ -162,10 +170,8 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       init_randomsearch();
    }
-   if (reset)
-   {
-      place_robots(num_subtrials);
-   }
+
+   place_robots(num_subtrials);
 #endif
 #endif
 }
@@ -209,6 +215,7 @@ void CForagingLoopFunctions::init_randomsearch()
    opt.optimize_init<ControllerEval>(state_fun); //just to get some useful stats
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
+      Params::busy_samples.push_back(opt.NULL_VEC);
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
 
@@ -283,6 +290,7 @@ void CForagingLoopFunctions::Reset()
 
 void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController, bool all_trials_finished)
 {
+
    if (cController.worker.initial_phase && all_trials_finished)
    {
       // finish descriptor
@@ -309,6 +317,7 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       argos::LOG << "initial phase " << cController.worker.initial_phase << std::endl;
 
       argos::LOG.Flush();
+      Params::add_to_busysamples(x);
       x = opt.optimize_step<ControllerEval>(x, worker_index, state_fun, all_trials_finished);
       if (all_trials_finished) // select new sample
       {

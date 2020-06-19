@@ -231,7 +231,9 @@ void BaseLoopFunctions::Init(TConfigurationNode &t_node)
     }
     //init_generator(t_node);
     init_robots(t_node);
+#if !(HETEROGENEOUS & !RECORD_FIT)
     place_robots(m_unNumberTrials);
+#endif
     init_fitfuns(t_node);
 
     /* process outputfolder */
