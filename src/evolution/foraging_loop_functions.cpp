@@ -317,8 +317,9 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       argos::LOG << "initial phase " << cController.worker.initial_phase << std::endl;
 
       argos::LOG.Flush();
-      Params::add_to_busysamples(x);
+      Params::remove_from_busysamples(x);
       x = opt.optimize_step<ControllerEval>(x, worker_index, state_fun, all_trials_finished);
+      Params::add_to_busysamples(x);
       if (all_trials_finished) // select new sample
       {
          cController.worker.new_sample = x.head(BEHAV_DIM);

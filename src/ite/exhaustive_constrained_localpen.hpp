@@ -11,14 +11,15 @@ namespace limbo
         template <typename Params>
         struct ExhaustiveConstrainedLocalPenalty
         {
+            const double minL = 1.0;//minimal lipschitz constant
             typedef typename Params::archiveparams::archive_t::const_iterator archive_it_t;
             ExhaustiveConstrainedLocalPenalty() {}
             template <typename F, typename AggregatorFun>
             Eigen::VectorXd operator()(const F &f, const Eigen::VectorXd &init, bool bounded, const Eigen::VectorXd &constraint, AggregatorFun afun) const
             {
 
-                Params::M = get_M<F>(f, constraint);
-                Params::L = get_L<F>(f, constraint);
+                Params::M =  get_M<F>(f, constraint);// set to max observation instead
+                Params::L = std::max(minL,get_L<F>(f, constraint));
                 std::cout << "In ExhaustiveConstrainedLocalPenalty operator " << std::endl;
 
                 float best_acqui = -INFINITY;
@@ -59,11 +60,11 @@ namespace limbo
                     //std::cout << "constraint_check\n" << constraint_check;
                     if (Params::archiveparams::classcomp::inequality(temp, constraint_check) || Params::archiveparams::classcomp::inequality(constraint_check, temp))
                     {
-                        std::cout << "Skipping bd not according to constraint: \n"
-                                  << temp;
-                        std::cout << "constraint:\n"
-                                  << constraint;
-                        continue;
+                        // std::cout << "Skipping bd not according to constraint: \n"
+                        //           << temp;
+                        // std::cout << "constraint:\n"
+                        //           << constraint;
+                        // continue;
                     }
 
                     float new_acqui = eval(f, temp);
@@ -120,10 +121,10 @@ namespace limbo
                     //std::cout << "constraint_check\n" << constraint_check;
                     if (Params::archiveparams::classcomp::inequality(temp, constraint_check) || Params::archiveparams::classcomp::inequality(constraint_check, temp))
                     {
-                        std::cout << "Skipping bd not according to constraint: \n"
-                                  << temp;
-                        std::cout << "constraint:\n"
-                                  << constraint;
+                        // std::cout << "Skipping bd not according to constraint: \n"
+                        //           << temp;
+                        // std::cout << "constraint:\n"
+                        //           << constraint;
                         continue;
                     }
 
@@ -181,10 +182,10 @@ namespace limbo
                     //std::cout << "constraint_check\n" << constraint_check;
                     if (Params::archiveparams::classcomp::inequality(temp, constraint_check) || Params::archiveparams::classcomp::inequality(constraint_check, temp))
                     {
-                        std::cout << "Skipping bd not according to constraint: \n"
-                                  << temp;
-                        std::cout << "constraint:\n"
-                                  << constraint;
+                        //std::cout << "Skipping bd not according to constraint: \n"
+                        //          << temp;
+                        //std::cout << "constraint:\n"
+                        //          << constraint;
                         continue;
                     }
 
@@ -196,6 +197,7 @@ namespace limbo
                         best_gradnorm = new_gradnorm;
                     }
                 }
+                std::cout << "best gradnorm " << best_gradnorm << std::endl;
                 return best_gradnorm;
             }
         };

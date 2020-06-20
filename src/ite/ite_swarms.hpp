@@ -150,15 +150,19 @@ struct Params
     static constexpr double gamma = 1.0f;
     static double L;
     static double M;
-
-    static void add_to_busysamples(const Eigen::VectorXd& sample)
+    static void remove_from_busysamples(const Eigen::VectorXd& sample)
     {
         auto found = std::find(busy_samples.begin(),busy_samples.end(),sample);
-        if(found == busy_samples.end())
+        if(found != busy_samples.end())
         {
-            busy_samples.push_back(sample);
+            busy_samples.erase(found);
             
         }
+        std::cout << "there are now " << busy_samples.size() << " samples" << std::endl;
+    }
+    static void add_to_busysamples(const Eigen::VectorXd& sample)
+    {
+        busy_samples.push_back(sample);
         std::cout << "there are now " << busy_samples.size() << " samples" << std::endl;
     }
 #endif
