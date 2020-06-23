@@ -769,12 +769,12 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
         num_VE_conditions=4
     elif comparison=="heterogeneous":
-        conditions = ["H-SRBO (Known fault)","H-SRBO","H-Random"]
-        settings = [("single_exp_known", False, "reset_nocollisionstop"), ("single_exp", False, "reset_nocollisionstop"),
+        conditions = ["H-SRBO-Local","H-SRBO (Known fault)","H-SRBO","H-Random"]
+        settings = [("single_exp", False, "localpenalisation"),("single_exp_known", False, "reset_nocollisionstop"), ("single_exp", False, "reset_nocollisionstop"),
                      ("single_exp_random", False, "reset_nocollisionstop")]
         plottag="HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
-        num_VE_conditions=3
+        num_VE_conditions=4
     elif comparison=="fest":
         conditions = ["SRBO", "VE-SRBO E(0)=3","VE-SRBO E(0)=4","VE-SRBO E(0)=5","VE-SRBO E(0)=6","VE-SRBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
@@ -1039,7 +1039,7 @@ if __name__ == "__main__":
 
 
     development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30],from_file=False,comparison="heterogeneous",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="heterogeneous",estimate=False)
 
 
 
