@@ -30,6 +30,20 @@ elif [ "$run_type" = "BO_single" ]; then
     optimisation="BO"
     reset=true
     variable_noise=false
+elif [ "$run_type" = "BO_single_random" ]; then
+    UseVirtual="False"
+	TopOutputFolder="single_exp_random"
+    command="bin/behaviour_evol"
+    SimTime=28800  # 960*max_evals=28,800 with 30 evals
+    trials=1
+    ticks_per_subtrial=600 #120*5
+	num_subtrials=8
+	network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+	stop=$4
+    optimisation="BO"
+    reset=true
+    variable_noise=false
 elif [ "$run_type" = "BO_single_known" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_known"
@@ -192,13 +206,15 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                 elif [ "$run_type" = "BO_single_known" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="perfect_identification"
+                elif [ "$run_type" = "BO_single_random" ]; then
+                    tag=${CVT}${BD_DIMS}DREAL
+                    bd="random_identification"
                 elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="identification"
-		elif [ "$run_type" = "BO_single_known_record" ]; then
+		        elif [ "$run_type" = "BO_single_known_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="perfect_identification"
-
                 else
                     tag=BO${CVT}${BD_DIMS}DREAL
                     bd=${DescriptorType}
@@ -273,7 +289,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ] \
                     || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ] ||
                     [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ] || [ "$run_type" = "BO_single_known_record" ] \
-		    || [ "$run_type" = "BO_single_known" ]; then
+		    || [ "$run_type" = "BO_single_known" ] || [ "$run_type" = "BO_single_random" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else 
                         export BO_OutputFolder=${Outfolder}${output_tag}

@@ -1461,7 +1461,6 @@ void PerfectIdentificationDescriptor::set_input_descriptor(size_t robot_index, B
 void PerfectIdentificationDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
-
 std::vector<float> PerfectIdentificationDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	size_t index = cLoopFunctions.current_robot;
@@ -1524,4 +1523,26 @@ std::vector<float> PerfectIdentificationDescriptor::after_trials(BaseEvolutionLo
 		throw std::runtime_error("fault identification vector not implemented");
 		return {};
 	}
+}
+
+void RandomIdentificationDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+void RandomIdentificationDescriptor::start_trial()
+{
+}
+
+void RandomIdentificationDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+/*end the trial*/
+void RandomIdentificationDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+std::vector<float> RandomIdentificationDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+	size_t index = cLoopFunctions.current_robot;
+	return bd_vec[index];
 }

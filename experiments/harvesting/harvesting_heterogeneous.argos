@@ -47,7 +47,7 @@
                   label="foraging_loopfunctions3DREAL"
                   trials="1"
                   robots="6"
-                  descriptortype="perfect_identification"    
+                  descriptortype="random_identification"    
                   fitfuntype="Foraging"
                   output_folder="experiments/harvesting"
                   centroids_folder="CENTROIDSFOLDER"

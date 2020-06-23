@@ -856,9 +856,38 @@ public:
   {
     for (size_t i = 0; i < num_robots; ++i)
     {
-      for(size_t i=0; i < 6; ++i)
+      for(size_t j=0; j < 6; ++j)
       {
         bd_vec.push_back(0);
+      }
+    }
+  }
+
+  void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  void start_trial();
+  /*after getting inputs, can update the descriptor if needed*/
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  /*end the trial*/
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  /*summarise BD at the end of trials*/
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
+};
+
+class RandomIdentificationDescriptor : public Descriptor
+{
+public:
+  std::vector<std::vector<float>> bd_vec;
+  RandomIdentificationDescriptor(size_t num_robots)
+  {
+    for (size_t i = 0; i < num_robots; ++i)
+    {
+      bd_vec.push_back(std::vector<float>());
+      for(size_t j=0; j < 6; ++j)
+      {
+        bd_vec[i].push_back(((double)std::rand()/RAND_MAX) );
       }
     }
   }

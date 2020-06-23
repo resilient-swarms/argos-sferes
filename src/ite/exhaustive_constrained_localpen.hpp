@@ -19,7 +19,7 @@ namespace limbo
             {
 
                 Params::M =  get_M<F>(f, constraint);// set to max observation instead
-                Params::L = 6.0; //std::max(minL, get_L<F>(f, constraint));
+                Params::L = std::max(minL, get_L<F>(f, constraint));
                 std::cout << "using L=" << Params::L << std::endl;
                 std::cout << "In ExhaustiveConstrainedLocalPenalty operator " << std::endl;
 
