@@ -11,15 +11,16 @@ namespace limbo
         template <typename Params>
         struct ExhaustiveConstrainedLocalPenalty
         {
-            const double minL = 1.0;//minimal lipschitz constant
+            const double minL = 0.1; //minimal lipschitz constant
             typedef typename Params::archiveparams::archive_t::const_iterator archive_it_t;
             ExhaustiveConstrainedLocalPenalty() {}
             template <typename F, typename AggregatorFun>
-            Eigen::VectorXd operator()(const F &f, const Eigen::VectorXd &init, bool bounded, const Eigen::VectorXd &constraint, AggregatorFun afun) const
+            Eigen::VectorXd operator()(F &f, const Eigen::VectorXd &init, bool bounded, const Eigen::VectorXd &constraint, AggregatorFun afun) const
             {
 
-                Params::M =  get_M<F>(f, constraint);// set to max observation instead
-                Params::L = std::max(minL,get_L<F>(f, constraint));
+                //Params::M =  get_M<F>(f, constraint);// set to max observation instead
+                Params::L = 1.0; //std::max(minL, get_L<F>(f, constraint));
+                std::cout << "using L=" << Params::L << std::endl;
                 std::cout << "In ExhaustiveConstrainedLocalPenalty operator " << std::endl;
 
                 float best_acqui = -INFINITY;
@@ -85,7 +86,7 @@ namespace limbo
 
             /* helper to get the estimated maximal performance in the archive */
             template <typename F>
-            double get_M(const F &f, const Eigen::VectorXd &constraint) const
+            double get_M(F &f, const Eigen::VectorXd &constraint) const
             {
                 if (Params::busy_samples.empty())
                 {
@@ -141,7 +142,7 @@ namespace limbo
 
             /* helper to get lipschitz constant */
             template <typename F>
-            double get_L(const F &f, const Eigen::VectorXd &constraint) const
+            double get_L(F &f, const Eigen::VectorXd &constraint) const
             {
                 if (Params::busy_samples.empty())
                 {
@@ -150,6 +151,7 @@ namespace limbo
                 float best_gradnorm = -INFINITY;
                 size_t constraint_size = constraint.size();
                 archive_it_t best_it;
+
                 for (archive_it_t it = Params::archiveparams::archive.begin(); it != Params::archiveparams::archive.end(); ++it)
                 {
 

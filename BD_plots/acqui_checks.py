@@ -2,7 +2,7 @@
 from math import *
 from numpy.linalg import norm
 from kernel_checks import *
-L=0.1
+L=6.0
 M=20
 
 def local_penalisation(v, busy_samples):
@@ -24,6 +24,48 @@ def local_penalisation(v, busy_samples):
         print("phi "+str(phi))
         penalty *= phi
     return penalty
+
+
+def get_gradnorm(v):
+
+dkn = dKn(v)# Dxt
+Eigen::MatrixXd
+Kn = _model.get_inv_kernel(); // t
+observations_matrix(); // tx1
+Eigen::VectorXd
+grad = dkn * K_inv * obs;
+
+double
+gradnorm = grad.norm();
+std::cout << "grad " << grad << std::endl;
+std::cout << "gradnorm " << gradnorm << std::endl;
+// now
+check
+finite
+difference
+method
+
+Eigen::VectorXd
+grad_fd = Eigen::VectorXd(dim_in);
+double
+h = 1e-8;
+double
+performance = get_performance(v);
+for (size_t i=0; i < dim_in();
+++i)
+{
+    Eigen:: VectorXd
+v_h = v;
+v_h(i) = h;
+grad_fd(i) = (get_performance(v_h) - performance) / h;
+}
+
+double
+gradnorm_finite_diff = grad_fd.norm();
+std::cout << "gradnorm  " << gradnorm << std::endl;
+std::cout << "gradnorm fd " << gradnorm_finite_diff << std::endl;
+return gradnorm;
+}
 
 if __name__ == "__main__":
     bds,priors=load_archive()
@@ -56,7 +98,7 @@ if __name__ == "__main__":
         samples.append(x)
         observations.append(np.random.randint(0, 3))  # low values (0-2) give negative means
         queried_priors.append(prior)
-        noises.append(400)  # only extreme noise seems to avoid negative values
+        noises.append(0)  # only extreme noise seems to avoid negative values
         # noises.append(observations[-1] * observations[-1]) # large/variable noise is not cause of negative values
         # update the kernel matrix
         noise_mat = np.array(noises) * np.identity(len(samples))

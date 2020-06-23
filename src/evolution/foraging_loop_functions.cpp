@@ -319,7 +319,7 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       argos::LOG.Flush();
       Params::remove_from_busysamples(x);
       x = opt.optimize_step<ControllerEval>(x, worker_index, state_fun, all_trials_finished);
-      Params::add_to_busysamples(x);
+      
       if (all_trials_finished) // select new sample
       {
          cController.worker.new_sample = x.head(BEHAV_DIM);
@@ -333,6 +333,9 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
                       << sim_cmd << std::endl;
             exit(-1);
          }
+      }
+      else{
+         Params::add_to_busysamples(x);
       }
    }
    // reset the controller (food_items_collected,)

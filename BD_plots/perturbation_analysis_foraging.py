@@ -156,7 +156,27 @@ def get_baseline_development(faultpath, title_tag, best_performances,time_lost):
     time_lost = np.append(time_lost, x)
     best_performances = np.append(best_performances, y)
     return best_performances,  time_lost
+def get_worker_developments(num_workers,bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform):
 
+    mean_time=[]
+    mean_y=[]
+    for worker in range(num_workers):
+        BOfile = faultpath + normal_folder + "/BO_output" + VE_tag + "/async_stats_best"+str(worker)+".dat"
+        parsed_file_list = read_spacedelimited(BOfile)
+        i=1
+        x=[]
+        y=[]
+        for line in parsed_file_list:
+            best_performance=float(line[-1])
+            time_cumulant=float(line[0])/(NUM_TRIALS*TICKS_PER_SECOND)
+            x.append(time_cumulant)
+            y.append(best_performance)
+            i+=1
+        mean_y=np.append(mean_y,y)
+        mean_time=np.append(mean_time,x)
+    time_lost = np.append(time_lost, mean_time)
+    best_performances = np.append(best_performances, mean_y)
+    return best_performances,  time_lost
 def add_development_of_fault_performance(bd_t, r, gener, faultpath,
                           best_performances,time_lost,baseline=False,
                           title_tag="",virtual_energy=False,uniform=False,estimate=True):
@@ -172,13 +192,15 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
     if title_tag.startswith("BO"):
         return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform,estimate)
     elif "single_exp" in title_tag:
-        try:
-            lines=read_spacedelimited(faultpath+normal_folder+"/"+title_tag+"/BO_output"+VE_tag+"/fitness")
-            fitness=float(lines[-1][0])
-            return [fitness],  [3600.]
-        except Exception as e:
-            print(e)
-            return [],[]
+        normal_folder+="/"+title_tag
+        return get_worker_developments(int(NUM_AGENTS),bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform)
+        # try:
+        #     lines=read_spacedelimited(faultpath+normal_folder+"/"+title_tag+"/BO_output"+VE_tag+"/fitness")
+        #     fitness=float(lines[-1][0])
+        #     return [fitness],  [3600.]
+        # except Exception as e:
+        #     print(e)
+        #     return [],[]
     else:
         return get_baseline_development(faultpath + normal_folder, title_tag, best_performances,time_lost)
 
@@ -712,7 +734,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                    save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+plottag+".pdf", legend_labels=conditions,
                    colors=colors, markers=markers, xlabel="Time ($s$)",
                    ylabel="Best performance",
-                   xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,max_reference+0.10],
+                   xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,max_reference+1],
                    legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                    legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                    xaxis_style="plain", y_err=[], force=True) #, fill_between=(sd_lines1, sd_lines2))
@@ -738,16 +760,21 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
     reference_performance_data,reference_faultinjection_data, _, _, _ = pickle.load(
             open(loadfilename, "rb"))
     if comparison=="baselines":
-        conditions = ["H-SRBO (Known fault)","H-SRBO","H-SRBO (no noise)", "H-SRBO2", "H-Random", "SRBO","SRBO-Uniform",
+        conditions = ["SRBO","SRBO-Uniform",
                       "Random", "Gradient-ascent"]
-        settings = [("single_exp_known", False, "reset_nocollisionstop"), ("single_exp", False, "reset_nocollisionstop"), ("single_exp", False, "nonoise"),("single_exp", False, "reset_collisionstop"),
-                     ("single_exp_random", False, "reset_nocollisionstop"),
-                     ("BO", False, None), ("BO",False,None),
+        settings = [("BO", False, None), ("BO",False,None),
                    ("random", False, None), ("gradient_closest", False, None)]
         plottag="ALL"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
 
-        num_VE_conditions=6
+        num_VE_conditions=4
+    elif comparison=="heterogeneous":
+        conditions = ["H-SRBO (Known fault)","H-SRBO","H-Random"]
+        settings = [("single_exp_known", False, "reset_nocollisionstop"), ("single_exp", False, "reset_nocollisionstop"),
+                     ("single_exp_random", False, "reset_nocollisionstop")]
+        plottag="HETEROGENEOUS"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
+        num_VE_conditions=3
     elif comparison=="fest":
         conditions = ["SRBO", "VE-SRBO E(0)=3","VE-SRBO E(0)=4","VE-SRBO E(0)=5","VE-SRBO E(0)=6","VE-SRBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
@@ -1011,7 +1038,8 @@ if __name__ == "__main__":
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=True)
 
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,1,1,1,30,30,30,30],from_file=False,comparison="baselines",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30],from_file=False,comparison="heterogeneous",estimate=False)
 
 
 

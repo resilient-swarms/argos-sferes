@@ -389,6 +389,7 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
         else:
             accept = input("accept y/n")
         if accept == "y":
+            print("saving ",save_filename)
             fig.savefig(save_filename)
             return
         redo = str(input("redo settings ? y/n"))
