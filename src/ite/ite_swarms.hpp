@@ -153,44 +153,44 @@ struct Params
     static size_t count;
     static void remove_from_busysamples(const Eigen::VectorXd &sample)
     {
-        std::ofstream busylog("busy_samples.txt",std::ios::app);
-        busylog << "there were " << busy_samples.size() << " samples" << std::endl;
-        for(size_t i=0; i < busy_samples.size(); ++i)
-        {
-            busylog << busy_samples[i].transpose() << std::endl;
-        }
-        busylog << "removing " << sample.transpose() << std::endl;
+        // std::ofstream busylog("busy_samples.txt",std::ios::app);
+        // busylog << "there were " << busy_samples.size() << " samples" << std::endl;
+        // for(size_t i=0; i < busy_samples.size(); ++i)
+        // {
+        //     busylog << busy_samples[i].transpose() << std::endl;
+        // }
+        // busylog << "removing " << sample.transpose() << std::endl;
         auto found = std::find(busy_samples.begin(), busy_samples.end(), sample);
         if (found != busy_samples.end())
         {
-            busylog << "found " << sample.transpose() << std::endl;
+            // busylog << "found " << sample.transpose() << std::endl;
             busy_samples.erase(found);
         }
-        else{
-            busylog << "not found " << sample.transpose() << std::endl;
-        }
-        busylog << "there are now " << busy_samples.size() << " samples" << std::endl;
-        for(size_t i=0; i < busy_samples.size(); ++i)
-        {
-            busylog << busy_samples[i].transpose() << std::endl;
-        }
+        // else{
+        //     busylog << "not found " << sample.transpose() << std::endl;
+        // }
+        // busylog << "there are now " << busy_samples.size() << " samples" << std::endl;
+        // for(size_t i=0; i < busy_samples.size(); ++i)
+        // {
+        //     busylog << busy_samples[i].transpose() << std::endl;
+        // }
     }
     static void add_to_busysamples(const Eigen::VectorXd &sample)
     {
-        std::ofstream busylog("busy_samples.txt",std::ios::app);
+        //std::ofstream busylog("busy_samples.txt",std::ios::app);
         busy_samples.push_back(sample);
-        busylog << "after pushing, there are now " << busy_samples.size() << " samples" << std::endl;
-        for(size_t i=0; i < busy_samples.size(); ++i)
-        {
-            busylog << busy_samples[i].transpose() << std::endl;
-        }
+        //busylog << "after pushing, there are now " << busy_samples.size() << " samples" << std::endl;
+        // for(size_t i=0; i < busy_samples.size(); ++i)
+        // {
+        //     busylog << busy_samples[i].transpose() << std::endl;
+        // }
     }
 
     static std::vector<Eigen::VectorXd> get_closest_neighbours(const Eigen::VectorXd &v)
     {
         double step_size = 0.0625; //1/16 defines the behavioural grid
         std::vector<double> vec;
-        std::cout << "point: " << v.transpose() <<std::endl;
+        //std::cout << "point: " << v.transpose() <<std::endl;
         size_t dim = global::behav_dim + global::num_ID_features;
         for (size_t i = 0; i < dim; ++i)
         {
@@ -215,7 +215,7 @@ struct Params
                     Eigen::VectorXd neighbour = v;
                     neighbour[i] = bd[i];
                     neighbours.push_back(neighbour);
-                    std::cout << "neighbour "<<i<< ": " << neighbour.transpose() <<std::endl;
+                    //std::cout << "neighbour "<<i<< ": " << neighbour.transpose() <<std::endl;
                     break;
                 }
             }
