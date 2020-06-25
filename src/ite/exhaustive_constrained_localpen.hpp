@@ -65,10 +65,10 @@ namespace limbo
                     //std::cout << "constraint_check\n" << constraint_check;
                     if (Params::archiveparams::classcomp::inequality(temp, constraint_check) || Params::archiveparams::classcomp::inequality(constraint_check, temp))
                     {
-                        std::cout << "Skipping bd not according to constraint: \n"
-                                  << temp;
-                        std::cout << "constraint:\n"
-                                  << constraint.transpose();
+                        // std::cout << "Skipping bd not according to constraint: \n"
+                        //           << temp;
+                        // std::cout << "constraint:\n"
+                        //           << constraint.transpose();
                         continue;
                     }
 
