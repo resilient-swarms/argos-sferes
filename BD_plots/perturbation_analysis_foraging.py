@@ -769,7 +769,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
         num_VE_conditions=4
     elif comparison=="heterogeneous":
-        conditions = ["H-SRBO-Local","H-SRBO (Known fault)","H-SRBO","H-SRBO (Random identification)"]
+        conditions = ["H-SRBO-Local","H-SRBO (Known fault)","H-SRBO","H-SRBO (Random identification)","H-Random"]
         settings = [("single_exp", False, "localpenalisation"),("single_exp_known", False, "reset_nocollisionstop"),
                     ("single_exp", False, "reset_nocollisionstop"),("single_exp_random", False, "reset_nocollisionstop"),
                     ("single_exp_randomsearch", False, "reset_nocollisionstop")]
@@ -1040,7 +1040,7 @@ if __name__ == "__main__":
 
 
     development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="heterogeneous",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30,30],from_file=False,comparison="heterogeneous",estimate=False)
 
 
 

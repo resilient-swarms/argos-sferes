@@ -146,24 +146,81 @@ struct Params
 #endif
     };
 #ifdef HETEROGENEOUS
-    static std::vector<Eigen::VectorXd> busy_samples;//index of the robot -> its current sample
+    static std::vector<Eigen::VectorXd> busy_samples; //index of the robot -> its current sample
     static constexpr double gamma = 1.0f;
     static double L;
     static double M;
-    static void remove_from_busysamples(const Eigen::VectorXd& sample)
+    static size_t count;
+    static void remove_from_busysamples(const Eigen::VectorXd &sample)
     {
-        auto found = std::find(busy_samples.begin(),busy_samples.end(),sample);
-        if(found != busy_samples.end())
+        std::ofstream busylog("busy_samples.txt",std::ios::app);
+        busylog << "there were " << busy_samples.size() << " samples" << std::endl;
+        for(size_t i=0; i < busy_samples.size(); ++i)
         {
-            busy_samples.erase(found);
-            
+            busylog << busy_samples[i].transpose() << std::endl;
         }
-        std::cout << "there are now " << busy_samples.size() << " samples" << std::endl;
+        busylog << "removing " << sample.transpose() << std::endl;
+        auto found = std::find(busy_samples.begin(), busy_samples.end(), sample);
+        if (found != busy_samples.end())
+        {
+            busylog << "found " << sample.transpose() << std::endl;
+            busy_samples.erase(found);
+        }
+        else{
+            busylog << "not found " << sample.transpose() << std::endl;
+        }
+        busylog << "there are now " << busy_samples.size() << " samples" << std::endl;
+        for(size_t i=0; i < busy_samples.size(); ++i)
+        {
+            busylog << busy_samples[i].transpose() << std::endl;
+        }
     }
-    static void add_to_busysamples(const Eigen::VectorXd& sample)
+    static void add_to_busysamples(const Eigen::VectorXd &sample)
     {
+        std::ofstream busylog("busy_samples.txt",std::ios::app);
         busy_samples.push_back(sample);
-        std::cout << "there are now " << busy_samples.size() << " samples" << std::endl;
+        busylog << "after pushing, there are now " << busy_samples.size() << " samples" << std::endl;
+        for(size_t i=0; i < busy_samples.size(); ++i)
+        {
+            busylog << busy_samples[i].transpose() << std::endl;
+        }
+    }
+
+    static std::vector<Eigen::VectorXd> get_closest_neighbours(const Eigen::VectorXd &v)
+    {
+        double step_size = 0.0625; //1/16 defines the behavioural grid
+        std::vector<double> vec;
+        std::cout << "point: " << v.transpose() <<std::endl;
+        size_t dim = global::behav_dim + global::num_ID_features;
+        for (size_t i = 0; i < dim; ++i)
+        {
+            vec.push_back(v[i]);
+        }
+        std::vector<Eigen::VectorXd> neighbours;
+        for (size_t i = 0; i < BEHAV_DIM; ++i)
+        {
+            std::vector<double> steps = {+step_size, -step_size};
+            for (double step : steps)
+            {
+                std::vector<double> bd = vec;
+                bd[i] = bd[i] + step;
+                if (archiveparams::archive.find(bd) == archiveparams::archive.end())
+                {
+                    // not found
+                    continue;
+                }
+                else
+                {
+                    // found
+                    Eigen::VectorXd neighbour = v;
+                    neighbour[i] = bd[i];
+                    neighbours.push_back(neighbour);
+                    std::cout << "neighbour "<<i<< ": " << neighbour.transpose() <<std::endl;
+                    break;
+                }
+            }
+        }
+        return neighbours;
     }
 #endif
 };
@@ -604,7 +661,7 @@ Params::archiveparams::archive_t Params::archiveparams::archive;
 Params::archiveparams::archive_t Params::archiveparams::old_archive;
 
 typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
-typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
+typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
 //typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
 //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
 typedef mean::MeanArchive<Params> Mean_t;
@@ -618,8 +675,8 @@ typedef boost::fusion::vector<limbo::stat::AsyncStats<Params>, limbo::stat::Asyn
 
 typedef init::NoInit<Params> Init_t;
 typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
-typedef acqui::UCB<Params, GP_t> Acqui_t;
-//typedef acqui::UCB_LocalPenalisation<Params, GP_t> Acqui_t;
+//typedef acqui::UCB<Params, GP_t> Acqui_t;
+typedef acqui::UCB_LocalPenalisation<Params, GP_t> Acqui_t;
 typedef bayes_opt::BOptimizerAsync<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;
 
 #if RECORD_FIT

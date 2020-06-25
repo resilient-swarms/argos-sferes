@@ -9,6 +9,7 @@
 std::vector<Eigen::VectorXd> Params::busy_samples;
 double Params::L;
 double Params::M;
+size_t Params::count;
 #endif
 
 /****************************************/
@@ -179,6 +180,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 #if HETEROGENEOUS & !RECORD_FIT
 void CForagingLoopFunctions::init_BO(bool variable_noise)
 {
+   Params::count = 0;
    // select new controller now
    opt.optimize_init<ControllerEval>(state_fun,variable_noise);
    /* initial phase: select controller for one robot and then put others with the same as well */
@@ -309,22 +311,28 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
    opt.push_time((double)cController.worker.total_time, all_trials_finished);
    if (!cController.worker.initial_phase) //update trial info
    {
-      Eigen::VectorXd x = cController.worker.get_sample();
-
+      Eigen::VectorXd old_x = cController.worker.get_sample();
+   
       size_t worker_index = cController.worker.index;
       argos::LOG << "worker " << worker_index << std::endl;
       argos::LOG << "all trials finished " << all_trials_finished << std::endl;
       argos::LOG << "initial phase " << cController.worker.initial_phase << std::endl;
 
       argos::LOG.Flush();
-      Params::remove_from_busysamples(x);
-      x = opt.optimize_step<ControllerEval>(x, worker_index, state_fun, all_trials_finished);
+      
+      Eigen::VectorXd new_x = opt.optimize_step<ControllerEval>(cController.worker.get_sample(), worker_index, state_fun, all_trials_finished);
       
       if (all_trials_finished) // select new sample
       {
-         cController.worker.new_sample = x.head(BEHAV_DIM);
-         argos::LOG << "new sample" << x << std::endl;
-         std::vector<double> bd(x.data(), x.data() + x.rows() * x.cols());
+         std::ofstream busy_log("busy_samples.txt",std::ios::app);
+         busy_log << "worker_index "  << cController.worker.index << std::endl;
+         std::cout << "old_x "<<old_x.transpose() << std::endl;
+         std::cout << "new_x "<<new_x.transpose() << std::endl;
+         Params::remove_from_busysamples(old_x);
+         Params::add_to_busysamples(new_x);
+         cController.worker.new_sample = new_x.head(BEHAV_DIM);
+         argos::LOG << "new sample" << new_x << std::endl;
+         std::vector<double> bd(new_x.data(), new_x.data() + new_x.rows() * new_x.cols());
          cController.select_net(bd);
          std::string sim_cmd = "rm " + cController.savefile;
          if (system(sim_cmd.c_str()) != 0)
@@ -333,10 +341,9 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
                       << sim_cmd << std::endl;
             exit(-1);
          }
+         
       }
-      else{
-         Params::add_to_busysamples(x);
-      }
+      
    }
    // reset the controller (food_items_collected,)
    cController.Reset();

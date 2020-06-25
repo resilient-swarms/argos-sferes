@@ -19,10 +19,14 @@ namespace limbo
             {
 
                 Params::M =  get_M<F>(f, constraint);// set to max observation instead
-                Params::L = std::max(minL, get_L<F>(f, constraint));
+                Params::L = get_L<F>(f, constraint);
+                if (Params::L<1e-7)
+                {
+                    Params::L=10.0;//to avoid problems in cases in which the model is flat; not sure why 1e-7 vs 10 but this is used in GPyOpt
+                } 
                 std::cout << "using L=" << Params::L << std::endl;
                 std::cout << "In ExhaustiveConstrainedLocalPenalty operator " << std::endl;
-
+                std::cout << "with constraint " << constraint << std::endl;
                 float best_acqui = -INFINITY;
                 Eigen::VectorXd result;
 
@@ -61,14 +65,14 @@ namespace limbo
                     //std::cout << "constraint_check\n" << constraint_check;
                     if (Params::archiveparams::classcomp::inequality(temp, constraint_check) || Params::archiveparams::classcomp::inequality(constraint_check, temp))
                     {
-                        // std::cout << "Skipping bd not according to constraint: \n"
-                        //           << temp;
-                        // std::cout << "constraint:\n"
-                        //           << constraint;
-                        // continue;
+                        std::cout << "Skipping bd not according to constraint: \n"
+                                  << temp;
+                        std::cout << "constraint:\n"
+                                  << constraint.transpose();
+                        continue;
                     }
 
-                    float new_acqui = eval(f, temp);
+                    float new_acqui = eval(f,temp);
                     //std::cout << "temp: "<<temp.transpose()<<std::endl;
                     //std::cout << "fit: " << new_acqui << std::endl;
                     if (best_acqui < new_acqui || it == Params::archiveparams::archive.begin())

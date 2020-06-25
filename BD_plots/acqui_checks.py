@@ -17,7 +17,7 @@ def local_penalisation(v, busy_samples):
         print("x =", x)
         print("distance =" ,d)
         mu_x = mu(priors[i], x, samples, np.array(observations), np.array(queried_priors),K_inv)
-        sigma_x=sigma(x,samples,K_inv)
+        sigma_x=max(0.01,sigma(x,samples,K_inv))
         z = 1.0 / (sqrt(2 * sigma_x)) * (L * d - M + mu_x[0])
         phi = 0.5 * erfc(-z)
         print("z " +str(z))
@@ -25,47 +25,6 @@ def local_penalisation(v, busy_samples):
         penalty *= phi
     return penalty
 
-
-def get_gradnorm(v):
-
-dkn = dKn(v)# Dxt
-Eigen::MatrixXd
-Kn = _model.get_inv_kernel(); // t
-observations_matrix(); // tx1
-Eigen::VectorXd
-grad = dkn * K_inv * obs;
-
-double
-gradnorm = grad.norm();
-std::cout << "grad " << grad << std::endl;
-std::cout << "gradnorm " << gradnorm << std::endl;
-// now
-check
-finite
-difference
-method
-
-Eigen::VectorXd
-grad_fd = Eigen::VectorXd(dim_in);
-double
-h = 1e-8;
-double
-performance = get_performance(v);
-for (size_t i=0; i < dim_in();
-++i)
-{
-    Eigen:: VectorXd
-v_h = v;
-v_h(i) = h;
-grad_fd(i) = (get_performance(v_h) - performance) / h;
-}
-
-double
-gradnorm_finite_diff = grad_fd.norm();
-std::cout << "gradnorm  " << gradnorm << std::endl;
-std::cout << "gradnorm fd " << gradnorm_finite_diff << std::endl;
-return gradnorm;
-}
 
 if __name__ == "__main__":
     bds,priors=load_archive()

@@ -59,7 +59,7 @@ namespace limbo
                         std::cout << "Skipping bd not according to constraint: \n"
                                   << temp;
                         std::cout << "constraint:\n"
-                                  << constraint;
+                                  << constraint.transpose();
                         continue;
                     }
 

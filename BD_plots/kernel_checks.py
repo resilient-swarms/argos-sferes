@@ -62,10 +62,10 @@ if __name__ == "__main__":
 
 
     print(k(samples[0],samples[0]))
-    print("sigma "  + str(sigma(samples[0],samples)))
-    print("sigma "  + str(sigma(samples[1],samples)))
-    print("sigma "  + str(sigma(samples[2],samples)))
-    print("sigma "  + str(sigma(np.array([0.1,0.1,0.1]),samples)))
+    print("sigma "  + str(sigma(samples[0],samples,K_inv)))
+    print("sigma "  + str(sigma(samples[1],samples,K_inv)))
+    print("sigma "  + str(sigma(samples[2],samples,K_inv)))
+    print("sigma "  + str(sigma(np.array([0.1,0.1,0.1]),samples,K_inv)))
 
 
     x_values=np.linspace(0,1,100)
@@ -94,6 +94,7 @@ if __name__ == "__main__":
             x = bds[i]
             M = mu(priors[i],x,samples,np.array(observations),np.array(queried_priors),K_inv)
             print("mu =" + str(M))
+            s = sigma(x,samples,K_inv)
             print("update effect = " , M-priors[i]) # inverse relation between update effect size and noise
             if M > max_acq:
                 max_acq=M
@@ -111,7 +112,7 @@ if __name__ == "__main__":
         samples.append(x)
         observations.append(np.random.randint(0,3)) # low values (0-2) give negative means
         queried_priors.append(prior)
-        noises.append(400) # only extreme noise seems to avoid negative values
+        noises.append(0.0) # only extreme noise seems to avoid negative values
         #noises.append(observations[-1] * observations[-1]) # large/variable noise is not cause of negative values
         #update the kernel matrix
         noise_mat = np.array(noises)*np.identity(len(samples))
