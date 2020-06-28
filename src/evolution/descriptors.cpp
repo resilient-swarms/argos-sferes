@@ -1465,7 +1465,7 @@ std::vector<float> PerfectIdentificationDescriptor::after_trials(BaseEvolutionLo
 {
 	size_t index = cLoopFunctions.current_robot;
 	argos::CThymioEntity *cThym = cLoopFunctions.m_pcvecRobot[index];
-    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+	ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
 	if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_NONE)
 	{ // ProxOFFSET, ProxDYN, GroundOFFSET, GroundDYN, Lwheel,Rwheel
 		return {0, 0, 0, 0, 0, 0};
@@ -1545,4 +1545,98 @@ std::vector<float> RandomIdentificationDescriptor::after_trials(BaseEvolutionLoo
 {
 	size_t index = cLoopFunctions.current_robot;
 	return bd_vec[index];
+}
+
+void PerfectIdentificationDescriptor2::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+void PerfectIdentificationDescriptor2::start_trial()
+{
+}
+
+void PerfectIdentificationDescriptor2::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+/*end the trial*/
+void PerfectIdentificationDescriptor2::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+std::vector<float> PerfectIdentificationDescriptor2::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+	size_t index = cLoopFunctions.current_robot;
+	argos::CThymioEntity *cThym = cLoopFunctions.m_pcvecRobot[index];
+	ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+	if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_NONE)
+	{ // Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0, 0, 0, 0, 0, 0};
+	}
+	//proximity sensor faults
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMIN)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0.3333, 0, 0, 0, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETRANDOM)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0.6666, 0, 0, 0, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMAX)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {1, 0, 0, 0, 0, 0};
+	}
+
+	//ground sensor faults
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETMIN)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0, 0.3333, 0, 0, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETRANDOM)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0, 0.6666, 0, 0, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETMAX)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0, 1, 0, 0, 0, 0};
+	}
+
+	//actuator faults
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_LWHEEL_SETHALF)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0, 0, 1, 0, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_RWHEEL_SETHALF)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0, 0, 0, 1, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_BWHEELS_SETHALF)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0, 0, 1, 1, 0, 0};
+	}
+	//software-nest
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_SOFTWARE)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0, 0, 0, 0, 1, 0};
+	}
+	//software-food
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_SOFTWARE_FOOD)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0, 0, 0, 0, 0, 1};
+	}
+	else
+	{
+		throw std::runtime_error("fault identification vector not implemented");
+		return {};
+	}
 }

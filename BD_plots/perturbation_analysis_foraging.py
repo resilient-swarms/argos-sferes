@@ -480,7 +480,7 @@ def write_conditional(performance_list,index,file,max_reference,min_reference):
         else:
             file.write("$%.2f$ " % (m_temp))
     if index==0:
-        ref=100*(m_temp/min_reference)
+        ref=100*(m_temp/min_reference) - 100
         file.write(" $(%.1f%%)$ &"%(ref))
     else:
         #ref=100*(m_temp/min_reference)
@@ -712,15 +712,16 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
 
 
             #table_file.write("$%.2f \pm %.2f$ & $%.2f \pm %.2f$ &"%(p_360,p_sd_360,p_2400,p_sd_2400))
-            table30_file.write("$%.2f \pm %.2f$  &"%(p_3600,p_sd_3600))
+            #table30_file.write("$%.2f \pm %.2f$  &"%(p_3600,p_sd_3600))
+            write_conditional(performances30, c, table30_file, max_reference, min_reference)
 
         table30_file.write("\n")
         percentage_file.write("\n")
 
         # for c, condition in enumerate(conditions):
-        #     write_conditional(performances1, c, table1_file, max_reference, min_reference)
-        #     write_conditional(performances10,c,table10_file,max_reference,min_reference)
-        #     write_conditional(performances20, c, table20_file,max_reference,min_reference)
+        #     # write_conditional(performances1, c, table1_file, max_reference, min_reference)
+        #     # write_conditional(performances10,c,table10_file,max_reference,min_reference)
+        #     # write_conditional(performances20, c, table20_file,max_reference,min_reference)
         #     write_conditional(performances30, c, table30_file,max_reference,min_reference)
         # # table10_file.write("$\mathbf{%.2f}$ (+) &" % ((np.mean(performances10[0]) - min_reference)/(max_reference - min_reference)))
         # # table20_file.write("$\mathbf{%.2f}$ (+) &" % ((performances20[0] - min_reference)/(max_reference - min_reference)))
@@ -728,7 +729,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
         # table1_file.write("\n")
         # table10_file.write("\n")
         # table20_file.write("\n")
-        # table30_file.write("\n")
+        table30_file.write("\n")
         additional_lines = [(time[0], [min_reference for t in time[0]]), (time[0], [max_reference for t in time[0]])]
         createPlot(mean_lines, x_values=time,
                    save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+plottag+".pdf", legend_labels=conditions,
@@ -760,7 +761,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
     reference_performance_data,reference_faultinjection_data, _, _, _ = pickle.load(
             open(loadfilename, "rb"))
     if comparison=="baselines":
-        conditions = ["SRBO","SRBO-Uniform",
+        conditions = ["SMBO","SMBO-Uniform",
                       "Random", "Gradient-ascent"]
         settings = [("BO", False, None), ("BO",False,None),
                    ("random", False, None), ("gradient_closest", False, None)]
@@ -769,21 +770,22 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
         num_VE_conditions=4
     elif comparison=="heterogeneous":
-        conditions = ["H-SRBO-Local","H-SRBO (Known fault)","H-SRBO","H-SRBO (Random identification)","H-Random"]
-        settings = [("single_exp", False, "localpenalisation"),("single_exp_known", False, "reset_nocollisionstop"),
-                    ("single_exp", False, "reset_nocollisionstop"),("single_exp_random", False, "reset_nocollisionstop"),
+        conditions = ["H-SMBO (Known fault)","H-SMBO","H-SMBO (Random identification)","H-Random"]
+        settings = [("single_exp_known", False, "reset_nocollisionstop"),
+                    ("single_exp", False, "reset_nocollisionstop"),
+                    ("single_exp_random", False, "reset_nocollisionstop"),
                     ("single_exp_randomsearch", False, "reset_nocollisionstop")]
         plottag="HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
-        num_VE_conditions=5
+        num_VE_conditions=4
     elif comparison=="fest":
-        conditions = ["SRBO", "VE-SRBO E(0)=3","VE-SRBO E(0)=4","VE-SRBO E(0)=5","VE-SRBO E(0)=6","VE-SRBO E(0)=8"]
+        conditions = ["SMBO", "VE-SMBO E(0)=3","VE-SMBO E(0)=4","VE-SMBO E(0)=5","VE-SMBO E(0)=6","VE-SMBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
         plottag="fest_params"
         VE_tags = ["_nocollision_init" + str(j) for j in [3, 4, 5, 6, 8]]
         num_VE_conditions = 5
     elif comparison=="VE":
-        conditions = ["SRBO", "VE-SRBO E(0)=5", "VE-SRBO E(0)=10"]
+        conditions = ["SMBO", "VE-SMBO E(0)=5", "VE-SMBO E(0)=10"]
         settings = [("BO", False, None), ("BO", True, 0),("BO", True, 1)]
         plottag="VE_params"
         num_VE_conditions = 5
@@ -849,7 +851,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
 
 def test_significance(bd_type,by_faulttype,data_type, max_evals):
-    conditions = ["SRBO", "VE-SRBO E(0)=3", "VE-SRBO E(0)=4", "VE-SRBO E(0)=5", "VE-SRBO E(0)=6", "VE-SRBO E(0)=8",
+    conditions = ["SMBO", "VE-SMBO E(0)=3", "VE-SMBO E(0)=4", "VE-SMBO E(0)=5", "VE-SMBO E(0)=6", "VE-SMBO E(0)=8",
                   "Random", "Gradient-ascent"]
     settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),
                 ("BO", True, 4), ("random", False, None), ("gradient_closest", False, None)]
