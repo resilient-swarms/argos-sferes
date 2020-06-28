@@ -182,7 +182,7 @@ void CForagingLoopFunctions::init_BO(bool variable_noise)
 {
    Params::count = 0;
    // select new controller now
-   opt.optimize_init<ControllerEval>(state_fun,variable_noise);
+   opt.optimize_init<ControllerEval>(m_unNumberRobots,state_fun,variable_noise);
    /* initial phase: select controller for one robot and then put others with the same as well */
    argos::CThymioEntity *cThym = m_pcvecRobot[0];
    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
@@ -214,7 +214,7 @@ void CForagingLoopFunctions::init_BO(bool variable_noise)
 
 void CForagingLoopFunctions::init_randomsearch()
 {
-   opt.optimize_init<ControllerEval>(state_fun); //just to get some useful stats
+   opt.optimize_init<ControllerEval>(m_unNumberRobots,state_fun); //just to get some useful stats
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
       Params::busy_samples.push_back(opt.NULL_VEC);
