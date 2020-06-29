@@ -8,7 +8,7 @@
     <system threads="0" />
     <experiment length="120"
                 ticks_per_second="5"
-                random_seed="1" />
+                random_seed="2" />
   </framework>
 
   <!-- *************** -->
@@ -16,8 +16,8 @@
   <!-- *************** -->
   <controllers>
 
-    <foraging_nn_controller id="tnn"
-                               library="lib/libforaging_nn_controller.so">
+    <foraging_nn_controller3DREAL id="tnn"
+                               library="lib/libforaging_nn_controller3DREAL.so">
       <actuators>
         <differential_steering implementation="default" />
 	<!--<thymio_led            implementation="default" medium="leds"/> -->
@@ -32,10 +32,11 @@
 			fault_behavior="FAULT_NONE" 
 	                id_faulty_robot="-1" 
 			id_food_source="-1"
+			savefile=""
 	/>
         
       </params>      
-      </foraging_nn_controller>
+      </foraging_nn_controller3DREAL>
   </controllers>
 
   <!-- ****************** -->
