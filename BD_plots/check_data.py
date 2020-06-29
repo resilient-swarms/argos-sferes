@@ -136,9 +136,13 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
         print(desc)
         filename = datadir + "/Foraging/" +  desc
         for method in methods:
+            print("--------------")
+            print(method)
+            print("--------------")
             for run in runs:
-
-                for perturbation in foraging_perturbations:
+                print("run ",run)
+                print("-------")
+                for perturbation in ["proximity_sensorp1"]:
 
                     perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/"+method+"/BO_output"+tag+"/fitness"
                     if not path.exists(perturbed):
@@ -147,6 +151,20 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
                     lines = read_spacedelimited(perturbed)
                     if not lines:
                         print("no line(s) found ", perturbed)
+
+                    for i in range(6):
+                        perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/"+method+"/BO_output"+tag+"/async_stats"+str(i)+".dat"
+                        if not path.exists(perturbed):
+                            print("could not find:")
+                            print(perturbed)
+                        lines = read_spacedelimited(perturbed)
+                        if not lines:
+                            print("no line(s) found ", perturbed)
+                        first_line = lines[0]
+                        print("worker ", i)
+                        print("bd 1st controller: ", first_line[1:4])
+                        print("performance 1st controller: ", first_line[-1])
+                        print("-------")
 
 if __name__ == "__main__":
     # check_archives_complete(30000,

@@ -1568,7 +1568,8 @@ std::vector<float> PerfectIdentificationDescriptor2::after_trials(BaseEvolutionL
 	size_t index = cLoopFunctions.current_robot;
 	argos::CThymioEntity *cThym = cLoopFunctions.m_pcvecRobot[index];
 	ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
-	if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_NONE)
+	if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_NONE || 
+	cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_FOOD_SCARCITY)
 	{ // Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
 		return {0, 0, 0, 0, 0, 0};
 	}
@@ -1629,6 +1630,11 @@ std::vector<float> PerfectIdentificationDescriptor2::after_trials(BaseEvolutionL
 		return {0, 0, 0, 0, 1, 0};
 	}
 	//software-food
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_SOFTWARE_FOOD)
+	{
+		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
+		return {0, 0, 0, 0, 0, 1};
+	}
 	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_SOFTWARE_FOOD)
 	{
 		// Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
