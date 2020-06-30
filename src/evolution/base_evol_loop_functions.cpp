@@ -179,6 +179,10 @@ void BaseEvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new PerfectIdentificationDescriptor2(m_unNumberRobots);
         }
+        else if (s == "perfect_identificationsorted")
+        {
+            this->descriptor = new PerfectIdentificationDescriptorSorted(m_unNumberRobots);
+        }
         else if (s == "random_identification")
         {
             this->descriptor = new RandomIdentificationDescriptor(m_unNumberRobots);

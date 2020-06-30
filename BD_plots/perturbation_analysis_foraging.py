@@ -170,13 +170,15 @@ def get_worker_developments(num_workers,bd_t, r, gener, path, faultpath, best_pe
             best_performance=float(line[-1])
             time_cumulant=float(line[0])/(NUM_TRIALS*TICKS_PER_SECOND)
             x.append(time_cumulant)
-            y.append(best_performance)
+            y.append(best_performance*NUM_AGENTS/num_workers)
             i+=1
         mean_y=np.append(mean_y,y)
         mean_time=np.append(mean_time,x)
     time_lost = np.append(time_lost, mean_time)
     best_performances = np.append(best_performances, mean_y)
     return best_performances,  time_lost
+
+
 def add_development_of_fault_performance(bd_t, r, gener, faultpath,
                           best_performances,time_lost,baseline=False,
                           title_tag="",virtual_energy=False,uniform=False,estimate=True):
@@ -193,7 +195,16 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
         return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform,estimate)
     elif "single_exp" in title_tag:
         normal_folder+="/"+title_tag
-        return get_worker_developments(int(NUM_AGENTS),bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform)
+        if "agent" in faultpath:
+            #get the last
+            last = faultpath[-2]
+            if last=="p":
+                num_workers=int(faultpath[-1])
+            else:
+                num_workers=int(faultpath[-2:])
+        else:
+            num_workers=NUM_AGENTS
+        return get_worker_developments(int(num_workers),bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform)
         # try:
         #     lines=read_spacedelimited(faultpath+normal_folder+"/"+title_tag+"/BO_output"+VE_tag+"/fitness")
         #     fitness=float(lines[-1][0])
@@ -770,9 +781,9 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
         num_VE_conditions=4
     elif comparison=="heterogeneous":
-        conditions = ["H-SMBO (Known fault)","H-SMBO","H-SMBO (Random identification)","H-Random"]
-        settings = [("single_exp_known", False, "final"),
-                    ("single_exp", False, "final"),
+        conditions = ["H-SMBO","H-SMBO (perfect detection)","H-SMBO (random detection)","H-Random"]
+        settings = [("single_exp", False, "final"),
+                    ("single_exp_known", False, "final"),
                     ("single_exp_random", False, "final"),
                     ("single_exp_randomsearch", False, "final")]
         plottag="HETEROGENEOUS"

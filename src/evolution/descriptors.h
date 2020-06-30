@@ -933,4 +933,33 @@ public:
   /*summarise BD at the end of trials*/
   virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
+
+
+class PerfectIdentificationDescriptorSorted : public Descriptor
+{
+public:
+  std::vector<float> bd_vec;
+  PerfectIdentificationDescriptorSorted(size_t num_robots)
+  {
+    for (size_t i = 0; i < num_robots; ++i)
+    {
+      for(size_t j=0; j < 6; ++j)
+      {
+        bd_vec.push_back(0);
+      }
+    }
+  }
+
+  void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  void start_trial();
+  /*after getting inputs, can update the descriptor if needed*/
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  /*end the trial*/
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  /*summarise BD at the end of trials*/
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
+};
 #endif

@@ -142,15 +142,15 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
             for run in runs:
                 print("run ",run)
                 print("-------")
-                for perturbation in ["proximity_sensorp1"]:
+                for perturbation in foraging_perturbations:
 
-                    perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/"+method+"/BO_output"+tag+"/fitness"
-                    if not path.exists(perturbed):
-                        print("could not find:")
-                        print(perturbed)
-                    lines = read_spacedelimited(perturbed)
-                    if not lines:
-                        print("no line(s) found ", perturbed)
+                    # perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/"+method+"/BO_output"+tag+"/fitness"
+                    # if not path.exists(perturbed):
+                    #     print("could not find:")
+                    #     print(perturbed)
+                    # lines = read_spacedelimited(perturbed)
+                    # if not lines:
+                    #     print("no line(s) found ", perturbed)
 
                     for i in range(6):
                         perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/"+method+"/BO_output"+tag+"/async_stats"+str(i)+".dat"
@@ -160,11 +160,13 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
                         lines = read_spacedelimited(perturbed)
                         if not lines:
                             print("no line(s) found ", perturbed)
-                        first_line = lines[0]
-                        print("worker ", i)
-                        print("bd 1st controller: ", first_line[1:4])
-                        print("performance 1st controller: ", first_line[-1])
-                        print("-------")
+                        # first_line = lines[0]
+                        # print("worker ", i)
+                        # print("bd 1st controller: ", first_line[1:4])
+                        # print("performance 1st controller: ", first_line[-1])
+                        # print("-------")
+                        if len(lines)!=30:
+                            print("lines not equal at: ", perturbed)
 
 if __name__ == "__main__":
     # check_archives_complete(30000,
@@ -187,5 +189,5 @@ if __name__ == "__main__":
                             ["history"],
                             range(1,6),
                             ["single_exp_known","single_exp","single_exp_random"],
-                            "reset_nocollisionstop")
+                            "final")
 

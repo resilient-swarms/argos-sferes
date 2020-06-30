@@ -205,7 +205,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     bd="identification"
                 elif [ "$run_type" = "BO_single_known" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
-                    bd="perfect_identification"
+                    bd="perfect_identificationsorted"
                 elif [ "$run_type" = "BO_single_random" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="random_identification"
@@ -214,7 +214,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     bd="identification"
 		        elif [ "$run_type" = "BO_single_known_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
-                    bd="perfect_identification"
+                    bd="perfect_identificationsorted"
                 else
                     tag=BO${CVT}${BD_DIMS}DREAL
                     bd=${DescriptorType}

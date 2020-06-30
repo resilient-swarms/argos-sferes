@@ -1646,3 +1646,71 @@ std::vector<float> PerfectIdentificationDescriptor2::after_trials(BaseEvolutionL
 		return {};
 	}
 }
+
+
+
+
+void PerfectIdentificationDescriptorSorted::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+void PerfectIdentificationDescriptorSorted::start_trial()
+{
+}
+
+void PerfectIdentificationDescriptorSorted::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+/*end the trial*/
+void PerfectIdentificationDescriptorSorted::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+std::vector<float> PerfectIdentificationDescriptorSorted::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+	size_t index = cLoopFunctions.current_robot;
+	argos::CThymioEntity *cThym = cLoopFunctions.m_pcvecRobot[index];
+	ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+	//proximity sensor faults
+	if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMIN)
+	{
+		return {1, 0, 0, 1, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETRANDOM)
+	{
+		return {0, 1, 0, 0, 1, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMAX)
+	{
+		return {0, 0, 1, 0, 0, 1};
+	}
+	// ground sensor faults as separate
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETMIN)
+	{
+		return {1, 0, 0, 1, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETRANDOM)
+	{
+		return {0, 1, 0, 0, 1, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETMAX)
+	{
+		return {0, 0, 1, 0, 0, 1};
+	}
+	// actuator 
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_LWHEEL_SETHALF)
+	{
+		return {1, 0, 0, 1, 0, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_RWHEEL_SETHALF)
+	{
+		return {0, 1, 0, 0, 1, 0};
+	}
+	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_BWHEELS_SETHALF)
+	{
+		return {0, 0, 1, 0, 0, 1};
+	}
+	else{
+		return {0, 0, 0, 0, 0, 0};
+	}
+}
