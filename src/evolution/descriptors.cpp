@@ -1711,6 +1711,6 @@ std::vector<float> PerfectIdentificationDescriptorSorted::after_trials(BaseEvolu
 		return {0, 0, 1, 0, 0, 1};
 	}
 	else{
-		return {0, 0, 0, 0, 0, 0};
+		return {1, 1, 1, 1, 1, 1};
 	}
 }
