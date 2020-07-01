@@ -480,16 +480,17 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
 def write_conditional(performance_list,index,file,max_reference,min_reference):
     U, p = ranksums(performance_list[0],performance_list[index])
     m_temp=np.mean(performance_list[index])
+    sd_temp=np.std(performance_list[index])
     if p < 0.05:
         if U > 0 :
-            file.write("$\mathbf{%.2f}$ (+) "%(m_temp))
+            file.write("$\mathbf{%.2f \pm %.2f}$ (+) "%(m_temp, sd_temp))
         else:
-            file.write("$\mathbf{%.2f}$ (-) " % (m_temp))
+            file.write("$\mathbf{%.2f \pm %.2f}$ (-) " % (m_temp, sd_temp))
     else:
         if U > 0:
-            file.write("$%.2f$ " % (m_temp))
+            file.write("$%.2f \pm %.2f$ " % (m_temp, sd_temp))
         else:
-            file.write("$%.2f$ " % (m_temp))
+            file.write("$%.2f \pm %.2f$ " % (m_temp, sd_temp))
     if index==0:
         ref=100*(m_temp/min_reference) - 100
         file.write(" $(%.1f%%)$ &"%(ref))
@@ -749,7 +750,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                    xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,max_reference+1],
                    legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                    legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
-                   xaxis_style="plain", y_err=[], force=True) #, fill_between=(sd_lines1, sd_lines2))
+                   xaxis_style="plain", y_err=[], force=True, fill_between=(sd_lines1, sd_lines2))
 def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],from_file=False, comparison=False, estimate=True):
     """
 

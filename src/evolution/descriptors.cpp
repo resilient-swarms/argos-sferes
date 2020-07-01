@@ -1410,11 +1410,11 @@ void IdentificationDescriptor::set_input_descriptor(size_t robot_index, BaseEvol
 	//Gblack is the proportion of time the ground sensors are minimal (black)
 
 	//proximity
-	std::vector<float> activations = cLoopFunctions.get_inputgroup_activations({1, 2, 4, 6}, 0.50);
+	std::vector<float> activations = cLoopFunctions.get_inputgroup_activations({1, 2, 4, 6}, 0.00);
 	//white
-	activations.push_back(cLoopFunctions.get_inputgroup_activations({8}, 0.85, 7)[0]);
+	activations.push_back(cLoopFunctions.get_inputgroup_activations({8}, 0.70, 7)[0]);
 	//black
-	activations.push_back(cLoopFunctions.get_inputgroup_activations_smaller({8}, 0.15, 7)[0]);
+	activations.push_back(cLoopFunctions.get_inputgroup_activations_smaller({8}, -0.70, 7)[0]);
 
 	size_t offset = robot_index * 6;
 	// now add activations to the bd
