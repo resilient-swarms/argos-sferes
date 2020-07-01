@@ -1674,43 +1674,43 @@ std::vector<float> PerfectIdentificationDescriptorSorted::after_trials(BaseEvolu
 	//proximity sensor faults
 	if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMIN)
 	{
-		return {1, 0, 0, 1, 0, 0};
+		return {1, 0, 0};
 	}
 	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETRANDOM)
 	{
-		return {0, 1, 0, 0, 1, 0};
+		return {0, 1, 0};
 	}
 	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_PROXIMITYSENSORS_SETMAX)
 	{
-		return {0, 0, 1, 0, 0, 1};
+		return {0, 0, 1};
 	}
 	// ground sensor faults as separate
 	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETMIN)
 	{
-		return {1, 0, 0, 1, 0, 0};
+		return {1, 0, 0};
 	}
 	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETRANDOM)
 	{
-		return {0, 1, 0, 0, 1, 0};
+		return {0, 1, 0};
 	}
 	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_GROUNDSENSORS_SETMAX)
 	{
-		return {0, 0, 1, 0, 0, 1};
+		return {0, 0, 1};
 	}
 	// actuator 
 	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_LWHEEL_SETHALF)
 	{
-		return {1, 0, 0, 1, 0, 0};
+		return {1, 0, 0};
 	}
 	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_RWHEEL_SETHALF)
 	{
-		return {0, 1, 0, 0, 1, 0};
+		return {0, 1, 0};
 	}
 	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_BWHEELS_SETHALF)
 	{
-		return {0, 0, 1, 0, 0, 1};
+		return {0, 0, 1};
 	}
 	else{
-		return {1, 1, 1, 1, 1, 1};
+		return {1, 1, 1};
 	}
 }
