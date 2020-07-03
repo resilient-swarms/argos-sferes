@@ -1714,3 +1714,31 @@ std::vector<float> PerfectIdentificationDescriptorSorted::after_trials(BaseEvolu
 		return {1, 1, 1};
 	}
 }
+
+
+
+void EmptyDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+
+}
+
+void EmptyDescriptor::start_trial()
+{
+
+}
+/*after getting inputs, can update the descriptor if needed*/
+void EmptyDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions){
+
+}
+
+/*end the trial*/
+void EmptyDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+
+}
+
+/*summarise BD at the end of trials*/
+std::vector<float> EmptyDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+	return {};
+}

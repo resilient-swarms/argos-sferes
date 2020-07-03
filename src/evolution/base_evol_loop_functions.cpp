@@ -187,6 +187,10 @@ void BaseEvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new RandomIdentificationDescriptor(m_unNumberRobots);
         }
+        else if (s == "empty")
+        {
+            this->descriptor = new EmptyDescriptor();
+        }
         else
         {
             throw std::runtime_error("descriptortype " + s + " not found");

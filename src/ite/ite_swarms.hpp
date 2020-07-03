@@ -376,7 +376,11 @@ struct RealEval
 struct ControllerEval
 {
 #if HETEROGENEOUS
-    BO_PARAM(size_t, dim_in, BEHAV_DIM + global::num_ID_features); //global::behav_dim
+    //BO_PARAM(size_t, dim_in, BEHAV_DIM + global::num_ID_features); //global::behav_dim
+    static size_t dim_in()
+    {
+        return BEHAV_DIM + global::num_ID_features;
+    }
 #else
     BO_PARAM(size_t, dim_in, BEHAV_DIM); //global::behav_dim
 #endif

@@ -962,4 +962,25 @@ public:
   /*summarise BD at the end of trials*/
   virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
+
+
+class EmptyDescriptor : public Descriptor
+{
+public:
+  EmptyDescriptor()
+  {
+  }
+
+  void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  void start_trial();
+  /*after getting inputs, can update the descriptor if needed*/
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  /*end the trial*/
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  /*summarise BD at the end of trials*/
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
+};
 #endif

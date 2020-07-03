@@ -91,11 +91,18 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    }
    if (optimisation == "BO")
    {
-      normal_ID = {0.5, 0.5, 0.5};
+      normal_ID = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+      global::num_ID_features = 6;
+   }
+   else if (optimisation == "BO_noID")
+   {
+      normal_ID = {};
+      global::num_ID_features = 0;
    }
    else
    {
       normal_ID = {};
+      global::num_ID_features = 0;
    }
 
 #endif
@@ -147,7 +154,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
    }
-   if (optimisation == "BO")
+   if (optimisation == "BO" || optimisation =="BO_noID")
    {
       bool variable_noise;
       try
@@ -165,7 +172,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       else{
          std::cout << "NOT using noise in BO" << std::endl;
       }
-      init_BO(variable_noise);
+      init_BO(normal_ID, variable_noise);
    }
    else
    {
@@ -178,11 +185,11 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 }
 
 #if HETEROGENEOUS & !RECORD_FIT
-void CForagingLoopFunctions::init_BO(bool variable_noise)
+void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID, bool variable_noise)
 {
    Params::count = 0;
    // select new controller now
-   opt.optimize_init<ControllerEval>(m_unNumberRobots,state_fun,variable_noise);
+   opt.optimize_init<ControllerEval>(normal_ID.size(),m_unNumberRobots,state_fun,variable_noise);
    /* initial phase: select controller for one robot and then put others with the same as well */
    argos::CThymioEntity *cThym = m_pcvecRobot[0];
    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
@@ -214,7 +221,7 @@ void CForagingLoopFunctions::init_BO(bool variable_noise)
 
 void CForagingLoopFunctions::init_randomsearch()
 {
-   opt.optimize_init<ControllerEval>(m_unNumberRobots,state_fun); //just to get some useful stats
+   opt.optimize_init<ControllerEval>(0,m_unNumberRobots,state_fun); //just to get some useful stats
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
       Params::busy_samples.push_back(opt.NULL_VEC);
@@ -785,7 +792,7 @@ void CForagingLoopFunctions::PostStep()
             opt.clear_fitness(cController.worker.index); //clear previous estimates --> after one push of 0 will stop with mean=0 and sd=0
          }
          bool alltrialsfinished = stop || cController.num_trials_left == 0;
-         if (optimisation == "BO")
+         if (optimisation == "BO" || optimisation == "BO_noID")
          {
             select_new_controller(cController, alltrialsfinished);
          }

@@ -15,7 +15,7 @@ namespace global
 #if RECORD_FIT
     const size_t num_ID_features = 0;
 #else
-    const size_t num_ID_features = 3;
+    static size_t num_ID_features;
 #endif
     std::vector<double> normalID;
 #endif
