@@ -450,6 +450,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::vec
 {
 
     global::normalID = normal_ID;
+    global::num_ID_features = normal_ID.size();
 #else
 Params::archiveparams::archive_t load_archive(std::string archive_name, std::string VE_file = "", bool uniform = false)
 {
@@ -458,7 +459,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
     Params::archiveparams::archive_t archive;
 
     bool do_VE = false;
-    if (VE_file != "")
+    if (!VE_file.empty())
     {
         do_VE = true;
     }
@@ -469,6 +470,8 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
 
     // Assuming order <ind index> <behav_descriptor> <fitness>
     std::cout << "Loading archive file " << archive_name << std::endl;
+    std::cout << "behav dim " << global::behav_dim << std::endl;
+    std::cout << "id features " << global::num_ID_features << std::endl;
     std::ifstream monFlux(archive_name.c_str());
 
     if (monFlux)
