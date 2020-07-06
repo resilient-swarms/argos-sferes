@@ -20,7 +20,7 @@ elif [ "$run_type" = "BO_single" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp"
     command="bin/behaviour_evol"
-    SimTime=28800  # 960*max_evals=28,800 with 30 evals
+    SimTime=96000  # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
 	num_subtrials=8
@@ -34,7 +34,7 @@ elif [ "$run_type" = "BO_single_noID" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp"
     command="bin/behaviour_evol"
-    SimTime=28800  # 960*max_evals=28,800 with 30 evals
+    SimTime=96000  # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
 	num_subtrials=8
@@ -48,7 +48,7 @@ elif [ "$run_type" = "BO_single_random" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_random"
     command="bin/behaviour_evol"
-    SimTime=28800  # 960*max_evals=28,800 with 30 evals
+    SimTime=96000  # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
 	num_subtrials=8
@@ -62,7 +62,7 @@ elif [ "$run_type" = "BO_single_known" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_known"
     command="bin/behaviour_evol"
-    SimTime=28800  # 960*max_evals=28,800 with 30 evals
+    SimTime=96000  # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
 	num_subtrials=8
@@ -76,7 +76,7 @@ elif [ "$run_type" = "BO_single_known_record" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_known"
     command="bin/behaviour_evol"
-    SimTime=120  # 960*max_evals=28,800 with 30 evals
+    SimTime=120  
     trials=8
 	network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
@@ -86,7 +86,7 @@ elif [ "$run_type" = "random_single" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_randomsearch"
     command="bin/behaviour_evol"
-    SimTime=28800   # 960*max_evals=28,800 with 30 evals
+    SimTime=96000  # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
 	num_subtrials=8
@@ -99,7 +99,7 @@ elif [ "$run_type" = "random_single_record" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_randomsearch"
     command="bin/behaviour_evol"
-    SimTime=120  # 960*max_evals=28,800 with 30 evals
+    SimTime=120 
     trials=8
 	network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
@@ -108,7 +108,7 @@ elif [ "$run_type" = "BO_single_record" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp"
     command="bin/behaviour_evol"
-    SimTime=120  # 960*max_evals=28,800 with 30 evals
+    SimTime=120 
     trials=8
 	network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos

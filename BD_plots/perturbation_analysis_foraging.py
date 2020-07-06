@@ -690,8 +690,8 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                 #         p_sd_120 = sd
                 #         mindist_120= dist
                 #         performances1[c] = data
-                if max_evals[c] == 1 or (consumed >=29*NUM_SECONDS and consumed <=31*NUM_SECONDS): # try to find closest to 360
-                    dist = abs(consumed - 30*NUM_SECONDS)
+                if max_evals[c] == 1 or (consumed >99*NUM_SECONDS and consumed <101*NUM_SECONDS): # try to find closest to 360
+                    dist = abs(consumed - 100*NUM_SECONDS)
                     if dist < mindist_3600:
                         t_3600 = consumed
                         p_3600 = mean
@@ -747,7 +747,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                    save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+plottag+".pdf", legend_labels=conditions,
                    colors=colors, markers=markers, xlabel="Time ($s$)",
                    ylabel="Best performance",
-                   xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,max_reference+1],
+                   xlim=[0, 12500], xscale="linear", yscale="linear", ylim=[0,max_reference+1],
                    legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                    legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                    xaxis_style="plain", y_err=[], force=True, fill_between=(sd_lines1, sd_lines2))
@@ -783,7 +783,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         num_VE_conditions=4
     elif comparison=="heterogeneous":
         conditions = ["H-SMBO","H-SMBO (perfect detection)","H-SMBO (random detection)","H-Random"]
-        settings = [("single_exp", False, "final"),
+        settings = [("single_exp", False, "noID"),
                     ("single_exp_known", False, "final"),
                     ("single_exp_random", False, "final"),
                     ("single_exp_randomsearch", False, "final")]
@@ -1054,7 +1054,7 @@ if __name__ == "__main__":
 
 
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30,30],from_file=False,comparison="heterogeneous",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[100,100,100,100,100],from_file=False,comparison="heterogeneous",estimate=False)
 
 
 
