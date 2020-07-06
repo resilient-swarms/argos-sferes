@@ -156,30 +156,27 @@ def get_baseline_development(faultpath, title_tag, best_performances,time_lost):
     time_lost = np.append(time_lost, x)
     best_performances = np.append(best_performances, y)
     return best_performances,  time_lost
-def get_worker_developments(num_workers,bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform):
+def get_worker_developments(num_evals,num_workers,bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform):
 
-    mean_time=[]
-    mean_y=[]
+    mean_time=[[] for i in range(num_evals)]
+    mean_y=[[] for i in range(num_evals)]
     for worker in range(num_workers):
         BOfile = faultpath + normal_folder + "/BO_output" + VE_tag + "/async_stats_best"+str(worker)+".dat"
         parsed_file_list = read_spacedelimited(BOfile)
-        i=1
         x=[]
         y=[]
+        i=0
         for line in parsed_file_list:
             best_performance=float(line[-1])
             time_cumulant=float(line[0])/(NUM_TRIALS*TICKS_PER_SECOND)
-            x.append(time_cumulant)
-            y.append(best_performance*NUM_AGENTS/num_workers)
+            mean_time[i].append(time_cumulant)
+            mean_y[i].append(best_performance*NUM_AGENTS/num_workers)
             i+=1
-        mean_y=np.append(mean_y,y)
-        mean_time=np.append(mean_time,x)
-    time_lost = np.append(time_lost, mean_time)
-    best_performances = np.append(best_performances, mean_y)
-    return best_performances,  time_lost
+
+    return mean_y,  mean_time
 
 
-def add_development_of_fault_performance(bd_t, r, gener, faultpath,
+def add_development_of_fault_performance(num_evals,bd_t, r, gener, faultpath,
                           best_performances,time_lost,baseline=False,
                           title_tag="",virtual_energy=False,uniform=False,estimate=True):
     """
@@ -204,7 +201,7 @@ def add_development_of_fault_performance(bd_t, r, gener, faultpath,
                 num_workers=int(faultpath[-2:])
         else:
             num_workers=NUM_AGENTS
-        return get_worker_developments(int(num_workers),bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform)
+        return get_worker_developments(num_evals,int(num_workers),bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform)
         # try:
         #     lines=read_spacedelimited(faultpath+normal_folder+"/"+title_tag+"/BO_output"+VE_tag+"/fitness")
         #     fitness=float(lines[-1][0])
@@ -478,7 +475,9 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                             median=True)
 
 def write_conditional(performance_list,index,file,max_reference,min_reference):
-    U, p = ranksums(performance_list[0],performance_list[index])
+    # U, p = ranksums(performance_list[0],performance_list[index])
+    U=0
+    p=0.1
     m_temp=np.mean(performance_list[index])
     sd_temp=np.std(performance_list[index])
     if p < 0.05:
@@ -539,7 +538,7 @@ def prepare_data(VE_tags, conditions, settings, max_evals,num_VE_conditions, gen
                     faultpath = BD_dir + "/" + bd_type[i] + "/faultyrun" + str(run) + "_" + fault + ""
 
                     best_performances, time_lost = \
-                        add_development_of_fault_performance(bd_type[i], r, gener, faultpath,
+                        add_development_of_fault_performance(max_evals[c],bd_type[i], r, gener, faultpath,
                                                              best_performances=[], time_lost=[], baseline=False,
                                                              title_tag=title_tag, virtual_energy=VE, uniform=uniform,
                                                              estimate=estimate)
@@ -621,6 +620,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
     table1_file = open("performance_table" + plottag + "1.txt", "w")
 
     for fault_category in range(num_fault_types):
+        print(fault_category)
         percentage.append([])
         performances30 = [None for c in conditions]
         # performances10 =  [None for c in conditions]
@@ -720,12 +720,9 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
             # print(str(t_1200) + " " + str(p_1200) + " " + str(p_sd_1200))
             # print(str(t_2400) + " " + str(p_2400) + " " + str(p_sd_2400))
             print(str(t_3600) + " " + str(p_3600) + " " + str(p_sd_3600))
-
-
-
-            #table_file.write("$%.2f \pm %.2f$ & $%.2f \pm %.2f$ &"%(p_360,p_sd_360,p_2400,p_sd_2400))
-            #table30_file.write("$%.2f \pm %.2f$  &"%(p_3600,p_sd_3600))
-            write_conditional(performances30, c, table30_file, max_reference, min_reference)
+            
+            #uncomment for table
+            #write_conditional(performances30, c, table30_file, max_reference, min_reference)
 
         table30_file.write("\n")
         percentage_file.write("\n")
@@ -747,7 +744,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                    save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+plottag+".pdf", legend_labels=conditions,
                    colors=colors, markers=markers, xlabel="Time ($s$)",
                    ylabel="Best performance",
-                   xlim=[0, 12500], xscale="linear", yscale="linear", ylim=[0,max_reference+1],
+                   xlim=[0, 12500], xscale="linear", yscale="linear", ylim=[0,max_reference+2],
                    legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                    legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                    xaxis_style="plain", y_err=[], force=True, fill_between=(sd_lines1, sd_lines2))
@@ -782,14 +779,18 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
         num_VE_conditions=4
     elif comparison=="heterogeneous":
-        conditions = ["H-SMBO","H-SMBO (perfect detection)","H-SMBO (random detection)","H-Random"]
-        settings = [("single_exp", False, "noID"),
-                    ("single_exp_known", False, "final"),
-                    ("single_exp_random", False, "final"),
-                    ("single_exp_randomsearch", False, "final")]
+        conditions = ["H-SMBO","H-SMBO (random detection)"]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+
+        settings = [("single_exp", False, "final"),("single_exp_random", False, "final")]
+
+
         plottag="HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
-        num_VE_conditions=4
+        num_VE_conditions=2
     elif comparison=="fest":
         conditions = ["SMBO", "VE-SMBO E(0)=3","VE-SMBO E(0)=4","VE-SMBO E(0)=5","VE-SMBO E(0)=6","VE-SMBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]

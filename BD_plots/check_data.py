@@ -165,8 +165,8 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
                         # print("bd 1st controller: ", first_line[1:4])
                         # print("performance 1st controller: ", first_line[-1])
                         # print("-------")
-                        if len(lines)!=30:
-                            print("lines not equal at: ", perturbed)
+                        if len(lines)!=100:
+                            print("only %d lines at: %s"%(len(lines),perturbed))
 
 if __name__ == "__main__":
     # check_archives_complete(30000,
@@ -188,6 +188,6 @@ if __name__ == "__main__":
     check_BO_single_complete_foraging( "/home/david/Data",
                             ["history"],
                             range(1,6),
-                            ["single_exp_known","single_exp","single_exp_random"],
+                            ["single_exp_random"],
                             "final")
 
