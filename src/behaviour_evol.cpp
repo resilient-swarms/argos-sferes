@@ -73,6 +73,7 @@ int main(int argc, char **argv)
     {
         rename_folder(cLoopFunctions.opt[i]->res_dir(), global::results_path);
     }
+    remove_dotfiles(global::results_path);
 #endif
 
     /*

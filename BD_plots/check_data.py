@@ -191,3 +191,8 @@ if __name__ == "__main__":
                             ["single_exp_random","single_exp"],
                             "final")
 
+    check_BO_single_complete_foraging( "/home/david/Data",
+                            ["history"],
+                            range(1,6),
+                            ["single_exp"],
+                            "multi")

@@ -644,15 +644,6 @@ std::string print_individual_to_network(std::vector<double> bd)
 
 void rename_folder(std::string oldname, std::string newname)
 {
-    std::cout << "removing .dot files\n";
-    std::string dot_cmd = "rm " + newname + "/*.dot ";
-    if (system(dot_cmd.c_str()) != 0)
-    {
-        std::cerr << "Error removing dot files " << std::endl
-                  << dot_cmd << std::endl;
-        exit(-1);
-    }
-
     std::cout << "renaming: " << oldname << " " << newname << std::endl;
     std::string mv_cmd = "mv " + oldname + "/* " + newname + "/ ";
     if (system(mv_cmd.c_str()) != 0)
@@ -675,6 +666,18 @@ void rename_folder(std::string oldname, std::string newname)
     //    puts("File successfully renamed");
     //else
     //    perror("Error renaming file");
+}
+
+void remove_dotfiles(std::string newname)
+{
+    std::cout << "removing .dot files\n";
+    std::string dot_cmd = "rm " + newname + "/*.dot ";
+    if (system(dot_cmd.c_str()) != 0)
+    {
+        std::cerr << "Error removing dot files " << std::endl
+                  << dot_cmd << std::endl;
+        exit(-1);
+    }
 }
 
 Params::archiveparams::archive_t Params::archiveparams::archive;
