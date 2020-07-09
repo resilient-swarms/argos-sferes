@@ -36,10 +36,12 @@ public:
         size_t total_time;
         size_t max_trials, trials_completed;
         size_t index;
+        size_t opt_index;
         Eigen::VectorXd new_sample, F;
         size_t numFoodCollected = 0;
         Worker() {}
-        Worker(size_t trials, size_t i) : total_time(0), index(i), initial_phase(true){};
+        Worker(size_t trials, size_t i) : total_time(0), index(i), opt_index(0), initial_phase(true){};
+        Worker(size_t trials, size_t i, size_t opt_idx) : total_time(0), index(i), opt_index(opt_idx), initial_phase(true){};
 
         /* at the end of trial, convert food collected to fitness consistent with map;
             also reset the number of foods collected for the next trial

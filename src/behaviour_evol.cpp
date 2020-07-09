@@ -69,7 +69,10 @@ int main(int argc, char **argv)
 
 #if HETEROGENEOUS & !RECORD_FIT
     static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
-    rename_folder(cLoopFunctions.opt.res_dir(), global::results_path);
+    for(size_t i=0; i < cLoopFunctions.opt.size(); ++i)
+    {
+        rename_folder(cLoopFunctions.opt[i]->res_dir(), global::results_path);
+    }
 #endif
 
     /*

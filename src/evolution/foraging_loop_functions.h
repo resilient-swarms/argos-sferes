@@ -23,7 +23,7 @@ public:
     size_t num_subtrials;
     size_t ticks_per_subtrial;
     bool reset;
-    Opt_t opt;// in case we want bayesian optimisation
+    std::vector<Opt_t*> opt;// in case we want bayesian optimisation
     std::vector<Proposal*> proposals;//in case we want random search
     ControllerEval state_fun; //state function; just for its parameters
     
@@ -48,10 +48,11 @@ public:
             return false;
         }
     }
-    void select_new_controller(ForagingThymioNN &cController,bool alltrialsfinished);
+    void select_new_controller(ForagingThymioNN &cController,size_t stat_index,bool alltrialsfinished, bool multi);
     void select_new_controller_random(ForagingThymioNN &cController,bool alltrialsfinished);
     void init_BO(std::vector<double> normal_ID, bool variable_noise);
     void init_randomsearch();
+    void init_multiBO(std::vector<double> normal_ID, bool variable_noise);
 
 #endif
     const float nest_x = 0.32;

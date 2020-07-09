@@ -11,6 +11,7 @@
 #ifdef HETEROGENEOUS
 #include <src/ite/exhaustive_constrained_search.hpp>
 #include <src/ite/exhaustive_constrained_localpen.hpp>
+#include <src/ite/exhaustive_search_multimap.hpp>
 #include <ios>
 
 #else
@@ -140,6 +141,7 @@ struct Params
         };
         typedef std::map<std::vector<double>, elem_archive, classcomp> archive_t;
         static std::map<std::vector<double>, elem_archive, classcomp> archive;
+        static std::vector<std::map<std::vector<double>, elem_archive, classcomp>> multimap;
 #ifdef HETEROGENEOUS
         static std::map<std::vector<double>, elem_archive, classcomp> old_archive;
 
@@ -151,6 +153,7 @@ struct Params
     static double L;
     static double M;
     static size_t count;
+    static size_t map_index;
     static void remove_from_busysamples(const Eigen::VectorXd &sample)
     {
         // std::ofstream busylog("busy_samples.txt",std::ios::app);
@@ -445,7 +448,7 @@ double get_VE(size_t line_no, std::string VE_file)
     throw std::runtime_error("line_no not reached !");
     return 0.0f;
 }
-#if HETEROGENEOUS
+#if HETEROGENEOUS 
 Params::archiveparams::archive_t load_archive(std::string archive_name, std::vector<double> normal_ID = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5}, std::string VE_file = "", bool uniform = false)
 {
 
@@ -600,7 +603,19 @@ void fill_map_with_identifier(std::vector<float> ident)
     }
     std::cout << "Map is now size " << Params::archiveparams::archive.size() << std::endl;
 }
-
+void fill_multimap_with_identifier(std::vector<float> ident)
+{
+    Params::archiveparams::multimap.push_back(Params::archiveparams::archive_t());
+    std::cout << "Map was size " << Params::archiveparams::multimap.back().size() << std::endl;
+    for (archive_it_t it = Params::archiveparams::old_archive.begin(); it != Params::archiveparams::old_archive.end(); ++it)
+    {
+        std::vector<double> bd = it->first;
+        Params::archiveparams::elem_archive elem = it->second;
+        elem.behav_descriptor = bd;
+        Params::archiveparams::multimap.back()[bd] = elem;
+    }
+    std::cout << "Map is now size " << Params::archiveparams::multimap.back().size() << std::endl;
+}
 std::string print_individual_to_network(std::vector<double> bd)
 {
 
@@ -669,7 +684,7 @@ Params::archiveparams::archive_t Params::archiveparams::old_archive;
 
 typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
 //typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
-typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
+typedef opt::ExhaustiveSearchMultiMap<Params> InnerOpt_t;
 //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
 typedef mean::MeanArchive<Params> Mean_t;
 // here, GPArchive, a custom module, writes the maps after each iteration

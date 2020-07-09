@@ -3,13 +3,13 @@
 #include "src/evolution/foraging_nn_controller.h"
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
-
-
 #if HETEROGENEOUS
 std::vector<Eigen::VectorXd> Params::busy_samples;
 double Params::L;
 double Params::M;
 size_t Params::count;
+std::vector<Params::archiveparams::archive_t> Params::archiveparams::multimap;
+size_t Params::map_index;
 #endif
 
 /****************************************/
@@ -151,7 +151,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
    }
-   if (optimisation == "BO" || optimisation =="BO_noID")
+   if (optimisation == "BO" || optimisation == "BO_noID")
    {
       bool variable_noise;
       try
@@ -162,14 +162,36 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       {
          THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
       }
-      if(variable_noise)
+      if (variable_noise)
       {
          std::cout << "using noise in BO" << std::endl;
       }
-      else{
+      else
+      {
          std::cout << "NOT using noise in BO" << std::endl;
       }
       init_BO(normal_ID, variable_noise);
+   }
+   else if (optimisation == "BO_multi")
+   {
+      bool variable_noise;
+      try
+      {
+         GetNodeAttribute(t_node, "variable_noise", variable_noise);
+      }
+      catch (CARGoSException &ex)
+      {
+         THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
+      }
+      if (variable_noise)
+      {
+         std::cout << "using noise in BO" << std::endl;
+      }
+      else
+      {
+         std::cout << "NOT using noise in BO" << std::endl;
+      }
+      init_multiBO(normal_ID, variable_noise);
    }
    else
    {
@@ -186,12 +208,13 @@ void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID, bool variabl
 {
    Params::count = 0;
    // select new controller now
-   opt.optimize_init<ControllerEval>(normal_ID.size(),m_unNumberRobots,state_fun,variable_noise);
+   opt.push_back(new Opt_t());
+   opt[0]->optimize_init<ControllerEval>(normal_ID.size(), m_unNumberRobots, state_fun, variable_noise);
    /* initial phase: select controller for one robot and then put others with the same as well */
    argos::CThymioEntity *cThym = m_pcvecRobot[0];
    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
    cController.worker = ForagingThymioNN::Worker(num_subtrials, 0);
-   Eigen::VectorXd result = opt.select_sample<ControllerEval>({});
+   Eigen::VectorXd result = opt[0]->select_sample<ControllerEval>({});
    cController.worker.new_sample = result.head(BEHAV_DIM);
    std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
    cController.select_net(bd, num_subtrials, ticks_per_subtrial);
@@ -215,18 +238,79 @@ void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID, bool variabl
    Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
    Params::archiveparams::archive = {};
 }
-
-void CForagingLoopFunctions::init_randomsearch()
+void CForagingLoopFunctions::init_multiBO(std::vector<double> normal_ID, bool variable_noise)
 {
-   opt.optimize_init<ControllerEval>(0,m_unNumberRobots,state_fun); //just to get some useful stats
+   Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
+   Params::count = 0;
+   std::vector<BaseController::FaultBehavior> found_faults;
+   std::map<BaseController::FaultBehavior, int> index_vec;
+   std::map<BaseController::FaultBehavior, Eigen::VectorXd> sample_vec;
+   std::map<BaseController::FaultBehavior, int> count;
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
-      Params::busy_samples.push_back(opt.NULL_VEC);
+      argos::CThymioEntity *cThym = m_pcvecRobot[i];
+      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+      auto found = std::find(found_faults.begin(), found_faults.end(), cController.FBehavior);
+      if (found == found_faults.end())
+      {
+         found_faults.push_back(cController.FBehavior);
+         opt.push_back(new Opt_t());
+         index_vec[cController.FBehavior] = 0;
+         count[cController.FBehavior] = 0;
+      }
+      else
+      {
+         int index = index_vec.at(cController.FBehavior);
+         ++index;
+         cController.worker.index = index;
+         index_vec[cController.FBehavior] = index;
+      }
+   }
+
+   for(size_t i=0; i < opt.size(); ++i)
+   {
+      opt[i]->optimize_init<ControllerEval>(normal_ID.size(), index_vec[found_faults[i]] + 1, state_fun, variable_noise);
+      fill_multimap_with_identifier({});
+   }
+   
+   for (size_t i = 0; i < m_unNumberRobots; ++i)
+   {
+      argos::CThymioEntity *cThym = m_pcvecRobot[i];
+      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+      auto found = std::find(found_faults.begin(), found_faults.end(), cController.FBehavior);
+      size_t opt_idx = found - found_faults.begin();
+      size_t worker_idx = count.at(cController.FBehavior);
+      cController.worker = ForagingThymioNN::Worker(num_subtrials, worker_idx , opt_idx);
+      worker_idx++;
+      count[cController.FBehavior] = worker_idx;
+      cController.worker.opt_index = opt_idx;
+      Eigen::VectorXd result = opt[opt_idx]->select_sample<ControllerEval>({});
+      cController.worker.new_sample = result.head(BEHAV_DIM);
+      std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+      cController.select_net(bd, num_subtrials, ticks_per_subtrial);
+      std::string sim_cmd = "rm " + cController.savefile;
+      if (system(sim_cmd.c_str()) != 0)
+      {
+         std::cerr << "Error removing nvp " << std::endl
+                   << sim_cmd << std::endl;
+         exit(-1);
+      }
+      // reset the controller (food_items_collected,)
+      cController.Reset();
+   }
+   
+}
+void CForagingLoopFunctions::init_randomsearch()
+{
+   opt[0]->optimize_init<ControllerEval>(0, m_unNumberRobots, state_fun); //just to get some useful stats
+   for (size_t i = 0; i < m_unNumberRobots; ++i)
+   {
+      Params::busy_samples.push_back(opt[0]->NULL_VEC);
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
 
       proposals.push_back(new Proposal());
-      std::string res_dir = opt.res_dir();
+      std::string res_dir = opt[0]->res_dir();
       std::cout << "res dir " << res_dir << std::endl;
       proposals[i]->init(res_dir, i);
       std::vector<double> bd = proposals[i]->generate();
@@ -294,7 +378,7 @@ void CForagingLoopFunctions::Reset()
 
 #if HETEROGENEOUS & !RECORD_FIT
 
-void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController, bool all_trials_finished)
+void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController, size_t stat_index, bool all_trials_finished, bool multi)
 {
 
    if (cController.worker.initial_phase && all_trials_finished)
@@ -309,29 +393,32 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       }
       cController.worker.initial_phase = false;
       // fill the map with corresponding identification vector
-      fill_map_with_identifier(ident);
+      if (!multi)
+      {
+         fill_map_with_identifier(ident);
+      }
    }
-   opt.push_fitness(cController.worker.index, cController.worker.fitness(m_unNumberRobots));
-   opt.push_time((double)cController.worker.total_time, all_trials_finished);
+   size_t index = cController.worker.opt_index;
+   opt[index]->push_fitness(cController.worker.index, cController.worker.fitness(m_unNumberRobots));
+   opt[index]->push_time((double)cController.worker.total_time, all_trials_finished);
    if (!cController.worker.initial_phase) //update trial info
    {
       Eigen::VectorXd old_x = cController.worker.get_sample();
-   
+
       size_t worker_index = cController.worker.index;
       argos::LOG << "worker " << worker_index << std::endl;
       argos::LOG << "all trials finished " << all_trials_finished << std::endl;
       argos::LOG << "initial phase " << cController.worker.initial_phase << std::endl;
 
       argos::LOG.Flush();
-      
-      Eigen::VectorXd new_x = opt.optimize_step<ControllerEval>(cController.worker.get_sample(), worker_index, state_fun, all_trials_finished);
-      
+      Eigen::VectorXd new_x = opt[index]->optimize_step<ControllerEval>(cController.worker.get_sample(), worker_index, stat_index, state_fun, all_trials_finished);
+
       if (all_trials_finished) // select new sample
       {
-         std::ofstream busy_log("busy_samples.txt",std::ios::app);
-         busy_log << "worker_index "  << cController.worker.index << std::endl;
-         std::cout << "old_x "<<old_x.transpose() << std::endl;
-         std::cout << "new_x "<<new_x.transpose() << std::endl;
+         std::ofstream busy_log("busy_samples.txt", std::ios::app);
+         busy_log << "worker_index " << cController.worker.index << std::endl;
+         std::cout << "old_x " << old_x.transpose() << std::endl;
+         std::cout << "new_x " << new_x.transpose() << std::endl;
          Params::remove_from_busysamples(old_x);
          Params::add_to_busysamples(new_x);
          cController.worker.new_sample = new_x.head(BEHAV_DIM);
@@ -345,9 +432,7 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
                       << sim_cmd << std::endl;
             exit(-1);
          }
-         
       }
-      
    }
    // reset the controller (food_items_collected,)
    cController.Reset();
@@ -355,13 +440,13 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
 
 void CForagingLoopFunctions::select_new_controller_random(ForagingThymioNN &cController, bool all_trials_finished)
 {
-   opt.push_fitness(cController.worker.index, cController.worker.fitness(m_unNumberRobots));
+   opt[0]->push_fitness(cController.worker.index, cController.worker.fitness(m_unNumberRobots));
    if (all_trials_finished) // select new sample
    {
 
       size_t i = cController.worker.index;
 
-      proposals[i]->print_stats(i, (double)cController.worker.total_time, cController.worker.new_sample, opt.get_mean_fitness(i));
+      proposals[i]->print_stats(i, (double)cController.worker.total_time, cController.worker.new_sample, opt[0]->get_mean_fitness(i));
       std::vector<double> bd = proposals[i]->generate();
       cController.worker.new_sample = Eigen::VectorXd(bd.size());
       for (size_t j = 0; j < bd.size(); ++j)
@@ -785,13 +870,18 @@ void CForagingLoopFunctions::PostStep()
          --cController.num_trials_left;
          if (stop)
          {
-            cController.worker.numFoodCollected = 0;     // new fitness estimate will be 0
-            opt.clear_fitness(cController.worker.index); //clear previous estimates --> after one push of 0 will stop with mean=0 and sd=0
+            cController.worker.numFoodCollected = 0; // new fitness estimate will be 0
+            size_t index = cController.worker.opt_index;
+            opt[index]->clear_fitness(cController.worker.index); //clear previous estimates --> after one push of 0 will stop with mean=0 and sd=0
          }
          bool alltrialsfinished = stop || cController.num_trials_left == 0;
-         if (optimisation == "BO" || optimisation == "BO_noID")
+         if (optimisation == "BO" || optimisation == "BO_noID" )
          {
-            select_new_controller(cController, alltrialsfinished);
+            select_new_controller(cController, j, alltrialsfinished, false);
+         }
+         else if(optimisation == "BO_multi")
+         {
+            select_new_controller(cController, j, alltrialsfinished, true);
          }
          else
          {
