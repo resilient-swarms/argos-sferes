@@ -23,39 +23,62 @@ public:
     size_t num_subtrials;
     size_t ticks_per_subtrial;
     bool reset;
-    std::vector<Opt_t*> opt;// in case we want bayesian optimisation
-    std::vector<Proposal*> proposals;//in case we want random search
-    ControllerEval state_fun; //state function; just for its parameters
-    
+    std::vector<Opt_t *> opt;          // in case we want bayesian optimisation
+    std::vector<Proposal *> proposals; //in case we want random search
+    ControllerEval state_fun;          //state function; just for its parameters
+
     std::string stop_crit;
-    
+
     //std::string network_config, network_binary, archive_file;
     bool stop_criterion(ForagingThymioNN &cController)
     {
-        
-        if (stop_crit=="both")
+
+        if (stop_crit == "both")
         {
-            return  cController.collision_stop() || cController.reward_stop();
+            return cController.collision_stop() || cController.reward_stop();
         }
-        else if(stop_crit=="collision")
+        else if (stop_crit == "collision")
         {
-            return  cController.collision_stop();
+            return cController.collision_stop();
         }
-        else if (stop_crit=="reward"){
+        else if (stop_crit == "reward")
+        {
             return cController.reward_stop();
         }
-        else{
+        else
+        {
             return false;
         }
     }
-    void select_new_controller(ForagingThymioNN &cController,size_t stat_index,bool alltrialsfinished, bool multi);
-    void select_new_controller_random(ForagingThymioNN &cController,bool alltrialsfinished);
+    void select_new_controller(ForagingThymioNN &cController, size_t stat_index, bool alltrialsfinished, bool multi);
+    void select_new_controller_random(ForagingThymioNN &cController, bool alltrialsfinished);
     void init_BO(std::vector<double> normal_ID, bool variable_noise);
     void init_randomsearch();
     void init_multiBO(std::vector<double> normal_ID, bool variable_noise);
 
 #endif
     const float nest_x = 0.32;
+#ifdef LARGE_ARENA
+    const int HARVEST_TIME = 0; // no delay
+    std::vector<float> m_fFoodSquareRadius = {
+        0.10 * 0.10, 0.10 * 0.10, 0.20 * 0.20, 0.20 * 0.20, 0.30 * 0.30,
+         0.10 * 0.10, 0.10 * 0.10, 0.20 * 0.20, 0.20 * 0.20, 0.30 * 0.30};
+    std::vector<CVector2> m_cFoodPos = {
+
+        CVector2(0.80, 1.20),
+        CVector2(0.80, 0.50),
+        CVector2(1.3, 1.0),
+        CVector2(1.5, 0.5),
+        CVector2(1.6, 1.70),
+        CVector2(0.80, 2.1+1.20),
+        CVector2(0.80, 2.1+0.50),
+        CVector2(1.3, 2.1+1.0),
+        CVector2(1.5, 2.1+0.5),
+        CVector2(1.6, 2.1+1.70)
+
+    };
+
+#else
     const int HARVEST_TIME = 50; // 50 time steps
     std::vector<float> m_fFoodSquareRadius = {
         0.10 * 0.10, 0.10 * 0.10, 0.20 * 0.20, 0.20 * 0.20, 0.30 * 0.30};
@@ -68,6 +91,7 @@ public:
         CVector2(1.6, 1.70)
 
     };
+#endif
     bool forcePositions = false;
     std::vector<int> m_cVisitedFood = {}; // how much time steps left until harvestable
     std::vector<bool> m_bRobotsHoldingFood = {};

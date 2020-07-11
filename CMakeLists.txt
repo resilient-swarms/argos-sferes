@@ -115,10 +115,14 @@ option(CAFFE "caffe neural networks" OFF)
 option(NN_INPUT_TYPE "control RAB" OFF)
 option(INCLUDE_CMAES "include libcmaes" OFF)
 option(HETEROGENEOUS "heterogeneous swarm" OFF)
-
+option(LARGE "heterogeneous swarm" OFF)
 #add_definitions(-DCOLLISION_STOP)  
 
+if(LARGE)
+    message("will use a large arena")
+    add_definitions(-DLARGE_ARENA)
 
+endif()
 
     
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lc -lrt") # use something similar if using file descriptors

@@ -167,6 +167,7 @@ def get_worker_developments(num_evals,num_workers,bd_t, r, gener, path, faultpat
         y=[]
         i=0
         for line in parsed_file_list:
+            print(i)
             best_performance=float(line[-1])
             time_cumulant=float(line[0])/(NUM_TRIALS*TICKS_PER_SECOND)
             mean_time[i].append(time_cumulant)

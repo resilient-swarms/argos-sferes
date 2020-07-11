@@ -153,10 +153,11 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
                     #     print("no line(s) found ", perturbed)
 
                     for i in range(6):
-                        perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/"+method+"/BO_output"+tag+"/async_stats"+str(i)+".dat"
+                        perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/"+method+"/BO_output"+tag+"/async_stats_best"+str(i)+".dat"
                         if not path.exists(perturbed):
                             print("could not find:")
                             print(perturbed)
+                            continue
                         lines = read_spacedelimited(perturbed)
                         if not lines:
                             print("no line(s) found ", perturbed)
