@@ -15,7 +15,7 @@ size_t Params::map_index;
 /****************************************/
 /****************************************/
 
-CForagingLoopFunctions::CForagingLoopFunctions() : m_pcFloor(NULL), virtual_energy(NULL)
+CForagingLoopFunctions::CForagingLoopFunctions() : m_pcFloor(NULL), virtual_energy(NULL), stats(NULL)
 {
 }
 

@@ -7,8 +7,17 @@ set_latest() {
 source activate py3.7 # just for the cvt initialisation
 
 data=$1
+large=$2 # Large or nothing
 
-
+if [[ $large == "Large" ]]; then
+	echo "will do large arena"
+	TemplateFile="experiments/harvesting/harvesting_template_large.argos"
+	echo "using template: ${TemplateFile}" 
+else
+	echo "will do small arena"
+	TemplateFile="experiments/harvesting/harvesting_template.argos"
+	echo "using template: ${TemplateFile}" 
+fi
 # Create a data diretory
 mkdir -p $data
 declare -A descriptors
@@ -18,7 +27,8 @@ declare -A voronoi
 #voronoi["cvt_spirit"]="cvt"
 #descriptors["multiagent_spirit"]=576
 #voronoi["multiagent_spirit"]="cvt"
-
+descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 descriptors["history"]=3
 voronoi["history"]=""
 SimTime=120
@@ -39,7 +49,8 @@ for key in ${!descriptors[@]}; do
 
 		# Take template.argos and make an .argos file for this experiment
 		SUFFIX=${Replicates}
-		ConfigFolder=${data}/${FitfunType}/${DescriptorType}
+		ConfigFolder=${data}/${FitfunType}${large}/${DescriptorType}
+		echo "configfolder $ConfigFolder"
 		Outfolder=${ConfigFolder}/results${SUFFIX}/
 		ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
 
@@ -60,7 +71,10 @@ for key in ${!descriptors[@]}; do
 			-e "s|FAULT_TYPE|FAULT_NONE|" \
 			-e "s|FAULT_ID|-1|" \
 			-e "s|SWARM_BEHAV|/|" \
-			experiments/harvesting/harvesting_template.argos \
+			-e "s|FOOD_ID|-1|" \
+			-e "s|USE_VIRTUAL|False|" \
+			-e "s|TRACK_STATS|True|" \
+			${TemplateFile} \
 			>${ConfigFile}
 		if [ ! -z "${CVT}" ]; then
 			echo ${CVT}
