@@ -687,6 +687,19 @@ float BaseLoopFunctions::actual_linear_velocity_signed(size_t robot_index)
     }
 }
 
+/* turn velocity normalised to [0,1], based on the wheel speed*/
+float BaseLoopFunctions::wheel_turn_velocity_01(size_t robot_index)
+{
+    return get_controller(robot_index)->turn_wheel_velocity_01();
+}
+
+/* linear velocity normalised to [0,1]*/
+float BaseLoopFunctions::wheel_linear_velocity_01(size_t robot_index)
+{   
+    return get_controller(robot_index)->linear_wheel_velocity_01();
+}
+
+
 /* get the mass */
 float BaseLoopFunctions::get_mass(CThymioEntity *robot)
 {

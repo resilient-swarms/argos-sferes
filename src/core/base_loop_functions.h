@@ -189,6 +189,11 @@ public:
     /* linear velocity normalised to [-1,1]*/
     float actual_linear_velocity_signed(size_t robot_index);
 
+    /* turn velocity normalised to [0,1], based on wheel speed*/
+    float wheel_turn_velocity_01(size_t robot_index);
+    /* linear velocity normalised to [0,1], based on wheel speed */
+    float wheel_linear_velocity_01(size_t robot_index);
+
     /* get the mass */
     float get_mass(CThymioEntity *robot);
 

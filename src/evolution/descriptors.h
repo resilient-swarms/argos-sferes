@@ -848,6 +848,37 @@ public:
   virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
 
+class IdentificationWheelDescriptor : public Descriptor
+{
+public:
+  size_t current_robot;        // robot from which to set/get information now
+  std::vector<size_t> updates; //for each robot, how many updates
+  std::vector<float> bd_vec;
+  IdentificationWheelDescriptor(size_t num_robots)
+  {
+    for (size_t i = 0; i < num_robots; ++i)
+    {
+      updates.push_back(0);
+      for(size_t i=0; i < 6; ++i)
+      {
+        bd_vec.push_back(0);
+      }
+    }
+  }
+
+  void before_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  void start_trial();
+  /*after getting inputs, can update the descriptor if needed*/
+  virtual void set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  /*end the trial*/
+  virtual void end_trial(BaseEvolutionLoopFunctions &cLoopFunctions);
+
+  /*summarise BD at the end of trials*/
+  virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
+};
+
 class PerfectIdentificationDescriptor : public Descriptor
 {
 public:

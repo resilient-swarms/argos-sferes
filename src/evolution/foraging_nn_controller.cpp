@@ -138,6 +138,7 @@ void ForagingThymioNN::init_sensact(argos::TConfigurationNode &t_node)
         //m_pcLeds = GetActuator<argos::CCI_ThymioLedsActuator>("thymio_led");
         m_pcProximity = GetSensor<argos::CCI_ThymioProximitySensor>("Thymio_proximity");
         m_pcGround = GetSensor<argos::CCI_ThymioGroundSensor>("Thymio_ground");
+        m_pcWheelsEncoder = GetSensor<CCI_DifferentialSteeringSensor>("differential_steering");
     }
 
     catch (argos::CARGoSException &ex2)

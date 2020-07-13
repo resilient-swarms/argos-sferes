@@ -26,6 +26,7 @@
       <sensors>
 	<Thymio_proximity implementation="default"    show_rays="false"  range="0.11" noise_level="0.05"/>
 	<Thymio_ground implementation="rot_z_only" show_rays="false" noise_level="20"/>
+	<differential_steering implementation="default" />
       </sensors>
       <params>
         <wheel_turning max_speed="10"/>
@@ -47,7 +48,7 @@
                   label="foraging_loopfunctions3DREAL"
                   trials="1"
                   robots="6"
-                  descriptortype="empty"    
+                  descriptortype="identification_wheel"    
                   fitfuntype="Foraging"
                   output_folder="experiments/harvesting"
                   centroids_folder="CENTROIDSFOLDER"
@@ -58,7 +59,7 @@
 		  network_binary="bin/BO3DREAL"
 		  network_config="experiments/harvesting/harvesting_printnetwork.argos"
 		  stop="collision"
-		  optimisation="BO_noID"
+		  optimisation="BO"
 		  reset="true"
 		  variable_noise="true"
                     />

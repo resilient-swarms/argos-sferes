@@ -1445,6 +1445,63 @@ std::vector<float> IdentificationDescriptor::after_trials(BaseEvolutionLoopFunct
 	return std::vector<float>(bd_vec.begin() + offset, bd_vec.begin() + offset + 6);
 }
 
+
+
+void IdentificationWheelDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+void IdentificationWheelDescriptor::start_trial()
+{
+}
+
+void IdentificationWheelDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+	//the proportion of times the front-left proximity sensors are activated (above 0.5)
+
+	//Pm is the proportion of times the front-mid proximity sensor is activated
+
+	//Pr  is the proportion of times the front-right  proximity sensors are activated
+	//Pb is the proportion of times the back proximity sensors are activated
+	//Gwhite is the proportion of times the ground sensors are maximal (white)
+	//Gblack is the proportion of time the ground sensors are minimal (black)
+
+	//proximity
+	std::vector<float> activations = cLoopFunctions.get_inputgroup_activations({1, 2, 4, 6}, 0.00);
+	//white
+	activations.push_back(cLoopFunctions.wheel_turn_velocity_01(robot_index));
+	//black
+	activations.push_back(cLoopFunctions.wheel_linear_velocity_01(robot_index));
+
+	size_t offset = robot_index * 6;
+	// now add activations to the bd
+	for (size_t i = 0; i < 6; ++i)
+	{
+		bd_vec[offset + i] += activations[i];
+	}
+	++updates[robot_index];
+}
+
+/*end the trial*/
+void IdentificationWheelDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+}
+
+std::vector<float> IdentificationWheelDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+	size_t offset = cLoopFunctions.current_robot * 6;
+	for (size_t i = offset; i < offset + 6; ++i)
+	{
+		this->bd_vec[i] /= (float)updates[cLoopFunctions.current_robot];
+		if (!StatFuns::in_range(this->bd_vec[i], 0.0f, 1.0))
+		{
+			std::cout << "bd" << i << " not in [0,1]:" << bd_vec[i] << std::endl;
+			StatFuns::clip(bd_vec[i], 0.0f, 1.0f);
+		};
+	}
+	return std::vector<float>(bd_vec.begin() + offset, bd_vec.begin() + offset + 6);
+}
+
 void PerfectIdentificationDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }

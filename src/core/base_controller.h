@@ -168,7 +168,12 @@ public:
   float linear_velocity_signed();
   /* turn speed normalised to [0,1]*/
   float turn_speed_01();
+  /* linear velocity normalised to [0,1] */
+  float linear_wheel_velocity_01();
+  /* turn velocity normalised to [0,1] */
+  float turn_wheel_velocity_01();
 
+  
   virtual void init_sensact(TConfigurationNode &t_node);
   virtual void init_fault_config(TConfigurationNode &t_node);
 };

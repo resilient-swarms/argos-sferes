@@ -506,6 +506,20 @@ float BaseController::turn_speed_01()
     return std::abs(m_fLeftSpeed - m_fRightSpeed) / (2.0 * m_sWheelTurningParams.MaxSpeed); // in [0,1]
 }
 
+float BaseController::linear_wheel_velocity_01()
+{
+    auto reading = m_pcWheelsEncoder->GetReading();
+    float sum = reading.VelocityLeftWheel + reading.VelocityRightWheel;
+    return 0.5 + sum / (4.0f*m_sWheelTurningParams.MaxSpeed);// [0,1]
+}
+
+float BaseController::turn_wheel_velocity_01()
+{
+    auto reading = m_pcWheelsEncoder->GetReading();
+    float diff = reading.VelocityLeftWheel - reading.VelocityRightWheel;//[-2M,2M]
+    return 0.5f + diff / (4.0f * m_sWheelTurningParams.MaxSpeed);// [0,1]
+}
+
 void BaseController::init_sensact(TConfigurationNode &t_node)
 {
     /*

@@ -214,7 +214,10 @@ void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID, bool variabl
    argos::CThymioEntity *cThym = m_pcvecRobot[0];
    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
    cController.worker = ForagingThymioNN::Worker(num_subtrials, 0);
-   Eigen::VectorXd result = opt[0]->select_sample<ControllerEval>({});
+   Eigen::VectorXd id_vec = Eigen::VectorXd(normal_ID.size());
+   for(size_t i=0; i < normal_ID.size(); ++i)
+      id_vec(i) = normal_ID[i];
+   Eigen::VectorXd result = opt[0]->select_sample<ControllerEval>(id_vec);
    cController.worker.new_sample = result.head(BEHAV_DIM);
    std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
    cController.select_net(bd, num_subtrials, ticks_per_subtrial);

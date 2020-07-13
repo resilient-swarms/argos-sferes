@@ -687,7 +687,7 @@ Params::archiveparams::archive_t Params::archiveparams::old_archive;
 
 typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
 //typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
-typedef opt::ExhaustiveSearchMultiMap<Params> InnerOpt_t;
+typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
 //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
 typedef mean::MeanArchive<Params> Mean_t;
 // here, GPArchive, a custom module, writes the maps after each iteration
