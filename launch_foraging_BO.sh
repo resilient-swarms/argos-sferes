@@ -230,7 +230,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
             else
                 if [ "$run_type" = "BO_single" ] || [ "$run_type" = "random_single" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
-                    bd="identification"
+                    bd="identification_wheel"
                 elif [ "$run_type" = "BO_single_known" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="perfect_identificationsorted"
