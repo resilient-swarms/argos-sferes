@@ -275,7 +275,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                 SUFFIX=${Replicates}
 
                 #read the data from the original experiment
-                Base=${data}/${FitfunType}/${DescriptorType}
+                Base=${data}/${FitfunType}${large}/${DescriptorType}
                 # look at archive dir at FAULT_NONE; config includes perturbations
 
                 # look at archive dir at previous perturbation results; config is at FAULT_NONE
@@ -322,7 +322,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         food_tag=""
                         echo "food tag empty"
                     fi
-                    ConfigFolder=${Base}${large}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}
+                    ConfigFolder=${Base}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}
                     mkdir -p ${ConfigFolder}
                     ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
                     export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
