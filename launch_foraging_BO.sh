@@ -148,7 +148,7 @@ else
     command="bin/ite_swarms_"
 fi
 output_tag=$3
-
+large=$5
 if [[ $large == "Large" ]]; then
 	echo "will do large arena"
 	TemplateFile="experiments/harvesting/harvesting_template_large.argos"
