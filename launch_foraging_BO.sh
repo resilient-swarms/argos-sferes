@@ -322,7 +322,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         food_tag=""
                         echo "food tag empty"
                     fi
-                    ConfigFolder=${Base}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}
+                    ConfigFolder=${Base}/${large}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}
                     mkdir -p ${ConfigFolder}
                     ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
                     export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
