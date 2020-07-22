@@ -149,6 +149,18 @@ else
 fi
 output_tag=$3
 
+if [[ $large == "Large" ]]; then
+	echo "will do large arena"
+	TemplateFile="experiments/harvesting/harvesting_template_large.argos"
+	echo "using template: ${TemplateFile}" 
+else
+	echo "will do small arena"
+	TemplateFile="experiments/harvesting/harvesting_template.argos"
+	echo "using template: ${TemplateFile}" 
+fi
+
+
+
 export Generation=20000
 
 echo "doing generation ${Generation}"
@@ -358,7 +370,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|OPTIMISATION|${optimisation}|"  \
                         -e "s|RESET|${reset}|" \
                         -e "s|VARIABLE_NOISE|${variable_noise}|" \
-                        experiments/harvesting/harvesting_template.argos \
+                        ${TemplateFile}  \
                         >${ConfigFile}
                         if [ ! -z "${network_config}" ]; then
 

@@ -189,8 +189,8 @@ if __name__ == "__main__":
     check_BO_single_complete_foraging( "/home/david/Data",
                             ["history"],
                             range(1,6),
-                            ["single_exp_random","single_exp"],
-                            "final")
+                            ["single_exp"],
+                            "wheel_encoder")
 
     check_BO_single_complete_foraging( "/home/david/Data",
                             ["history"],

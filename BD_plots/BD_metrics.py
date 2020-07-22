@@ -1128,4 +1128,4 @@ if __name__ == "__main__":
 
     #create_all_development_plots()
 
-    single_development_plots("Foraging", "", runs, times, bd_type, legend_labels)
+    single_development_plots("ForagingLarge", "", runs, times, bd_type, legend_labels)
