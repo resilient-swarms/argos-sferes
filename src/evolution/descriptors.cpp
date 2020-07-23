@@ -1416,9 +1416,9 @@ void IdentificationDescriptor::set_input_descriptor(size_t robot_index, BaseEvol
 	//black
 	activations.push_back(cLoopFunctions.get_inputgroup_activations_smaller({8}, -0.70, 7)[0]);
 
-	size_t offset = robot_index * 6;
+	size_t offset = robot_index * num_features;
 	// now add activations to the bd
-	for (size_t i = 0; i < 6; ++i)
+	for (size_t i = 0; i < num_features; ++i)
 	{
 		bd_vec[offset + i] += activations[i];
 	}
@@ -1432,8 +1432,8 @@ void IdentificationDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFuncti
 
 std::vector<float> IdentificationDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-	size_t offset = cLoopFunctions.current_robot * 6;
-	for (size_t i = offset; i < offset + 6; ++i)
+	size_t offset = cLoopFunctions.current_robot * num_features;
+	for (size_t i = offset; i < offset + num_features; ++i)
 	{
 		this->bd_vec[i] /= (float)updates[cLoopFunctions.current_robot];
 		if (!StatFuns::in_range(this->bd_vec[i], 0.0f, 1.0))
@@ -1442,7 +1442,7 @@ std::vector<float> IdentificationDescriptor::after_trials(BaseEvolutionLoopFunct
 			StatFuns::clip(bd_vec[i], 0.0f, 1.0f);
 		};
 	}
-	return std::vector<float>(bd_vec.begin() + offset, bd_vec.begin() + offset + 6);
+	return std::vector<float>(bd_vec.begin() + offset, bd_vec.begin() + offset + num_features);
 }
 
 
@@ -1473,9 +1473,9 @@ void IdentificationWheelDescriptor::set_input_descriptor(size_t robot_index, Bas
 	//black
 	activations.push_back(cLoopFunctions.wheel_linear_velocity_01(robot_index));
 
-	size_t offset = robot_index * 6;
+	size_t offset = robot_index * num_features;
 	// now add activations to the bd
-	for (size_t i = 0; i < 6; ++i)
+	for (size_t i = 0; i < num_features; ++i)
 	{
 		bd_vec[offset + i] += activations[i];
 	}
@@ -1489,8 +1489,8 @@ void IdentificationWheelDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopF
 
 std::vector<float> IdentificationWheelDescriptor::after_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-	size_t offset = cLoopFunctions.current_robot * 6;
-	for (size_t i = offset; i < offset + 6; ++i)
+	size_t offset = cLoopFunctions.current_robot * num_features;
+	for (size_t i = offset; i < offset + num_features; ++i)
 	{
 		this->bd_vec[i] /= (float)updates[cLoopFunctions.current_robot];
 		if (!StatFuns::in_range(this->bd_vec[i], 0.0f, 1.0))
@@ -1499,7 +1499,7 @@ std::vector<float> IdentificationWheelDescriptor::after_trials(BaseEvolutionLoop
 			StatFuns::clip(bd_vec[i], 0.0f, 1.0f);
 		};
 	}
-	return std::vector<float>(bd_vec.begin() + offset, bd_vec.begin() + offset + 6);
+	return std::vector<float>(bd_vec.begin() + offset, bd_vec.begin() + offset + num_features);
 }
 
 void PerfectIdentificationDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)

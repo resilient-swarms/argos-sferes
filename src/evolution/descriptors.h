@@ -823,12 +823,13 @@ public:
   size_t current_robot;        // robot from which to set/get information now
   std::vector<size_t> updates; //for each robot, how many updates
   std::vector<float> bd_vec;
+  size_t num_features=6;
   IdentificationDescriptor(size_t num_robots)
   {
     for (size_t i = 0; i < num_robots; ++i)
     {
       updates.push_back(0);
-      for(size_t i=0; i < 6; ++i)
+      for(size_t i=0; i < num_features; ++i)
       {
         bd_vec.push_back(0);
       }
@@ -854,12 +855,13 @@ public:
   size_t current_robot;        // robot from which to set/get information now
   std::vector<size_t> updates; //for each robot, how many updates
   std::vector<float> bd_vec;
+  size_t num_features=4;
   IdentificationWheelDescriptor(size_t num_robots)
   {
     for (size_t i = 0; i < num_robots; ++i)
     {
       updates.push_back(0);
-      for(size_t i=0; i < 6; ++i)
+      for(size_t i=0; i < num_features; ++i)
       {
         bd_vec.push_back(0);
       }
