@@ -91,7 +91,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    }
    if (optimisation == "BO")
    {
-      normal_ID = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+      normal_ID = {0.5, 0.5, 0.5, 0.5};
    }
    else if (optimisation == "BO_noID")
    {

@@ -11,7 +11,7 @@ baseline_performances = pickle.load(open("data/fitfun/foraging_maximal_fitness.p
 runs=range(1,6)
 bd_type = ["history"]  # legend label
 legend_labels = ["HBD"]  # labels for the legend
-fitfuns = ["Foraging"]
+fitfuns = ["ForagingLarge"]
 fitfunlabels = [""]
 
 

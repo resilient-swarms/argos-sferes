@@ -173,7 +173,6 @@ def get_worker_developments(num_evals,num_workers,bd_t, r, gener, path, faultpat
             mean_time[i].append(time_cumulant)
             mean_y[i].append(best_performance*NUM_AGENTS/num_workers)
             i+=1
-
     return mean_y,  mean_time
 
 
@@ -521,7 +520,7 @@ def prepare_data(VE_tags, conditions, settings, max_evals,num_VE_conditions, gen
             print(bd_type[i])
             best_performance_data.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
             time_loss.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
-            BD_dir = datadir + "/Foraging"
+            BD_dir = datadir + "/ForagingLarge"
             # get all the data from the archive: no fault
 
             nofaultpath = BD_dir + "/" + bd_type[i] + "/results"
@@ -780,13 +779,13 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
         num_VE_conditions=4
     elif comparison=="heterogeneous":
-        conditions = ["H-SMBO (detection)","H-SMBO (multi)","H-SMBO (random detection)"]
+        conditions = ["H-SMBO (detection)","H-SMBO (random detection)"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
 
-        settings = [("single_exp",False,"wheel_encoder"),("single_exp",False,"multi"),("single_exp_random", False, "final")]
+        settings = [("single_exp",False,"normal"),("single_exp_random", False, "")]
 
 
         plottag="HETEROGENEOUS"

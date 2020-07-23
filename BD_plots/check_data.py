@@ -134,7 +134,7 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
 
     for desc in descriptors:
         print(desc)
-        filename = datadir + "/Foraging/" +  desc
+        filename = datadir + "/ForagingLarge/" +  desc
         for method in methods:
             print("--------------")
             print(method)
@@ -190,10 +190,9 @@ if __name__ == "__main__":
                             ["history"],
                             range(1,6),
                             ["single_exp"],
-                            "wheel_encoder")
-
-    check_BO_single_complete_foraging( "/home/david/Data",
-                            ["history"],
-                            range(1,6),
-                            ["single_exp"],
-                            "multi")
+                            "normal")
+    check_BO_single_complete_foraging("/home/david/Data",
+                                      ["history"],
+                                      range(1, 6),
+                                      ["single_exp_random"],
+                                      "")

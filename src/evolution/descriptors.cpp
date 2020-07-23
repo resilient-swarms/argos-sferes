@@ -1467,7 +1467,7 @@ void IdentificationWheelDescriptor::set_input_descriptor(size_t robot_index, Bas
 	//Gblack is the proportion of time the ground sensors are minimal (black)
 
 	//proximity
-	std::vector<float> activations = cLoopFunctions.get_inputgroup_activations({1, 2, 4, 6}, 0.00);
+	std::vector<float> activations = cLoopFunctions.get_inputgroup_activations({4, 6}, 0.00);// front and back
 	//white
 	activations.push_back(cLoopFunctions.wheel_turn_velocity_01(robot_index));
 	//black
