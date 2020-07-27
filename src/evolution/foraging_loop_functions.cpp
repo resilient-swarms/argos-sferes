@@ -303,7 +303,7 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double
       {
          //size_t num_ID_features, size_t behav_dim
          opt[i]->optimize_init_joint<ControllerEval>(found_faults.size(), normal_ID.size(), state_fun, variable_noise);
-         fill_combinedmap_with_identifier(found_faults.size(), {}, 100); // fill map with combinations of the best 100 solutions
+         fill_combinedmap_with_identifier(found_faults.size(), {}, max_evals); // fill map with combinations of the best 100 solutions
       }
       else
       {
