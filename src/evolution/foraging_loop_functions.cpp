@@ -304,7 +304,6 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double
          //size_t num_ID_features, size_t behav_dim
          opt[i]->optimize_init_joint<ControllerEval>(found_faults.size(), normal_ID.size(), state_fun, variable_noise);
          fill_combinedmap_with_identifier(found_faults.size(), {}, 100); // fill map with combinations of the best 100 solutions
-         result = opt[i]->select_sample<ControllerEval>({});
       }
       else
       {
@@ -549,12 +548,11 @@ void CForagingLoopFunctions::select_joint_controller(bool alltrialsfinished)
 
    double sum_fit = 0.0;
    std::vector<size_t> seen_index;
-   double time;
+   double time = 0.0;
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
-      std::cout << "fault " << cController.FBehavior << std::endl;
       size_t index = cController.worker.opt_index;
       sum_fit += cController.worker.fitness(m_unNumberRobots);
       // reset the controller (food_items_collected,)
@@ -583,7 +581,7 @@ void CForagingLoopFunctions::select_joint_controller(bool alltrialsfinished)
          argos::CThymioEntity *cThym = m_pcvecRobot[j];
          ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
          size_t index = cController.worker.opt_index;
-         
+
          cController.select_net(el.joint_controller[index]);
          std::string sim_cmd = "rm " + cController.savefile;
          if (system(sim_cmd.c_str()) != 0)
@@ -858,7 +856,33 @@ CColor CForagingLoopFunctions::GetFloorColor(const CVector2 &c_position_on_plane
 
 /****************************************/
 /****************************************/
-
+#if HETEROGENEOUS & !RECORD_FIT
+void CForagingLoopFunctions::reset_controller(size_t j, bool reset, bool alltrialsfinished)
+{
+   argos::CThymioEntity *cThym = m_pcvecRobot[j];
+   ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+   cController.num_ticks_left = ticks_per_subtrial;
+   if (reset)
+   {
+      CPhysicsModel *model;
+      //model = &entity->GetPhysicsModel("dyn2d_0");
+      //model->UpdateEntityStatus();
+      size_t trial = num_subtrials - cController.num_trials_left - 1;
+      if (!cThym->GetEmbodiedEntity().MoveTo(
+              m_vecInitSetup[trial][j].Position,    // to this position
+              m_vecInitSetup[trial][j].Orientation, // with this orientation
+              false                                 // this is not a check, leave the robot there
+              ))
+      {
+      }
+   }
+   if (alltrialsfinished)
+   {
+      cController.num_trials_left = num_subtrials;
+      cController.reset_stopvals();
+   }
+}
+#endif
 void CForagingLoopFunctions::PostStep()
 {
    /* Logic to pick and drop food items */
@@ -995,7 +1019,6 @@ void CForagingLoopFunctions::PostStep()
       --cController.num_ticks_left;
       ++cController.worker.total_time;
       bool stop = stop_criterion(cController);
-      bool selected = false;
       if (stop || cController.num_ticks_left == 0)
       {
          --cController.num_trials_left;
@@ -1020,37 +1043,25 @@ void CForagingLoopFunctions::PostStep()
          }
          else if (optimisation == "BO_joint")
          {
-            if (!selected)
+            if (j == m_unNumberRobots - 1)
             {
                select_joint_controller(alltrialsfinished);
-               selected = true;
+               for (size_t i = 0; i < m_unNumberRobots; ++i)
+               {
+                  reset_controller(i, reset, alltrialsfinished);
+               }
+            }
+            else
+            {
+               continue; //wait until all controllers have been updated
             }
          }
          else
          {
+            throw std::runtime_error("which optimisation?" + optimisation);
          }
-         cController.num_ticks_left = ticks_per_subtrial;
-         if (reset)
-         {
-            CPhysicsModel *model;
-            //model = &entity->GetPhysicsModel("dyn2d_0");
-            //model->UpdateEntityStatus();
-            size_t trial = num_subtrials - cController.num_trials_left - 1;
-            if (!cThym->GetEmbodiedEntity().MoveTo(
-                    m_vecInitSetup[trial][j].Position,    // to this position
-                    m_vecInitSetup[trial][j].Orientation, // with this orientation
-                    false                                 // this is not a check, leave the robot there
-                    ))
-            {
-            }
-         }
-         if (alltrialsfinished)
-         {
-            cController.num_trials_left = num_subtrials;
-            cController.reset_stopvals();
-         }
+         reset_controller(j, reset, alltrialsfinished);
       }
-
 #endif
    }
    for (size_t f = 0; f < m_cVisitedFood.size(); ++f)

@@ -50,6 +50,7 @@ public:
             return false;
         }
     }
+    void reset_controller(size_t j, bool reset, bool alltrialsfinished);
     void select_new_controller(ForagingThymioNN &cController, size_t stat_index, bool alltrialsfinished, bool multi);
     void select_new_controller_random(ForagingThymioNN &cController, bool alltrialsfinished);
     void select_joint_controller(bool alltrialsfinished);
