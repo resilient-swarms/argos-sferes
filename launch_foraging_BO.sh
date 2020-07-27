@@ -58,6 +58,20 @@ elif [ "$run_type" = "BO_single_multi" ]; then
     optimisation="BO_multi"
     reset=true
     variable_noise=false
+elif [ "$run_type" = "BO_single_joint" ];then
+    UseVirtual="False"
+	TopOutputFolder="single_exp_joint"
+    command="bin/behaviour_evol"
+    SimTime=96000  # 960*max_evals=96,000 with 100 evals
+    trials=1
+    ticks_per_subtrial=600 #120*5
+	num_subtrials=8
+	network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+	stop=$4
+    optimisation="BO_joint"
+    reset=true
+    variable_noise=true
 elif [ "$run_type" = "BO_single_random" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp_random"
@@ -249,7 +263,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                 elif [ "$run_type" = "BO_single_random" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="random_identification"
-                elif [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ]; then
+                elif [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="empty"
                 elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
@@ -333,7 +347,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ] ||
                     [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ] || [ "$run_type" = "BO_single_known_record" ] \
 		            || [ "$run_type" = "BO_single_known" ] || [ "$run_type" = "BO_single_random" ] \
-                    || [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ]; then
+                    || [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ];  then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else 
                         export BO_OutputFolder=${Outfolder}${output_tag}
