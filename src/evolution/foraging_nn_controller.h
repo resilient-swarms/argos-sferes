@@ -92,6 +92,7 @@ public:
     void select_net(std::vector<double> bd, size_t num_subtrials, size_t ticks_per_subtrial);
     #endif
     void select_net(std::vector<double> bd);
+    void select_net(size_t ctr_index);
 
     
 #endif

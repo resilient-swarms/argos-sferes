@@ -784,10 +784,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
-
-        settings = [("single_exp",False,"normal"),("single_exp_random", False, "")]
-
-
+        settings = [("single_exp",False,"4features_l0.05"),("single_exp_random", False, "")]
         plottag="HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
         num_VE_conditions=2

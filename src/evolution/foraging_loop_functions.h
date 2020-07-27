@@ -26,7 +26,7 @@ public:
     std::vector<Opt_t *> opt;          // in case we want bayesian optimisation
     std::vector<Proposal *> proposals; //in case we want random search
     ControllerEval state_fun;          //state function; just for its parameters
-
+    Eigen::VectorXd current_sample;
     std::string stop_crit;
 
     //std::string network_config, network_binary, archive_file;
@@ -52,9 +52,11 @@ public:
     }
     void select_new_controller(ForagingThymioNN &cController, size_t stat_index, bool alltrialsfinished, bool multi);
     void select_new_controller_random(ForagingThymioNN &cController, bool alltrialsfinished);
+    void select_joint_controller(bool alltrialsfinished);
     void init_BO(std::vector<double> normal_ID, bool variable_noise);
     void init_randomsearch();
-    void init_multiBO(std::vector<double> normal_ID, bool variable_noise);
+    void init_multiBO(bool single_worker,std::vector<double> normal_ID, bool variable_noise);
+    void init_BOjoint(bool variable_noise);
 
 #endif
     const float nest_x = 0.32;

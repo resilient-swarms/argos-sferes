@@ -100,21 +100,22 @@ struct Params
 
     struct archiveparams
     {
+        
         struct elem_archive
         {
             std::vector<double> behav_descriptor; // the first entry of elem_archive should be the behaviour descriptor (see ln 19 in exhaustive_search_archive.hpp)
             float fit;
             unsigned controller;
             bool checked = false;
+            std::vector<unsigned> joint_controller; // in case you want to combine controllers
         };
-
         struct classcomp
         {
             /* to sort the std::map */
             bool operator()(const std::vector<double> &lhs, const std::vector<double> &rhs) const
             {
 #if HETEROGENEOUS
-                size_t dim = global::behav_dim + global::num_ID_features;
+                size_t dim = global::num_combined_bd*(global::behav_dim + global::num_ID_features);
 #else
                 size_t dim = global::behav_dim;
 #endif
@@ -128,7 +129,7 @@ struct Params
             static bool inequality(const Eigen::VectorXd &lhs, const Eigen::VectorXd &rhs)
             {
 #if HETEROGENEOUS
-                size_t dim = global::behav_dim + global::num_ID_features;
+                size_t dim = global::num_combined_bd*(global::behav_dim + global::num_ID_features);
 #else
                 size_t dim = global::behav_dim;
 #endif
@@ -448,7 +449,7 @@ double get_VE(size_t line_no, std::string VE_file)
     throw std::runtime_error("line_no not reached !");
     return 0.0f;
 }
-#if HETEROGENEOUS 
+#if HETEROGENEOUS
 Params::archiveparams::archive_t load_archive(std::string archive_name, std::vector<double> normal_ID = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5}, std::string VE_file = "", bool uniform = false)
 {
 
@@ -603,6 +604,162 @@ void fill_map_with_identifier(std::vector<float> ident)
     }
     std::cout << "Map is now size " << Params::archiveparams::archive.size() << std::endl;
 }
+void insertSort(Params::archiveparams::elem_archive &elem, std::vector<Params::archiveparams::elem_archive> &arr, int N)
+{
+    if (arr.empty())
+    {
+        arr.push_back(elem);
+        return;
+    }
+    int j = arr.size() - 1; //if final element is larger than new_val, no need to continue
+    // look for correct position of arr[i]
+    while (j >= 0 && elem.fit > arr[j].fit)
+    {
+        // shifting array elements towards the right
+        if (j < N - 1)
+        {
+            if (j < arr.size() - 1)
+                arr[j + 1] = arr[j];
+            else
+                arr.push_back(arr[j]); // need to expand the vector
+        }
+        arr[j] = elem;
+        j--;
+    }
+}
+
+std::vector<Params::archiveparams::elem_archive> get_all_combinations(std::vector<Params::archiveparams::elem_archive> &sorted_archive, int times)
+{
+
+    if (times == 1)
+    {
+        return sorted_archive;
+    }
+    else if (times == 2)
+    {
+        std::vector<Params::archiveparams::elem_archive> sorted_joint_arch;
+        for (size_t i = 0; i < sorted_archive.size(); ++i)
+        {
+            Params::archiveparams::elem_archive el1 = sorted_archive[i];
+
+            for (size_t j = 0; j < sorted_archive.size(); ++j)
+            {
+                Params::archiveparams::elem_archive el2 = sorted_archive[j];
+                std::vector<double> bd1 = el1.behav_descriptor;
+                std::vector<double> bd2 = el2.behav_descriptor;
+                bd1.insert(bd1.end(), bd2.begin(), bd2.end());
+                std::vector<unsigned> j_ctrl;
+                j_ctrl.push_back(el1.controller);
+                j_ctrl.push_back(el2.controller);
+                Params::archiveparams::elem_archive joint_el;
+                joint_el.behav_descriptor = bd1;
+                joint_el.fit = 0.50 * (el1.fit + el2.fit);
+                joint_el.joint_controller = j_ctrl;
+                sorted_joint_arch.push_back(joint_el);
+            }
+        }
+        return sorted_joint_arch;
+    }
+    else if (times == 3)
+    {
+        std::vector<Params::archiveparams::elem_archive> sorted_joint_arch;
+        for (size_t i = 0; i < sorted_archive.size(); ++i)
+        {
+            Params::archiveparams::elem_archive el1 = sorted_archive[i];
+
+            for (size_t j = 0; j < sorted_archive.size(); ++j)
+            {
+                Params::archiveparams::elem_archive el2 = sorted_archive[j];
+                for (size_t k = 0; k < sorted_archive.size(); ++k)
+                {
+                    Params::archiveparams::elem_archive el3 = sorted_archive[k];
+                    std::vector<double> bd1 = el1.behav_descriptor;
+                    std::vector<double> bd2 = el2.behav_descriptor;
+                    std::vector<double> bd3 = el3.behav_descriptor;
+                    bd1.insert(bd1.end(), bd2.begin(), bd2.end());
+                    bd1.insert(bd1.end(), bd3.begin(), bd3.end());
+                    std::vector<unsigned> j_ctrl;
+                    j_ctrl.push_back(el1.controller);
+                    j_ctrl.push_back(el2.controller);
+                    j_ctrl.push_back(el3.controller);
+                    Params::archiveparams::elem_archive joint_el;
+                    joint_el.behav_descriptor = bd1;
+                    joint_el.fit = (el1.fit + el2.fit + el3.fit) / 3.0;
+                    joint_el.joint_controller = j_ctrl;
+                    sorted_joint_arch.push_back(joint_el);
+                }
+            }
+        }
+        std::cout << "joint archive " << sorted_joint_arch.size() << std::endl;
+        return sorted_joint_arch;
+    }
+    else if (times == 4)
+    {
+        std::vector<Params::archiveparams::elem_archive> sorted_joint_arch;
+        for (size_t i = 0; i < sorted_archive.size(); ++i)
+        {
+            Params::archiveparams::elem_archive el1 = sorted_archive[i];
+
+            for (size_t j = 0; j < sorted_archive.size(); ++j)
+            {
+                Params::archiveparams::elem_archive el2 = sorted_archive[j];
+                for (size_t k = 0; k < sorted_archive.size(); ++k)
+                {
+                    Params::archiveparams::elem_archive el3 = sorted_archive[k];
+                    for (size_t l = 0; l < sorted_archive.size(); ++l)
+                    {
+                        Params::archiveparams::elem_archive el4 = sorted_archive[l];
+                        std::vector<double> bd1 = el1.behav_descriptor;
+                        std::vector<double> bd2 = el2.behav_descriptor;
+                        std::vector<double> bd3 = el3.behav_descriptor;
+                        std::vector<double> bd4 = el4.behav_descriptor;
+                        bd1.insert(bd1.end(), bd2.begin(), bd2.end());
+                        bd1.insert(bd1.end(), bd3.begin(), bd3.end());
+                        bd1.insert(bd1.end(), bd4.begin(), bd4.end());
+                        std::vector<unsigned> j_ctrl;
+                        j_ctrl.push_back(el1.controller);
+                        j_ctrl.push_back(el2.controller);
+                        j_ctrl.push_back(el3.controller);
+                        j_ctrl.push_back(el4.controller);
+                        Params::archiveparams::elem_archive joint_el;
+                        joint_el.behav_descriptor = bd1;
+                        joint_el.fit = (el1.fit + el2.fit + el3.fit + el4.fit) / 4.0;
+                        joint_el.joint_controller = j_ctrl;
+                        sorted_joint_arch.push_back(joint_el);
+                    }
+                }
+            }
+        }
+        return sorted_joint_arch;
+    }
+    else
+    {
+        throw std::runtime_error("not supported");
+    }
+}
+void fill_combinedmap_with_identifier(size_t num_comb, std::vector<float> ident, size_t N)
+{
+    std::cout << "Map was size " << Params::archiveparams::archive.size() << std::endl;
+    global::num_combined_bd = num_comb;
+    // first get the best N solutions
+    std::vector<Params::archiveparams::elem_archive> sorted_archive;
+    for (archive_it_t it = Params::archiveparams::old_archive.begin(); it != Params::archiveparams::old_archive.end(); ++it)
+    {
+        Params::archiveparams::elem_archive elem = it->second;
+        insertSort(elem, sorted_archive, N);
+    }
+    std::vector<Params::archiveparams::elem_archive> combined_archive = get_all_combinations(sorted_archive, num_comb);
+    Params::archiveparams::archive.clear(); // clear the original archive
+    for (size_t i = 0; i < combined_archive.size(); ++i)
+    {
+        Params::archiveparams::elem_archive elem = combined_archive[i];
+        std::vector<double> bd = elem.behav_descriptor;
+        Params::archiveparams::archive[bd] = elem;
+    }
+
+    std::cout << "Map is now size " << Params::archiveparams::archive.size() << std::endl;
+}
+
 void fill_multimap_with_identifier(std::vector<float> ident)
 {
     Params::archiveparams::multimap.push_back(Params::archiveparams::archive_t());
@@ -624,6 +781,27 @@ std::string print_individual_to_network(std::vector<double> bd)
     Params::archiveparams::elem_archive elem = Params::archiveparams::archive.at(bd); // get the element in the archive
     // get the controller id
     size_t ctrl_index = elem.controller;
+    std::cout << "will now evaluate individual=" + std::to_string(ctrl_index) << std::endl;
+    std::string sim_cmd = global::argossim_bin_name + " " +
+                          global::argossim_config_name[0] + " " +
+                          std::string(global::results_path) + "/fitness" + std::to_string(ctrl_index) + ".dat " +
+                          "--load " + std::string(global::archive_path) + "/gen_" + std::to_string(global::gen_to_load) + " " +
+                          "-n " + std::to_string(ctrl_index) + " " +
+                          "-o " + std::string(global::results_path) + "/nn" + std::to_string(ctrl_index) + ".dot " +
+                          "-d " + std::string(global::results_path);
+    std::cout << "Will execute command " << sim_cmd << std::endl;
+    if (system(sim_cmd.c_str()) != 0)
+    {
+        std::cerr << "Error executing simulation " << std::endl
+                  << sim_cmd << std::endl;
+        exit(-1);
+    }
+    return std::to_string(ctrl_index);
+}
+
+std::string print_individual_to_network(size_t ctrl_index)
+{
+
     std::cout << "will now evaluate individual=" + std::to_string(ctrl_index) << std::endl;
     std::string sim_cmd = global::argossim_bin_name + " " +
                           global::argossim_config_name[0] + " " +
@@ -688,6 +866,7 @@ Params::archiveparams::archive_t Params::archiveparams::old_archive;
 typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
 //typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
 typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
+//typedef opt::ExhaustiveSearchMultiMap<Params> InnerOpt_t;
 //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
 typedef mean::MeanArchive<Params> Mean_t;
 // here, GPArchive, a custom module, writes the maps after each iteration

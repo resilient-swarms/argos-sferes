@@ -13,6 +13,7 @@ namespace global
 #if HETEROGENEOUS
     std::vector<std::string> best_stats_file;
     size_t num_ID_features;
+    size_t num_combined_bd = 1;
     std::vector<double> normalID;
 #endif
     char* results_path;

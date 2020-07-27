@@ -42,6 +42,18 @@ void ForagingThymioNN::select_net(std::vector<double> bd)
     argos::LOG.Flush();
     init_network();
 }
+
+void ForagingThymioNN::select_net(size_t ctrl_index)
+{
+    // for (size_t i = 0; i < global::normalID.size(); ++i)
+    // {
+    //     bd.push_back(global::normalID[i]);
+    // }
+    print_individual_to_network(ctrl_index);
+    argos::LOG << "select controller " << ctrl_index << std::endl;
+    argos::LOG.Flush();
+    init_network();
+}
 #ifndef RECORD_FIT
 
 void ForagingThymioNN::select_net(std::vector<double> bd, size_t num_subtrials, size_t ticks_per_subtrial)
