@@ -1051,10 +1051,7 @@ void CForagingLoopFunctions::PostStep()
                   reset_controller(i, reset, alltrialsfinished);
                }
             }
-            else
-            {
-               continue; //wait until all controllers have been updated
-            }
+            continue; // ignore the reset, not needed
          }
          else
          {

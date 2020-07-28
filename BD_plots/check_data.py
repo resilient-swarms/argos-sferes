@@ -134,7 +134,7 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
 
     for desc in descriptors:
         print(desc)
-        filename = datadir + "/ForagingLarge/" +  desc
+        filename = datadir + "/Foraging/" +  desc
         for method in methods:
             print("--------------")
             print(method)
@@ -152,7 +152,7 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
                     # if not lines:
                     #     print("no line(s) found ", perturbed)
 
-                    for i in range(6):
+                    for i in range(1):
                         perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/"+method+"/BO_output"+tag+"/async_stats_best"+str(i)+".dat"
                         if not path.exists(perturbed):
                             print("could not find:")
@@ -189,10 +189,10 @@ if __name__ == "__main__":
     check_BO_single_complete_foraging( "/home/david/Data",
                             ["history"],
                             range(1,6),
-                            ["single_exp"],
-                            "normal")
-    check_BO_single_complete_foraging("/home/david/Data",
-                                      ["history"],
-                                      range(1, 6),
-                                      ["single_exp_random"],
-                                      "")
+                            ["single_exp_joint"],
+                            "")
+    # check_BO_single_complete_foraging("/home/david/Data",
+    #                                   ["history"],
+    #                                   range(1, 6),
+    #                                   ["single_exp_random"],
+    #                                   "")

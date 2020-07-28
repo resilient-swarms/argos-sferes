@@ -192,15 +192,18 @@ def add_development_of_fault_performance(num_evals,bd_t, r, gener, faultpath,
         return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform,estimate)
     elif "single_exp" in title_tag:
         normal_folder+="/"+title_tag
-        if "agent" in faultpath:
-            #get the last
-            last = faultpath[-2]
-            if last=="p":
-                num_workers=int(faultpath[-1])
-            else:
-                num_workers=int(faultpath[-2:])
+        if title_tag=="single_exp_joint":
+            num_workers=1
         else:
-            num_workers=NUM_AGENTS
+            if "agent" in faultpath:
+                #get the last
+                last = faultpath[-2]
+                if last=="p":
+                    num_workers=int(faultpath[-1])
+                else:
+                    num_workers=int(faultpath[-2:])
+            else:
+                num_workers=NUM_AGENTS
         return get_worker_developments(num_evals,int(num_workers),bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform)
         # try:
         #     lines=read_spacedelimited(faultpath+normal_folder+"/"+title_tag+"/BO_output"+VE_tag+"/fitness")
@@ -520,7 +523,7 @@ def prepare_data(VE_tags, conditions, settings, max_evals,num_VE_conditions, gen
             print(bd_type[i])
             best_performance_data.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
             time_loss.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
-            BD_dir = datadir + "/ForagingLarge"
+            BD_dir = datadir + "/Foraging"
             # get all the data from the archive: no fault
 
             nofaultpath = BD_dir + "/" + bd_type[i] + "/results"
@@ -779,12 +782,12 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
         num_VE_conditions=4
     elif comparison=="heterogeneous":
-        conditions = ["H-SMBO (detection)","H-SMBO (random detection)"]
+        conditions = ["H-SMBO (detection)"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
-        settings = [("single_exp",False,"4features_l0.05"),("single_exp_random", False, "")]
+        settings = [("single_exp_joint",False,"")]
         plottag="HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
         num_VE_conditions=2
