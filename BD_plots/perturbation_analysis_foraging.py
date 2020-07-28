@@ -173,6 +173,8 @@ def get_worker_developments(num_evals,num_workers,bd_t, r, gener, path, faultpat
             mean_time[i].append(time_cumulant)
             mean_y[i].append(best_performance)
             i+=1
+            if i==num_evals:
+                break
     return mean_y,  mean_time
 
 
@@ -747,7 +749,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                    save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+plottag+".pdf", legend_labels=conditions,
                    colors=colors, markers=markers, xlabel="Time ($s$)",
                    ylabel="Best performance",
-                   xlim=[0, 12500], xscale="linear", yscale="linear", ylim=[0,max_reference+2],
+                   xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,max_reference+2],
                    legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                    legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                    xaxis_style="plain", y_err=[], force=True, fill_between=(sd_lines1, sd_lines2))
@@ -1055,7 +1057,7 @@ if __name__ == "__main__":
 
 
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[100,100,100,100,100],from_file=False,comparison="heterogeneous",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30],from_file=False,comparison="heterogeneous",estimate=False)
 
 
 
