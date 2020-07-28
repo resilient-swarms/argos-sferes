@@ -218,7 +218,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       init_randomsearch();
    }
-
+   m_pcRNG = CRandom::CreateRNG("argos");// reset the state of the RNG to position robots the same as usual runs
    place_robots(num_subtrials);
 #endif
 #endif

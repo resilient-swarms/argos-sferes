@@ -171,7 +171,7 @@ def get_worker_developments(num_evals,num_workers,bd_t, r, gener, path, faultpat
             best_performance=float(line[-1])
             time_cumulant=float(line[0])/(NUM_TRIALS*TICKS_PER_SECOND)
             mean_time[i].append(time_cumulant)
-            mean_y[i].append(best_performance*NUM_AGENTS/num_workers)
+            mean_y[i].append(best_performance)
             i+=1
     return mean_y,  mean_time
 
