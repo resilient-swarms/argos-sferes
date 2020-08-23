@@ -458,54 +458,58 @@ def get_archiveplusdir(BD_directory,bd_type,i,generation,projected=False):
     return archive_file,directory
 
 
-def coverage_development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_labels,bybin_list,fig=None,ax=None,metrics=None):
-
-    colors=["C0","C1","C2","C3","C3","C4"]  # colors for the lines
+def development_plots(metric, title, runs, times, BD_directory, title_tag, bd_type, legend_labels, bybin_list,
+                               fig=None, ax=None, metrics=None):
+    colors = ["C0", "C1", "C2", "C3", "C3", "C4"]  # colors for the lines
     # (numsides, style, angle)
-    markers=[(3,1,0),(3,2,0),(4,1,0),(4,2,0)] # markers for the lines
-    bd_shapes =[4096, 4096, 4096,4096, 4096, 4096,4096,4096, 4096]  # shape of the characterisation
-    y_labels=["Best_performance"]
+    markers = [(1, 1, 0), (1, 2, 0), (1, 3, 0), (3, 1, 0), (3, 2, 0), (3, 3, 0), (4, 1, 0), (4, 2, 0),
+               (4, 3, 0)]  # markers for the lines
+    bd_shapes = [4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096]  # shape of the characterisation
+    y_labels = [metric]
 
-
-    boxes=[(.10,.40),(.10,.60),(.10,.60),(.45,.15),(0.20,0.20),(0.20,0.20)] # where to place the legend box
-    y_bottom={ylabel:[[] for i in bd_type] for ylabel in y_labels}
-    y_mid = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
-    y_top = {ylabel: [[] for i in bd_type]  for ylabel in y_labels}
-
-
-
+    boxes = [(.10, .40), (.10, .60), (.10, .60), (.45, .15), (0.20, 0.20),
+             (0.20, 0.20)]  # where to place the legend box
+    y_bottom = {ylabel: [[] for i in bd_type] for ylabel in y_labels}
+    y_mid = {ylabel: [[] for i in bd_type] for ylabel in y_labels}
+    y_top = {ylabel: [[] for i in bd_type] for ylabel in y_labels}
     for time in times:
         for i in range(len(bd_type)):
             print(legend_labels[i])
-            projected=legend_labels[i].endswith("projected")
-            abs_coverages=[]
+            projected = legend_labels[i].endswith("projected")
+            abs_coverages = []
+            abs_performances=[]
             for j in range(len(fitfuns)):
                 try:
-                    archive_file, directory = get_archiveplusdir(BD_directory[j],bd_type,i,time,projected=projected)
-                    #abs_coverage=absolutecoverages(bd_shapes[i], directory, runs, archive_file)
-                    abs_coverage=global_performances(directory,runs,archive_file,max_performance=1,conversion_func=None)/ baseline_performances[fitfuns[j]]
-                    abs_coverages.append(abs_coverage)
-
+                    archive_file, directory = get_archiveplusdir(BD_directory[j], bd_type, i, time, projected=projected)
+                    if metric=="Map_coverage":
+                        abs_coverage = absolutecoverages(bd_shapes[i], directory, runs, archive_file)
+                        abs_coverages.append(abs_coverage)
+                    else:
+                        abs_perform = global_performances(directory,runs,archive_file,max_performance=1,conversion_func=None)/ baseline_performances[fitfuns[j]]
+                        abs_performances.append(abs_perform)
                 except Exception as e:
                     print(e)
-            add_boxplotlike_data(abs_coverages, y_bottom, y_mid, y_top, y_label="Best_performance",method_index=i,
-                                 statistic="meanall_replicatesd")
+            if metric == "Map_coverage":
+                add_boxplotlike_data(abs_coverages, y_bottom, y_mid, y_top, y_label=metric, method_index=i,
+                                     statistic="meanall_replicatesd")
+            else:
+                add_boxplotlike_data(abs_performances, y_bottom, y_mid, y_top, y_label=metric, method_index=i,
+                                     statistic="meanall_replicatesd")
 
+    j = 0
 
-    j=0
-    maximum_line = (times,[1.0 for i in times])
-    # cov=y_mid["Map_coverage"]
-    # top_cov=y_top["Map_coverage"]
-    # for i in range(len(cov)):
-    #     print(bd_type[i])
-    #     print(cov[i][-1])
-    #     sd_cov = top_cov[i][-1] - cov[i][-1]
-    #     print(sd_cov)
-
-    # annots = {"text": "maximal coverage=4096 solutions","xy":(10000,4400),"xytext":(10000,4400),
-    #           "fontsize":22,"align": "center"}
-    annots={"text": "maximal performance in normal operating environment","xy":(15000,1.012),"xytext":(15000,1.012),
-               "fontsize":22,"align": "center"}
+    if metric == "Map_coverage":
+        maximum_line = (times, [4096 for i in times])
+        annot = {"text": "maximal coverage=4096", "xy": (15000, 4500), "xytext": (15000, 4500),
+              "fontsize": 38, "align": "center"}
+        yscale="log"
+        ylim = [10 ** 1, 10 ** 4]
+    else:
+        maximum_line = (times, [1 for i in times])
+        annot =       {"text": "maximum in normal operating environment","xy":(15000,1.011),"xytext":(15000,1.011),
+               "fontsize":38,"align": "center"}
+        yscale="linear"
+        ylim = [0.7, 1.35]
     for label in y_labels:
         #ylim=[0,4500]
 
@@ -520,15 +524,15 @@ def coverage_development_plots(title,runs,times,BD_directory,title_tag, bd_type,
         createPlot(y_mid[label],x_values=np.array(times),
                    save_filename=RESULTSFOLDER + "/" + title_tag + label + ".pdf", legend_labels=legend_labels,
                    colors=colors,markers=markers,xlabel="Generations",ylabel=label.replace("_"," "),
-                   xlim=[0,times[-1]+500],xscale="linear",yscale="linear",ylim=None,
-                   legendbox=boxes[j],annotations=[annots],xticks=[],yticks=[],task_markers=[],scatter=False,
-                   legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[maximum_line],index_x=[],
+                   xlim=[0,times[-1]+500],xscale="linear",yscale=yscale,ylim=ylim,
+                   legendbox=boxes[j],annotations=[annot],xticks=[],yticks=[],task_markers=[],scatter=False,
+                   legend_cols=1,legend_fontsize=32,legend_indexes=[],additional_lines=[maximum_line],index_x=[],
                    xaxis_style="plain",y_err=[],force=True,fill_between=(y_bottom[label],y_top[label]),
                    ax=ax,title=title )
         j+=1
 
 
-def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_labels,bybin_list,fig=None,ax=None,metrics=None,skip_legend=False):
+def fitfunspecific_development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_labels,bybin_list,fig=None,ax=None,metrics=None,skip_legend=False):
 
     # bd_type = ["history","cvt_mutualinfo","cvt_mutualinfoact","cvt_spirit"]  #legend label
     #
@@ -583,32 +587,29 @@ def development_plots(title,runs,times,BD_directory,title_tag, bd_type, legend_l
         axis = None if ax is None else ax[j]
         temp_labels = copy.copy(legend_labels)
         if label == "Map_coverage\n ":
-
             maximum_line = (times, [4096 for i in times])
-            annots = {"text": "maximal coverage=4096 solutions", "xy": (15000, 4800), "xytext": (15000, 4800),
-                      "fontsize": 25, "align": "center"}
+            annot = {"text": "maximal coverage=4096", "xy": (15000, 4500), "xytext": (15000, 4500),
+                     "fontsize": 30, "align": "center"}
+            yscale = "log"
+            ylim = [10 ** 1, 10 ** 4]
+            annots=[annot]
+        else:
+            maximum_line = (times, [1 for i in times])
+            annots = []
+            yscale = "linear"
+            ylim = [0.0, 1.0]
 
 
-            createPlot(y_mid[label], x_values=np.array(times),
+        createPlot(y_mid[label], x_values=np.array(times),
                            save_filename=RESULTSFOLDER + "/" + title_tag + label + ".pdf", legend_labels=legend_labels,
                            colors=colors, markers=markers, xlabel="Generations", ylabel=label.replace("_", " "),
-                           xlim=[0, times[-1] + 500], xscale="linear", yscale="log", ylim=[10 ** 1, 10 ** 4],
-                           legendbox=boxes[j], annotations=[annots], xticks=[], yticks=[], task_markers=[],
+                           xlim=[0, times[-1] + 500], xscale="linear", yscale=yscale, ylim=ylim,
+                           legendbox=boxes[j], annotations=annots, xticks=[], yticks=[], task_markers=[],
                            scatter=False,
-                           legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=[maximum_line],
+                           legend_cols=1, legend_fontsize=32, legend_indexes=[], additional_lines=[maximum_line],
                            index_x=[],
                            xaxis_style="plain", y_err=[], force=True, fill_between=(y_bottom[label], y_top[label]),
                            ax=axis, title=title, skip_legend=True)
-        else:
-            yscale="linear"
-
-            createPlot(y_mid[label],x_values=np.array(times),colors=colors,markers=markers,xlabel="Generations",ylabel=label.replace("_"," "),ylim=None,
-                           save_filename=RESULTSFOLDER+"/"+title_tag+label+".pdf",legend_labels=temp_labels,
-                           xlim=[0,times[-1]+500],xscale="linear",yscale=yscale,
-                       legendbox=boxes[j],annotations=[],xticks=[],yticks=[],task_markers=[],scatter=False,
-                       legend_cols=1,legend_fontsize=26,legend_indexes=[],additional_lines=[],index_x=[],
-                       xaxis_style="plain",y_err=[],force=True,fill_between=(y_bottom[label],y_top[label]),
-                           ax=axis,title=title, skip_legend=True )
         #actual_title = None
 
 
@@ -684,6 +685,37 @@ def apply_star_and_bold(text,descriptor,target,max_descriptor,second_max_descrip
         if descriptor==second_max_descriptor:
             text = r"$\mathbf{" + text + "}$"
     return text
+
+def make_coverage_boxplot( BD_dirs, runs):
+
+
+    gener = "30000"
+
+    translated_cvgs = []
+    for i in range(len(bd_type)):
+        print(bd_type[i])
+        temps=[]
+        for directory in BD_dirs:
+            dirdir = directory + "/" + str(bd_type[i])
+            targets = OrderedDict({"spirit": 4096})
+            temp = translated_coverages(gener, dirdir + "/FAULT_NONE",
+                                        runs,
+                                        targets=targets)
+            temps= np.append(temps,temp["spirit"])
+        translated_cvgs.append(temps)
+
+    fig, axes = plt.subplots(1, 1, figsize=(10, 10))  # compare fault_none to perturbations
+    plt.boxplot(translated_cvgs, positions=np.array(range(len(translated_cvgs))) * 1.0, sym='', widths=0.6)
+    plt.xticks(np.array(range(len(translated_cvgs))) * 1.0, legend_labels,fontsize=46)
+    axes.tick_params(axis='both', which='major', labelsize=40)
+    axes.tick_params(axis='both', which='minor', labelsize=40)
+    axes.set_ylim([0,100])
+    plt.ylabel("Projected coverage",fontsize=46)
+    plt.tight_layout()
+    plt.savefig(RESULTSFOLDER + "/projectedcoverage_boxplot.pdf")
+
+
+
 
 def make_translation_table(tab_label,BD_dirs,runs,times,source="all"):
 
@@ -978,21 +1010,20 @@ def make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False,
         #               save_filename="boxplot.png", xlabs=[], ylab="best performance", ylim=[0,1])
         fig, axes = plt.subplots(1, 1, figsize=(10, 10))  # compare fault_none to perturbations
         plt.boxplot(best_performance_data, positions=np.array(range(len(best_performance_data))) * 1.0, sym='', widths=0.6)
-        plt.xticks(np.array(range(len(best_performance_data))) * 1.0, legend_labels,fontsize=26)
-        axes.tick_params(axis='both', which='major', labelsize=20)
-        axes.tick_params(axis='both', which='minor', labelsize=20)
+        plt.xticks(np.array(range(len(best_performance_data))) * 1.0, legend_labels,fontsize=46)
+        axes.tick_params(axis='both', which='major', labelsize=40)
+        axes.tick_params(axis='both', which='minor', labelsize=40)
         axes.set_ylim([0.6,1.0])
-        plt.ylabel("Best performance in map",fontsize=26)
+        plt.ylabel("Best performance",fontsize=46)
         plt.tight_layout()
         plt.savefig(RESULTSFOLDER + "/bestperformance_boxplot.pdf")
 
-
-
 def create_all_development_plots():
-
+    times = range(0,30000,500)
+    bybin_list = ["bd", "individual", "individual", "bd"]
     fig, axs = plt.subplots(3,5, figsize=(50,30))  # coverage, avg perf., global perf., global reliability
     for i,fitfun in enumerate(fitfuns):
-        development_plots(title=titles[i],runs=runs, times=times,
+        fitfunspecific_development_plots(title=fitfun,runs=runs, times=times,
                           BD_directory=get_bd_dir(fitfun),title_tag="/"+fitfun+"NOCORRECT",bd_type=bd_type,
                           legend_labels=legend_labels,bybin_list=bybin_list,
                           ax = axs[:,i],skip_legend=True)
@@ -1063,12 +1094,12 @@ def single_development_plots(fitfun,title, runs, times, bd_type, legend_labels):
     j = 0
 
     for label in y_labels:
-        ylim = [0, 4096] if label in ["Map coverage", "Global_coverage"] else [0.0, 1.0]
+        ylim = [0, 10000] if label in ["Map coverage", "Global_coverage"] else [0.0, 1.35]
         axis = None  # if ax is None else ax[j]
         temp_labels = copy.copy(legend_labels)
 
         createPlot(y_mid[label], x_values=np.array(times), colors=colors, markers=markers, xlabel="generations",
-                   ylabel=label.replace("_", " "), ylim=None,
+                   ylabel=label.replace("_", " "), ylim=ylim,
                    save_filename=RESULTSFOLDER + "/" +  label + ".pdf", legend_labels=temp_labels,
                    xlim=[0, times[-1] + 500], xscale="linear", yscale="linear",
                    legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
@@ -1078,17 +1109,22 @@ def single_development_plots(fitfun,title, runs, times, bd_type, legend_labels):
         j += 1
 
 
-def create_coverage_development_plots():
+def create_development_plots():
 
-    fig, axs = plt.subplots(1,1, figsize=(15, 10))  # coverage, avg perf., global perf., global reliability
-    coverage_development_plots(title="",runs=runs, times=times,
-                          BD_directory=[get_bd_dir(fitfun) for fitfun in fitfuns],
-                         title_tag="",bd_type=bd_type,
-                          legend_labels=legend_labels,bybin_list=bybin_list,
-                          ax = axs)
+    runs = range(1, 6)
+
+    bybin_list = ["bd", "individual", "individual", "bd", "bd", ""]
+    times = range(0, 30500, 500)
+    for metric in ["Map_coverage", "Best_performance"]:
+        fig, axs = plt.subplots(1,1, figsize=(15, 10))  # coverage, avg perf., global perf., global reliability
+        development_plots(metric=metric,title="",runs=runs, times=times,
+                              BD_directory=[get_bd_dir(fitfun) for fitfun in fitfuns],
+                             title_tag="",bd_type=bd_type,
+                              legend_labels=legend_labels,bybin_list=bybin_list,
+                              ax = axs)
 
 
-    finish_fig(fig, RESULTSFOLDER +"/evolution/development/BestPerformance_allruns_annotated.pdf")
+        finish_fig(fig, RESULTSFOLDER +"/evolution/development/"+metric+"_allruns_annotated.pdf")
 
 
 
@@ -1100,17 +1136,17 @@ if __name__ == "__main__":
 
 
         # global
-    faults=range(50)
-    runs=range(1,6)
-
-    #fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
-    #               "DecayBorderCoverage", "Flocking"]  # ,"DecayBorderCoverage","Flocking"]
-    #bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
-    #               ]  # file system label for bd
-    legend_labels = ["HBD", "SDBC"]
-    bd_type=["history", "Gomes_sdbc_walls_and_robots_std"]
-    bybin_list=["bd","bd"]
-    times=range(0,20500, 500)
+    # faults=range(50)
+    # runs=range(1,6)
+    #
+    # #fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
+    # #               "DecayBorderCoverage", "Flocking"]  # ,"DecayBorderCoverage","Flocking"]
+    # #bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
+    # #               ]  # file system label for bd
+    # legend_labels = ["HBD", "SDBC"]
+    # bd_type=["history", "Gomes_sdbc_walls_and_robots_std"]
+    # bybin_list=["bd","bd"]
+    # times=range(0,20500, 500)
 
     #make_translation_table("CORRECT", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
 
@@ -1126,6 +1162,30 @@ if __name__ == "__main__":
 
     #create_coverage_development_plots()
 
+
+
+    #single_development_plots("ForagingLarge", "", runs, times, bd_type, legend_labels)
+
+
+    runs = range(1, 6)
+    fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
+               "DecayBorderCoverage", "Flocking"]  # ,"DecayBorderCoverage","Flocking"]
+    bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity" ]  # file system label for bd
+    legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
+    generation = "30000"
+
+    # make_translation_table("DEBUG", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
+    # print_best_individuals(
+    #     BD_dir="/home/david/Data/ExperimentData/"+fitfun+"range11/Gomes_sdbc_walls_and_robots_std",
+    #     outfile="best_solutions_"+fitfun+"NOCORRECT", number=10, generation=1200)
+
+    # make_evolution_table(fitfuns, bd_type, runs, generation,load_existing=False)
+
+    # make_coverage_boxplot([get_bd_dir(f) for f in fitfuns], runs)
+    # make_evolution_table(fitfuns,bd_type,runs,generation,by_fitfun=False)
+    #make_evolution_table(fitfuns, bd_type, runs, generation, by_fitfun=True)
+    #create_coverage_development_plots()
+    create_development_plots()
     #create_all_development_plots()
 
-    single_development_plots("ForagingLarge", "", runs, times, bd_type, legend_labels)
+    #single_development_plots("", "", runs, times, bd_type, legend_labels)

@@ -171,7 +171,7 @@ def get_worker_developments(num_evals,num_workers,bd_t, r, gener, path, faultpat
             best_performance=float(line[-1])
             time_cumulant=float(line[0])/(NUM_TRIALS*TICKS_PER_SECOND)
             mean_time[i].append(time_cumulant)
-            mean_y[i].append(best_performance)
+            mean_y[i].append(best_performance*NUM_AGENTS/num_workers)
             i+=1
             if i==num_evals:
                 break
@@ -480,9 +480,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                             median=True)
 
 def write_conditional(performance_list,index,file,max_reference,min_reference):
-    # U, p = ranksums(performance_list[0],performance_list[index])
-    U=0
-    p=0.1
+    U, p = ranksums(performance_list[0],performance_list[index])
     m_temp=np.mean(performance_list[index])
     sd_temp=np.std(performance_list[index])
     if p < 0.05:
@@ -695,8 +693,8 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                 #         p_sd_120 = sd
                 #         mindist_120= dist
                 #         performances1[c] = data
-                if max_evals[c] == 1 or (consumed >99*NUM_SECONDS and consumed <101*NUM_SECONDS): # try to find closest to 360
-                    dist = abs(consumed - 100*NUM_SECONDS)
+                if max_evals[c] == 1 or (consumed >29*NUM_SECONDS and consumed <31*NUM_SECONDS): # try to find closest to 360
+                    dist = abs(consumed - 30*NUM_SECONDS)
                     if dist < mindist_3600:
                         t_3600 = consumed
                         p_3600 = mean
@@ -732,14 +730,14 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
         table30_file.write("\n")
         percentage_file.write("\n")
 
-        # for c, condition in enumerate(conditions):
-        #     # write_conditional(performances1, c, table1_file, max_reference, min_reference)
-        #     # write_conditional(performances10,c,table10_file,max_reference,min_reference)
-        #     # write_conditional(performances20, c, table20_file,max_reference,min_reference)
-        #     write_conditional(performances30, c, table30_file,max_reference,min_reference)
+        for c, condition in enumerate(conditions):
+            # write_conditional(performances1, c, table1_file, max_reference, min_reference)
+            # write_conditional(performances10,c,table10_file,max_reference,min_reference)
+            # write_conditional(performances20, c, table20_file,max_reference,min_reference)
+            write_conditional(performances30, c, table30_file,max_reference,min_reference)
         # # table10_file.write("$\mathbf{%.2f}$ (+) &" % ((np.mean(performances10[0]) - min_reference)/(max_reference - min_reference)))
         # # table20_file.write("$\mathbf{%.2f}$ (+) &" % ((performances20[0] - min_reference)/(max_reference - min_reference)))
-        # # table30_file.write("$\mathbf{%.2f}$ (+) &" % ((performances30[0] - min_reference)/(max_reference - min_reference)))
+        #table30_file.write("$\mathbf{%.2f}$ (+) &" % ((performances30[0] - min_reference)/(max_reference - min_reference)))
         # table1_file.write("\n")
         # table10_file.write("\n")
         # table20_file.write("\n")
@@ -752,7 +750,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                    xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,max_reference+2],
                    legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                    legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
-                   xaxis_style="plain", y_err=[], force=True, fill_between=(sd_lines1, sd_lines2))
+                   xaxis_style="plain", y_err=[], force=True)#, fill_between=(sd_lines1, sd_lines2))
 def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],from_file=False, comparison=False, estimate=True):
     """
 
@@ -784,15 +782,15 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
         num_VE_conditions=4
     elif comparison=="heterogeneous":
-        conditions = ["H-SMBO (detection)"]
+        conditions = ["H-SMBO (detection)","H-SMBO (random)", "H-Random"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
-        settings = [("single_exp_joint",False,"")]
+        settings = [("single_exp",False,"final"),("single_exp_random", False, "final"), ("single_exp_randomsearch", False, "final")]
         plottag="HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
-        num_VE_conditions=2
+        num_VE_conditions=4
     elif comparison=="fest":
         conditions = ["SMBO", "VE-SMBO E(0)=3","VE-SMBO E(0)=4","VE-SMBO E(0)=5","VE-SMBO E(0)=6","VE-SMBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
@@ -1056,8 +1054,8 @@ if __name__ == "__main__":
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=True)
 
 
-    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30],from_file=False,comparison="heterogeneous",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30],from_file=False,comparison="heterogeneous",estimate=False)
 
 
 

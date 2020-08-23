@@ -184,6 +184,7 @@ def get_best_individual(path, as_string=False, add_performance=False, add_all=Fa
 
         return maxind
 
+
 def get_baseline_fitness(path):
     parsed_file_list=read_spacedelimited(path)
     for item in parsed_file_list:
@@ -294,7 +295,7 @@ def get_archive_filepath(BD_directory,run, archive_file_path):
     return BD_directory + "/results" + str(run) + "/" + archive_file_path
 
 def get_bd_dir(fitfun, tag="range0.11"):
-    data_dir = "/home/david/Data/"
+    data_dir = "/media/david/Elements/Data/"
     title = fitfun + tag
     BD_dir = data_dir + "/" + title
     return BD_dir

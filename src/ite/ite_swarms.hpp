@@ -100,7 +100,7 @@ struct Params
 
     struct archiveparams
     {
-        
+
         struct elem_archive
         {
             std::vector<double> behav_descriptor; // the first entry of elem_archive should be the behaviour descriptor (see ln 19 in exhaustive_search_archive.hpp)
@@ -115,7 +115,7 @@ struct Params
             bool operator()(const std::vector<double> &lhs, const std::vector<double> &rhs) const
             {
 #if HETEROGENEOUS
-                size_t dim = global::num_combined_bd*(global::behav_dim + global::num_ID_features);
+                size_t dim = global::num_combined_bd * (global::behav_dim + global::num_ID_features);
 #else
                 size_t dim = global::behav_dim;
 #endif
@@ -129,7 +129,7 @@ struct Params
             static bool inequality(const Eigen::VectorXd &lhs, const Eigen::VectorXd &rhs)
             {
 #if HETEROGENEOUS
-                size_t dim = global::num_combined_bd*(global::behav_dim + global::num_ID_features);
+                size_t dim = global::num_combined_bd * (global::behav_dim + global::num_ID_features);
 #else
                 size_t dim = global::behav_dim;
 #endif
@@ -145,7 +145,6 @@ struct Params
         static std::vector<std::map<std::vector<double>, elem_archive, classcomp>> multimap;
 #ifdef HETEROGENEOUS
         static std::map<std::vector<double>, elem_archive, classcomp> old_archive;
-
 #endif
     };
 #ifdef HETEROGENEOUS
@@ -226,6 +225,43 @@ struct Params
         }
         return neighbours;
     }
+    static std::vector<Eigen::VectorXd> neighbour_positions(const Eigen::VectorXd &vec, size_t max_steps, double step_size)
+    {
+        // exhaust all the combinations
+        std::vector<int> steps;
+        for (int i = -max_steps; i <= max_steps; ++i)
+        {
+            steps.push_back(i);
+        }
+        size_t non_zero_combinations = std::pow(max_steps + 1, vec.size()) - 1;
+        std::vector<Eigen::VectorXd> n_positions;
+        for (size_t i = 1; i < non_zero_combinations; ++i)
+        {
+            size_t rest = i;
+            Eigen::VectorXd displacement = Eigen::VectorXd::Zero(vec.size());
+            for (size_t j = 0; j < vec.size(); ++j)
+            {
+                size_t proposed_val = std::pow(max_steps + 1, vec.size() - 1 - j);
+                size_t value = rest / proposed_val;
+                displacement[j] = value * step_size;
+                rest = rest - value * proposed_val;
+                if (rest == 0)
+                {
+                    break;
+                }
+            }
+            if(displacement.norm() > max_steps*step_size)
+            {
+                continue;
+            }
+            // std::cout << "i=" << i << std::endl;
+            // std::cout << "displacement= " << displacement << std::endl;
+            n_positions.push_back(vec + displacement);
+        }
+        //std::cout << "number of neighbours " << n_positions.size() << std::endl;
+        return n_positions;
+    }
+
 #endif
 };
 typedef typename Params::archiveparams::archive_t::const_iterator archive_it_t;
@@ -863,7 +899,7 @@ Params::archiveparams::archive_t Params::archiveparams::archive;
 #if HETEROGENEOUS
 Params::archiveparams::archive_t Params::archiveparams::old_archive;
 
-typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
+typedef kernel::MaternFiveHalvesVariableNoiseAndLengthscale<Params> Kernel_t;
 //typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
 typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
 //typedef opt::ExhaustiveSearchMultiMap<Params> InnerOpt_t;

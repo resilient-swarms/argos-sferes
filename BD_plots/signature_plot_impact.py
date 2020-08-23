@@ -81,9 +81,9 @@ def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False,add_unit_line=False,a
             ax.grid(grid)
             img = ax.imshow(np.rot90(Z), cmap=plt.cm.gist_earth_r, extent=[xmin, xmax, ymin, ymax], aspect='auto',
                             vmax=8)  # ,vmax=10 'auto'
-            ax.tick_params(axis='both', which='major', labelsize=28)
-            ax.tick_params(axis='both', which='minor', labelsize=28)
-            ax.set_title(titles[0], fontsize=40)
+            ax.tick_params(axis='both', which='major', labelsize=32)
+            ax.tick_params(axis='both', which='minor', labelsize=32)
+            ax.set_title(titles[0], fontsize=45)
 
             if add_unit_line:
                 x = np.linspace(xmin, xmax, 100)
@@ -103,8 +103,8 @@ def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False,add_unit_line=False,a
             ax.grid(grid)
             img = ax.imshow(np.rot90(Z), cmap=plt.cm.gist_earth_r, extent=[xmin, xmax, ymin, ymax], aspect='auto',
                              vmax=vmax)  # ,vmax=10 'auto'
-            ax.tick_params(axis='both', which='major', labelsize=28)
-            ax.tick_params(axis='both', which='minor', labelsize=28)
+            ax.tick_params(axis='both', which='major', labelsize=32)
+            ax.tick_params(axis='both', which='minor', labelsize=32)
             ax.set_title(titles[i],fontsize=40)
 
             if add_unit_line:
@@ -132,12 +132,12 @@ def plot(xs,ys,name,titles,axis_names,xlim,ylim,grid=False,add_unit_line=False,a
 
     cb_ax = fig.add_axes([0.80, 0.1, 0.02, 0.7])
     cbar = plt.colorbar(img,cax=cb_ax)
-    cbar.ax.set_ylabel('% of solutions',fontsize=36)
+    cbar.ax.set_ylabel('% of solutions',fontsize=44)
     cbar.set_ticks([0.05, rounded_max/2.0, rounded_max])
-    cbar.ax.set_yticklabels(cbarlabels,fontsize=25)
+    cbar.ax.set_yticklabels(cbarlabels,fontsize=30)
 
-    fig.text(0.43, 0.010, axis_names[0], ha='center', fontsize=36)
-    fig.text(0.090, 0.5, axis_names[1], va='center', rotation='vertical', fontsize=36)
+    fig.text(0.43, 0.010, axis_names[0], ha='center', fontsize=44)
+    fig.text(0.090, 0.5, axis_names[1], va='center', rotation='vertical', fontsize=44)
     plt.savefig("results/fault/density/"+name+".pdf",bbox_inches='tight')
     plt.close()
 
@@ -173,8 +173,8 @@ if __name__ == "__main__":
         resilience, dist, self_dist = get_data(metric="maxvar", bd=bd, fitfuns=["Aggregation", "Dispersion", "DecayCoverage", "DecayBorderCoverage","Flocking"],
                                               history_type= "xy",add_self_dist=True)
         #assert np.allclose(resilience, resilience_data[i])
-        #indexes=np.where((best_transfer_data[i] >= -0.4))
-        indexes=np.where((best_transfer_data[i])<float("inf"))
+        indexes=np.where((best_transfer_data[i] >= -0.5))
+        #indexes=np.where((best_transfer_data[i])<float("inf"))
         impacts.append(best_transfer_data[i][indexes])
         resiliences.append(resilience[indexes])
         dists.append(dist[indexes])
@@ -363,17 +363,17 @@ if __name__ == "__main__":
 
 
     plot(impacts,dists,"impact_distance_signature",titles=["HBD","SDBC","SPIRIT","QED"],
-         axis_names=["Impact of fault","Behavioural diversity"],
-         xlim=[-1.0,0.0],ylim=[0,1],grid=True,vmax=10.0,rounded_max=8.0,cbarlabels=['0%', '0.02%', ">0.04%"])
+         axis_names=["Impact of fault","Behavioural distance"],
+         xlim=[-0.5,0.0],ylim=[0,1.0],grid=True,vmax=10.0,rounded_max=8.0,cbarlabels=['0%', '0.02%', ">0.04%"])
 
     plot(impacts,resiliences,"impact_resilience_signature",titles=["HBD","SDBC","SPIRIT","QED"],
          axis_names=["Impact of fault","Map resilience"],
-         xlim=[-1.0,0.0],ylim=[-1.0,0.0],grid=True,add_unit_line=True,vmax=50.0,rounded_max=40.0,cbarlabels=['0%', '0.10%', ">0.20%"])
+         xlim=[-0.5,0.0],ylim=[-0.5,0],grid=True,add_unit_line=True,vmax=50.0,rounded_max=40.0,cbarlabels=['0%', '0.10%', ">0.20%"])
 
     plot(self_dists, dists, "projection_signature", titles=["HBD", "SDBC", "SPIRIT", "QED"],
          axis_names=["distance in own space","distance in projected space"],
          xlim=[0, 1], ylim=[0, 1], grid=True,add_unit_line=True)
 
     plot(resiliences, dists, "diversity_resilience_signature", titles=["HBD", "SDBC", "SPIRIT", "QED"],
-         axis_names=["Map resilience","Behavioural diversity"],
-         xlim=[-0.5, 0.0], ylim=[0,1], grid=True, add_unit_line=False,vmax=20,rounded_max=16.0,cbarlabels=['0%', '0.05%', ">0.10%"])
+         axis_names=["Map resilience","Behavioural distance"],
+         xlim=[-0.5,0.0], ylim=[0,1], grid=True, add_unit_line=False,vmax=20,rounded_max=16.0,cbarlabels=['0%', '0.05%', ">0.10%"])

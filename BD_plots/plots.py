@@ -271,7 +271,7 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
             return
     print("start plotting "+str(ylabel))
     print("")
-    figx=10
+    figx=15
     figy=10
 
     # legend_labels=[legend_labels[i] for i in legend_indexes]
@@ -316,9 +316,9 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
 
             lines.append(line)
         #axes = PLT.gca()
-        ax.set_xlabel(xlabel, fontsize=42)
+        ax.set_xlabel(xlabel, fontsize=46)
 
-        ax.set_ylabel(ylabel, fontsize=42)
+        ax.set_ylabel(ylabel, fontsize=46)
 
         if ylim is not None:
             ax.set_ylim(ylim)
@@ -329,10 +329,10 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
             ax.set_title(title, fontsize=50)
 
 
-        ax.tick_params(axis='both', which='major', labelsize=34)
-        ax.tick_params(axis='both', which='minor', labelsize=34)
-        ax.xaxis.offsetText.set_fontsize(36)
-        ax.yaxis.offsetText.set_fontsize(36)
+        ax.tick_params(axis='both', which='major', labelsize=40)
+        ax.tick_params(axis='both', which='minor', labelsize=40)
+        ax.xaxis.offsetText.set_fontsize(40)
+        ax.yaxis.offsetText.set_fontsize(40)
 
 
         for (xc,F) in task_markers:

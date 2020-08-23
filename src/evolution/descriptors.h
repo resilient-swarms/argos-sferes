@@ -918,7 +918,7 @@ public:
     for (size_t i = 0; i < num_robots; ++i)
     {
       bd_vec.push_back(std::vector<float>());
-      for(size_t j=0; j < 6; ++j)
+      for(size_t j=0; j < 4; ++j)
       {
         bd_vec[i].push_back(((double)std::rand()/RAND_MAX) );
       }

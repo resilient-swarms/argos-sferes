@@ -740,6 +740,9 @@ def resilience_boxplot():
         open("data/combined/summary_statistics.pkl", "rb"))
     createBoxPlot(numbers=best_performance_data[:-1], legend_labels=legend_labels, xlabel="Behavioural descriptor", ylabel="Recovered performance",ylim=[0.00,1.0],save_filename="results/resilience_boxplot.pdf")
 
+
+
+
 if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
     ##significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=False,

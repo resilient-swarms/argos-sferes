@@ -12,7 +12,7 @@ def von_neumann_neighbourhood(bd, step_size=0.0625):
     D=len(bd)
     return list(bd+step_size*np.identity(D)) + list(bd-step_size*np.identity(D)) # perturb each dimension by one step
 def smoothness(parsed_list,neighbourhood_function, step_size=0.0625):
-    d={ str(tuple(line[0:-1])) : float(line[-1]) for line in parsed_list}
+    d={ str(tuple(np.array(line[0:-1],dtype=float))) : float(line[-1]) for line in parsed_list}
     grand_avg = np.mean([float(line[-1]) for line in parsed_list])
     sqdev = 0.0
     sqdev_neighbours = 0.0
@@ -36,31 +36,53 @@ def smoothness(parsed_list,neighbourhood_function, step_size=0.0625):
 
 
 if __name__ == "__main__":
-    X,Y = np.mgrid[0:1:0.1, 0:1:0.1]
-    x = np.vstack((X.flatten(), Y.flatten())).T
-    y = np.sum(x,axis=1)
-
-    print()
+    # X,Y = np.mgrid[0:1:0.1, 0:1:0.1]
+    # x = np.vstack((X.flatten(), Y.flatten())).T
+    # y = np.sum(x,axis=1)
+    #
+    # print()
     bd_fitness_list=[]
-    for i in range(x.shape[0]):
-            bd_fitness_list.append(list(x[i]) + [y[i]])
+    path="/media/david/Elements/Data/Foraging/history/results1/archive_20000.dat"
+    from process_archive_data import *
+    parsed_file_list = read_spacedelimited(path)
+    for line in parsed_file_list:
+            bd_fitness_list.append(line[1:])
 
-    smooth = smoothness(bd_fitness_list,von_neumann_neighbourhood, step_size=0.1)
+    smooth = smoothness(bd_fitness_list,von_neumann_neighbourhood, step_size=0.0625)
     print("smoothness = " +str(smooth))
 
 
-    print()
-    bd_fitness_list=[]
-    for i in range(x.shape[0]):
-            bd_fitness_list.append(list(x[i]) + [np.random.random()])
-    smooth = smoothness(bd_fitness_list, von_neumann_neighbourhood, step_size=0.1)
-    print("smoothness = " + str(smooth))
+    smooth_sum=0.0
+    for p in range(1,21):
+        path="/media/david/Elements/Data/Foraging/history/faultyrun1_proximity_sensorp"+str(p)+"/results1/analysis20000_handcrafted.dat"
+        from process_archive_data import *
+        parsed_faultfile_list = read_spacedelimited(path)
+        fault_bd_fitness_list = []
+        i=0
+        for line in parsed_faultfile_list:
+                l=parsed_file_list[i][1:-1]+[line[-1]]
+                fault_bd_fitness_list.append(l)
+                i+=1
+
+        smooth = smoothness(fault_bd_fitness_list,von_neumann_neighbourhood, step_size=0.0625)
+        print("smoothness = " +str(smooth))
+        smooth_sum+=smooth
+
+    print("smoothness = "+str(smooth_sum/20.0))
 
 
-    dens = good_solution_density(min_reference=10,max_reference=15,performances=[13,13,13])
-
-    print("density ="+str(dens))
-
-    dens = good_solution_density(min_reference=10,max_reference=15,performances=[11,13,13])
-
-    print("density ="+str(dens))
+    # print()
+    # bd_fitness_list=[]
+    # for i in range(x.shape[0]):
+    #         bd_fitness_list.append(list(x[i]) + [np.random.random()])
+    # smooth = smoothness(bd_fitness_list, von_neumann_neighbourhood, step_size=0.1)
+    # print("smoothness = " + str(smooth))
+    #
+    #
+    # dens = good_solution_density(min_reference=10,max_reference=15,performances=[13,13,13])
+    #
+    # print("density ="+str(dens))
+    #
+    # dens = good_solution_density(min_reference=10,max_reference=15,performances=[11,13,13])
+    #
+    # print("density ="+str(dens))
