@@ -107,6 +107,7 @@ struct Params
             float fit;
             unsigned controller;
             bool checked = false;
+            double R;
             std::vector<unsigned> joint_controller; // in case you want to combine controllers
         };
         struct classcomp
@@ -225,14 +226,47 @@ struct Params
         }
         return neighbours;
     }
+    static double get_archive_radius(const std::vector<double> &v, size_t max_steps = 4, double step_size = 0.0625)
+    {
+        Eigen::VectorXd vec = Eigen::VectorXd::Zero(v.size());
+        for (size_t j = 0; j < vec.size(); ++j)
+        {
+            vec[j] = v[j];
+        }
+        std::vector<Eigen::VectorXd> locations = Params::neighbour_positions(vec, max_steps, step_size);
+        double max_distance = std::sqrt(vec.size() * (step_size * max_steps) * (step_size * max_steps));
+        std::cout << "get archive radius" << std::endl;
+        double reference_fit = Params::archiveparams::archive.at(v).fit;
+        double epsilon = 0.25 * reference_fit;
+        for (size_t i = 0; i < locations.size(); ++i)
+        {
+            std::vector<double> bd;
+            for (size_t j = 0; j < vec.size(); ++j)
+            {
+                bd.push_back(locations[i][j]);
+            }
+            if (Params::archiveparams::archive.count(bd) == 0)
+            {
+                continue;
+            }
+            auto el = Params::archiveparams::archive.at(bd);
+            double diff = std::abs(el.fit - reference_fit);
+            if (diff >= epsilon)
+            {
+
+                double dist = (locations[i] - vec).norm();
+                if (dist < max_distance)
+                {
+                    max_distance = dist;
+                }
+            }
+        }
+        //std::cout << "max distance "<< max_distance << std::endl;
+        return max_distance;
+    }
     static std::vector<Eigen::VectorXd> neighbour_positions(const Eigen::VectorXd &vec, size_t max_steps, double step_size)
     {
         // exhaust all the combinations
-        std::vector<int> steps;
-        for (int i = -max_steps; i <= max_steps; ++i)
-        {
-            steps.push_back(i);
-        }
         size_t non_zero_combinations = std::pow(max_steps + 1, vec.size()) - 1;
         std::vector<Eigen::VectorXd> n_positions;
         for (size_t i = 1; i < non_zero_combinations; ++i)
@@ -250,7 +284,7 @@ struct Params
                     break;
                 }
             }
-            if(displacement.norm() > max_steps*step_size)
+            if (displacement.norm() > max_steps * step_size)
             {
                 continue;
             }
@@ -639,6 +673,14 @@ void fill_map_with_identifier(std::vector<float> ident)
         Params::archiveparams::archive[bd] = elem;
     }
     std::cout << "Map is now size " << Params::archiveparams::archive.size() << std::endl;
+    for (auto it = Params::archiveparams::archive.begin(); it != Params::archiveparams::archive.end() /* not hoisted */; /* no increment */)
+    {
+        Params::archiveparams::elem_archive elem = it->second;
+        double R = Params::get_archive_radius(elem.behav_descriptor, 4, 0.0625);
+        //std::cout << "found radius " << R << std::endl;
+        it->second.R = R;
+        ++it;
+    }
 }
 void insertSort(Params::archiveparams::elem_archive &elem, std::vector<Params::archiveparams::elem_archive> &arr, int N)
 {
