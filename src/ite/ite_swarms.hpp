@@ -107,7 +107,7 @@ struct Params
             float fit;
             unsigned controller;
             bool checked = false;
-            double R;
+            double R=0.15;//just random initial value; will just take the best value initially
             std::vector<unsigned> joint_controller; // in case you want to combine controllers
         };
         struct classcomp
