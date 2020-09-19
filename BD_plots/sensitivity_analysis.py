@@ -120,10 +120,12 @@ def count_nonnormal_solutions(fitfuns, runs):
                     resilience[i][bin[i]] = np.append(resilience[i][bin[i]],res)
 
     for i in range(len(count)):
+        S = sum(count[i,:])
         for j in range(len(count[0])):
             resilience[i][j] = np.median(resilience[i][j])
         nonnormalresilience[i] = np.median(nonnormalresilience[i])
         print(np.array(resilience[i]))
+        count[i,:]/=float(S)
     print("nonnormalcount =",nonnormalcount)
     print("count =", count)
 

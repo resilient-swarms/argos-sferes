@@ -824,12 +824,12 @@ public:
   std::vector<size_t> updates; //for each robot, how many updates
   std::vector<float> bd_vec;
   size_t num_features=6;
-  IdentificationDescriptor(size_t num_robots)
+  IdentificationDescriptor(size_t num_robots, bool append_fit=false)
   {
     for (size_t i = 0; i < num_robots; ++i)
     {
       updates.push_back(0);
-      for(size_t i=0; i < num_features; ++i)
+      for(size_t j=0; j < num_features; ++i)
       {
         bd_vec.push_back(0);
       }
@@ -856,12 +856,12 @@ public:
   std::vector<size_t> updates; //for each robot, how many updates
   std::vector<float> bd_vec;
   size_t num_features=4;
-  IdentificationWheelDescriptor(size_t num_robots)
+  IdentificationWheelDescriptor(size_t num_robots, bool append_fit=false)
   {
     for (size_t i = 0; i < num_robots; ++i)
     {
       updates.push_back(0);
-      for(size_t i=0; i < num_features; ++i)
+      for(size_t j=0; j < num_features; ++j)
       {
         bd_vec.push_back(0);
       }

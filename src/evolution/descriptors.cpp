@@ -1382,10 +1382,21 @@ void AnalysisDescriptor::analyse_individual(BaseEvolutionLoopFunctions &cLoopFun
 {
 	for (auto const &desc : slave_descriptors)
 	{
-		std::vector<float> bd = desc.second->after_trials(cLoopFunctions);
-		if (!bd.empty())
+		if (desc.first == "identification" || desc.first == "identification_wheel")
 		{
-			write_individual(bd, fFitness, individual, file_name + desc.first + ".dat");
+			for (size_t i = 0; i < cLoopFunctions.m_unNumberRobots; ++i)
+			{
+				cLoopFunctions.current_robot = i;
+				write_individual(desc.second->after_trials(cLoopFunctions), cLoopFunctions.get_robot_fitness(i), individual, file_name + desc.first + ".dat");
+			}
+		}
+		else
+		{
+			std::vector<float> bd = desc.second->after_trials(cLoopFunctions);
+			if (!bd.empty())
+			{
+				write_individual(bd, fFitness, individual, file_name + desc.first + ".dat");
+			}
 		}
 	}
 }
@@ -1445,8 +1456,6 @@ std::vector<float> IdentificationDescriptor::after_trials(BaseEvolutionLoopFunct
 	return std::vector<float>(bd_vec.begin() + offset, bd_vec.begin() + offset + num_features);
 }
 
-
-
 void IdentificationWheelDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
@@ -1467,7 +1476,7 @@ void IdentificationWheelDescriptor::set_input_descriptor(size_t robot_index, Bas
 	//Gblack is the proportion of time the ground sensors are minimal (black)
 
 	//proximity
-	std::vector<float> activations = cLoopFunctions.get_inputgroup_activations({4, 6}, 0.00);// front and back
+	std::vector<float> activations = cLoopFunctions.get_inputgroup_activations({4, 6}, 0.00); // front and back
 	//white
 	activations.push_back(cLoopFunctions.wheel_turn_velocity_01(robot_index));
 	//black
@@ -1625,8 +1634,8 @@ std::vector<float> PerfectIdentificationDescriptor2::after_trials(BaseEvolutionL
 	size_t index = cLoopFunctions.current_robot;
 	argos::CThymioEntity *cThym = cLoopFunctions.m_pcvecRobot[index];
 	ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
-	if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_NONE || 
-	cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_FOOD_SCARCITY)
+	if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_NONE ||
+		cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_FOOD_SCARCITY)
 	{ // Prox, Ground, Lwheel,Rwheel, SoftwareNEST, SoftwareFood
 		return {0, 0, 0, 0, 0, 0};
 	}
@@ -1704,9 +1713,6 @@ std::vector<float> PerfectIdentificationDescriptor2::after_trials(BaseEvolutionL
 	}
 }
 
-
-
-
 void PerfectIdentificationDescriptorSorted::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
@@ -1754,7 +1760,7 @@ std::vector<float> PerfectIdentificationDescriptorSorted::after_trials(BaseEvolu
 	{
 		return {0, 0, 1};
 	}
-	// actuator 
+	// actuator
 	else if (cController.FBehavior == ForagingThymioNN::FaultBehavior::FAULT_ACTUATOR_LWHEEL_SETHALF)
 	{
 		return {1, 0, 0};
@@ -1767,31 +1773,27 @@ std::vector<float> PerfectIdentificationDescriptorSorted::after_trials(BaseEvolu
 	{
 		return {0, 0, 1};
 	}
-	else{
+	else
+	{
 		return {1, 1, 1};
 	}
 }
 
-
-
 void EmptyDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-
 }
 
 void EmptyDescriptor::start_trial()
 {
-
 }
 /*after getting inputs, can update the descriptor if needed*/
-void EmptyDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions){
-
+void EmptyDescriptor::set_input_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
+{
 }
 
 /*end the trial*/
 void EmptyDescriptor::end_trial(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
-
 }
 
 /*summarise BD at the end of trials*/

@@ -41,13 +41,13 @@ softwarefood_perturbations = ["software_foodp" + str(i) + "f" + str(1) for i in 
 foodscarcity_perturbations = ["food_scarcityp1f"+str(f) for f in range(1, 7)]
 agent_perturbations = ["agentsp" + str(i) for i in [3,12,24]]
 foraging_perturbations = proximity_sensor_perturbations + ground_sensor_perturbations + actuator_perturbations + \
-                         software_perturbations  + softwarefood_perturbations + foodscarcity_perturbations  + agent_perturbations
+                         software_perturbations #  + softwarefood_perturbations + foodscarcity_perturbations  + agent_perturbations
 
 
-num_fault_types=9
+num_fault_types= 4
 
-foraging_fault_types=["Proximity-Sensor","Ground-Sensor","Actuator","Software-Nest","Software-Food","Food-Scarcity","3-agents",
-                      "12-agents","24-agents"]
+foraging_fault_types=["Proximity-Sensor","Ground-Sensor","Actuator","Software-Nest"]#,"Software-Food","Food-Scarcity","3-agents",
+                      #"12-agents","24-agents"]
 
 def get_fault_type(fault):
     if fault.startswith("proximity_sensorp"):

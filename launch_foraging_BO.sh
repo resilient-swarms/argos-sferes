@@ -30,6 +30,21 @@ elif [ "$run_type" = "BO_single" ]; then
     optimisation="BO"
     reset=true
     variable_noise=false
+elif [ "$run_type" = "BO_single_IDprior" ]; then
+    UseVirtual="False"
+	TopOutputFolder="single_exp_IDprior"
+    command="bin/behaviour_evol"
+    SimTime=96000  # 960*max_evals=96,000 with 100 evals
+    trials=1
+    ticks_per_subtrial=600 #120*5
+	num_subtrials=8
+	network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+	stop=$4
+    optimisation="BO"
+    reset=true
+    variable_noise=false
+    load_ID_map=true
 elif [ "$run_type" = "BO_single_noID" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp"
@@ -254,7 +269,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                 echo "SwarmBehaviour = "${SwarmBehaviour}
                 sleep 5
             else
-                if [ "$run_type" = "BO_single" ] || [ "$run_type" = "random_single" ]; then
+                if [ "$run_type" = "BO_single" ] || [ "$run_type" = "random_single" ] || [ "$run_type" = "BO_single_IDprior" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="identification_wheel"
                 elif [ "$run_type" = "BO_single_known" ]; then
@@ -263,7 +278,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                 elif [ "$run_type" = "BO_single_random" ]; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="random_identification"
-                elif [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ]; then
+                elif [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ] ; then
                     tag=${CVT}${BD_DIMS}DREAL
                     bd="empty"
                 elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
@@ -346,7 +361,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ] \
                     || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ] ||
                     [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ] || [ "$run_type" = "BO_single_known_record" ] \
-		            || [ "$run_type" = "BO_single_known" ] || [ "$run_type" = "BO_single_random" ] \
+		            || [ "$run_type" = "BO_single_known" ] || [ "$run_type" = "BO_single_random" ] || [ "$run_type" = "BO_single_IDprior" ] \
                     || [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ];  then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else 
@@ -384,6 +399,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                         -e "s|OPTIMISATION|${optimisation}|"  \
                         -e "s|RESET|${reset}|" \
                         -e "s|VARIABLE_NOISE|${variable_noise}|" \
+                        -e "s|LOAD_ID_MAP|${load_ID_map}|" \
                         ${TemplateFile}  \
                         >${ConfigFile}
                         if [ ! -z "${network_config}" ]; then

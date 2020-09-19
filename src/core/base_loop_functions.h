@@ -206,7 +206,7 @@ public:
         fitness_writer << fFitness << std::endl;
     }
 #endif
-
+    virtual float get_robot_fitness(size_t i){return 0.0;};
 public:
     std::string savefile;
     bool stop_eval;

@@ -593,6 +593,9 @@ def make_significance_table(fitfunlabels,conditionlabels,qed_index,table_type="r
     if table_type=="resilience":
         qed=resilience_data[qed_index] # QED
         data=resilience_data
+    elif table_type=="impact":
+        qed=best_transfer_data[qed_index] # QED
+        data=best_transfer_data
     else:
         for i, fitfun in enumerate(fitfunlabels):
             for j in range(len(best_performance_data)):
@@ -652,6 +655,9 @@ def make_significance_table_compact(fitfunlabels,conditionlabels,qed_index,table
     if table_type=="resilience":
         qed=resilience_data[qed_index] # QED
         data=resilience_data
+    elif table_type=="impact":
+        qed=best_transfer_data[qed_index] # QED
+        data=best_transfer_data
     else:
         for i, fitfun in enumerate(fitfunlabels):
             for j in range(len(best_performance_data)):
@@ -747,7 +753,7 @@ if __name__ == "__main__":
     #test_NCD(num_agents=10, num_trials=10, num_ticks=100, num_features=8)
     ##significance_data(fitfuns, fitfunlabels, bd_type+["baseline"], runs, faults, generation, by_fitfun=False, load_existing=False,
     #                title_tag="")
-    resilience_boxplot()
+    #resilience_boxplot()
 
 
     # legend_labels.append("baseline")
@@ -773,5 +779,5 @@ if __name__ == "__main__":
 
     #get_max_performances(bd_type, fitfuns,"30000")
 
-    #make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="resilience")
+    make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="impact")
     #make_significance_table(fitfunlabels, legend_labels, qed_index=-2, table_type="recovered-performance")

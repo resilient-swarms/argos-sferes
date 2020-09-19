@@ -26,6 +26,17 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 {
    m_pcFloor = &GetSpace().GetFloorEntity();
    BaseEvolutionLoopFunctions::Init(t_node);
+
+   m_numFoodCollected.clear();
+   for (size_t i = 0; i < m_unNumberRobots; ++i)
+   {
+      /* Get handle to foot-bot entity and controller */
+      //argos::CThymioEntity *cThym = m_pcvecRobot[i];
+      //ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+      //cController.Reset(); will happen automatically
+      m_numFoodCollected.push_back(0);
+   }
+
    /* process virtual_energy */
    std::string use_virtual;
    try
@@ -101,8 +112,18 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       normal_ID = {};
    }
+   load_ID_map = false;
+   try
+   {
+      GetNodeAttribute(t_node, "load_ID_map", load_ID_map);
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error loading ID map", ex);
+   }
 
 #endif
+
    Params::archiveparams::archive = load_archive(std::string(global::archive_path) + "/archive_" + std::to_string(global::gen_to_load) + ".dat", normal_ID);
 
 #if RECORD_FIT
@@ -218,7 +239,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       init_randomsearch();
    }
-   m_pcRNG = CRandom::CreateRNG("argos");// reset the state of the RNG to position robots the same as usual runs
+   m_pcRNG = CRandom::CreateRNG("argos"); // reset the state of the RNG to position robots the same as usual runs
    place_robots(num_subtrials);
 #endif
 #endif
@@ -259,8 +280,16 @@ void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID, bool variabl
                 << sim_cmd << std::endl;
       exit(-1);
    }
-   Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
-   Params::archiveparams::archive = {};
+   if (load_ID_map)
+   {
+      //Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
+      Params::archiveparams::archive = load_ID_archive(std::string(global::archive_path) + "/ID_archive_" + std::to_string(global::gen_to_load) + ".dat", 4);
+   }
+   else
+   {
+      Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
+      Params::archiveparams::archive = {};
+   }
 }
 
 void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double> normal_ID, bool variable_noise)
@@ -437,14 +466,6 @@ void CForagingLoopFunctions::Reset()
       m_cVisitedFood.push_back(0);
    }
 
-   for (size_t i = 0; i < m_unNumberRobots; ++i)
-   {
-      /* Get handle to foot-bot entity and controller */
-      argos::CThymioEntity *cThym = m_pcvecRobot[i];
-      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
-      //cController.Reset(); will happen automatically
-   }
-
    if (virtual_energy != NULL)
    {
       virtual_energy->reset();
@@ -452,6 +473,34 @@ void CForagingLoopFunctions::Reset()
 }
 
 #if HETEROGENEOUS & !RECORD_FIT
+
+void CForagingLoopFunctions::check_ID_map(std::vector<float> ident)
+{
+   std::map<std::vector<double>, unsigned> bds = Params::archiveparams::get_unique_behaviours();
+   // check first element in map; if not then we need to fill the map with the ID vec
+   std::vector<double> bd = bds.begin()->first;
+   for (size_t i = 0; i < ident.size(); ++i)
+   {
+      bd.push_back(ident[i]);
+   }
+   if (Params::archiveparams::archive.find(bd) == Params::archiveparams::archive.end())
+   {
+      // start filling up
+      for (auto it = bds.begin(); it != bds.end(); ++it)
+      {
+         std::vector<double> b = it->first;
+         for (size_t i = 0; i < ident.size(); ++i)
+         {
+            b.push_back(ident[i]);
+         }
+         Params::archiveparams::elem_archive el;
+         el.behav_descriptor = b;
+         el.controller = it->second;
+         el.fit = Params::get_closest_neighbour_fit(b);
+         Params::archiveparams::archive[b] = el;
+      }
+   }
+}
 
 void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController, size_t stat_index, bool all_trials_finished, bool multi)
 {
@@ -461,6 +510,7 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       // finish descriptor
       current_robot = cController.worker.index;
       std::vector<float> ident = alltrials_descriptor();
+      Params::archiveparams::classcomp::discretise(ident,16.0);
       cController.worker.F = Eigen::VectorXd(ident.size());
       for (size_t i = 0; i < ident.size(); ++i)
       {
@@ -468,9 +518,16 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       }
       cController.worker.initial_phase = false;
       // fill the map with corresponding identification vector
-      if (!multi)
+      if (!multi && !load_ID_map)
       {
          fill_map_with_identifier(ident);
+      }
+      else
+      {
+         if (load_ID_map)
+         {
+            check_ID_map(ident);
+         }
       }
    }
    size_t index = cController.worker.opt_index;
@@ -867,11 +924,10 @@ void CForagingLoopFunctions::reset_controller(size_t j, bool reset, bool alltria
       CPhysicsModel *model;
       //model = &entity->GetPhysicsModel("dyn2d_0");
       //model->UpdateEntityStatus();
-      size_t trial = num_subtrials - cController.num_trials_left - 1;
       if (!cThym->GetEmbodiedEntity().MoveTo(
-              m_vecInitSetup[trial][j].Position,    // to this position
-              m_vecInitSetup[trial][j].Orientation, // with this orientation
-              false                                 // this is not a check, leave the robot there
+              m_vecInitSetup[cController.trial][j].Position,    // to this position
+              m_vecInitSetup[cController.trial][j].Orientation, // with this orientation
+              false                                             // this is not a check, leave the robot there
               ))
       {
       }
@@ -928,6 +984,7 @@ void CForagingLoopFunctions::PostStep()
 #if HETEROGENEOUS & !RECORD_FIT
             ++cController.worker.numFoodCollected;
 #endif
+            ++m_numFoodCollected[j];
 #ifdef PRINTING
             std::cout << cThym->GetId() << " dropped off food. Total collected: " << fitfun->fitness_per_trial[m_unCurrentTrial] << std::endl;
 #endif
@@ -1022,6 +1079,7 @@ void CForagingLoopFunctions::PostStep()
       if (stop || cController.num_ticks_left == 0)
       {
          --cController.num_trials_left;
+         ++cController.trial;
          if (stop)
          {
             cController.worker.numFoodCollected = 0; // new fitness estimate will be 0

@@ -23,6 +23,7 @@ parser.add_argument('-p', type=str, help="archive path where the individuals are
 parser.add_argument('-o', type=str, help="outputfolder" )
 parser.add_argument('-b', type=str, help="best or not")
 parser.add_argument('-g', type=str, help="generation")
+parser.add_argument('-r', type=str, help="replicate")
 args = parser.parse_args()
 
 

@@ -41,6 +41,7 @@ void ForagingThymioNN::select_net(std::vector<double> bd)
     argos::LOG << "select controller " << controller_index << std::endl;
     argos::LOG.Flush();
     init_network();
+    trial = 0;
 }
 
 void ForagingThymioNN::select_net(size_t ctrl_index)
@@ -53,6 +54,7 @@ void ForagingThymioNN::select_net(size_t ctrl_index)
     argos::LOG << "select controller " << ctrl_index << std::endl;
     argos::LOG.Flush();
     init_network();
+    trial = 0;
 }
 #ifndef RECORD_FIT
 
@@ -68,6 +70,7 @@ void ForagingThymioNN::select_net(std::vector<double> bd, size_t num_subtrials, 
     init_network();
     num_trials_left = num_subtrials;
     num_ticks_left = ticks_per_subtrial;
+    trial = 0;
 }
 #endif
 #endif

@@ -11,46 +11,49 @@
 /****************************************/
 /****************************************/
 
-
-Descriptor* init_analysis_descriptor(MainLoopFunctions& cLoopFunctions, size_t individual_index,std::string filename,char* best)
+Descriptor *init_analysis_descriptor(MainLoopFunctions &cLoopFunctions, size_t individual_index, std::string filename, char *best)
 {
-    std::map<std::string,Descriptor*> slaves;
-    if (!strcmp(best,"best"))  // remember, strcmp returns 0 if they are equal
+    std::map<std::string, Descriptor *> slaves;
+    if (!strcmp(best, "best")) // remember, strcmp returns 0 if they are equal
     {
         // record state-action history information for the best individual
-        slaves["sa_history"] = new SubjectiveHistoryDescriptor(cLoopFunctions.output_folder + "/sa_history"+std::to_string(individual_index)+".temp");
-        slaves["xy_history"] = new ObjectiveHistoryDescriptor(cLoopFunctions.output_folder +  "/xy_history"+std::to_string(individual_index)+".temp");
+        slaves["sa_history"] = new SubjectiveHistoryDescriptor(cLoopFunctions.output_folder + "/sa_history" + std::to_string(individual_index) + ".temp");
+        slaves["xy_history"] = new ObjectiveHistoryDescriptor(cLoopFunctions.output_folder + "/xy_history" + std::to_string(individual_index) + ".temp");
     }
-    else if (!strcmp(best,"all"))  // remember, strcmp returns 0 if they are equal
+    else if (!strcmp(best, "all")) // remember, strcmp returns 0 if they are equal
     {
-        slaves["sdbc"] = new SDBC(&cLoopFunctions, "cvt_Gomes_sdbc_walls_and_robots_std",10);
-        slaves["handcrafted"] = new IntuitiveHistoryDescriptor(&cLoopFunctions,3);
+        slaves["sdbc"] = new SDBC(&cLoopFunctions, "cvt_Gomes_sdbc_walls_and_robots_std", 10);
+        slaves["handcrafted"] = new IntuitiveHistoryDescriptor(&cLoopFunctions, 3);
         slaves["spirit"] = new CVT_RAB_Spirit(1024);
     }
-    else if (!strcmp(best,"video"))  // remember, strcmp returns 0 if they are equal
+    else if (!strcmp(best, "identification")) // remember, strcmp returns 0 if they are equal
+    {
+        // do nothing; no descriptor needed and saves some time
+        slaves["identification"] = new IdentificationWheelDescriptor(cLoopFunctions.m_unNumberRobots,true);
+    }
+    else if (!strcmp(best, "video")) // remember, strcmp returns 0 if they are equal
     {
         // do nothing; no descriptor needed and saves some time
     }
-    else{
+    else
+    {
         throw std::runtime_error("not supported option");
     }
     return new AnalysisDescriptor(individual_index, filename, slaves);
 }
 
-
 int main(int argc, char **argv)
 {
-    
+
     std::vector<std::string> cmd_args;
     for (int i = 0; i < argc; i++)
         cmd_args.push_back(std::string(argv[i]));
     std::vector<std::string>::iterator individual_it = std::find(cmd_args.begin(), cmd_args.end(), "-n");
-    if(individual_it == cmd_args.end())
+    if (individual_it == cmd_args.end())
     {
         std::cerr << "Argument -n individual is missing. Exiting ...";
         exit(-1);
     }
-
 
 #if ARGOS_PARALLEL
     /* note: needs to be in a cpp */
@@ -62,8 +65,8 @@ int main(int argc, char **argv)
     std::ofstream cLOGERRFile(std::string("ARGoS_LOGERR_" + argos::ToString(getpid())).c_str(), std::ios::out);
     argos::LOGERR.DisableColoredOutput();
     argos::LOGERR.GetStream().rdbuf(cLOGERRFile.rdbuf());
-    argos::LOG << "starting "<< argv[1] << std::endl;// tell which job it is
-    argos::LOGERR << "starting "<< argv[1] << std::endl;// tell which job it is
+    argos::LOG << "starting " << argv[1] << std::endl;    // tell which job it is
+    argos::LOGERR << "starting " << argv[1] << std::endl; // tell which job it is
 #endif
 
     /*
@@ -80,26 +83,23 @@ int main(int argc, char **argv)
     /* Load it to configure ARGoS */
     cSimulator.LoadExperiment();
 
-// #ifdef ARGOS_PARALLEL
-//     init_shared_mem<EAEAParams>();
-//     configure_and_run_ea<parallel_ea_t>(argc,argv);
-// #else
-// #endif
-
+    // #ifdef ARGOS_PARALLEL
+    //     init_shared_mem<EAEAParams>();
+    //     configure_and_run_ea<parallel_ea_t>(argc,argv);
+    // #else
+    // #endif
 
     static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
     /* process arguments*/
-    size_t individual_index = std::atoi((*(individual_it+1)).c_str()); 
+    size_t individual_index = std::atoi((*(individual_it + 1)).c_str());
 
-    cLoopFunctions.descriptor = init_analysis_descriptor(cLoopFunctions,individual_index,
-                    std::string(cLoopFunctions.output_folder)+std::string("/analysis")+std::string(argv[3])+std::string("_"), // add generation number to identify uniquely
-                    argv[2]);
+    cLoopFunctions.descriptor = init_analysis_descriptor(cLoopFunctions, individual_index,
+                                                         std::string(cLoopFunctions.output_folder) + std::string("/analysis") + std::string(argv[3]) + std::string("_"), // add generation number to identify uniquely
+                                                         argv[2]);
 
-    configure_and_run_ea<serial_ea_t>(argc,argv);
-   
+    configure_and_run_ea<serial_ea_t>(argc, argv);
 
-
-   /*
+    /*
     * Dispose of ARGoS stuff
     */
     argos::CSimulator::GetInstance().Destroy();

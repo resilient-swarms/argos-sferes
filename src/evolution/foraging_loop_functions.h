@@ -20,6 +20,7 @@ public:
     CFloorEntity *m_pcFloor;
 #if HETEROGENEOUS & !RECORD_FIT
     std::string optimisation;
+    bool load_ID_map;
     size_t num_subtrials;
     size_t ticks_per_subtrial;
     bool reset;
@@ -54,6 +55,7 @@ public:
     void select_new_controller(ForagingThymioNN &cController, size_t stat_index, bool alltrialsfinished, bool multi);
     void select_new_controller_random(ForagingThymioNN &cController, bool alltrialsfinished);
     void select_joint_controller(bool alltrialsfinished);
+    void check_ID_map(std::vector<float> ident);
     void init_BO(std::vector<double> normal_ID, bool variable_noise);
     void init_randomsearch();
     void init_multiBO(bool single_worker,std::vector<double> normal_ID, bool variable_noise);
@@ -98,7 +100,7 @@ public:
     bool forcePositions = false;
     std::vector<int> m_cVisitedFood = {}; // how much time steps left until harvestable
     std::vector<bool> m_bRobotsHoldingFood = {};
-
+    std::vector<int> m_numFoodCollected = {};
     float avg_final_E = 0.0f;
     float avg_time = 0.0f;
     CForagingLoopFunctions();
@@ -112,6 +114,9 @@ public:
 
     virtual bool try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
     virtual std::vector<size_t> priority_robotplacement();
+    virtual float get_robot_fitness(size_t i){
+        return m_unNumberRobots * m_numFoodCollected[i]/(float) m_unNumberTrials;
+    };
 
 #ifdef RECORD_FIT
     /* write fitness to file */

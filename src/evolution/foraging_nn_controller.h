@@ -66,6 +66,7 @@ public:
     } worker;
     int num_ticks_left;
     int num_trials_left;
+    
     float collision_value = 0.0,  reward_value=0.0f;  // running average of collision (1/0)
     float maximum_performance;    // maximum performance (avg over trials) so far for all controllers
     float norm_trial_performance; // performance of normal controller on single trial
@@ -94,8 +95,9 @@ public:
     void select_net(std::vector<double> bd);
     void select_net(size_t ctr_index);
 
-    
+    int trial;
 #endif
+    
     bool holdingFood = false;
     int foodID = -1; // index used to track the "SOFTWARE_FOOD" fault
     std::string savefile;

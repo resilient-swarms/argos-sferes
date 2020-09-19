@@ -107,11 +107,18 @@ struct Params
             float fit;
             unsigned controller;
             bool checked = false;
-            double R=0.15;//just random initial value; will just take the best value initially
+            double R = 0.15;                        //just random initial value; will just take the best value initially
             std::vector<unsigned> joint_controller; // in case you want to combine controllers
         };
         struct classcomp
         {
+            static void discretise(std::vector<float> &vec, float num_bins)
+            {
+                for (size_t i = 0; i < vec.size(); ++i)
+                {
+                    vec[i] = std::round(vec[i] * num_bins) / num_bins;
+                }
+            }
             /* to sort the std::map */
             bool operator()(const std::vector<double> &lhs, const std::vector<double> &rhs) const
             {
@@ -141,6 +148,24 @@ struct Params
                 return std::round(lhs[i] * 100.0) / 100.0 < std::round(rhs[i] * 100.0) / 100.0; //lhs[i]<rhs[i];
             }
         };
+        static std::map<std::vector<double>, unsigned> get_unique_behaviours()
+        {
+            std::map<std::vector<double>, unsigned> unique;
+            for (auto it = Params::archiveparams::archive.begin(); it != Params::archiveparams::archive.end(); ++it)
+            {
+                auto el = it->second;
+                std::vector<double> behav;
+                for (size_t i = 0; i < global::behav_dim; ++i)
+                {
+                    behav.push_back(el.behav_descriptor[i]);
+                }
+                if (unique.find(behav) == unique.end())
+                {
+                    unique[behav] = el.controller;
+                }
+            }
+            return unique;
+        }
         typedef std::map<std::vector<double>, elem_archive, classcomp> archive_t;
         static std::map<std::vector<double>, elem_archive, classcomp> archive;
         static std::vector<std::map<std::vector<double>, elem_archive, classcomp>> multimap;
@@ -225,6 +250,44 @@ struct Params
             }
         }
         return neighbours;
+    }
+    static double get_closest_neighbour_fit(const std::vector<double> &v)
+    {
+        Eigen::VectorXd vec = Eigen::VectorXd::Zero(v.size());
+        for (size_t j = 0; j < vec.size(); ++j)
+        {
+            vec[j] = v[j];
+        }
+        double min_distance = +INFINITY;
+        double fitness = -INFINITY;
+        //std::cout << "get closest neighbour fit" << std::endl;
+        size_t N = 0;
+        for (auto it = Params::archiveparams::archive.begin(); it != Params::archiveparams::archive.end(); ++it)
+        {
+            auto el = it->second;
+            Eigen::VectorXd vec2 = Eigen::VectorXd::Zero(v.size());
+            for (size_t j = 0; j < vec.size(); ++j)
+            {
+                vec2[j] = el.behav_descriptor[j];
+            }
+            double dist = (vec2 - vec).norm();
+            if (dist < min_distance)
+            {
+                min_distance = dist;
+                fitness = el.fit;
+                N = 1;
+            }
+            else
+            {
+                if (dist == min_distance)
+                {
+                    ++N;
+                    fitness = ((N-1)* fitness + el.fit)/(float) N;// weighted average incrementally computed
+                }
+            }
+        }
+        //std::cout << "max distance "<< max_distance << std::endl;
+        return fitness;
     }
     static double get_archive_radius(const std::vector<double> &v, size_t max_steps = 4, double step_size = 0.0625)
     {
@@ -547,7 +610,6 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
     std::cout << "behav dim " << global::behav_dim << std::endl;
     std::cout << "id features " << global::num_ID_features << std::endl;
     std::ifstream monFlux(archive_name.c_str());
-
     if (monFlux)
     {
         size_t line_no = 0;
@@ -655,6 +717,84 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
             iter->second.fit = avg; // set to the average across the archive
         }
     }
+
+    return archive;
+}
+
+Params::archiveparams::archive_t load_ID_archive(std::string archive_name, size_t num_dim)
+{
+
+    Params::archiveparams::archive_t archive;
+
+    // Assuming order <ind index> <behav_descriptor> <fitness>
+    std::cout << "Loading archive file " << archive_name << std::endl;
+    std::cout << "behav dim " << global::behav_dim << std::endl;
+    global::num_ID_features = num_dim;
+    std::cout << "id features " << global::num_ID_features << std::endl;
+    std::ifstream monFlux(archive_name.c_str());
+    if (monFlux)
+    {
+        size_t line_no = 0;
+        std::string line;
+        while (std::getline(monFlux, line))
+        {
+            std::istringstream iss(line);
+            std::vector<double> numbers;
+            double num;
+            while (iss >> num)
+            {
+                numbers.push_back(num);
+            }
+
+            if (numbers.size() < (global::behav_dim + global::num_ID_features + 1 + 1))
+            {
+                throw std::runtime_error("lower than expected dimension");
+            }
+            else if (numbers.size() > (global::behav_dim + global::num_ID_features + 3))
+            {
+                throw std::runtime_error("higher than expected dimension");
+            }
+
+            int init_i = 0;
+            if (numbers.size() > (global::behav_dim + global::num_ID_features + 1 + 1)) // additional index added at start (also ignore)
+                init_i = 1;
+
+            Params::archiveparams::elem_archive elem;
+
+            std::vector<double> candidate(global::behav_dim + global::num_ID_features);
+            for (size_t i = 0; i < (global::behav_dim + global::num_ID_features + 1 + 1); i++)
+            {
+                double data = numbers[init_i + i];
+                if (i == 0)
+                    elem.controller = (size_t)data;
+
+                else if (i >= 1 && i <= global::behav_dim + global::num_ID_features)
+                {
+                    candidate[i - 1] = data;
+                    elem.behav_descriptor.push_back(data);
+                }
+                else if (i == (global::behav_dim + global::num_ID_features + 1))
+                {
+                    elem.fit = data;
+                }
+                else
+                {
+                    throw std::runtime_error("not possible value of i");
+                }
+            }
+            archive[candidate] = elem;
+
+            ++line_no;
+        }
+    }
+    else
+    {
+        std::cerr << "ERROR: Could not load the archive " << archive_name << std::endl;
+        exit(-1);
+    }
+
+    std::cout << archive.size() << " elements loaded" << std::endl;
+
     return archive;
 }
 
@@ -1017,7 +1157,7 @@ std::vector<double> get_best_bd(std::string stats_filename)
 typedef kernel::MaternFiveHalves<Params> Kernel_t;
 typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
 //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
-typedef mean::MeanArchive<Params> Mean_t;
+typedef mean::PermissiveMeanArchive<Params> Mean_t;
 // here, GPArchive, a custom module, writes the maps after each iteration
 //    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
 //            stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,
