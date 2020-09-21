@@ -782,12 +782,12 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
 
         num_VE_conditions=4
     elif comparison=="heterogeneous":
-        conditions = ["H-SMBO (radius)","H-SMBO (detection)","H-SMBO (random)", "H-Random"]
+        conditions = ["H-SMBO (prior)","H-SMBO","H-SMBO (random)", "H-Random"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
-        settings = [("single_exp",False,"double_identification"),("single_exp",False,"final"),("single_exp_random", False, "final"), ("single_exp_randomsearch", False, "final")]
+        settings = [("single_exp_IDprior",False,""),("single_exp",False,"final"),("single_exp_random", False, "final"), ("single_exp_randomsearch", False, "final")]
         plottag="HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
         num_VE_conditions=5

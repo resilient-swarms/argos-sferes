@@ -271,7 +271,7 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
             return
     print("start plotting "+str(ylabel))
     print("")
-    figx=15
+    figx=10
     figy=10
 
     # legend_labels=[legend_labels[i] for i in legend_indexes]
