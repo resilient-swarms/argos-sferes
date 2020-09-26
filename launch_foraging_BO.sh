@@ -4,6 +4,9 @@
 
 data=$1
 run_type=$2
+
+load_ID_map=false
+
 if [ "$run_type" = "virtual" ]; then
     UseVirtual="True"
 	TopOutputFolder="virtual_energy_exp"
@@ -256,7 +259,7 @@ faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,
 faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
 faultnum["agents"]="3 12 24"      # {1,2,...,12} agents included
 
-for FaultCategory in proximity_sensor ground_sensor actuator software software_food food_scarcity agents; do
+for FaultCategory in proximity_sensor; do
     faults=${faultnum[${FaultCategory}]}
     for FaultIndex in ${faults}; do
         for key in ${!descriptors[@]}; do

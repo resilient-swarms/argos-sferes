@@ -81,7 +81,7 @@ struct Params
 #ifdef VE
         BO_PARAM(double, l, 0.0591898); // smoothness of the function;
 #else
-        BO_PARAM(double, l, 0.121697); // smoothness of the function;
+        BO_PARAM(double, l, 0.40); // smoothness of the function;
 #endif
         // 0.4 is used in IT&E; but here this affects all the behaviours it seems
         //1.5 is a setting used scikit learn https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.kernels.Matern.html
@@ -105,6 +105,7 @@ struct Params
         {
             std::vector<double> behav_descriptor; // the first entry of elem_archive should be the behaviour descriptor (see ln 19 in exhaustive_search_archive.hpp)
             float fit;
+            float fit_var = 0.0f;
             unsigned controller;
             bool checked = false;
             double R = 0.15;                        //just random initial value; will just take the best value initially
@@ -251,7 +252,7 @@ struct Params
         }
         return neighbours;
     }
-    static double get_closest_neighbour_fit(const std::vector<double> &v)
+    static std::pair<double,double> get_closest_neighbour_fit(const std::vector<double> &v)
     {
         Eigen::VectorXd vec = Eigen::VectorXd::Zero(v.size());
         for (size_t j = 0; j < vec.size(); ++j)
@@ -260,6 +261,7 @@ struct Params
         }
         double min_distance = +INFINITY;
         double fitness = -INFINITY;
+        double fit_var = 0.0;
         //std::cout << "get closest neighbour fit" << std::endl;
         size_t N = 0;
         for (auto it = Params::archiveparams::archive.begin(); it != Params::archiveparams::archive.end(); ++it)
@@ -275,6 +277,7 @@ struct Params
             {
                 min_distance = dist;
                 fitness = el.fit;
+                fit_var = el.fit_var;
                 N = 1;
             }
             else
@@ -282,12 +285,13 @@ struct Params
                 if (dist == min_distance)
                 {
                     ++N;
-                    fitness = ((N-1)* fitness + el.fit)/(float) N;// weighted average incrementally computed
+                    fitness = ((N - 1) * fitness + el.fit) / (float)N;     // weighted average incrementally computed
+                    fit_var = ((N - 1) * fit_var + el.fit_var) / (float)N; // for simplicity, just take average var
                 }
             }
         }
         //std::cout << "max distance "<< max_distance << std::endl;
-        return fitness;
+        return {fitness,fit_var};
     }
     static double get_archive_radius(const std::vector<double> &v, size_t max_steps = 4, double step_size = 0.0625)
     {
@@ -746,23 +750,23 @@ Params::archiveparams::archive_t load_ID_archive(std::string archive_name, size_
                 numbers.push_back(num);
             }
 
-            if (numbers.size() < (global::behav_dim + global::num_ID_features + 1 + 1))
+            if (numbers.size() < (global::behav_dim + global::num_ID_features + 3))
             {
                 throw std::runtime_error("lower than expected dimension");
             }
-            else if (numbers.size() > (global::behav_dim + global::num_ID_features + 3))
+            else if (numbers.size() > (global::behav_dim + global::num_ID_features + 4))
             {
                 throw std::runtime_error("higher than expected dimension");
             }
 
             int init_i = 0;
-            if (numbers.size() > (global::behav_dim + global::num_ID_features + 1 + 1)) // additional index added at start (also ignore)
+            if (numbers.size() > (global::behav_dim + global::num_ID_features + 3)) // additional index added at start (also ignore)
                 init_i = 1;
 
             Params::archiveparams::elem_archive elem;
 
             std::vector<double> candidate(global::behav_dim + global::num_ID_features);
-            for (size_t i = 0; i < (global::behav_dim + global::num_ID_features + 1 + 1); i++)
+            for (size_t i = 0; i < (global::behav_dim + global::num_ID_features + 3); i++)
             {
                 double data = numbers[init_i + i];
                 if (i == 0)
@@ -776,6 +780,10 @@ Params::archiveparams::archive_t load_ID_archive(std::string archive_name, size_
                 else if (i == (global::behav_dim + global::num_ID_features + 1))
                 {
                     elem.fit = data;
+                }
+                else if (i == (global::behav_dim + global::num_ID_features + 2))
+                {
+                    elem.fit_var = data;
                 }
                 else
                 {
@@ -813,14 +821,14 @@ void fill_map_with_identifier(std::vector<float> ident)
         Params::archiveparams::archive[bd] = elem;
     }
     std::cout << "Map is now size " << Params::archiveparams::archive.size() << std::endl;
-    for (auto it = Params::archiveparams::archive.begin(); it != Params::archiveparams::archive.end() /* not hoisted */; /* no increment */)
-    {
-        Params::archiveparams::elem_archive elem = it->second;
-        double R = Params::get_archive_radius(elem.behav_descriptor, 4, 0.0625);
-        //std::cout << "found radius " << R << std::endl;
-        it->second.R = R;
-        ++it;
-    }
+    // for (auto it = Params::archiveparams::archive.begin(); it != Params::archiveparams::archive.end() /* not hoisted */; /* no increment */)
+    // {
+    //     Params::archiveparams::elem_archive elem = it->second;
+    //     double R = Params::get_archive_radius(elem.behav_descriptor, 4, 0.0625);
+    //     //std::cout << "found radius " << R << std::endl;
+    //     it->second.R = R;
+    //     ++it;
+    // }
 }
 void insertSort(Params::archiveparams::elem_archive &elem, std::vector<Params::archiveparams::elem_archive> &arr, int N)
 {
@@ -1097,7 +1105,7 @@ typedef boost::fusion::vector<limbo::stat::AsyncStats<Params>, limbo::stat::Asyn
 
 typedef init::NoInit<Params> Init_t;
 typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
-typedef acqui::UCB<Params, GP_t> Acqui_t;
+typedef acqui::UCB_ID<Params, GP_t> Acqui_t;
 //typedef acqui::UCB_LocalPenalisation<Params, GP_t> Acqui_t;
 typedef bayes_opt::BOptimizerAsync<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;
 

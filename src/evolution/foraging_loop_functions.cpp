@@ -496,7 +496,9 @@ void CForagingLoopFunctions::check_ID_map(std::vector<float> ident)
          Params::archiveparams::elem_archive el;
          el.behav_descriptor = b;
          el.controller = it->second;
-         el.fit = Params::get_closest_neighbour_fit(b);
+         auto pair = Params::get_closest_neighbour_fit(b);
+         el.fit = std::get<0>(pair);
+         el.fit_var = std::get<1>(pair);
          Params::archiveparams::archive[b] = el;
       }
    }

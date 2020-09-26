@@ -142,8 +142,8 @@ def run_id_map(replicate):
     for key, val in bp_map.items():
         i,b = key
         _N, f,S = val
-        sd = S/float(_N - 1) if _N > 1 else f**2
-        ID_archive_file.write(i + " "+str(b) + " " + str(f) + " " + str(sd) + "\n")
+        var = S/float(_N - 1) if _N > 1 else f**2
+        ID_archive_file.write(i + " "+str(b) + " " + str(f) + " " + str(var) + "\n")
     print("finished archive ", ID_archive_filename)
 
 if __name__ == "__main__":
