@@ -273,16 +273,16 @@ for FaultCategory in proximity_sensor; do
                 sleep 5
             else
                 if [ "$run_type" = "BO_single" ] || [ "$run_type" = "random_single" ] || [ "$run_type" = "BO_single_IDprior" ]; then
-                    tag=${CVT}${BD_DIMS}DREAL
+                    tag=${CVT}${BD_DIMS}DREAL${EXPERIMENT_TAG}
                     bd="identification_wheel"
                 elif [ "$run_type" = "BO_single_known" ]; then
-                    tag=${CVT}${BD_DIMS}DREAL
+                    tag=${CVT}${BD_DIMS}DREAL${EXPERIMENT_TAG}
                     bd="perfect_identificationsorted"
                 elif [ "$run_type" = "BO_single_random" ]; then
-                    tag=${CVT}${BD_DIMS}DREAL
+                    tag=${CVT}${BD_DIMS}DREAL${EXPERIMENT_TAG}
                     bd="random_identification"
                 elif [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ] ; then
-                    tag=${CVT}${BD_DIMS}DREAL
+                    tag=${CVT}${BD_DIMS}DREAL${EXPERIMENT_TAG}
                     bd="empty"
                 elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
@@ -291,7 +291,7 @@ for FaultCategory in proximity_sensor; do
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="perfect_identificationsorted"
                 else
-                    tag=BO${CVT}${BD_DIMS}DREAL
+                    tag=BO${CVT}${BD_DIMS}DREAL${EXPERIMENT_TAG}
                     bd=${DescriptorType}
                 fi
                 SwarmBehaviour="/"

@@ -6,7 +6,7 @@
 #SBATCH --job-name=map_evaluation
 
 
-jobtocome="${COMMAND}${EXPERIMENT_TAG} ${ConfigFile} ${ArchiveFolder} ${Generation} ${BO_OutputFolder} -d ${BO_OutputFolder} --load \
+jobtocome="${COMMAND} ${ConfigFile} ${ArchiveFolder} ${Generation} ${BO_OutputFolder} -d ${BO_OutputFolder} --load \
                 ${ArchiveFolder}/gen_${Generation} -n 2713 -o outputfile"
       
 
