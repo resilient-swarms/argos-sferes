@@ -124,6 +124,10 @@ add_definitions(-DLIMBOPARAM_L=${LIMBO_L} -DLIMBOPARAM_ALPHA=${LIMBO_ALPHA})
 message("Will use alpha=${LIMBO_ALPHA}")
 message("Will use l=${LIMBO_L}")
 
+
+
+
+
 if(LARGE)
     message("will use a large arena")
     add_definitions(-DLARGE_ARENA)
@@ -135,22 +139,30 @@ if(HETEROGENEOUS)
             option(BO_KERN "Kernel function for heterogeneous optimisation" OFF)
             add_definitions(-DBO_ACQUISITION=${BO_ACQ})
             add_definitions(-DBO_KERNEL=${BO_KERN})
+            set(OPT_TAG alpha${LIMBO_ALPHA}_l${LIMBO_L}_)
             if(${BO_ACQ} EQUAL 0)
+                set(OPT_TAG ${OPT_TAG}UCB_)
                 message("using BO acquisition: ACQ_UCB")
             elseif(${BO_ACQ} EQUAL 1)
                 message("using BO acquisition: ACQ_UCB_ID")
+                set(OPT_TAG ${OPT_TAG}UCBID_)
             else()
                 message(FATAL_ERROR "BO_ACQ not set correctly")
             endif()
             if(${BO_KERN} EQUAL 0)
+                set(OPT_TAG ${OPT_TAG}M52VarNoise)
                 message("using BO kernel: KERN_M52_VarNoise")
             elseif(${BO_KERN} EQUAL 1)
+                set(OPT_TAG ${OPT_TAG}M52VarNoiseScale)
                 message("using BO kernel: KERN_M52_VarNoiseAndScale")
             elseif(${BO_KERN} EQUAL 2)
+                set(OPT_TAG ${OPT_TAG}M52)
                 message("using BO kernel: KERN_M52")
             else()
                 message(FATAL_ERROR "BO_KERN not set correctly")
             endif()
+
+            
 endif()
 
     
@@ -240,7 +252,7 @@ else(NOT BASELINE)
 
     
 
-    set(tag ${CVT_USE}${BD}D)
+    set(tag ${CVT_USE}${BD}D_${OPT_TAG})
     if(ANALYSIS)
         set(tag ${tag}ANA)
     endif()
