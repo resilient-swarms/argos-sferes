@@ -252,7 +252,7 @@ else(NOT BASELINE)
 
     
 
-    set(tag ${CVT_USE}${BD}D_${OPT_TAG})
+    set(tag ${CVT_USE}${BD}D)
     if(ANALYSIS)
         set(tag ${tag}ANA)
     endif()
@@ -260,7 +260,7 @@ else(NOT BASELINE)
         message("using foraging-nn controller: proximity and ground (NN_INPUT_TYPE=1)")
         set(tag ${tag}REAL)
     endif()
-
+    set(tag ${tag}${OPT_TAG})
 
 
     set(LIMBO_PATH ${PROJECT_SOURCE_DIR}/limbo/src) # location of limbo - where https://github.com/resibots/limbo.git has been cloned
