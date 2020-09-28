@@ -117,11 +117,40 @@ option(INCLUDE_CMAES "include libcmaes" OFF)
 option(HETEROGENEOUS "heterogeneous swarm" OFF)
 option(LARGE "heterogeneous swarm" OFF)
 #add_definitions(-DCOLLISION_STOP)  
+#set(MY_CACHE_VARIABLE "VALUE" CACHE STRING "Description")
+set(LIMBO_ALPHA 0.93 CACHE STRING "alpha-parameter for UCB")
+set(LIMBO_L 0.12 CACHE STRING "lengthscale for kernel")
+add_definitions(-DLIMBOPARAM_L=${LIMBO_L} -DLIMBOPARAM_ALPHA=${LIMBO_ALPHA})
+message("Will use alpha=${LIMBO_ALPHA}")
+message("Will use l=${LIMBO_L}")
 
 if(LARGE)
     message("will use a large arena")
     add_definitions(-DLARGE_ARENA)
 
+endif()
+
+if(HETEROGENEOUS)
+            option(BO_ACQ "Acquisition function for heterogeneous optimisation" OFF)
+            option(BO_KERN "Kernel function for heterogeneous optimisation" OFF)
+            add_definitions(-DBO_ACQUISITION=${BO_ACQ})
+            add_definitions(-DBO_KERNEL=${BO_KERN})
+            if(${BO_ACQ} EQUAL 0)
+                message("using BO acquisition: ACQ_UCB")
+            elseif(${BO_ACQ} EQUAL 1)
+                message("using BO acquisition: ACQ_UCB_ID")
+            else()
+                message(FATAL_ERROR "BO_ACQ not set correctly")
+            endif()
+            if(${BO_KERN} EQUAL 0)
+                message("using BO kernel: KERN_M52_VarNoise")
+            elseif(${BO_KERN} EQUAL 1)
+                message("using BO kernel: KERN_M52_VarNoiseAndScale")
+            elseif(${BO_KERN} EQUAL 2)
+                message("using BO kernel: KERN_M52")
+            else()
+                message(FATAL_ERROR "BO_KERN not set correctly")
+            endif()
 endif()
 
     
@@ -462,7 +491,7 @@ else(NOT BASELINE)
 endif()
 
 set(AdditionalLibs "")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -luuid") # somehow need to set this even when not using Caffe 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -luuid") # somehow need to set this even when not using Caffe 
 if(CAFFE)
     message("Caffe on")
     add_definitions(-DCAFFE_NETS)
@@ -562,8 +591,6 @@ if(ANALYSIS)
     # this one is used as a default, we don't need the evolution anyway
     # assumes you have compiled cvt10D
 endif()
-
-
 
 
 # core libraries

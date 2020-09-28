@@ -3,13 +3,14 @@ import numpy as np
 import matplotlib.pyplot as PLT
 
 from process_archive_data import *
-ro=0.121697
+ro=0.10
 
 
 def euclid(x,y):
     return np.sqrt(np.sum(np.square(x-y)))
 
 def k(x,y,dist=euclid):
+     global ro
      return (1. + (np.sqrt(5.)*dist(x,y)/ro + 5.*dist(x,y)**2 /(3.*ro**2) ))*(np.exp(-np.sqrt(5.)/ro*dist(x,y)))
 
 def K(x):
@@ -68,10 +69,12 @@ if __name__ == "__main__":
     print("sigma "  + str(sigma(np.array([0.1,0.1,0.1]),samples,K_inv)))
 
 
-    x_values=np.linspace(0,1,100)
+    x_values=np.linspace(0,7,100)
     reference=0
-    y_values=[k(0,x) for x in x_values]
-    PLT.plot(x_values,y_values)
+    for r in [0.1,0.2,0.5,1.0,2.0]:
+        ro=r
+        y_values=[k(0,x) for x in x_values]
+        PLT.plot(x_values,y_values)
     PLT.savefig("kernel.pdf")
 
 

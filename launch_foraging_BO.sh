@@ -401,7 +401,6 @@ for FaultCategory in proximity_sensor; do
 		                -e "s|STOP|${stop}|" \
                         -e "s|OPTIMISATION|${optimisation}|"  \
                         -e "s|RESET|${reset}|" \
-                        -e "s|VARIABLE_NOISE|${variable_noise}|" \
                         -e "s|LOAD_ID_MAP|${load_ID_map}|" \
                         ${TemplateFile}  \
                         >${ConfigFile}

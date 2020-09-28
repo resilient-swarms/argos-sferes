@@ -56,10 +56,10 @@ public:
     void select_new_controller_random(ForagingThymioNN &cController, bool alltrialsfinished);
     void select_joint_controller(bool alltrialsfinished);
     void check_ID_map(std::vector<float> ident);
-    void init_BO(std::vector<double> normal_ID, bool variable_noise);
+    void init_BO(std::vector<double> normal_ID);
     void init_randomsearch();
-    void init_multiBO(bool single_worker,std::vector<double> normal_ID, bool variable_noise);
-    void init_BOjoint(bool variable_noise);
+    void init_multiBO(bool single_worker,std::vector<double> normal_ID);
+    void init_BOjoint();
 
 #endif
     const float nest_x = 0.32;

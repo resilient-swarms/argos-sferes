@@ -60,7 +60,6 @@
 		  stop="STOP"
 		  optimisation="OPTIMISATION"
 		  reset="RESET"
-		  variable_noise="VARIABLE_NOISE"
 		  load_ID_map="LOAD_ID_MAP"
                     />
 

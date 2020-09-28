@@ -781,13 +781,23 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
 
         num_VE_conditions=4
+    elif comparison=="heterogeneous_params":
+        conditions = [r"H-SMBO ($\alpha=0.05$,$\rho=1$)", r"H-SMBO ($\alpha=1$,$\rho=1$)"]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+        settings = [ ("single_exp", False, "l1_alpha0.05"),("single_exp", False, "l1_alpha1"), ("single_exp_random", False, "final")]
+        plottag = "HETEROGENEOUS"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
+        num_VE_conditions = 5
     elif comparison=="heterogeneous":
         conditions = ["H-SMBO (prior)","H-SMBO","H-SMBO (random)", "H-Random"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
-        settings = [("single_exp_IDprior",False,""),("single_exp",False,"final"),("single_exp_random", False, "final"), ("single_exp_randomsearch", False, "final")]
+        settings = [("single_exp_IDprior",False,"variance"),("single_exp",False,"final"),("single_exp_random", False, "final"), ("single_exp_randomsearch", False, "final")]
         plottag="HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
         num_VE_conditions=5
@@ -1055,7 +1065,7 @@ if __name__ == "__main__":
 
 
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="heterogeneous",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="heterogeneous_params",estimate=False)
 
 
 

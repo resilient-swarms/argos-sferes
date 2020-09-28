@@ -61,7 +61,6 @@
 		  stop="collision"
 		  optimisation="BO_noID"
 		  reset="true"
-		  variable_noise="true"
                     />
 
   <!-- *********************** -->

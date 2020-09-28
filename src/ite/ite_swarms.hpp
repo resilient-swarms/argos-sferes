@@ -81,7 +81,7 @@ struct Params
 #ifdef VE
         BO_PARAM(double, l, 0.0591898); // smoothness of the function;
 #else
-        BO_PARAM(double, l, 0.40); // smoothness of the function;
+        BO_PARAM(double, l, LIMBOPARAM_L); // smoothness of the function;
 #endif
         // 0.4 is used in IT&E; but here this affects all the behaviours it seems
         //1.5 is a setting used scikit learn https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.kernels.Matern.html
@@ -92,7 +92,7 @@ struct Params
 #ifdef VE
         BO_PARAM(double, alpha, 0.407532);
 #else
-        BO_PARAM(double, alpha, 0.926734);
+        BO_PARAM(double, alpha, LIMBOPARAM_ALPHA);
 #endif
     };
 
@@ -1088,8 +1088,24 @@ Params::archiveparams::archive_t Params::archiveparams::archive;
 
 #if HETEROGENEOUS
 Params::archiveparams::archive_t Params::archiveparams::old_archive;
+#define KERN_M52_VarNoise 0  // default
+#define KERN_M52_VarNoiseAndScale 1
+#define KERN_M52 2
 
+#define ACQ_UCB 0  // default
+#define ACQ_UCB_ID 1
+
+
+#if BO_KERNEL == KERN_M52_VarNoise
+typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
+#define VARIABLE_NOISE 1
+#elif BO_KERNEL == KERN_M52_VarNoiseAndScale
 typedef kernel::MaternFiveHalvesVariableNoiseAndLengthscale<Params> Kernel_t;
+#define VARIABLE_NOISE 1
+#else
+#define VARIABLE_NOISE 0
+typedef kernel::MaternFiveHalves<Params> Kernel_t;
+#endif
 //typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
 typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
 //typedef opt::ExhaustiveSearchMultiMap<Params> InnerOpt_t;
@@ -1105,7 +1121,11 @@ typedef boost::fusion::vector<limbo::stat::AsyncStats<Params>, limbo::stat::Asyn
 
 typedef init::NoInit<Params> Init_t;
 typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
+#if BO_ACQUISITION == ACQ_UCB_ID
 typedef acqui::UCB_ID<Params, GP_t> Acqui_t;
+#else 
+typedef acqui::UCB<Params, GP_t> Acqui_t;
+#endif
 //typedef acqui::UCB_LocalPenalisation<Params, GP_t> Acqui_t;
 typedef bayes_opt::BOptimizerAsync<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;
 
@@ -1162,10 +1182,12 @@ std::vector<double> get_best_bd(std::string stats_filename)
 #endif
 
 #else
+
+
 typedef kernel::MaternFiveHalves<Params> Kernel_t;
 typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
 //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
-typedef mean::PermissiveMeanArchive<Params> Mean_t;
+typedef mean::MeanArchive<Params> Mean_t;
 // here, GPArchive, a custom module, writes the maps after each iteration
 //    typedef boost::fusion::vector<stat::Samples<Params>, stat::BestObservations<Params>,
 //            stat::ConsoleSummary<Params>, stat::AggregatedObservations<Params>, stat::BestAggregatedObservations<Params>,

@@ -174,66 +174,15 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    }
    if (optimisation == "BO" || optimisation == "BO_noID")
    {
-      bool variable_noise;
-      try
-      {
-         GetNodeAttribute(t_node, "variable_noise", variable_noise);
-      }
-      catch (CARGoSException &ex)
-      {
-         THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
-      }
-      if (variable_noise)
-      {
-         std::cout << "using noise in BO" << std::endl;
-      }
-      else
-      {
-         std::cout << "NOT using noise in BO" << std::endl;
-      }
-      init_BO(normal_ID, variable_noise);
+      init_BO(normal_ID);
    }
    else if (optimisation == "BO_joint")
    {
-      bool variable_noise;
-      try
-      {
-         GetNodeAttribute(t_node, "variable_noise", variable_noise);
-      }
-      catch (CARGoSException &ex)
-      {
-         THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
-      }
-      if (variable_noise)
-      {
-         std::cout << "using noise in BO" << std::endl;
-      }
-      else
-      {
-         std::cout << "NOT using noise in BO" << std::endl;
-      }
-      init_multiBO(true, normal_ID, variable_noise); // same for initialisation except opt is different type
+      init_multiBO(true, normal_ID); // same for initialisation except opt is different type
    }
    else if (optimisation == "BO_multi")
    {
-      bool variable_noise;
-      try
-      {
-         GetNodeAttribute(t_node, "variable_noise", variable_noise);
-      }
-      catch (CARGoSException &ex)
-      {
-         THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
-      }
-      if (variable_noise)
-      {
-         std::cout << "using noise in BO" << std::endl;
-      }
-      else
-      {
-         std::cout << "NOT using noise in BO" << std::endl;
-      }
-      init_multiBO(false, normal_ID, variable_noise);
+      init_multiBO(false, normal_ID);
    }
    else
    {
@@ -246,12 +195,12 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 }
 
 #if HETEROGENEOUS & !RECORD_FIT
-void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID, bool variable_noise)
+void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID)
 {
    Params::count = 0;
    // select new controller now
    opt.push_back(new Opt_t());
-   opt[0]->optimize_init<ControllerEval>(normal_ID.size(), m_unNumberRobots, state_fun, variable_noise);
+   opt[0]->optimize_init<ControllerEval>(normal_ID.size(), m_unNumberRobots, state_fun, VARIABLE_NOISE);
    /* initial phase: select controller for one robot and then put others with the same as well */
    argos::CThymioEntity *cThym = m_pcvecRobot[0];
    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
@@ -292,7 +241,7 @@ void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID, bool variabl
    }
 }
 
-void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double> normal_ID, bool variable_noise)
+void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double> normal_ID)
 {
    Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
    Params::count = 0;
@@ -331,12 +280,12 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double
       if (single_worker)
       {
          //size_t num_ID_features, size_t behav_dim
-         opt[i]->optimize_init_joint<ControllerEval>(found_faults.size(), normal_ID.size(), state_fun, variable_noise);
+         opt[i]->optimize_init_joint<ControllerEval>(found_faults.size(), normal_ID.size(), state_fun, VARIABLE_NOISE);
          fill_combinedmap_with_identifier(found_faults.size(), {}, 100); // fill map with combinations of the best 100 solutions
       }
       else
       {
-         opt[i]->optimize_init<ControllerEval>(normal_ID.size(), index_vec[found_faults[i]] + 1, state_fun, variable_noise);
+         opt[i]->optimize_init<ControllerEval>(normal_ID.size(), index_vec[found_faults[i]] + 1, state_fun, VARIABLE_NOISE);
          fill_multimap_with_identifier({});
       }
    }
