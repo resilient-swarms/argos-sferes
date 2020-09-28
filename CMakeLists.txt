@@ -134,7 +134,7 @@ if(LARGE)
 
 endif()
 
-if(HETEROGENEOUS)
+if(HETEROGENEOUS AND NOT BO)
             option(BO_ACQ "Acquisition function for heterogeneous optimisation" OFF)
             option(BO_KERN "Kernel function for heterogeneous optimisation" OFF)
             add_definitions(-DBO_ACQUISITION=${BO_ACQ})
