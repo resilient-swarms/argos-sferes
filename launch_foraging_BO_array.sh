@@ -1,5 +1,7 @@
 #!/bin/bash
 
+datafolder=$1
+name=$2
 
 declare -A acq_funs
 acq_funs[0]="UCB"
@@ -14,8 +16,9 @@ for alpha in 0.05 0.25 0.50 1; do
 			acq_string=${acq_funs[${acq}]}
 			export EXPERIMENT_TAG="alpha${alpha}_l${l}_${acq_string}_M52VarNoise"
 			echo "start runs with experiment tag: ${EXPERIMENT_TAG}"
-			echo "and experiment type: ${BO_exps[${acq_string}]}"
-			bash launch_foraging_BO.sh /scratch/dmb1m19  ${EXPERIMENT_TAG}
+			experiment_type=${BO_exps[${acq_string}]}
+			echo "and experiment type: ${experiment_type}"
+			bash launch_foraging_BO.sh /scratch/dmb1m19 ${datafolder} ${experiment_type} ${name}
 		done
     done
 done
