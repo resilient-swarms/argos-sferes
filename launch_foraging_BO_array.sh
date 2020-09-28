@@ -1,7 +1,7 @@
 #!/bin/bash
 
 datafolder=$1
-if [ ! -z "${datafolder}" ]; then
+if [ -z "${datafolder}" ]; then
 	echo "Error: no datafolder given"
 	exit 125
 fi
