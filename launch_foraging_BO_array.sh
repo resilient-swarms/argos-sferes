@@ -17,7 +17,7 @@ for alpha in 0.05 0.25 0.50 1; do
 			echo "start runs with experiment tag: ${EXPERIMENT_TAG}"
 			experiment_type=${BO_exps[${acq_string}]}
 			echo "and experiment type: ${experiment_type}"
-			bash launch_foraging_BO.sh /scratch/dmb1m19 ${datafolder} ${experiment_type}
+			bash launch_foraging_BO.sh /scratch/dmb1m19 ${datafolder} ${EXPERIMENT_TAG}
 		done
     done
 done
