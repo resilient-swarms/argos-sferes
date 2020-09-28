@@ -8,7 +8,7 @@
 source activate py3.7 # just for the cvt initialisation
 
 
-fullcommand="${COMMAND} -f ${BO_OutputFolder} -m ${ArchiveFolder}  ${Generation} -e ${BO_Executable} ${ConfigFile} ${BaselineChoice}"
+fullcommand="${COMMAND}${EXPERIMENT_TAG} -f ${BO_OutputFolder} -m ${ArchiveFolder}  ${Generation} -e ${BO_Executable} ${ConfigFile} ${BaselineChoice}"
 echo "will now execute ${fullcommand}"
 
 sleep 5
