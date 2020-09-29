@@ -787,7 +787,17 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
-        settings = [ ("single_exp", False, "l1_alpha0.05"),("single_exp", False, "l1_alpha1"), ("single_exp_random", False, "final")]
+        settings = [
+                     ("single_exp", False, "alpha0.05_l0.05_UCB_M52VarNoise"),
+                     ("single_exp", False, "alpha0.05_l0.1_UCB_M52VarNoise"),
+                     ("single_exp", False, "alpha0.05_l0.2_UCB_M52VarNoise"),
+                     ("single_exp", False, "alpha0.05_l0.4_UCB_M52VarNoise"),
+                     ("single_exp", False, "alpha0.05_l1_UCB_M52VarNoise"),
+                     ("single_exp", False, "alpha0.25_l0.05_UCB_M52VarNoise"),
+                     ("single_exp", False, "alpha0.25_l0.1_UCB_M52VarNoise"),
+                     ("single_exp", False, "alpha0.25_l0.2_UCB_M52VarNoise"),
+                     ("single_exp", False, "alpha0.25_l0.4_UCB_M52VarNoise"),
+                     ("single_exp", False, "alpha0.25_l1_UCB_M52VarNoise")]
         plottag = "HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
         num_VE_conditions = 5

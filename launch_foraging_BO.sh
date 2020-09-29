@@ -354,12 +354,12 @@ for FaultCategory in proximity_sensor; do
                         food_tag=""
                         echo "food tag empty"
                     fi
-                    ConfigFolder=${Base}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}
-                    mkdir -p ${ConfigFolder}
-                    ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
+                    Outfolder=${Base}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}
+                    Outfolder=${Outfolder}/results${SUFFIX}/${TopOutputFolder}
+                    mkdir -p ${Outfolder}
                     export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
                     export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
-                    Outfolder=${ConfigFolder}/results${SUFFIX}/${TopOutputFolder}
+
                     echo "Outfolder ${Outfolder}"
                     if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ] \
                     || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ] ||
@@ -373,7 +373,7 @@ for FaultCategory in proximity_sensor; do
 		            echo "BO outputfolder = ${BO_OutputFolder}"
                     rm ${BO_OutputFolder}/fitness
                     #rm ${Outfolder}/fitness
-                    mkdir -p $Outfolder
+                    ConfigFile=${BO_OutputFolder}/exp_${SUFFIX}.argos
                     echo "config ${ConfigFile}"
                     touch ${ConfigFile}
                     sed -e "s|THREADS|0|" \
