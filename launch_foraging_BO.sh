@@ -397,7 +397,7 @@ for FaultCategory in proximity_sensor; do
                         -e "s|TICKS_PER_SUB|${ticks_per_subtrial}|" \
 		                -e "s|NUM_SUB|${num_subtrials}|" \
 		                -e "s|NETWORK_BINARY|${network_binary}|" \
-                        -e "s|NETWORK_CONFIG|${Outfolder}/${network_config}|" \
+                        -e "s|NETWORK_CONFIG|${BO_OutputFolder}/${network_config}|" \
 		                -e "s|STOP|${stop}|" \
                         -e "s|OPTIMISATION|${optimisation}|"  \
                         -e "s|RESET|${reset}|" \
@@ -406,11 +406,11 @@ for FaultCategory in proximity_sensor; do
                         >${ConfigFile}
                         if [ ! -z "${network_config}" ]; then
 
-                            touch ${Outfolder}/${network_config}
+                            touch ${BO_OutputFolder}/${network_config}
 			                sed -e "s|OUTPUTFOLDER|${BO_OutputFolder}|" \
                                 -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                                 experiments/harvesting/harvesting_printnetwork_template.argos \
-                                > ${Outfolder}/${network_config}
+                                > ${BO_OutputFolder}/${network_config}
                         fi 
                     if [ ! -z "${CVT}" ]; then
                         echo ${CVT}
