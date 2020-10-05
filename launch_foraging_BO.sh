@@ -370,13 +370,23 @@ for FaultCategory in proximity_sensor; do
                     else 
                         export BO_OutputFolder=${Outfolder}${output_tag}
                     fi
-		            echo "BO outputfolder = ${BO_OutputFolder}"
-                    rm ${BO_OutputFolder}/fitness
+		    echo "BO outputfolder = ${BO_OutputFolder}"
+                    mkdir -p $BO_OutputFolder
+		    rm ${BO_OutputFolder}/fitness
                     #rm ${Outfolder}/fitness
                     ConfigFile=${BO_OutputFolder}/exp_${SUFFIX}.argos
                     echo "config ${ConfigFile}"
                     touch ${ConfigFile}
-                    sed -e "s|THREADS|0|" \
+		    if [ -f "${ConfigFile}" ]; then
+                         echo "CREATED CONFIGFILE ${ConfigFile}"
+		    else
+			 echo "FAILED TO CREATE CONFIGFILE ${ConfigFile}"
+			 exit 1
+                    fi
+
+                    
+		    
+		    sed -e "s|THREADS|0|" \
                         -e "s|TRIALS|${trials}|" \
                         -e "s|ROBOTS|${robots}|" \
                         -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
@@ -426,7 +436,7 @@ for FaultCategory in proximity_sensor; do
                     if [[ "$run_type" == BO_single* ]] || [[ "$run_type" == random_single* ]];then
                          echo "submitting single job"
                          #sleep 1sh
-                         bash submit_single.sh
+                         sbatch submit_single.sh
                     else
                         echo "submitting ite job"
                         #sleep 10
