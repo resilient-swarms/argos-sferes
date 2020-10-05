@@ -198,17 +198,35 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID)
 {
    Params::count = 0;
+
    // select new controller now
    opt.push_back(new Opt_t());
    opt[0]->optimize_init<ControllerEval>(normal_ID.size(), m_unNumberRobots, state_fun, VARIABLE_NOISE);
+   Eigen::VectorXd result;
+   if (load_ID_map)
+   {
+      std::cout << "LOADING IDMAP ID_archive_fixed_" + std::to_string(global::gen_to_load) + ".dat" << std::endl;
+      auto pair = load_ID_archive(std::string(global::archive_path) + "/ID_archive_fixed_" + std::to_string(global::gen_to_load) + ".dat", 4);
+      Params::archiveparams::elem_archive max_el = std::get<0>(pair);
+      Params::archiveparams::archive = std::get<1>(pair);
+      result = Eigen::VectorXd(global::behav_dim + global::num_ID_features);
+      for (size_t i = 0; i < result.size(); ++i)
+      {
+         result[i] = max_el.behav_descriptor[i];
+      }
+   }
+   else
+   {
+      Eigen::VectorXd id_vec = Eigen::VectorXd(normal_ID.size());
+      for (size_t i = 0; i < normal_ID.size(); ++i)
+         id_vec(i) = normal_ID[i];
+      result = opt[0]->select_sample<ControllerEval>(id_vec);
+   }
    /* initial phase: select controller for one robot and then put others with the same as well */
    argos::CThymioEntity *cThym = m_pcvecRobot[0];
    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
    cController.worker = ForagingThymioNN::Worker(num_subtrials, 0);
-   Eigen::VectorXd id_vec = Eigen::VectorXd(normal_ID.size());
-   for (size_t i = 0; i < normal_ID.size(); ++i)
-      id_vec(i) = normal_ID[i];
-   Eigen::VectorXd result = opt[0]->select_sample<ControllerEval>(id_vec);
+
    cController.worker.new_sample = result.head(BEHAV_DIM);
    std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
    cController.select_net(bd, num_subtrials, ticks_per_subtrial);
@@ -229,12 +247,8 @@ void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID)
                 << sim_cmd << std::endl;
       exit(-1);
    }
-   if (load_ID_map)
-   {
-      //Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
-      Params::archiveparams::archive = load_ID_archive(std::string(global::archive_path) + "/ID_archive_" + std::to_string(global::gen_to_load) + ".dat", 4);
-   }
-   else
+
+   if (!load_ID_map)
    {
       Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
       Params::archiveparams::archive = {};
@@ -461,7 +475,7 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       // finish descriptor
       current_robot = cController.worker.index;
       std::vector<float> ident = alltrials_descriptor();
-      Params::archiveparams::classcomp::discretise(ident,16.0);
+      Params::archiveparams::classcomp::discretise(ident, 16.0);
       cController.worker.F = Eigen::VectorXd(ident.size());
       for (size_t i = 0; i < ident.size(); ++i)
       {

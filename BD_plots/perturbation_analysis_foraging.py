@@ -634,9 +634,9 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
         sd_lines2 = [[] for c in conditions]
         min_reference = np.mean(reference_faultinjection_data[bd_index][fault_category])/NUM_AGENTS
         max_reference = np.mean(reference_performance_data[bd_index][fault_category])/NUM_AGENTS
-        colors = ["C8", "C0","C1","C2", "C3","C4", "C5","C6","C7"]  # colors for the lines
+        colors = ["C0","C1","C2", "C3","C4", "C5","C6","C7","C8","C9"]  # colors for the lines
         # (numsides, style, angle)
-        markers = ["*", "o","D","X","v","+", "$\dagger$","^","$\spadesuit$"]  # markers for the lines
+        markers = ["*", "o","D","X","v","+", "$\dagger$","^","$\spadesuit$","^"]  # markers for the lines
 
         percentage_file.write(foraging_fault_types[fault_category] + " & ")
         table30_file.write(foraging_fault_types[fault_category] + " & ")
@@ -743,13 +743,14 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
         # table20_file.write("\n")
         table30_file.write("\n")
         additional_lines = [(time[0], [min_reference for t in time[0]]), (time[0], [max_reference for t in time[0]])]
+        print("index with maximal performance is ",np.argmax(np.mean(performances30,axis=1)))
         createPlot(mean_lines, x_values=time,
                    save_filename="recovery_fault_"+str(foraging_fault_types[fault_category])+plottag+".pdf", legend_labels=conditions,
                    colors=colors, markers=markers, xlabel="Time ($s$)",
                    ylabel="Best performance",
                    xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,max_reference+2],
-                   legendbox=None, annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
-                   legend_cols=1, legend_fontsize=26, legend_indexes=[], additional_lines=additional_lines, index_x=[],
+                   legendbox=(0.10,1.10), annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
+                   legend_cols=3, legend_fontsize=10, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                    xaxis_style="plain", y_err=[], force=True)#, fill_between=(sd_lines1, sd_lines2))
 def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],from_file=False, comparison=False, estimate=True):
     """
@@ -781,8 +782,14 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
 
         num_VE_conditions=4
-    elif comparison=="heterogeneous_params":
-        conditions = [r"H-SMBO ($\alpha=0.05$,$\rho=1$)", r"H-SMBO ($\alpha=1$,$\rho=1$)"]
+    elif comparison=="heterogeneous_params1":
+        def hmbo_string(alpha,rho):
+            return r"H-SMBO ($alpha="+alpha+r"$,$\rho="+rho+r"$)"
+        conditions = [hmbo_string("0.05","0.05"),hmbo_string("0.05","0.1"),hmbo_string("0.05","0.2"),
+                      hmbo_string("0.05", "0.4"), hmbo_string("0.05", "1"),
+                      hmbo_string("0.25", "0.05"), hmbo_string("0.25", "0.1"), hmbo_string("0.25", "0.2"),
+                      hmbo_string("0.25", "0.4"), hmbo_string("0.25", "1")
+                      ]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
@@ -797,20 +804,98 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
                      ("single_exp", False, "alpha0.25_l0.1_UCB_M52VarNoise"),
                      ("single_exp", False, "alpha0.25_l0.2_UCB_M52VarNoise"),
                      ("single_exp", False, "alpha0.25_l0.4_UCB_M52VarNoise"),
-                     ("single_exp", False, "alpha0.25_l1_UCB_M52VarNoise")]
-        plottag = "HETEROGENEOUS"
-        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
-        num_VE_conditions = 5
-    elif comparison=="heterogeneous":
-        conditions = ["H-SMBO (prior)","H-SMBO","H-SMBO (random)", "H-Random"]
+                     ("single_exp", False, "alpha0.25_l1_UCB_M52VarNoise"),
+            ]
+        plottag = "HETEROGENEOUS_PARAMS1"
+        VE_tags = ["_VE_init" + str(j) for j in range(10)]
+        num_VE_conditions = 10
+    elif comparison == "heterogeneous_params2":
+        def hmbo_string(alpha, rho):
+            return r"H-SMBO ($alpha=" + alpha + r"$,$\rho=" + rho + r"$)"
+
+        conditions = [
+                      hmbo_string("0.05", "0.05"), hmbo_string("0.05", "0.1"), hmbo_string("0.05", "0.2"),
+                      hmbo_string("0.05", "0.4"), hmbo_string("0.05", "1"),
+                      hmbo_string("0.25", "0.05"), hmbo_string("0.25", "0.1"), hmbo_string("0.25", "0.2"),
+                      hmbo_string("0.25", "0.4"), hmbo_string("0.25", "1"),
+                      hmbo_string("0.50", "0.05"), hmbo_string("0.50", "0.1"), hmbo_string("0.50", "0.2"),
+                      hmbo_string("0.50", "0.4"), hmbo_string("0.50", "1"),
+                      hmbo_string("1", "0.05"), hmbo_string("1", "0.1"), hmbo_string("1", "0.2"),
+                      hmbo_string("1", "0.4"), hmbo_string("1", "1")
+                      ]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
-        settings = [("single_exp_IDprior",False,"variance"),("single_exp",False,"final"),("single_exp_random", False, "final"), ("single_exp_randomsearch", False, "final")]
+        settings = [
+            ("single_exp", False, "alpha0.50_l0.05_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.50_l0.1_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.50_l0.2_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.50_l0.4_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.50_l1_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha1_l0.05_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha1_l0.1_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha1_l0.2_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha1_l0.4_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha1_l1_UCB_M52VarNoise"),
+        ]
+        plottag = "HETEROGENEOUS_PARAMS2"
+        VE_tags = ["_VE_init" + str(j) for j in range(10)]
+        num_VE_conditions = 10
+    elif comparison=="heterogeneous_params":
+
+        def hmbo_string(alpha, rho):
+            return r"H-SMBO ($alpha=" + alpha + r"$,$\rho=" + rho + r"$)"
+
+        conditions = [
+            hmbo_string("0.05", "0.05"), hmbo_string("0.05", "0.1"), hmbo_string("0.05", "0.2"),
+            hmbo_string("0.05", "0.4"), hmbo_string("0.05", "1"),
+            hmbo_string("0.25", "0.05"), hmbo_string("0.25", "0.1"), hmbo_string("0.25", "0.2"),
+            hmbo_string("0.25", "0.4"), hmbo_string("0.25", "1"),
+                    hmbo_string("0.50", "0.05"), hmbo_string("0.50", "0.1"), hmbo_string("0.50", "0.2"),
+                      hmbo_string("0.50", "0.4"), hmbo_string("0.50", "1"),
+                      hmbo_string("1", "0.05"), hmbo_string("1", "0.1"), hmbo_string("1", "0.2"),
+                      hmbo_string("1", "0.4"), hmbo_string("1", "1")
+                      ]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+        settings = [
+            ("single_exp", False, "alpha0.05_l0.05_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.05_l0.1_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.05_l0.2_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.05_l0.4_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.05_l1_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.25_l0.05_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.25_l0.1_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.25_l0.2_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.25_l0.4_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.25_l1_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.50_l0.05_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.50_l0.1_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.50_l0.2_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.50_l0.4_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha0.50_l1_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha1_l0.05_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha1_l0.1_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha1_l0.2_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha1_l0.4_UCB_M52VarNoise"),
+            ("single_exp", False, "alpha1_l1_UCB_M52VarNoise"),
+        ]
+        plottag = "HETEROGENEOUS_PARAMS2"
+        VE_tags = ["_VE_init" + str(j) for j in range(20)]
+        num_VE_conditions = 20
+    elif comparison=="heterogeneous":
+        conditions = ["H-SMBO","H-SMBO (random)", "H-Random"]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+        settings = [("single_exp", False, "alpha0.25_l0.1_UCB_M52VarNoise"),("single_exp_random", False, "final"), ("single_exp_randomsearch", False, "final")]
         plottag="HETEROGENEOUS"
-        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
-        num_VE_conditions=5
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5]]
+        num_VE_conditions=3
     elif comparison=="fest":
         conditions = ["SMBO", "VE-SMBO E(0)=3","VE-SMBO E(0)=4","VE-SMBO E(0)=5","VE-SMBO E(0)=6","VE-SMBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
@@ -1074,8 +1159,8 @@ if __name__ == "__main__":
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=True)
 
 
-    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="heterogeneous_params",estimate=False)
+    #development_data(bd_type, runs, 2000"0, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30]*3,from_file=False,comparison="heterogeneous",estimate=False)
 
 
 

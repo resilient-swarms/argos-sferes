@@ -17,7 +17,7 @@ def make_and_get_configs(replicate):
     maxspeeds=[5,10,15]
     robots=[3,6,12]
     walls=[4]
-    cylinders=[2]
+    cylinders=[0]
     proxiranges=[0.055,0.11,0.22]
     groundnoises=[10,20,40]
     for c1, MaxSpeed in enumerate(maxspeeds):
@@ -146,5 +146,72 @@ def run_id_map(replicate):
         ID_archive_file.write(i + " "+str(b) + " " + str(f) + " " + str(var) + "\n")
     print("finished archive ", ID_archive_filename)
 
+
+def run_id_map_fixedcontroller(replicate):
+
+    #initialise
+    path = args.p + "/archive_"+args.g+".dat"
+    parsed_file_list = read_spacedelimited(path)
+    individuals = []
+    for item in parsed_file_list:
+        i = str(item[0])
+        BD = list(np.array(item[1:-1],dtype=float))
+        individuals.append((i,BD))
+    configs = make_and_get_configs(replicate)
+    exhaustive_list=[]
+    bp_map=OrderedDict({})
+    best_map=OrderedDict({})
+    n_bins=16
+
+    # get the best_map:
+    analysis_file=args.o+"/results"+str(replicate)+"/analysis"+str(args.g)+"_identification.dat"
+    os.system("rm "+analysis_file)
+    for (i,BD) in individuals:
+        for config,num_robots in configs:
+            command = "cd "+HOME_DIR+"/argos-sferes && "+args.c+ " " +config+ " identification "+args.g+" -d " +args.o+"/results"+str(replicate)+" --load " +args.p+ "/gen_" +args.g+ " -o outputfile "
+            run_individual(command, i)
+            parsed_file_list = read_spacedelimited(analysis_file)
+            j=0
+            for line in parsed_file_list:
+                ID = discretise(list(np.array(line[1:-1],dtype=float)),n_bins)
+                b = BD+ID
+                f = float(line[-1])
+                j+=1
+                if (j > num_robots):
+                    raise Exception("line number greater than robots")
+                _, comp = best_map.get((i,config),(b,-float("inf")))
+                if f > comp:
+                    best_map[(i,config)] = (b,f)  # optimistic bias, best performance achievable for the controller across robots
+                exhaustive_list.append((i,config,b,f))
+            os.system("rm " + analysis_file)
+    # get the best fitness achievable to determine which controller will do the identification phase during BO
+    max_val = -float("inf")
+    for key,val in best_map.items():
+        _, fitval = val
+        if fitval > max_val:
+            i,config = key
+            max_controller = i
+            max_val = fitval
+
+    bp_map=OrderedDict({})
+    for i,config,b,f in exhaustive_list:
+        # form the relevant id vector by looking up (max_controller, config)
+        b_max,_ = best_map[(max_controller,config)]
+        ID = b_max[3:] # last few numbers is the ID vec of max_controller in that environment
+        # form new BD+ID vector
+        b_new = form_bd_string(b[0:3]+ID)
+        f_old = bp_map.get((i,b_new),-float("inf"))
+        if f > f_old:
+            bp_map[(i, b_new)] = f # optimistic: we want to probe all behaviours that can potentially give the maximum across the map
+
+    # now replace all the identifications with the identification from the max_controller
+    # and write the map to readable format for the c++ code
+    ID_archive_filename = args.o + "/results" + str(replicate) + "/ID_archive_fixed_" + str(args.g) + ".dat"
+    ID_archive_file = open(ID_archive_filename, "w")
+    for key, val in bp_map.items():
+        i, b = key
+        ID_archive_file.write(i + " " + str(b) + " " + str(val) + "\n")
+    print("finished archive ", ID_archive_filename)
+
 if __name__ == "__main__":
-    run_id_map(args.r)
+    run_id_map_fixedcontroller(args.r)

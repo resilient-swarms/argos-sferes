@@ -725,7 +725,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
     return archive;
 }
 
-Params::archiveparams::archive_t load_ID_archive(std::string archive_name, size_t num_dim)
+std::pair<Params::archiveparams::elem_archive, Params::archiveparams::archive_t> load_ID_archive(std::string archive_name, size_t num_dim)
 {
 
     Params::archiveparams::archive_t archive;
@@ -736,6 +736,8 @@ Params::archiveparams::archive_t load_ID_archive(std::string archive_name, size_
     global::num_ID_features = num_dim;
     std::cout << "id features " << global::num_ID_features << std::endl;
     std::ifstream monFlux(archive_name.c_str());
+    double max_fit = -INFINITY;
+    Params::archiveparams::elem_archive max_elem;
     if (monFlux)
     {
         size_t line_no = 0;
@@ -750,23 +752,23 @@ Params::archiveparams::archive_t load_ID_archive(std::string archive_name, size_
                 numbers.push_back(num);
             }
 
-            if (numbers.size() < (global::behav_dim + global::num_ID_features + 3))
+            if (numbers.size() < (global::behav_dim + global::num_ID_features + 2))
             {
                 throw std::runtime_error("lower than expected dimension");
             }
-            else if (numbers.size() > (global::behav_dim + global::num_ID_features + 4))
+            else if (numbers.size() > (global::behav_dim + global::num_ID_features + 3))
             {
                 throw std::runtime_error("higher than expected dimension");
             }
 
             int init_i = 0;
-            if (numbers.size() > (global::behav_dim + global::num_ID_features + 3)) // additional index added at start (also ignore)
+            if (numbers.size() > (global::behav_dim + global::num_ID_features + 2)) // additional index added at start (also ignore)
                 init_i = 1;
 
             Params::archiveparams::elem_archive elem;
 
             std::vector<double> candidate(global::behav_dim + global::num_ID_features);
-            for (size_t i = 0; i < (global::behav_dim + global::num_ID_features + 3); i++)
+            for (size_t i = 0; i < (global::behav_dim + global::num_ID_features + 2); i++)
             {
                 double data = numbers[init_i + i];
                 if (i == 0)
@@ -780,11 +782,16 @@ Params::archiveparams::archive_t load_ID_archive(std::string archive_name, size_
                 else if (i == (global::behav_dim + global::num_ID_features + 1))
                 {
                     elem.fit = data;
+                    if(elem.fit > max_fit)
+                    {
+                        max_fit = elem.fit;
+                        max_elem = elem;
+                    }
                 }
-                else if (i == (global::behav_dim + global::num_ID_features + 2))
-                {
-                    elem.fit_var = data;
-                }
+                // else if (i == (global::behav_dim + global::num_ID_features + 2))
+                // {
+                //     elem.fit_var = data;
+                // }
                 else
                 {
                     throw std::runtime_error("not possible value of i");
@@ -803,7 +810,7 @@ Params::archiveparams::archive_t load_ID_archive(std::string archive_name, size_
 
     std::cout << archive.size() << " elements loaded" << std::endl;
 
-    return archive;
+    return {max_elem,archive};
 }
 
 void fill_map_with_identifier(std::vector<float> ident)
