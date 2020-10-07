@@ -47,7 +47,7 @@
                   label="foraging_loopfunctions3DREALalpha0.25_l0.1_UCB_M52VarNoise"
                   trials="1"
                   robots="2"
-                  descriptortype="identification_wheel"    
+                  descriptortype="random_identification"    
                   fitfuntype="Foraging"
                   output_folder="/home/david/argos-sferes/experiments/harvesting/BO_output"
                 centroids_folder="experiments/centroids"

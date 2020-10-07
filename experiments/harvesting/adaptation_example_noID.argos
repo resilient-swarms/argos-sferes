@@ -47,7 +47,7 @@
                   label="foraging_loopfunctions3DREALalpha0.25_l0.1_UCB_M52VarNoise"
                   trials="1"
                   robots="2"
-                  descriptortype="identification_wheel"    
+                  descriptortype="empty"    
                   fitfuntype="Foraging"
                   output_folder="/home/david/argos-sferes/experiments/harvesting/BO_output"
                 centroids_folder="experiments/centroids"
@@ -58,7 +58,7 @@
 		  network_binary="bin/BO3DREAL"
 		  network_config="/home/david/argos-sferes/experiments/harvesting/adaptation_example_printnetwork.argos"
 		  stop=""
-		  optimisation="BO"
+		  optimisation="BO_noID"
 		  reset="true"
 		  load_ID_map="false"
                     />
