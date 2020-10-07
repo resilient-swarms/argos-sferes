@@ -1,0 +1,127 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <system threads="0" />
+    <experiment length="96000"
+                ticks_per_second="5"
+                random_seed="1" />
+  </framework>
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+
+    <foraging_nn_controller3DREALalpha0.25_l0.1_UCB_M52VarNoise id="tnn"
+                               library="lib/libforaging_nn_controller3DREALalpha0.25_l0.1_UCB_M52VarNoise.so">
+      <actuators>
+        <differential_steering implementation="default" />
+	<!-- <thymio_led            implementation="default" medium="leds"/>   -->
+      </actuators>
+      <sensors>
+	<Thymio_proximity implementation="default"    show_rays="false"  range="0.11" noise_level="0.05"/>
+	<Thymio_ground implementation="rot_z_only" show_rays="false" noise_level="20" />
+	<differential_steering implementation="default" />
+      </sensors>
+      <params>
+      <wheel_turning max_speed="10" />
+      <experiment_run swarm_behavior="/"
+			fault_behavior="FILE:experiments/harvesting/perturbations/adaptation_example1.txt" 
+	                id_faulty_robot="-1"
+			id_food_source="-1"
+			savefile="/home/david/argos-sferes/experiments/harvesting/BO_output/BOOST_SERIALIZATION_NVP"
+     />
+        
+      </params>  
+      </foraging_nn_controller3DREALalpha0.25_l0.1_UCB_M52VarNoise>
+  </controllers>
+
+  <!-- ****************** -->
+  <!-- * Loop functions * -->
+  <!-- ****************** -->
+  <loop_functions library="lib/libforaging_loopfunctions3DREALalpha0.25_l0.1_UCB_M52VarNoise.so"
+                  label="foraging_loopfunctions3DREALalpha0.25_l0.1_UCB_M52VarNoise"
+                  trials="1"
+                  robots="2"
+                  descriptortype="identification_wheel"    
+                  fitfuntype="Foraging"
+                  output_folder="/home/david/argos-sferes/experiments/harvesting/BO_output"
+                centroids_folder="experiments/centroids"
+		  use_virtual="False"
+		  track_stats="TRACK_STATS"
+		  ticks_per_subtrial="600"
+		  num_subtrials="8"
+		  network_binary="bin/BO3DREAL"
+		  network_config="/home/david/argos-sferes/experiments/harvesting/adaptation_example_printnetwork.argos"
+		  stop=""
+		  optimisation="BO"
+		  reset="true"
+		  load_ID_map="false"
+                    />
+
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="4.1,4.1, 1" center="1.05,1.05,0.5">
+
+    <floor id="floor"
+           source="loop_functions"
+           pixels_per_meter="50" />
+
+   <box id="wall_north" size="4.1,1.0,0.5" movable="false">
+      <body position="1.05,2.6,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_south" size="4.1,1.0,0.5" movable="false">
+      <body position="1.05,-0.5,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_east" size="1.0,4.1,0.5" movable="false">
+      <body position="2.6,1.05,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_west" size="1.0,4.1,0.5" movable="false">
+      <body position="-0.5,1.05,0" orientation="0,0,0" />
+    </box>
+
+
+        <distribute>
+      <position method="uniform" min="0.5,0.5,0" max="1.5,1.5,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="2" max_trials="1000">
+        <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
+          <controller config="tnn" />
+        </Thymio>
+      </entity>
+	</distribute>
+
+</arena>
+
+
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <dynamics2d id="dyn2d" />
+  </physics_engines>
+
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+  </media>  
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <visualization>
+<qt-opengl>
+        <user_functions label="robotid_vis" />
+	<camera>
+        <placement idx="0" position="0.0,1.0,1.65" look_at="1.0,1.0,0" lens_focal_length="20" />
+      </camera>
+    </qt-opengl> 
+  </visualization>
+
+</argos-configuration>
