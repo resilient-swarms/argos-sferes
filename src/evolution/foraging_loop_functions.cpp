@@ -480,7 +480,12 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       std::vector<float> ident = alltrials_descriptor();
       Params::archiveparams::classcomp::discretise(ident, 16.0);
       cController.worker.F = Eigen::VectorXd(ident.size());
-      std::vector<double> checked_vec = cController.worker.new_sample;
+      std::vector<double> checked_vec;
+      for(size_t i=0; i < cController.worker.new_sample.size(); ++i)
+      {
+         checked_vec.push_back(cController.worker.new_sample[i]);
+      }
+      
       for (size_t i = 0; i < ident.size(); ++i)
       {
          cController.worker.F[i] = ident[i];
