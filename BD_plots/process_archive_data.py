@@ -47,7 +47,15 @@ def read_tabdelimited(path):
             d[i]=temp
     return d
 
+def read_commadelimited(path):
+    with open(path) as f:
+        reader = csv.reader(f, delimiter=",")
 
+        d = list(reader)
+        for i in range(len(d)):
+            temp=[item for item in d[i] if item != ""]  # remove empty strings
+            d[i]=temp
+    return d
 
 def get_individuals(path,as_string=True):
     parsed_file_list=read_spacedelimited(path)

@@ -1,7 +1,7 @@
 from foraging_params import *
 from BD_metrics import *
 from reduce_translated_archive import *
-
+from combine_perturbations import *
 RESULTSFOLDER="results"
 
 from plots import *
@@ -887,12 +887,13 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         VE_tags = ["_VE_init" + str(j) for j in range(20)]
         num_VE_conditions = 20
     elif comparison=="heterogeneous":
-        conditions = ["H-SMBO (M32)","H-SMBO (prior)","H-SMBO","H-SMBO (random)", "H-Random"]
+        conditions = ["H-SMBO (prior)","H-SMBO","H-SMBO (no ID)","H-SMBO (random)", "H-Random"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
-        settings = [("single_exp", False, "alpha0.25_l0.1_UCB_M32"),("single_exp_IDprior", False, "alpha0.25_l0.1_UCB_M52VarNoise"),("single_exp", False, "alpha0.25_l0.1_UCB_M52VarNoise"),("single_exp_random", False, "alpha0.25_l0.1_UCB_M52VarNoise"), ("single_exp_randomsearch", False, "final")]
+        settings = [("single_exp_IDprior", False, "alpha0.25_l0.1_UCB_M52VarNoise"),("single_exp", False, "alpha0.25_l0.1_UCB_M52VarNoise"),
+                    ("single_exp", False, "noID"),("single_exp_random", False, "alpha0.25_l0.1_UCB_M52VarNoise"), ("single_exp_randomsearch", False, "final")]
         plottag="HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5,6,7]]
         num_VE_conditions=5
@@ -1146,21 +1147,80 @@ def determine_noise():
     v = [np.var(p) for p in nofaultperfs]
     print(v)
 
+def analyse_faults(max_eval=30):
+    def get_fault_string(folder,run,fault):
+        return read_commadelimited(folder+"run"+str(run)+"_"+fault+".txt")[0]
+
+    def get_performance_folder(run, fault):
+        BD_dir = datadir + "/Foraging/history/"
+        return BD_dir + "faultyrun" + str(run) + "_" + fault+"/results"+str(run)+"/single_exp/BO_outputalpha0.25_l0.1_UCB_M52VarNoise/"
+    folder = "/home/david/argos-sferes/experiments/harvesting/perturbations/"
+    # proximity sensor faults
+
+    best_prox_performances={string:[] for string in PROXIMITY_SENSOR_PERTURBATIONS}
+    for fault in proximity_sensor_perturbations:
+        for run in runs:
+            # get the fault
+            faultstring = get_fault_string(folder,run,fault)
+            #print(faultstring)
+            # get the best performance files
+            performancefolder = get_performance_folder(run, fault)
+            for robot in range(int(NUM_AGENTS)):
+                lines = read_spacedelimited(performancefolder+"async_stats_best"+str(robot)+".dat")
+                best_prox_performances[faultstring[robot]].append(float(lines[max_eval][-1]))
+
+    for key, val in best_prox_performances.items():
+        print(key,": ",np.mean(val)," +/- ",np.std(val))
+
+
+    best_ground_performances={string:[] for string in GROUND_SENSOR_PERTURBATIONS}
+    for fault in ground_sensor_perturbations:
+        for run in runs:
+            # get the fault
+            faultstring = get_fault_string(folder,run,fault)
+            #print(faultstring)
+            # get the best performance files
+            performancefolder = get_performance_folder(run, fault)
+            for robot in range(int(NUM_AGENTS)):
+                lines = read_spacedelimited(performancefolder+"async_stats_best"+str(robot)+".dat")
+                best_ground_performances[faultstring[robot]].append(float(lines[max_eval][-1]))
+
+    for key, val in best_ground_performances.items():
+        print(key,": ",np.mean(val)," +/- ",np.std(val))
+    # actuator faults
+    best_actuator_performances={string:[] for string in ACT_PERTURBATIONS}
+    for fault in actuator_perturbations:
+        for run in runs:
+            # get the fault
+            faultstring = get_fault_string(folder,run,fault)
+            #print(faultstring)
+            # get the best performance files
+            performancefolder = get_performance_folder(run, fault)
+            for robot in range(int(NUM_AGENTS)):
+                lines = read_spacedelimited(performancefolder+"async_stats_best"+str(robot)+".dat")
+                best_actuator_performances[faultstring[robot]].append(float(lines[max_eval][-1]))
+
+    for key, val in best_actuator_performances.items():
+        print(key,": ",np.mean(val)," +/- ",np.std(val))
+
+
+    #
+
 if __name__ == "__main__":
     # significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
     #                  title_tag="",virtual_energy=False)
     # significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
     #                  title_tag="BO",virtual_energy=False)
     #determine_noise()
-    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
-                     title_tag="",virtual_energy=False)
+    #significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
+    #                 title_tag="",virtual_energy=False)
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,100,100,100,100,100],from_file=True,comparison="VE",estimate=False)
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=False)
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30, 100, 100, 100, 100, 100], from_file=False,comparison="fest", estimate=True)
 
 
     #development_data(bd_type, runs, 2000"0, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30]*5,from_file=False,comparison="heterogeneous",estimate=False)
+    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30]*5,from_file=False,comparison="heterogeneous",estimate=False)
 
 
-
+    analyse_faults()
