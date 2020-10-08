@@ -20,7 +20,7 @@ namespace limbo
 
                 float best_acqui = -INFINITY;
                 Eigen::VectorXd result;
-
+                std::vector<double> checked_vec;
                 int best_index;
                 size_t constraint_size = constraint.size();
                 archive_it_t best_it;
@@ -29,6 +29,7 @@ namespace limbo
 
                     Eigen::VectorXd temp(it->first.size());
                     Eigen::VectorXd constraint_check(it->first.size());
+                    std::vector<double> vec_to_check;
                     //std::cout << "start filling vectors of size " << it->first.size() << std::endl;
                     for (size_t i = 0; i < it->first.size(); i++)
                     {
@@ -43,10 +44,12 @@ namespace limbo
 
                             constraint_check[i] = constraint[i - BEHAV_DIM];
                         }
+                        vec_to_check.push_back(constraint_check[i]);
                     }
 
                     auto el = Params::archiveparams::archive.at(it->first);
-                    if (el.checked)
+                    bool checked = Params::archiveparams::checked_constraints[vec_to_check] ;
+                    if (checked)
                     {
                         continue; // no need to check again, assuming static environment
                     }
@@ -71,11 +74,12 @@ namespace limbo
                         best_acqui = new_acqui;
                         result = temp;
                         best_it = it;
+                        checked_vec = vec_to_check;
                     }
                 }
                 std::cout << "best UCB " << best_acqui << std::endl;
                 std::cout << "vector " << result << std::endl;
-                Params::archiveparams::archive.at(best_it->first).checked = true;
+                Params::archiveparams::checked_constraints[checked_vec] = true;
                 return result;
             }
         };

@@ -1153,7 +1153,7 @@ def analyse_faults(max_eval=30):
 
     def get_performance_folder(run, fault):
         BD_dir = datadir + "/Foraging/history/"
-        return BD_dir + "faultyrun" + str(run) + "_" + fault+"/results"+str(run)+"/single_exp/BO_outputalpha0.25_l0.1_UCB_M52VarNoise/"
+        return BD_dir + "faultyrun" + str(run) + "_" + fault+"/results"+str(run)+"/single_exp/BO_outputnoID/"
     folder = "/home/david/argos-sferes/experiments/harvesting/perturbations/"
     # proximity sensor faults
 

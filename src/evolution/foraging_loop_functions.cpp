@@ -9,6 +9,8 @@ double Params::L;
 double Params::M;
 size_t Params::count;
 std::vector<Params::archiveparams::archive_t> Params::archiveparams::multimap;
+std::map<std::vector<double>,bool, Params::archiveparams::classcomp> Params::archiveparams::checked_constraints;// for each constraint, whether or not it was checked
+
 size_t Params::map_index;
 #endif
 
@@ -198,7 +200,6 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID)
 {
    Params::count = 0;
-
    // select new controller now
    opt.push_back(new Opt_t());
    opt[0]->optimize_init<ControllerEval>(normal_ID.size(), m_unNumberRobots, state_fun, VARIABLE_NOISE);
@@ -221,7 +222,9 @@ void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID)
       for (size_t i = 0; i < normal_ID.size(); ++i)
          id_vec(i) = normal_ID[i];
       result = opt[0]->select_sample<ControllerEval>(id_vec);
+      
    }
+   Params::archiveparams::checked_constraints = {};
    /* initial phase: select controller for one robot and then put others with the same as well */
    argos::CThymioEntity *cThym = m_pcvecRobot[0];
    ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
@@ -477,10 +480,13 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       std::vector<float> ident = alltrials_descriptor();
       Params::archiveparams::classcomp::discretise(ident, 16.0);
       cController.worker.F = Eigen::VectorXd(ident.size());
+      std::vector<double> checked_vec = cController.worker.new_sample;
       for (size_t i = 0; i < ident.size(); ++i)
       {
          cController.worker.F[i] = ident[i];
+         checked_vec.push_back(ident[i]);
       }
+      Params::archiveparams::checked_constraints[checked_vec] = true;
       cController.worker.initial_phase = false;
       // fill the map with corresponding identification vector
       if (!multi && !load_ID_map)
@@ -494,6 +500,9 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
             check_ID_map(ident);
          }
       }
+      
+
+
    }
    size_t index = cController.worker.opt_index;
    opt[index]->push_fitness(cController.worker.index, cController.worker.fitness(m_unNumberRobots));

@@ -100,7 +100,6 @@ struct Params
 
     struct archiveparams
     {
-
         struct elem_archive
         {
             std::vector<double> behav_descriptor; // the first entry of elem_archive should be the behaviour descriptor (see ln 19 in exhaustive_search_archive.hpp)
@@ -169,9 +168,12 @@ struct Params
         }
         typedef std::map<std::vector<double>, elem_archive, classcomp> archive_t;
         static std::map<std::vector<double>, elem_archive, classcomp> archive;
-        static std::vector<std::map<std::vector<double>, elem_archive, classcomp>> multimap;
+
 #ifdef HETEROGENEOUS
+        static std::vector<std::map<std::vector<double>, elem_archive, classcomp>> multimap;
         static std::map<std::vector<double>, elem_archive, classcomp> old_archive;
+        static std::map<std::vector<double>, bool, classcomp> checked_constraints; // for each constraint, whether or not it was checked
+
 #endif
     };
 #ifdef HETEROGENEOUS
@@ -252,7 +254,7 @@ struct Params
         }
         return neighbours;
     }
-    static std::pair<double,double> get_closest_neighbour_fit(const std::vector<double> &v)
+    static std::pair<double, double> get_closest_neighbour_fit(const std::vector<double> &v)
     {
         Eigen::VectorXd vec = Eigen::VectorXd::Zero(v.size());
         for (size_t j = 0; j < vec.size(); ++j)
@@ -291,7 +293,7 @@ struct Params
             }
         }
         //std::cout << "max distance "<< max_distance << std::endl;
-        return {fitness,fit_var};
+        return {fitness, fit_var};
     }
     static double get_archive_radius(const std::vector<double> &v, size_t max_steps = 4, double step_size = 0.0625)
     {
@@ -782,7 +784,7 @@ std::pair<Params::archiveparams::elem_archive, Params::archiveparams::archive_t>
                 else if (i == (global::behav_dim + global::num_ID_features + 1))
                 {
                     elem.fit = data;
-                    if(elem.fit > max_fit)
+                    if (elem.fit > max_fit)
                     {
                         max_fit = elem.fit;
                         max_elem = elem;
@@ -810,7 +812,7 @@ std::pair<Params::archiveparams::elem_archive, Params::archiveparams::archive_t>
 
     std::cout << archive.size() << " elements loaded" << std::endl;
 
-    return {max_elem,archive};
+    return {max_elem, archive};
 }
 
 void fill_map_with_identifier(std::vector<float> ident)
@@ -1095,13 +1097,12 @@ Params::archiveparams::archive_t Params::archiveparams::archive;
 
 #if HETEROGENEOUS
 Params::archiveparams::archive_t Params::archiveparams::old_archive;
-#define KERN_M52_VarNoise 0  // default
+#define KERN_M52_VarNoise 0 // default
 #define KERN_M52_VarNoiseAndScale 1
 #define KERN_M52 2
 
-#define ACQ_UCB 0  // default
+#define ACQ_UCB 0 // default
 #define ACQ_UCB_ID 1
-
 
 #if BO_KERNEL == KERN_M52_VarNoise
 typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
@@ -1130,7 +1131,7 @@ typedef init::NoInit<Params> Init_t;
 typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
 #if BO_ACQUISITION == ACQ_UCB_ID
 typedef acqui::UCB_ID<Params, GP_t> Acqui_t;
-#else 
+#else
 typedef acqui::UCB<Params, GP_t> Acqui_t;
 #endif
 //typedef acqui::UCB_LocalPenalisation<Params, GP_t> Acqui_t;
@@ -1189,7 +1190,6 @@ std::vector<double> get_best_bd(std::string stats_filename)
 #endif
 
 #else
-
 
 typedef kernel::MaternFiveHalves<Params> Kernel_t;
 typedef opt::ExhaustiveSearchArchive<Params> InnerOpt_t;
