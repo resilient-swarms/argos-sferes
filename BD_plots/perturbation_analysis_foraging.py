@@ -892,7 +892,8 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
-        settings = [("single_exp_IDprior", False, "alpha0.25_l0.1_UCB_M52VarNoise"),("single_exp", False, "alpha0.25_l0.1_UCB_M52VarNoise"),
+        settings = [("single_exp_IDprior", False, "alpha0.25_l0.1_UCB_M52VarNoise"),
+                    ("single_exp", False, "correctreplace_alpha0.25_l0.1_UCB_M52VarNoise"),
                     ("single_exp", False, "noID"),("single_exp_random", False, "alpha0.25_l0.1_UCB_M52VarNoise"), ("single_exp_randomsearch", False, "final")]
         plottag="HETEROGENEOUS"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5,6,7]]
@@ -1220,7 +1221,7 @@ if __name__ == "__main__":
 
 
     #development_data(bd_type, runs, 2000"0, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30]*5,from_file=False,comparison="heterogeneous",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30]*5,from_file=False,comparison="heterogeneous",estimate=False)
 
 
-    analyse_faults()
+    #analyse_faults()

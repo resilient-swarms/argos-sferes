@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="3600"
+    <experiment length="28800"
                 ticks_per_second="5"
                 random_seed="1" />
   </framework>
@@ -54,7 +54,7 @@
 		  use_virtual="False"
 		  track_stats="TRACK_STATS"
 		  ticks_per_subtrial="600"
-		  num_subtrials="1"
+		  num_subtrials="8"
 		  network_binary="bin/BO3DREAL"
 		  network_config="/home/david/argos-sferes/experiments/harvesting/adaptation_example_printnetwork.argos"
 		  stop=""
@@ -121,7 +121,7 @@
 	<camera>
         <placement idx="0" position="0.0,1.0,1.65" look_at="1.0,1.0,0" lens_focal_length="20" />
       </camera>
-    </qt-opengl> 
-  </visualization>
+    </qt-opengl>
+  </visualization> 
 
 </argos-configuration>
