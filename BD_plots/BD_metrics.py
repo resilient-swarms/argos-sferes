@@ -1094,7 +1094,7 @@ def single_development_plots(fitfun,title, runs, times, bd_type, legend_labels):
     j = 0
 
     for label in y_labels:
-        ylim = [0, 10000] if label in ["Map coverage", "Global_coverage"] else [0.0, 1.35]
+        ylim = None#[0, 1000] if label in ["Map_coverage", "Global_coverage"] else [0.0, 4.0]
         axis = None  # if ax is None else ax[j]
         temp_labels = copy.copy(legend_labels)
 
@@ -1137,16 +1137,17 @@ if __name__ == "__main__":
 
         # global
     # faults=range(50)
-    # runs=range(1,6)
+    runs=range(1,6)
     #
     # #fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
     # #               "DecayBorderCoverage", "Flocking"]  # ,"DecayBorderCoverage","Flocking"]
     # #bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity"
-    # #               ]  # file system label for bd
-    # legend_labels = ["HBD", "SDBC"]
-    # bd_type=["history", "Gomes_sdbc_walls_and_robots_std"]
-    # bybin_list=["bd","bd"]
-    # times=range(0,20500, 500)
+    #               ]  # file system label for bd
+    fitfuns=["Foraging"]
+    legend_labels = ["HBD", "SDBC"]
+    bd_type=["history", "Gomes_sdbc_walls_and_robots_std"]
+    bybin_list=["bd","bd"]
+    times=range(0,40500, 500)
 
     #make_translation_table("CORRECT", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
 
@@ -1164,15 +1165,15 @@ if __name__ == "__main__":
 
 
 
-    #single_development_plots("ForagingLarge", "", runs, times, bd_type, legend_labels)
+    single_development_plots("Foraging", "", runs, times, bd_type, legend_labels)
 
 
-    runs = range(1, 6)
-    fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
-               "DecayBorderCoverage", "Flocking"]  # ,"DecayBorderCoverage","Flocking"]
-    bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity" ]  # file system label for bd
-    legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
-    generation = "30000"
+    # runs = range(1, 6)
+    # fitfuns = ["Aggregation", "Dispersion", "DecayCoverage",
+    #            "DecayBorderCoverage", "Flocking"]  # ,"DecayBorderCoverage","Flocking"]
+    # bd_type = ["history", "Gomes_sdbc_walls_and_robots_std", "cvt_rab_spirit", "environment_diversity" ]  # file system label for bd
+    # legend_labels = ["HBD", "SDBC", "SPIRIT", "QED"]  # labels for the legend
+    # generation = "30000"
 
     # make_translation_table("DEBUG", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
     # print_best_individuals(
@@ -1185,7 +1186,7 @@ if __name__ == "__main__":
     # make_evolution_table(fitfuns,bd_type,runs,generation,by_fitfun=False)
     #make_evolution_table(fitfuns, bd_type, runs, generation, by_fitfun=True)
     #create_coverage_development_plots()
-    create_development_plots()
+    #create_development_plots()
     #create_all_development_plots()
 
     #single_development_plots("", "", runs, times, bd_type, legend_labels)

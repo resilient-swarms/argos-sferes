@@ -1107,7 +1107,7 @@ void CForagingLoopFunctions::PostStep()
       std::cout << "Harvesting time for food  " << f << " on location " << m_cFoodPos[f] << "\n is now " << m_cVisitedFood[f] << std::endl;
 #endif
    }
-
+#if HETEROGENEOUS & !RECORD_FIT
    for (size_t j = 0; j < m_unNumberRobots; ++j)
    {
       if(!stopped[j]){
@@ -1131,7 +1131,7 @@ void CForagingLoopFunctions::PostStep()
 
       reset_controller(j, reset, finished[j]);
    }
-
+#endif
    BaseEvolutionLoopFunctions::PostStep();
 
    if (virtual_energy != NULL)
