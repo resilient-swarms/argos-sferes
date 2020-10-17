@@ -107,7 +107,7 @@ for key in ${!descriptors[@]}; do
 			echo "found last generation file: "${RESUME_GENERATION}
 			export GENERATION_FILE=${RESUME_GENERATION}
 		fi
-		if [[ $GENERATION_FILE == *20000 ]]; then
+		if [[ $GENERATION_FILE == *40000 ]]; then
 			echo "skipping this one, already finished"
 		else
 			echo "submitting job"

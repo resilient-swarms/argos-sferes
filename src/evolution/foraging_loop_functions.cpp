@@ -509,7 +509,6 @@ void CForagingLoopFunctions::update_model(ForagingThymioNN &cController, size_t 
    opt[index]->push_time((double)cController.worker.total_time, all_trials_finished);
    if (!cController.worker.initial_phase) //update trial info
    {
-      
 
       size_t worker_index = cController.worker.index;
       argos::LOG << "worker " << worker_index << std::endl;
@@ -576,7 +575,7 @@ void CForagingLoopFunctions::update_joint_model(bool alltrialsfinished)
    opt[0]->update_model<ControllerEval>(current_sample, 0, 0, state_fun, alltrialsfinished);
 }
 
-void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController,bool alltrialsfinished)
+void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController, bool alltrialsfinished)
 {
    if (alltrialsfinished) // select new sample
    {
@@ -1110,7 +1109,8 @@ void CForagingLoopFunctions::PostStep()
 #if HETEROGENEOUS & !RECORD_FIT
    for (size_t j = 0; j < m_unNumberRobots; ++j)
    {
-      if(!stopped[j]){
+      if (!stopped[j])
+      {
          continue;
       }
       argos::CThymioEntity *cThym = m_pcvecRobot[j];
@@ -1118,11 +1118,11 @@ void CForagingLoopFunctions::PostStep()
 
       if (optimisation == "BO" || optimisation == "BO_noID")
       {
-         select_new_controller(cController,finished[j]);
+         select_new_controller(cController, finished[j]);
       }
       else if (optimisation == "BO_multi")
       {
-         select_new_controller(cController,finished[j]);
+         select_new_controller(cController, finished[j]);
       }
       else if (optimisation == "BO_joint")
       {

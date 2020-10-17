@@ -193,7 +193,7 @@ fi
 
 
 
-export Generation=20000
+export Generation=40000
 
 echo "doing generation ${Generation}"
 echo "using executable prefix ${command}"

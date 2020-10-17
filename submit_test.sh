@@ -7,17 +7,26 @@
 
 source activate py3.7 # just for the cvt initialisation
 
-
-
 echo ${CONFIG}
 sleep 5
 
+if [ "$1" = "identification" ]; then
+    # first get all the fitness and descriptor values
+    jobtocome="${COMMAND} ${CONFIG} identification ${FINALGEN_ARCHIVE} -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
+    echo "Starting the following command: "${jobtocome}" for all individuals"
+    echo
+    echo "Looking for individuals at: "${archivefile}
+    echo
+    echo "python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all""
+    python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all"
+    exit 1
+fi
 
-if [ "$1" != "all" ]; then
+if [ "$1" = "best" ]; then
     # now get the history of the best solution
     jobtocome="${COMMAND} ${CONFIG} ${1} ${FINALGEN_ARCHIVE} -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
     echo "Getting the ${1}:\nStarting the following command: "${jobtocome}""
-    echo 
+    echo
     echo "Looking for individuals at: "${archivefile}
     python BD_plots/process_archive_data.py -c "${jobtocome}" -o "${Searchfolder}" -g "${FINALGEN_ARCHIVE}" -b "best"
     if [ "${1}" = "video" ]; then
@@ -26,16 +35,13 @@ if [ "$1" != "all" ]; then
         echo "video compiled . Done."
     fi
     exit 1
-fi 
-
+fi
 
 # first get all the fitness and descriptor values
 jobtocome="${COMMAND} ${CONFIG} all ${FINALGEN_ARCHIVE} -d ${OUTPUTDIR} --load ${generationfile} --o outputfile"
 echo "Starting the following command: "${jobtocome}" for all individuals"
-echo 
+echo
 echo "Looking for individuals at: "${archivefile}
 echo
 echo "python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all""
 python BD_plots/process_archive_data.py -c "${jobtocome}" -p "${archivefile}" -o "${OUTPUTDIR}" -b "all"
-
-

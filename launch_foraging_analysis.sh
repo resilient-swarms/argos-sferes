@@ -19,8 +19,8 @@ else
 fi
 echo "will use template file ${template_file}"
 
-export FINALGEN_ARCHIVE=20000 # never forget zero-padding for generation file, not for archive file
-export FINALGEN_GENFILE=20000
+export FINALGEN_ARCHIVE=40000 # never forget zero-padding for generation file, not for archive file
+export FINALGEN_GENFILE=40000
 
 echo "doing generation ${FINALGEN_ARCHIVE}"
 sleep 2.5
@@ -62,6 +62,8 @@ perturbations_folder="experiments/harvesting/perturbations"
 declare -A faultnum
 
 faultnum["sensor"]=30
+faultnum["lwheel_set_half"]=1
+faultnum["rwheel_set_half"]=1
 faultnum["proximity_sensor"]=20
 faultnum["ground_sensor"]=20
 faultnum["actuator"]=20
@@ -70,11 +72,12 @@ faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
 faultnum["agents"]=12       # {1,2,...,12} agents included
 
-for FaultCategory in proximity_sensor ; do
+for FaultCategory in lwheel_set_half rwheel_set_half; do
     numfaults=${faultnum[${FaultCategory}]}
-    for FaultIndex in $(seq 5 5); do
+    for FaultIndex in $(seq 1 1); do
         for key in ${!descriptors[@]}; do
             DescriptorType=${key}
+            EffectiveDescriptorType=${DescriptorType}
             BD_DIMS=${descriptors[${key}]}
             CVT=${voronoi[${DescriptorType}]}
             if [ "$DescriptorType" = "baseline" ]; then
@@ -91,7 +94,7 @@ for FaultCategory in proximity_sensor ; do
             echo "has ${BD_DIMS} dimensions"
             echo "tag is ${tag}"
 
-            for Replicates in $(seq 4 4); do
+            for Replicates in $(seq 1 5); do
                 # Take template.argos and make an .argos file for this experiment
                 SUFFIX=${Replicates}
 
@@ -125,6 +128,14 @@ for FaultCategory in proximity_sensor ; do
                     food_loop="0 1 2 3 4 5"
                     FaultID=$(($FaultIndex - 1))
                     echo "food scarcity"
+                elif [ "$FaultCategory" = "lwheel_set_half" ] || [ "$FaultCategory" = "rwheel_set_half" ]; then
+                    robots=1
+                    FaultID=-1
+                    fault=$FaultType
+                    echo "one wheel damaged"
+                    EffectiveDescriptorType="empty"
+                    echo "looking at perturbation: ${FaultType}"
+                    sleep 4
                 else
                     robots=6
                     fault=$FaultType
@@ -190,7 +201,7 @@ for FaultCategory in proximity_sensor ; do
                         -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
                         -e "s|SEED|${Replicates}|" \
                         -e "s|FITFUN_TYPE|${FitfunType}|" \
-                        -e "s|DESCRIPTOR_TYPE|${DescriptorType}|" \
+                        -e "s|DESCRIPTOR_TYPE|analysis|" \
                         -e "s|OUTPUTFOLDER|${Outfolder}|" \
                         -e "s|CENTROIDSFOLDER|experiments/centroids|" \
                         -e "s|SENSOR_RANGE|0.11|" \
@@ -247,7 +258,7 @@ for FaultCategory in proximity_sensor ; do
                             bash submit_test.sh $2 # submit in your own system; 7Zip support needed+jobs are short
                         else
                             echo "submit test"
-                            sbatch submit_test.sh $2 # submit to iridis
+                            bash submit_test.sh $2 # submit to iridis
                         fi
                     fi
                 done

@@ -693,8 +693,8 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                 #         p_sd_120 = sd
                 #         mindist_120= dist
                 #         performances1[c] = data
-                if max_evals[c] == 1 or (consumed >29*NUM_SECONDS and consumed <31*NUM_SECONDS): # try to find closest to 360
-                    dist = abs(consumed - 30*NUM_SECONDS)
+                if max_evals[c] == 1 or (consumed >99*NUM_SECONDS and consumed <101*NUM_SECONDS): # try to find closest to 360
+                    dist = abs(consumed - 100*NUM_SECONDS)
                     if dist < mindist_3600:
                         t_3600 = consumed
                         p_3600 = mean
@@ -717,7 +717,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                 #         p_sd_2400 = sd
                 #         mindist_2400 = dist
                 #         performances20[c] = data
-                elif VE and consumed >= 3600.0:
+                elif VE and consumed >= 100*NUM_SECONDS:
                     final_performances=np.append(final_performances,mean - min_reference)
                     break
             # print(str(t_1200) + " " + str(p_1200) + " " + str(p_sd_1200))
@@ -887,17 +887,17 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         VE_tags = ["_VE_init" + str(j) for j in range(20)]
         num_VE_conditions = 20
     elif comparison=="heterogeneous":
-        conditions = ["H-SMBO (prior)","H-SMBO","H-SMBO (no ID)","H-SMBO (random)", "H-Random"]
+        conditions = ["H-SMBO","H-SMBO (random)"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
-        settings = [("single_exp_IDprior", False, "alpha0.25_l0.1_UCB_M52VarNoise"),
-                    ("single_exp", False, "correctreplace_alpha0.25_l0.1_UCB_M52VarNoise"),
-                    ("single_exp", False, "noID"),("single_exp_random", False, "alpha0.25_l0.1_UCB_M52VarNoise"), ("single_exp_randomsearch", False, "final")]
+        settings = [
+                    ("single_exp", False, "alpha0.25_l0.1_UCB_M52VarNoise"),
+            ("single_exp_random", False, "alpha0.25_l0.1_UCB_M52VarNoise")]
         plottag="HETEROGENEOUS"
-        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5,6,7]]
-        num_VE_conditions=5
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4]]
+        num_VE_conditions=2
     elif comparison=="fest":
         conditions = ["SMBO", "VE-SMBO E(0)=3","VE-SMBO E(0)=4","VE-SMBO E(0)=5","VE-SMBO E(0)=6","VE-SMBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
@@ -1221,7 +1221,7 @@ if __name__ == "__main__":
 
 
     #development_data(bd_type, runs, 2000"0, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30]*5,from_file=False,comparison="heterogeneous",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[100]*2,from_file=False,comparison="heterogeneous",estimate=False)
 
 
     #analyse_faults()
