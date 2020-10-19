@@ -7,6 +7,12 @@ set_latest() {
 source activate py3.7 # just for the cvt initialisation
 
 data=$1
+
+if [ -z "${data}" ]; then
+	echo "Error: no datafolder given"
+	exit 125
+fi
+
 large=$2 # Large or nothing
 
 if [[ $large == "Large" ]]; then
@@ -23,14 +29,12 @@ mkdir -p $data
 declare -A descriptors
 declare -A voronoi
 
-#descriptors["cvt_spirit"]=400
-#voronoi["cvt_spirit"]="cvt"
-#descriptors["multiagent_spirit"]=576
-#voronoi["multiagent_spirit"]="cvt"
-descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
-descriptors["history"]=3
-voronoi["history"]=""
+descriptors["cvt_ground_spirit"]=768
+voronoi["cvt_ground_spirit"]="cvt"
+#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+#descriptors["history"]=3
+#voronoi["history"]=""
 SimTime=120
 FitfunType=Foraging
 
