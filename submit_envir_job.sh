@@ -6,7 +6,7 @@
 #SBATCH --job-name=envir
 
 
-FILE=./bin/envir_evol${VORONOI}${BD}D
+FILE=./bin/envir_evol${tag}
 if [ -f "$FILE" ]; then
     echo "$FILE exist"
 else 

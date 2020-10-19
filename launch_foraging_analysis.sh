@@ -1,6 +1,10 @@
 #!/bin/bash -e
 
 data=$1
+if [ -z "${data}" ]; then
+	echo "Error: no datafolder given"
+	exit 125
+fi
 video=$3
 UseVirtual=$4
 if [ "$UseVirtual" = "True" ]; then
@@ -19,8 +23,8 @@ else
 fi
 echo "will use template file ${template_file}"
 
-export FINALGEN_ARCHIVE=40000 # never forget zero-padding for generation file, not for archive file
-export FINALGEN_GENFILE=40000
+export FINALGEN_ARCHIVE=2500 # never forget zero-padding for generation file, not for archive file
+export FINALGEN_GENFILE=2500
 
 echo "doing generation ${FINALGEN_ARCHIVE}"
 sleep 2.5
@@ -45,11 +49,14 @@ declare -A behav
 
 command="bin/analysis" # note: cvt and 10D does not really matter since we are not evolving
 
-descriptors["Gomes_sdbc_walls_and_robots_std"]=10
-voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+descriptors["cvt_ground_spirit"]=768
+voronoi["cvt_ground_spirit"]="cvt"
 
-descriptors["history"]=3
-voronoi["history"]=""
+#descriptors["Gomes_sdbc_walls_and_robots_std"]=10
+#voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
+
+#descriptors["history"]=3
+#voronoi["history"]=""
 
 SimTime=120
 FitfunType="Foraging"

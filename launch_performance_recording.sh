@@ -3,7 +3,10 @@
 # run environment_diversity on generation START:END by STEP
 
 data=$1
-
+if [ -z "${data}" ]; then
+	echo "Error: no datafolder given"
+	exit 125
+fi
 video=$4
 
 if [ ${video} = "video" ]; then	

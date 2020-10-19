@@ -1,3 +1,6 @@
+#ifndef LOOPFUNCTIONS_INCLUDE_H
+#define LOOPFUNCTIONS_INCLUDE_H
+
 //put this file in your scripts
 
 #if NN_DIM_TYPE == 1
@@ -117,3 +120,6 @@ namespace sferes
         } // *** end of eval ***
     };
 } // namespace sferes
+
+
+#endif

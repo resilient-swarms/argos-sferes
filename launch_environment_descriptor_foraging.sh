@@ -12,28 +12,22 @@ ceiling_divide() {
 source activate py3.7 # just for the cvt initialisation
 
 data=$1
-
+if [ -z "${data}" ]; then
+	echo "Error: no datafolder given"
+	exit 125
+fi
 # Create a data diretory
 mkdir -p $data
 declare -A descriptors
 declare -A voronoi
 
-#descriptors["cvt_spirit"]=400
-#voronoi["cvt_spirit"]="cvt"
-#descriptors["multiagent_spirit"]=576
-#voronoi["multiagent_spirit"]="cvt"
-
 descriptors["environment_diversity"]=6
 voronoi["environment_diversity"]=""
-time["DecayCoverage"]=400
-time["DecayBorderCoverage"]=400
-time["Dispersion"]=400
-time["Aggregation"]=400
-time["Flocking"]=400
+time["Foraging"]=120
 
 export TASK_TYPE="task_specific"
 
-for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flocking; do # add Flocking later
+for FitfunType in Foraging; do
 	echo 'Fitfun'${FitfunType}
 	SimTime=${time[${FitfunType}]}
 	echo "simtime"${SimTime}
@@ -41,7 +35,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 		DescriptorType=${key}
 		BD_DIMS=${descriptors[${key}]}
 		CVT=${voronoi[${DescriptorType}]}
-		export tag=${CVT}${BD_DIMS}D
+		export tag=${CVT}${BD_DIMS}DREAL
 		echo "doing ${DescriptorType} now"
 		echo "has ${BD_DIMS} dimensions"
 		echo "tag is ${tag}"
@@ -56,7 +50,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			fi
 			# Take template.argos and make an .argos file for this experiment
 			SUFFIX=${Replicates}
-			ConfigFolder=${data}/${FitfunType}range0.11/${DescriptorType}
+			ConfigFolder=${data}/${FitfunType}/${DescriptorType}
 			Outfolder=${ConfigFolder}/results${SUFFIX}
 			ConfigFile=${ConfigFolder}/exp_${SUFFIX} # no .argos tag here, will add filenumber and .argos later
 
@@ -108,20 +102,18 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 								count4=$((count4 + 1))
 								count5=0
 
-								for RabRange in 0.25 0.50 1.0 2.0; do
+								for GroundNoise in 10 20 40 80; do
 									count5=$((count5 + 1))
 									count6=0
-									TwoR=$(calc 2*${RabRange})
-									RabGrid=$(ceiling_divide ${Wall} ${TwoR}) #  divide arena spanned by walls into cells of 2R
-									# take ceiling in case not divisible (e.g., wall=5 and 2R=4, take 2 grid cells per dimension)
 									for ProxiRange in 0.055 0.11 0.22 0.44; do # 4800 combinations in total
 										count6=$((count6 + 1))
 										ConfigTag="${count1},${count2},${count3},${count4},${count5},${count6}"
 										#echo ${ConfigTag}
 										mkdir -p $Outfolder
 										sed -e "s|THREADS|0|" \
-											-e "s|TRIALS|50|" \
+											-e "s|TRIALS|8|" \
 											-e "s|ROBOTS|${Robots}|" \
+											-e "s|GROUND_NOISE|${GroundNoise}|" \
 											-e "s|EXPERIMENT_LENGTH|${SimTime}|" \
 											-e "s|SEED|${Replicates}|" \
 											-e "s|FITFUN_TYPE|${FitfunType}|" \
@@ -141,7 +133,7 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 											-e "s|NUM_CYLINDERS|${Cylinder}|" \
 											-e "s|RAB_RANGE|${RabRange}|" \
 											-e "s|RAB_GRID,RAB_GRID|${RabGrid},${RabGrid}|" \
-											experiments/environment_template.argos \
+											experiments/harvesting/environment_template_harvesting.argos \
 											>${ConfigFile}_${ConfigTag}.argos
 									done
 								done
@@ -152,10 +144,10 @@ for FitfunType in Aggregation Dispersion DecayCoverage DecayBorderCoverage Flock
 			fi
 
 			echo "submitting job"
-			if [[ $GENERATION_FILE == *10100 ]]; then
+			if [[ $GENERATION_FILE == *40100 ]]; then
 				echo "skipping this one, already finished"
 			else
-				sbatch submit_envir_job.sh
+				bash submit_envir_job.sh
 			fi
 
 		done

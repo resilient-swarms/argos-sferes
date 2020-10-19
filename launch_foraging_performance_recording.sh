@@ -3,6 +3,10 @@
 # run environment_diversity on generation START:END by STEP
 
 data=$1
+if [ -z "${data}" ]; then
+	echo "Error: no datafolder given"
+	exit 125
+fi
 # 2 is all vs best
 video=$3
 UseVirtual=$4
