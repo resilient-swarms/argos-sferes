@@ -59,7 +59,7 @@ std::vector<point_t> load_centroids(const std::string &centroids_filename)
 
         while (stringStream >> temp)
             cols.push_back(temp);
-        num_cols = cols.size();
+        //num_cols = cols.size();
         //std::cout << "line "<< i << "num cols = "<< num_cols;
         if (cols.size() != EAParams::ea::number_of_dimensions)
         {
