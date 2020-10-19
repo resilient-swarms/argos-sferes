@@ -1086,10 +1086,10 @@ CVT_RAB_Spirit::CVT_RAB_Spirit(size_t behav_dim) : CVT_Spirit(behav_dim)
 	num_actuator_bins = 4;
 
 	/* number of joint sensory bins */
-	num_joint_sensory_bins = 64; // here 2^2 * 2^4 bins for mean (front-back proxi; quadrant-based RAB)
+	num_joint_sensory_bins = 64; // here 2^2 * 2^4 bins for mean (front-back RAB; quadrant proxi)
 
 	/* number of joint actuator bins simply */
-	num_joint_actuator_bins = 16; // 5 bins per wheel
+	num_joint_actuator_bins = 16; // 4 bins per wheel
 
 	freqs.resize(num_joint_sensory_bins);
 }
@@ -1098,6 +1098,33 @@ CVT_RAB_Spirit::CVT_RAB_Spirit(size_t behav_dim) : CVT_Spirit(behav_dim)
 void CVT_RAB_Spirit::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 	size_t sens_bin = cLoopFunctions.get_quadrant_binRAB();
+	size_t act_bin = cLoopFunctions.get_joint_actuator_bin(num_actuator_bins);
+	++freqs[sens_bin][act_bin];
+}
+
+
+CVT_Ground_Spirit::CVT_Ground_Spirit(size_t behav_dim) : CVT_Spirit(behav_dim)
+{
+	/* most of the code remains the same as CVT_Spirit except the meaning of the bins and the number 
+	* number of bins 
+	/*
+
+	/* num actuator bins */
+	num_actuator_bins = 4;
+
+	/* number of joint sensory bins */
+	num_joint_sensory_bins = 48; // here 3 * 2^4 bins for mean (white-grey-black; 
+								// quadrant proxi)
+
+	/* number of joint actuator bins simply */
+	num_joint_actuator_bins = 16; // 4 bins per wheel
+
+	freqs.resize(num_joint_sensory_bins);
+}
+/*after getting outputs, can update the descriptor if needed*/
+void CVT_Ground_Spirit::set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions)
+{
+	size_t sens_bin = cLoopFunctions.get_binGround();
 	size_t act_bin = cLoopFunctions.get_joint_actuator_bin(num_actuator_bins);
 	++freqs[sens_bin][act_bin];
 }

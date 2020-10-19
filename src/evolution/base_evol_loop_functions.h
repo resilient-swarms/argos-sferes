@@ -140,6 +140,9 @@ public:
 
     /* get activation bin for the activations of each sensory quadrant, assuming use proximity+RAB sensors */
     size_t get_quadrant_binRAB() const;
+    
+    /* get activation bin for the activations of sensors, assuming use proximity+ground sensors */
+    size_t get_binGround() const;
 
     /* get activation of groups of inputs */
     std::vector<float> get_inputgroup_activations(std::vector<size_t> end_indexes, float thresh, size_t start=0) const;

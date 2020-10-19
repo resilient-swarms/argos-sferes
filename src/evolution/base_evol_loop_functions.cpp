@@ -146,6 +146,10 @@ void BaseEvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new CVT_RAB_Spirit();
         }
+        else if (s == "cvt_ground_spirit")
+        {
+            this->descriptor = new CVT_Ground_Spirit();
+        }
         else if (s == "multiagent_spirit")
         {
             this->descriptor = new MultiAgent_Spirit();
@@ -602,6 +606,74 @@ size_t BaseEvolutionLoopFunctions::get_quadrant_binRAB() const
             }
         }
     }
+    //std::cout<<"bin " << bin<<std::endl;
+    return bin;
+}
+
+/* get activation bin for the activations of sensors, assuming use proximity+ground sensors */
+size_t BaseEvolutionLoopFunctions::get_binGround() const
+{
+    size_t bin = 0;
+    //size_t color = 1; // 0=white; 1=grey; 2=black; grey is most frequent, then white, then black
+    // two ground sensors: 1 trit -- grey-white-black; grey on one sensor and white/black on another is set to white/black
+    // note: food sources are far from nest, so no need to specify conflict resolution for white vs black sensory readings
+    for (int i = 7; i <= 8; ++i)
+    {
+
+        if (inputs[i] < -0.70) // note : after normalisation, -1 is black and 1 is white, 0.0 represents grey
+        {
+            //std::cout<<"left proximity"<<std::endl;
+            bin += 16;
+            break;
+        }
+        if (inputs[i] > 0.70) // note : after normalisation, -1 is black and 1 is white, 0.0 represents grey
+        {
+            //std::cout<<"left proximity"<<std::endl;
+            bin += 32;
+            break;
+        }
+    }
+
+    // proximity sensors: (quadrants) -- 4 first bits
+    // front left:
+    for (int i = 0; i <= 1; ++i)
+    {
+        if (inputs[i] < 0.00) // note : after normalisation, -1 is maximal sensory firing and 1 is minimal sensory firing, 0.0 represents middle
+        {
+            //std::cout<<"left proximity"<<std::endl;
+            bin += 8;
+            break;
+        }
+    }
+    // front center
+    if (inputs[2] < 0.00)
+    {
+        //std::cout<<"front proximity"<<std::endl;
+        bin += 4;
+    }
+    // front right
+    for (int i = 3; i <= 4; ++i)
+    {
+        if (inputs[i] < 0.00)
+        {
+            //std::cout<<"right proximity"<<std::endl;
+            bin += 2;
+            break;
+        }
+    }
+    //back:
+    for (int i = 5; i <= 6; ++i)
+    {
+        if (inputs[i] < 0.00)
+        {
+            //std::cout<<"back proximity"<<std::endl;
+            bin += 1;
+            break;
+        }
+    }
+
+    // now the ground sensors
+
     //std::cout<<"bin " << bin<<std::endl;
     return bin;
 }

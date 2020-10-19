@@ -13,9 +13,9 @@ home=os.environ["HOME"]
 
 N = 1000000  # as usual take 100000 datapoints
 batch_size = 20000  # avoid too big memory requirement
-BD = 1024
+BD = 768
 centroids = 4096
-states = 64
+states = 48
 actions = 16
 prefix = home + "/argos-sferes/experiments/centroids/SPIRIT"
 

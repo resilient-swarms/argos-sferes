@@ -16,8 +16,8 @@
   <!-- *************** -->
   <controllers>
 
-    <foraging_nn_controller3DREAL id="tnn"
-                               library="lib/libforaging_nn_controller3DREAL.so">
+    <foraging_nn_controllercvt768DREAL id="tnn"
+                               library="lib/libforaging_nn_controllercvt768DREAL.so">
       <actuators>
         <differential_steering implementation="default" />
 	<!--<thymio_led            implementation="default" medium="leds"/> -->
@@ -37,21 +37,21 @@
 	/>
         
       </params>      
-      </foraging_nn_controller3DREAL>
+      </foraging_nn_controllercvt768DREAL>
   </controllers>
 
   <!-- ****************** -->
   <!-- * Loop functions * -->
   <!-- ****************** -->
-  <loop_functions library="lib/libforaging_loopfunctions3DREAL"
-                  label="foraging_loopfunctions3DREAL"
+  <loop_functions library="lib/libforaging_loopfunctionscvt768DREAL"
+                  label="foraging_loopfunctionscvt768DREAL"
                   trials="8"
-                  robots="6"
-                  descriptortype="history"    
+                  robots="1"
+                  descriptortype="cvt_ground_spirit"    
                   fitfuntype="Foraging"
                   output_folder="experiments/harvesting"
-                  centroids_folder="CENTROIDSFOLDER"
-		  use_virtual="True"
+                  centroids_folder="experiments/centroids"
+		  use_virtual="False"
 		  track_stats="True"
 
 
@@ -83,7 +83,7 @@
         <distribute>
       <position method="uniform" min="0.5,0.5,0" max="1.5,1.5,0" />
       <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="6" max_trials="1000">
+      <entity quantity="1" max_trials="1000">
         <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
           <controller config="tnn" />
         </Thymio>

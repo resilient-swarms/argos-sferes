@@ -39,7 +39,7 @@ std::vector<point_t> load_centroids(const std::string &centroids_filename)
     }
 
     fin.close();
-
+    
     if (lines.size() != EAParams::ea::number_of_clusters)
     {
         std::cerr << "Error: The number of clusters "
@@ -48,7 +48,7 @@ std::vector<point_t> load_centroids(const std::string &centroids_filename)
                   << lines.size() << ".\n";
         exit(1);
     }
-
+    size_t num_cols;
     for (size_t i = 0; i < lines.size(); ++i)
     {
         std::vector<std::string> cols;
@@ -59,7 +59,8 @@ std::vector<point_t> load_centroids(const std::string &centroids_filename)
 
         while (stringStream >> temp)
             cols.push_back(temp);
-
+        num_cols = cols.size();
+        std::cout << "line "<< i << "num cols = "<< num_cols;
         if (cols.size() != EAParams::ea::number_of_dimensions)
         {
             std::cerr << "Error: The number of dimensions "

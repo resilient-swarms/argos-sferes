@@ -507,7 +507,17 @@ class CVT_RAB_Spirit : public CVT_Spirit
 {
   // extends the CVT_Spirit class to calculate the sensory bin based on RAB sensors additionally
 public:
-  CVT_RAB_Spirit(size_t behav_dim = 4600);
+  CVT_RAB_Spirit(size_t behav_dim = 1024);
+
+  /*after getting outputs, can update the descriptor if needed*/
+  virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
+};
+
+class CVT_Ground_Spirit : public CVT_Spirit
+{
+  // extends the CVT_Spirit class to calculate the sensory bin based on ground sensors additionally
+public:
+  CVT_Ground_Spirit(size_t behav_dim = 768);
 
   /*after getting outputs, can update the descriptor if needed*/
   virtual void set_output_descriptor(size_t robot_index, BaseEvolutionLoopFunctions &cLoopFunctions);
