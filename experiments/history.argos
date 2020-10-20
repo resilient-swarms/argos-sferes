@@ -24,8 +24,8 @@
   <!-- *************** -->
   <controllers>
 
-    <nn_controller id="tnn"
-                           library="lib/libnn_controller.so"                
+    <nn_controller2D id="tnn"
+                           library="lib/libnn_controller2D.so"                
                     >
       <actuators>
         <differential_steering implementation="default" />
@@ -39,7 +39,7 @@
 			fault_behavior="FAULT_PROXIMITYSENSORS_SETMIN" 
 	                id_faulty_robot="0" />
       </params>
-    </nn_controller>
+    </nn_controller2D>
 
   </controllers>
 

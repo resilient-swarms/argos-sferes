@@ -51,4 +51,4 @@ void CThymioNNController::ControlStep()
 
 }
 
-REGISTER_CONTROLLER(CThymioNNController, "nn_controller")
+REGISTER_CONTROLLER(CThymioNNController, "nn_controller"+ std::string(TAG))

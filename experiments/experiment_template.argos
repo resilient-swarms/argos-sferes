@@ -24,8 +24,8 @@
   <!-- *************** -->
   <controllers>
 
-    <nn_controller id="tnn"
-                           library="lib/libnn_controller.so"                      
+    <nn_controllerBEHAVIOUR_TAG id="tnn"
+                           library="lib/libnn_controllerBEHAVIOUR_TAG.so"                      
                     >
       <actuators>
         <differential_steering implementation="default" />
@@ -40,7 +40,7 @@
 	                id_faulty_robot="-1" />
       </params>
 
-    </nn_controller>
+    </nn_controllerBEHAVIOUR_TAG>
 
   </controllers>
 

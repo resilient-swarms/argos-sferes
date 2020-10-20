@@ -1427,7 +1427,7 @@ void AnalysisDescriptor::analyse_individual(BaseEvolutionLoopFunctions &cLoopFun
 		}
 	}
 }
-
+#ifdef HETEROGENEOUS
 void IdentificationDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {
 }
@@ -1805,6 +1805,8 @@ std::vector<float> PerfectIdentificationDescriptorSorted::after_trials(BaseEvolu
 		return {1, 1, 1};
 	}
 }
+
+#endif
 
 void EmptyDescriptor::before_trials(BaseEvolutionLoopFunctions &cLoopFunctions)
 {

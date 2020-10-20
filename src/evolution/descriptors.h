@@ -826,7 +826,7 @@ public:
   /* get the descriptor by its id-string and then print it to file prefixed by filename, suffixed by the descriptor name*/
   void analyse_individual(BaseEvolutionLoopFunctions &cLoopFunctions, float fFitness);
 };
-
+#ifdef HETEROGENEOUS
 class IdentificationDescriptor : public Descriptor
 {
 public:
@@ -1005,6 +1005,7 @@ public:
   /*summarise BD at the end of trials*/
   virtual std::vector<float> after_trials(BaseEvolutionLoopFunctions &cLoopFunctions);
 };
+#endif
 
 
 class EmptyDescriptor : public Descriptor

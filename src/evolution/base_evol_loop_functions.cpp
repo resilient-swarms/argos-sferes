@@ -171,6 +171,7 @@ void BaseEvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             // wait for manual initialisation in analysis.cpp
         }
+#ifdef HETEROGENEOUS
         else if (s == "identification")
         {
             this->descriptor = new IdentificationDescriptor(m_unNumberRobots);
@@ -195,6 +196,7 @@ void BaseEvolutionLoopFunctions::init_descriptors(TConfigurationNode &t_node)
         {
             this->descriptor = new RandomIdentificationDescriptor(m_unNumberRobots);
         }
+#endif
         else if (s == "empty")
         {
             this->descriptor = new EmptyDescriptor();

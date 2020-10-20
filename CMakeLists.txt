@@ -397,17 +397,14 @@ else(NOT BASELINE)
 
         # process NN_INPUT_TYPE
     if(${NN_INPUT_TYPE} EQUAL 0)
-        set(CONTROL "nn_controller")
+        set(CONTROL "nn_controller${tag}")
         message("using proximity and RAB (NN_INPUT_TYPE=0)")
         set(exec_prefix "behaviour_evol")
             # Descend into the controllers directory
         add_library(nn_controller${tag} SHARED
             src/evolution/nn_controller.h
             src/evolution/nn_controller.cpp)
-
-        
         add_definitions(-DNN_DIM_TYPE=0)
-
     elseif(${NN_INPUT_TYPE} EQUAL 1)
         message("using foraging-nn controller: proximity and ground (NN_INPUT_TYPE=1)")
         set(CONTROL "foraging_nn_controller${tag}")

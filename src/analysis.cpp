@@ -20,17 +20,23 @@ Descriptor *init_analysis_descriptor(MainLoopFunctions &cLoopFunctions, size_t i
         slaves["sa_history"] = new SubjectiveHistoryDescriptor(cLoopFunctions.output_folder + "/sa_history" + std::to_string(individual_index) + ".temp");
         slaves["xy_history"] = new ObjectiveHistoryDescriptor(cLoopFunctions.output_folder + "/xy_history" + std::to_string(individual_index) + ".temp");
     }
+    else if (!strcmp(best, "empty")) // remember, strcmp returns 0 if they are equal
+    {
+        slaves["empty"] = new EmptyDescriptor();
+    }
     else if (!strcmp(best, "all")) // remember, strcmp returns 0 if they are equal
     {
         slaves["sdbc"] = new SDBC(&cLoopFunctions, "cvt_Gomes_sdbc_walls_and_robots_std", 10);
         slaves["handcrafted"] = new IntuitiveHistoryDescriptor(&cLoopFunctions, 3);
         slaves["spirit"] = new CVT_RAB_Spirit(1024);
     }
+#ifdef HETEROGENEOUS
     else if (!strcmp(best, "identification")) // remember, strcmp returns 0 if they are equal
     {
         // do nothing; no descriptor needed and saves some time
-        slaves["identification"] = new IdentificationWheelDescriptor(cLoopFunctions.m_unNumberRobots,true);
+        slaves["identification"] = new IdentificationWheelDescriptor(cLoopFunctions.m_unNumberRobots, true);
     }
+#endif
     else if (!strcmp(best, "video")) // remember, strcmp returns 0 if they are equal
     {
         // do nothing; no descriptor needed and saves some time
