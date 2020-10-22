@@ -177,12 +177,13 @@ struct Params
 #endif
     };
 #ifdef HETEROGENEOUS
-    static std::vector<Eigen::VectorXd> busy_samples; //index of the robot -> its current sample
+    static std::vector<Eigen::VectorXd> busy_samples; // busy samples for each group of robots
     static constexpr double gamma = 1.0f;
     static double L;
     static double M;
     static size_t count;
     static size_t map_index;
+    static bool multi;
     static void remove_from_busysamples(const Eigen::VectorXd &sample)
     {
         // std::ofstream busylog("busy_samples.txt",std::ios::app);
@@ -1103,6 +1104,7 @@ Params::archiveparams::archive_t Params::archiveparams::old_archive;
 
 #define ACQ_UCB 0 // default
 #define ACQ_UCB_ID 1
+#define ACQ_UCB_LOCAL 2
 
 #if BO_KERNEL == KERN_M52_VarNoise
 typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
@@ -1115,7 +1117,7 @@ typedef kernel::MaternFiveHalvesVariableNoiseAndLengthscale<Params> Kernel_t;
 typedef kernel::MaternFiveHalves<Params> Kernel_t;
 #endif
 //typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
-typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
+
 //typedef opt::ExhaustiveSearchMultiMap<Params> InnerOpt_t;
 //typedef boost::fusion::vector<stop::MaxPredictedValue<Params>> Stop_t;
 typedef mean::MeanArchive<Params> Mean_t;
@@ -1131,8 +1133,13 @@ typedef init::NoInit<Params> Init_t;
 typedef model::GP<Params, Kernel_t, Mean_t> GP_t;
 #if BO_ACQUISITION == ACQ_UCB_ID
 typedef acqui::UCB_ID<Params, GP_t> Acqui_t;
+typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
+#elif BO_ACQUISITION == ACQ_UCB_LOCAL
+typedef acqui::UCB_LocalPenalisation<Params, GP_t> Acqui_t;
+typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
 #else
 typedef acqui::UCB<Params, GP_t> Acqui_t;
+typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
 #endif
 //typedef acqui::UCB_LocalPenalisation<Params, GP_t> Acqui_t;
 typedef bayes_opt::BOptimizerAsync<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<Acqui_t>, acquiopt<InnerOpt_t>, statsfun<Stat_t>> Opt_t;

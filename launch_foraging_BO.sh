@@ -198,7 +198,7 @@ fi
 
 
 
-export Generation=40000
+export Generation=20000
 
 echo "doing generation ${Generation}"
 echo "using executable prefix ${command}"
@@ -264,7 +264,7 @@ faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,
 faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
 faultnum["agents"]="3 12 24"      # {1,2,...,12} agents included
 
-for FaultCategory in proximity_sensor; do
+for FaultCategory in food_scarcity; do
     faults=${faultnum[${FaultCategory}]}
     for FaultIndex in ${faults}; do
         for key in ${!descriptors[@]}; do
@@ -441,7 +441,7 @@ for FaultCategory in proximity_sensor; do
                     if [[ "$run_type" == BO_single* ]] || [[ "$run_type" == random_single* ]];then
                          echo "submitting single job"
                          #sleep 1sh
-                         sbatch submit_single.sh
+                         bash submit_single.sh
                     else
                         echo "submitting ite job"
                         #sleep 10

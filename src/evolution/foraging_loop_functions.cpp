@@ -12,6 +12,7 @@ std::vector<Params::archiveparams::archive_t> Params::archiveparams::multimap;
 std::map<std::vector<double>, bool, Params::archiveparams::classcomp> Params::archiveparams::checked_constraints; // for each constraint, whether or not it was checked
 
 size_t Params::map_index;
+bool Params::multi = false;
 #endif
 
 /****************************************/
@@ -269,6 +270,10 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double
    {
       opt.push_back(new Opt_t());
    }
+   else
+   {
+      Params::multi = true;
+   }
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
@@ -353,6 +358,7 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double
          count[cController.FBehavior] = worker_idx;
          cController.worker.opt_index = opt_idx;
          Eigen::VectorXd result = opt[opt_idx]->select_sample<ControllerEval>({});
+         opt[opt_idx]->worker_samples[cController.worker.index] = result;
          cController.worker.new_sample = result.head(BEHAV_DIM);
          std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
          cController.select_net(bd, num_subtrials, ticks_per_subtrial);
@@ -374,7 +380,6 @@ void CForagingLoopFunctions::init_randomsearch()
    opt[0]->optimize_init<ControllerEval>(0, m_unNumberRobots, state_fun); //just to get some useful stats
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
-      Params::busy_samples.push_back(opt[0]->NULL_VEC);
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
 
@@ -580,13 +585,12 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
    if (alltrialsfinished) // select new sample
    {
       Eigen::VectorXd old_x = cController.worker.get_sample();
-      Eigen::VectorXd new_x = opt[0]->select_sample<ControllerEval>(cController.worker.F);
-      std::ofstream busy_log("busy_samples.txt", std::ios::app);
-      busy_log << "worker_index " << cController.worker.index << std::endl;
+      size_t opt_index = cController.worker.opt_index;
+      Eigen::VectorXd new_x = opt[opt_index]->select_sample<ControllerEval>(cController.worker.F);
+      size_t worker_idx = cController.worker.index;
+      opt[opt_index]->worker_samples[worker_idx] = new_x;
       std::cout << "old_x " << old_x.transpose() << std::endl;
       std::cout << "new_x " << new_x.transpose() << std::endl;
-      Params::remove_from_busysamples(old_x);
-      Params::add_to_busysamples(new_x);
       cController.worker.new_sample = new_x.head(BEHAV_DIM);
       argos::LOG << "new sample" << new_x << std::endl;
       std::vector<double> bd(new_x.data(), new_x.data() + new_x.rows() * new_x.cols());
@@ -1077,7 +1081,7 @@ void CForagingLoopFunctions::PostStep()
          }
          else if (optimisation == "BO_multi")
          {
-            update_model(cController, j, alltrialsfinished, true);
+            update_model(cController, cController.worker.opt_index, alltrialsfinished, true); // stat-index = opt-index
          }
          else if (optimisation == "random")
          {

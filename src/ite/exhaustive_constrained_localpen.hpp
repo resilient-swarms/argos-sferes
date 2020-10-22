@@ -18,13 +18,6 @@ namespace limbo
             Eigen::VectorXd operator()(F &f, const Eigen::VectorXd &init, bool bounded, const Eigen::VectorXd &constraint, AggregatorFun afun) const
             {
 
-                Params::M =  get_M<F>(f, constraint);// set to max observation instead
-                Params::L = get_L<F>(f, constraint);
-                if (Params::L<1e-7)
-                {
-                    Params::L=10.0;//to avoid problems in cases in which the model is flat; not sure why 1e-7 vs 10 but this is used in GPyOpt
-                } 
-                std::cout << "using L=" << Params::L << std::endl;
                 std::cout << "In ExhaustiveConstrainedLocalPenalty operator " << std::endl;
                 std::cout << "with constraint " << constraint << std::endl;
                 float best_acqui = -INFINITY;
@@ -33,6 +26,19 @@ namespace limbo
                 int best_index;
                 size_t constraint_size = constraint.size();
                 archive_it_t best_it;
+                int map_index;
+                if (Params::multi)
+                {
+                    map_index = Params::map_index;
+                    Params::archiveparams::archive = Params::archiveparams::multimap[map_index];
+                }
+                Params::M = f.get_M();//get_M<F>(f, constraint); // set to max observation instead
+                Params::L = get_L<F>(f, constraint);
+                if (Params::L < 1e-7)
+                {
+                    Params::L = 10.0; //to avoid problems in cases in which the model is flat; not sure why 1e-7 vs 10 but this is used in GPyOpt
+                }
+                std::cout << "using L=" << Params::L << std::endl;
                 for (archive_it_t it = Params::archiveparams::archive.begin(); it != Params::archiveparams::archive.end(); ++it)
                 {
 
@@ -72,7 +78,7 @@ namespace limbo
                         continue;
                     }
 
-                    float new_acqui = eval(f,temp);
+                    float new_acqui = eval(f, temp);
                     //std::cout << "temp: "<<temp.transpose()<<std::endl;
                     //std::cout << "fit: " << new_acqui << std::endl;
                     if (best_acqui < new_acqui || it == Params::archiveparams::archive.begin())
@@ -85,6 +91,10 @@ namespace limbo
                 std::cout << "best UCB " << best_acqui << std::endl;
                 std::cout << "vector " << result << std::endl;
                 Params::archiveparams::archive.at(best_it->first).checked = true;
+                if (Params::multi)
+                {
+                    Params::archiveparams::multimap[map_index] = Params::archiveparams::archive;
+                }
                 return result;
             }
 
