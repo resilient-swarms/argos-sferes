@@ -1226,8 +1226,7 @@ typedef bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<
 void run_ite(const std::string &newname)
 {
     Opt_t opt;
-    std::string str = opt.res_dir();
-    str.copy(global::results_path, str.size() + 1);
+    global::results_path = const_cast<char*>(opt.res_dir().c_str());
     std::cout << "will use results path: " << global::results_path << std::endl;
     global::current_config = global::argossim_config_name[0];
 #ifdef REAL_EXP
