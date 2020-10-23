@@ -40,9 +40,10 @@ int main(int argc, char **argv)
     }
     else
     {
-        global::archive_path = *(map_it + 1);
+        std::string str = *(map_it + 1);
+        str.copy(global::archive_path,str.size()+1);
         global::gen_to_load = atoi((*(map_it + 2)).c_str());
-        Params::archiveparams::archive = load_archive(global::archive_path + "/archive_" + std::to_string(global::gen_to_load) + ".dat",
+        Params::archiveparams::archive = load_archive(std::string(global::archive_path) + "/archive_" + std::to_string(global::gen_to_load) + ".dat",
                                                        "", true);
     }
 

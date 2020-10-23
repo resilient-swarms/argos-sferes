@@ -110,7 +110,8 @@ struct EvalHP
             std::cout << "Do IT&E for config " << global::argossim_config_name[i] << std::endl;
             std::cout << "------------------------------------" << std::endl;
             global::current_config = global::argossim_config_name[i];
-            global::results_path = opt.res_dir();
+            std::string str = opt.res_dir();
+            str.copy(global::results_path,str.size()+1);
             global::num_trials = 0;
             opt.optimize(ControllerEval());
             auto val = opt.best_observation();
@@ -137,7 +138,7 @@ struct EvalHP
         std::cout << "Avg Number of trials="<< max_evals - vec[1] << std::endl;
         std::cout << "------------------------------------" << std::endl;
         std::cout << "------------------------------------" << std::endl;
-        global::hyper_log << x[0] << "\t" << x[1] << "\t" << vec[0] << std::endl;
+        //global::hyper_log << x[0] << "\t" << x[1] << "\t" << vec[0] << std::endl;
         return vec;
     }
 };

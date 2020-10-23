@@ -817,7 +817,7 @@ std::pair<Params::archiveparams::elem_archive, Params::archiveparams::archive_t>
 
     return {max_elem, archive};
 }
-#endif
+
 void fill_map_with_identifier(std::vector<float> ident)
 {
     std::cout << "Map was size " << Params::archiveparams::archive.size() << std::endl;
@@ -842,6 +842,7 @@ void fill_map_with_identifier(std::vector<float> ident)
     //     ++it;
     // }
 }
+#endif
 void insertSort(Params::archiveparams::elem_archive &elem, std::vector<Params::archiveparams::elem_archive> &arr, int N)
 {
     if (arr.empty())
@@ -975,6 +976,7 @@ std::vector<Params::archiveparams::elem_archive> get_all_combinations(std::vecto
         throw std::runtime_error("not supported");
     }
 }
+#ifdef HETEROGENEOUS
 void fill_combinedmap_with_identifier(size_t num_comb, std::vector<float> ident, size_t N)
 {
     std::cout << "Map was size " << Params::archiveparams::archive.size() << std::endl;
@@ -1011,6 +1013,7 @@ void fill_multimap_with_identifier(std::vector<float> ident)
     }
     std::cout << "Map is now size " << Params::archiveparams::multimap.back().size() << std::endl;
 }
+#endif
 std::string print_individual_to_network(std::vector<double> bd)
 {
 
@@ -1223,7 +1226,8 @@ typedef bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<
 void run_ite(const std::string &newname)
 {
     Opt_t opt;
-    global::results_path = opt.res_dir();
+    std::string str = opt.res_dir();
+    str.copy(global::results_path, str.size() + 1);
     std::cout << "will use results path: " << global::results_path << std::endl;
     global::current_config = global::argossim_config_name[0];
 #ifdef REAL_EXP
@@ -1241,7 +1245,7 @@ void run_ite(const std::string &newname)
 
     // now look up the behaviour descriptor in the archive file
     // and save to BOOST_SERIALISATION_NVP
-    print_individual_to_network(bd, Params::archiveparams::archive);
+    print_individual_to_network(bd);
     rename_folder(global::results_path, newname);
 }
 

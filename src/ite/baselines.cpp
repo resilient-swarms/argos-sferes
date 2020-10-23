@@ -12,7 +12,6 @@
 
 */
 
-
 int main(int argc, char **argv)
 {
     std::vector<std::string> cmd_args;
@@ -38,9 +37,10 @@ int main(int argc, char **argv)
     }
     else
     {
-        global::archive_path = *(map_it + 1);
+        std::string str = *(map_it + 1);
+        str.copy(global::archive_path,str.size() + 1);
         global::gen_to_load = atoi((*(map_it + 2)).c_str());
-        Params::archiveparams::archive = load_archive(global::archive_path + "/archive_" + std::to_string(global::gen_to_load) + ".dat");
+        Params::archiveparams::archive = load_archive(std::string(global::archive_path) + "/archive_" + std::to_string(global::gen_to_load) + ".dat");
     }
 
     if (eval_it == cmd_args.end())
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
         global::current_config = *(eval_it + 2);
     }
 
-    char* newname;
+    char *newname;
     // Results directory
     if ((folder_it + 1 > cmd_args.end()) || (folder_it + 1 == map_it))
     {
@@ -71,7 +71,8 @@ int main(int argc, char **argv)
     }
     else
     {
-        newname = *(folder_it + 1);
+        std::string str = *(folder_it + 1);
+        str.copy(newname, str.size() + 1);
     }
 
     // baseline
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
     {
         choice = *(baseline_it + 1);
     }
-    
+
     /* run baseline */
     run_baseline(choice, newname);
     return 0;

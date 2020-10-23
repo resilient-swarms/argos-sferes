@@ -49,9 +49,10 @@ int main(int argc, char **argv)
     }
     else
     {
-        global::archive_path = *(map_it + 1);
+        std::string str = *(map_it + 1);
+        str.copy(global::archive_path,str.size()+1);
         global::gen_to_load = atoi((*(map_it + 2)).c_str());
-        load_archive(global::archive_path);
+        load_archive(std::string(global::archive_path));
     }
 
     if (eval_it == cmd_args.end())
