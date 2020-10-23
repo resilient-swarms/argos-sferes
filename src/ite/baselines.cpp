@@ -71,8 +71,8 @@ int main(int argc, char **argv)
     }
     else
     {
-        std::string str = *(folder_it + 1);
-        str.copy(newname, str.size() + 1);
+        size_t index = (folder_it + 1) - cmd_args.begin();
+        newname = argv[index];
     }
 
     // baseline
