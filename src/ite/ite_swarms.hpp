@@ -615,7 +615,9 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
     // Assuming order <ind index> <behav_descriptor> <fitness>
     std::cout << "Loading archive file " << archive_name << std::endl;
     std::cout << "behav dim " << global::behav_dim << std::endl;
+#ifdef HETEROGENEOUS
     std::cout << "id features " << global::num_ID_features << std::endl;
+#endif
     std::ifstream monFlux(archive_name.c_str());
     if (monFlux)
     {
@@ -727,7 +729,7 @@ Params::archiveparams::archive_t load_archive(std::string archive_name, std::str
 
     return archive;
 }
-
+#ifdef HETEROGENEOUS
 std::pair<Params::archiveparams::elem_archive, Params::archiveparams::archive_t> load_ID_archive(std::string archive_name, size_t num_dim)
 {
 
@@ -815,7 +817,7 @@ std::pair<Params::archiveparams::elem_archive, Params::archiveparams::archive_t>
 
     return {max_elem, archive};
 }
-
+#endif
 void fill_map_with_identifier(std::vector<float> ident)
 {
     std::cout << "Map was size " << Params::archiveparams::archive.size() << std::endl;
