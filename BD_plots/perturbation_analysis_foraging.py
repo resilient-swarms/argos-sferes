@@ -51,7 +51,7 @@ def index2fullperformance(bd_t,path,faultpath, virtual_folder, best_index, r, ge
             break
         i += 1
     # get the corresponding individual in the normal environment, original archive
-    original_archive = HOME_DIR + "/Data/Foraging/"+bd_t+ "/results" + str(runs[r]) + "/archive_" + str(gener) + ".dat"
+    original_archive = HOME_DIR + "/Data/ForagingLarge/"+bd_t+ "/results" + str(runs[r]) + "/archive_" + str(gener) + ".dat"
     archive = read_spacedelimited(original_archive)
     archive_individual = None
     for item in archive:
@@ -177,6 +177,52 @@ def get_worker_developments(num_evals,num_workers,bd_t, r, gener, path, faultpat
                 break
     return mean_y,  mean_time
 
+def get_workergroup_developments(num_evals,num_workers,faultpath,normal_folder):
+    """
+    assuming synchronous distributed
+    :param num_evals:
+    :param num_workers:
+    :param faultpath:
+    :param normal_folder:
+    :return:
+    """
+    mean_time=[[] for i in range(num_evals)]
+    mean_y=[[] for i in range(num_evals)]
+    past_workers = 0
+    for worker in range(num_workers):
+        if past_workers == num_workers:
+            break # finished all workers
+        BOfile = faultpath + normal_folder + "/BO_output" + VE_tag + "/async_stats_best"+str(worker)+".dat"
+        parsed_file_list = read_spacedelimited(BOfile)
+        time_init=float(parsed_file_list[0][0])
+        group_size=1
+        for line in parsed_file_list[1:]:
+            time = float(line[0])
+            if time == time_init:
+                group_size+=1
+            else:
+                break
+        past_workers+=group_size
+
+        i = 0
+        for line in parsed_file_list:
+            print(i)
+            index = i // group_size
+            if i % group_size == 0:
+                best_performance=float(line[-1])
+                time_cumulant = float(line[0]) / (NUM_TRIALS * TICKS_PER_SECOND)
+            else:
+                performance = float(line[-1])
+                if performance > best_performance:
+                    best_performance=performance
+                if i % group_size == group_size - 1:
+                    mean_time[index]=[time_cumulant for j in range(group_size)]
+                    mean_y[index]=[best_performance * NUM_AGENTS / num_workers for j in range(group_size)]
+            i+=1
+            if i==num_evals*group_size:
+                break
+    return mean_y,  mean_time
+
 
 def add_development_of_fault_performance(num_evals,bd_t, r, gener, faultpath,
                           best_performances,time_lost,baseline=False,
@@ -206,7 +252,11 @@ def add_development_of_fault_performance(num_evals,bd_t, r, gener, faultpath,
                     num_workers=int(faultpath[-2:])
             else:
                 num_workers=NUM_AGENTS
-        return get_worker_developments(num_evals,int(num_workers),bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform)
+        if "UCB_LOCAL" in VE_tag:
+            return get_workergroup_developments(num_evals, int(num_workers), faultpath, normal_folder)
+        else:
+            return get_worker_developments(num_evals,int(num_workers),bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform)
+
         # try:
         #     lines=read_spacedelimited(faultpath+normal_folder+"/"+title_tag+"/BO_output"+VE_tag+"/fitness")
         #     fitness=float(lines[-1][0])
@@ -384,7 +434,7 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
             num_trials.append([[] for j in range(num_fault_types)])
             performance_loss_data.append([[] for j in range(num_fault_types)])
 
-            BD_dir = datadir+"/Foraging"
+            BD_dir = datadir+"/ForagingLarge"
                 # get all the data from the archive: no fault
 
             nofaultpath=BD_dir + "/" + bd_type[i] + "/results"
@@ -523,7 +573,7 @@ def prepare_data(VE_tags, conditions, settings, max_evals,num_VE_conditions, gen
             print(bd_type[i])
             best_performance_data.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
             time_loss.append([[[] for t in range(max_evals[c])] for j in range(num_fault_types)])
-            BD_dir = datadir + "/Foraging"
+            BD_dir = datadir + "/ForagingLarge"
             # get all the data from the archive: no fault
 
             nofaultpath = BD_dir + "/" + bd_type[i] + "/results"
@@ -549,6 +599,7 @@ def prepare_data(VE_tags, conditions, settings, max_evals,num_VE_conditions, gen
                     if by_faulttype:
                         faulttype, index = get_fault_type(fault)
                         for t in range(max_evals[c]):
+
                             best_performance_data[c][index][t] = np.append(best_performance_data[c][index][t],
                                                                            best_performances[t])
                             if VE:
@@ -693,7 +744,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                 #         p_sd_120 = sd
                 #         mindist_120= dist
                 #         performances1[c] = data
-                if max_evals[c] == 1 or (consumed >99*NUM_SECONDS and consumed <101*NUM_SECONDS): # try to find closest to 360
+                if max_evals[c] == 1 or (consumed >29*NUM_SECONDS and consumed <31*NUM_SECONDS): # try to find closest to 360
                     dist = abs(consumed - 100*NUM_SECONDS)
                     if dist < mindist_3600:
                         t_3600 = consumed
@@ -717,7 +768,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                 #         p_sd_2400 = sd
                 #         mindist_2400 = dist
                 #         performances20[c] = data
-                elif VE and consumed >= 100*NUM_SECONDS:
+                elif VE and consumed >= 30*NUM_SECONDS:
                     final_performances=np.append(final_performances,mean - min_reference)
                     break
             # print(str(t_1200) + " " + str(p_1200) + " " + str(p_sd_1200))
@@ -778,7 +829,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
                       "Random", "Gradient-ascent"]
         settings = [("BO", False, None), ("BO",False,None),
                    ("random", False, None), ("gradient_closest", False, None)]
-        plottag="ALL"
+        plottag="LARGE_ALL"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6, 8]]
 
         num_VE_conditions=4
@@ -886,18 +937,17 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         plottag = "HETEROGENEOUS_PARAMS2"
         VE_tags = ["_VE_init" + str(j) for j in range(20)]
         num_VE_conditions = 20
-    elif comparison=="heterogeneous":
-        conditions = ["H-SMBO","H-SMBO (random)"]
+    elif comparison=="decentralised":
+        conditions = ["H-SMBO"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
         settings = [
-                    ("single_exp", False, "alpha0.25_l0.1_UCB_M52VarNoise"),
-            ("single_exp_random", False, "alpha0.25_l0.1_UCB_M52VarNoise")]
-        plottag="HETEROGENEOUS"
+                    ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise")]
+        plottag="LARGE_DECENTRALISED"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4]]
-        num_VE_conditions=2
+        num_VE_conditions=1
     elif comparison=="fest":
         conditions = ["SMBO", "VE-SMBO E(0)=3","VE-SMBO E(0)=4","VE-SMBO E(0)=5","VE-SMBO E(0)=6","VE-SMBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
@@ -1124,7 +1174,7 @@ def get_max_performances(bd_type,fitfuns,generation):
         for i in range(len(bd_type)):
 
             print(fitfuns[j])
-            BD_dir = datadir + "/Foraging"
+            BD_dir = datadir + "/ForagingLarge"
             # get all the data from the archive: no fault
 
             nofaultpath = BD_dir + "/" + bd_type[i] + "/results"
@@ -1139,7 +1189,7 @@ def get_max_performances(bd_type,fitfuns,generation):
     pickle.dump(maximum,open("data/fitfun/foraging_maximal_fitness.pkl","wb"))
 
 def determine_noise():
-    BD_dir = datadir + "/Foraging"
+    BD_dir = datadir + "/ForagingLarge"
     # get all the data from the archive: no fault
 
     nofaultpath = BD_dir + "/history/results"
@@ -1153,7 +1203,7 @@ def analyse_faults(max_eval=30):
         return read_commadelimited(folder+"run"+str(run)+"_"+fault+".txt")[0]
 
     def get_performance_folder(run, fault):
-        BD_dir = datadir + "/Foraging/history/"
+        BD_dir = datadir + "/ForagingLarge/history/"
         return BD_dir + "faultyrun" + str(run) + "_" + fault+"/results"+str(run)+"/single_exp/BO_outputnoID/"
     folder = "/home/david/argos-sferes/experiments/harvesting/perturbations/"
     # proximity sensor faults
@@ -1221,7 +1271,9 @@ if __name__ == "__main__":
 
 
     #development_data(bd_type, runs, 2000"0, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[100]*2,from_file=False,comparison="heterogeneous",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30], from_file=False,
+                     comparison="baselines", estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30],from_file=False,comparison="decentralised",estimate=False)
 
 
     #analyse_faults()

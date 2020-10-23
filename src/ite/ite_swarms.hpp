@@ -1222,6 +1222,7 @@ void run_ite(const std::string &newname)
 {
     Opt_t opt;
     global::results_path = opt.res_dir();
+    std::cout << "will use results path: " << global::results_path << std::endl;
     global::current_config = global::argossim_config_name[0];
 #ifdef REAL_EXP
     opt.optimize(RealEval());

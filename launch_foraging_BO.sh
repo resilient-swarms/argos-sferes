@@ -71,7 +71,7 @@ elif [ "$run_type" = "BO_single_multi" ]; then
     UseVirtual="False"
 	TopOutputFolder="single_exp"
     command="bin/behaviour_evol"
-    SimTime=96000  # 960*max_evals=96,000 with 100 evals
+    SimTime=28800  # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
 	num_subtrials=8
@@ -183,6 +183,8 @@ elif [ "$run_type" = "gradient_closest" ]; then
     trials=8
 else
     command="bin/ite_swarms_"
+    SimTime=120
+    trials=8
 fi
 output_tag=$3
 large=$5
