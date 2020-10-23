@@ -41,8 +41,8 @@ int main(int argc, char **argv)
     }
     else
     {
-        std::string str = *(map_it + 1);
-        str.copy(global::archive_path,str.size()+1);
+        size_t index = (map_it + 1) - cmd_args.begin();
+        global::archive_path = argv[index];
         global::gen_to_load = atoi((*(map_it + 2)).c_str());
         Params::archiveparams::archive = load_archive((std::string(global::archive_path) + std::string("/archive_") + std::to_string(global::gen_to_load) + std::string(".dat")).c_str(),
                                                         (std::string(global::archive_path) + std::string("/virtual_energy_exp_init5_single/performance_recording20000/fitness")).c_str());
