@@ -198,12 +198,13 @@ if [[ $large == "Large" ]]; then
     else
         TemplateFile="experiments/harvesting/harvesting_template_large.argos"
         echo "using template: ${TemplateFile}"
-        scale="0"
+        scale="1"
     fi
 else
     echo "will do small arena"
     TemplateFile="experiments/harvesting/harvesting_template.argos"
     echo "using template: ${TemplateFile}"
+    scale="1"
     
 fi
 
