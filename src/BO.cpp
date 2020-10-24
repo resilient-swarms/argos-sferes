@@ -24,12 +24,9 @@ int main(int argc, char **argv)
     cSimulator.LoadExperiment();
 
     static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
-    
-    
-    cLoopFunctions.savefile = cLoopFunctions.output_folder + "/BOOST_SERIALIZATION_NVP";
 
 #ifdef CVT
-                              EAParams::ea::centroids = load_centroids(cLoopFunctions.centroids_folder + "/centroids_" + std::to_string(EAParams::ea::number_of_clusters) + "_" + std::to_string(EAParams::ea::number_of_dimensions) + ".dat");
+    EAParams::ea::centroids = load_centroids(cLoopFunctions.centroids_folder + "/centroids_" + std::to_string(EAParams::ea::number_of_clusters) + "_" + std::to_string(EAParams::ea::number_of_dimensions) + ".dat");
 #endif
 #ifdef PRINT_NETWORK
     configure_and_run_ea<serial_ea_t>(argc, argv);
@@ -37,8 +34,8 @@ int main(int argc, char **argv)
     throw std::runtime_error("do not use RECORD_FIT if printing network");
 #endif
 #else
-                              // expects two arguments
-                              std::string fitfile = argv[2];
+    // expects two arguments
+    std::string fitfile = argv[2];
     // override the usual fitness file
     cLoopFunctions.fitness_writer.close();
     cLoopFunctions.fitness_writer.open(fitfile, std::ios::out);

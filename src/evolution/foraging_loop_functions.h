@@ -61,7 +61,7 @@ public:
     void check_ID_map(std::vector<float> ident);
     void init_BO(std::vector<double> normal_ID);
     void init_randomsearch();
-    void init_multiBO(bool single_worker,std::vector<double> normal_ID);
+    void init_multiBO(bool single_worker,bool sharing);
     void init_BOjoint();
 
 #endif

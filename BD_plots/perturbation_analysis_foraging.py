@@ -392,7 +392,8 @@ def significance_data(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
     :param gener:
     :return:
     """
-
+    global CENT
+    CENT="centralised"
     if virtual_energy:
         title_tag += "VE"
 
@@ -687,7 +688,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
         sd_lines1 = [[] for c in conditions]
         sd_lines2 = [[] for c in conditions]
         min_reference = np.mean(reference_faultinjection_data[bd_index][fault_category])/NUM_AGENTS
-        max_reference = np.mean(reference_performance_data[bd_index][fault_category])/NUM_AGENTS
+        #max_reference = np.mean(reference_performance_data[bd_index][fault_category])/NUM_AGENTS
         colors = ["C0","C1","C2", "C3","C4", "C5","C6","C7","C8","C9"]  # colors for the lines
         # (numsides, style, angle)
         markers = ["*", "o","D","X","v","+", "$\dagger$","^","$\spadesuit$","^"]  # markers for the lines
@@ -943,17 +944,18 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         VE_tags = ["_VE_init" + str(j) for j in range(20)]
         num_VE_conditions = 20
     elif comparison=="decentralised":
-        conditions = ["H-SMBO"]
+        conditions = ["SMBO-Dec Local","SMBO-Dec Naive"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
         settings = [
-                    ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise")]
+                    ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise"),
+                    ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise")]
         plottag="LARGE_DECENTRALISED"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4]]
         CENT = "decentralised"
-        num_VE_conditions=1
+        num_VE_conditions=2
     elif comparison=="fest":
         conditions = ["SMBO", "VE-SMBO E(0)=3","VE-SMBO E(0)=4","VE-SMBO E(0)=5","VE-SMBO E(0)=6","VE-SMBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
@@ -1265,8 +1267,8 @@ def analyse_faults(max_eval=30):
     #
 
 if __name__ == "__main__":
-    # significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
-    #                  title_tag="",virtual_energy=False)
+    significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
+                     title_tag="",virtual_energy=False)
     # significance_data(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
     #                  title_tag="BO",virtual_energy=False)
     #determine_noise()
@@ -1280,7 +1282,7 @@ if __name__ == "__main__":
     #development_data(bd_type, runs, 2000"0, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="baselines",estimate=False)
     development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30], from_file=False,
                      comparison="baselines", estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30],from_file=False,comparison="decentralised",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30],from_file=False,comparison="decentralised",estimate=False)
 
 
     #analyse_faults()

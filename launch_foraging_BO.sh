@@ -81,6 +81,20 @@ elif [ "$run_type" = "BO_single_multi" ]; then
     optimisation="BO_multi"
     reset=true
     variable_noise=false
+elif [ "$run_type" = "BO_single_multi_independent" ]; then
+    UseVirtual="False"
+    TopOutputFolder="single_exp_independent"
+    command="bin/behaviour_evol"
+    SimTime=28800 # 960*max_evals=96,000 with 100 evals
+    trials=1
+    ticks_per_subtrial=600 #120*5
+    num_subtrials=8
+    network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+    stop=$4
+    optimisation="BO_multi_independent"
+    reset=true
+    variable_noise=false
 elif [ "$run_type" = "BO_single_joint" ]; then
     UseVirtual="False"
     TopOutputFolder="single_exp_joint"
@@ -205,7 +219,7 @@ else
     TemplateFile="experiments/harvesting/harvesting_template.argos"
     echo "using template: ${TemplateFile}"
     scale="1"
-    
+
 fi
 
 export Generation=20000
@@ -271,7 +285,7 @@ faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,
 faultnum["food_scarcity"]=1          # (will loop over food as a dummy)
 faultnum["agents"]="3 12 24"         # {1,2,...,12} agents included
 
-for FaultCategory in food_scarcity; do
+for FaultCategory in proximity_sensor; do
     faults=${faultnum[${FaultCategory}]}
     for FaultIndex in ${faults}; do
         for key in ${!descriptors[@]}; do
@@ -354,8 +368,8 @@ for FaultCategory in food_scarcity; do
                     echo "other category (e.g., sensor or actuator)"
                 fi
                 # apply scale to number of robots and simulation time; arenasize depends on template
-                robots=$(($scale*$robots))
-                SimTime=$(($scale*${SimTime}))
+                robots=$(($scale * $robots))
+                SimTime=$(($scale * ${SimTime}))
                 echo "fault ${fault}   robots ${robots}  FaultID  $FaultID SimTime $SimTime"
                 for food in ${food_loop}; do
                     echo "doing food ${food}"

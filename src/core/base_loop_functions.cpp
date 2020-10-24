@@ -240,6 +240,8 @@ void BaseLoopFunctions::Init(TConfigurationNode &t_node)
     try
     {
         GetNodeAttribute(t_node, "output_folder", output_folder);
+        savefile = output_folder + "/BOOST_SERIALIZATION_NVP";
+
         // TODO: create some statistics files in this folder
     }
     catch (CARGoSException &ex)

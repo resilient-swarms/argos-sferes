@@ -181,11 +181,11 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       GetNodeAttribute(t_node, "scale", scale);
       if (scale != 1.0f)
       {
-         for (size_t i=0; i < m_fFoodSquareRadius.size(); ++i)
+         for (size_t i = 0; i < m_fFoodSquareRadius.size(); ++i)
          {
-            m_fFoodSquareRadius[i]=(std::sqrt(m_fFoodSquareRadius[i])*scale);
-            m_fFoodSquareRadius[i]*=m_fFoodSquareRadius[i];
-            m_cFoodPos[i]*=scale;
+            m_fFoodSquareRadius[i] = (std::sqrt(m_fFoodSquareRadius[i]) * scale);
+            m_fFoodSquareRadius[i] *= m_fFoodSquareRadius[i];
+            m_cFoodPos[i] *= scale;
          }
       }
    }
@@ -199,11 +199,15 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    }
    else if (optimisation == "BO_joint")
    {
-      init_multiBO(true, normal_ID); // same for initialisation except opt is different type
+      init_multiBO(true, true); // same for initialisation except opt is different type
    }
    else if (optimisation == "BO_multi")
    {
-      init_multiBO(false, normal_ID);
+      init_multiBO(false, true);
+   }
+   else if (optimisation == "BO_multi_independent")
+   {
+      init_multiBO(false, false);
    }
    else
    {
@@ -276,7 +280,7 @@ void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID)
    }
 }
 
-void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double> normal_ID)
+void CForagingLoopFunctions::init_multiBO(bool single_worker, bool sharing)
 {
    Params::archiveparams::old_archive = Params::archiveparams::archive; // this old archive will now just be auxiliary
    Params::count = 0;
@@ -297,35 +301,50 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double
       argos::CThymioEntity *cThym = m_pcvecRobot[i];
       ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
       auto found = std::find(found_faults.begin(), found_faults.end(), cController.FBehavior);
-      if (found == found_faults.end())
+      if (!sharing)
       {
-         found_faults.push_back(cController.FBehavior);
-         if (!single_worker)
-            opt.push_back(new Opt_t());
-         index_vec[cController.FBehavior] = 0;
-         count[cController.FBehavior] = 0;
+         opt.push_back(new Opt_t());
       }
       else
       {
-         int index = index_vec.at(cController.FBehavior);
-         ++index;
-         cController.worker.index = index;
-         index_vec[cController.FBehavior] = index;
+         if (found == found_faults.end())
+         {
+            found_faults.push_back(cController.FBehavior);
+            if (!single_worker)
+               opt.push_back(new Opt_t());
+            index_vec[cController.FBehavior] = 0;
+            count[cController.FBehavior] = 0;
+         }
+         else
+         {
+            int index = index_vec.at(cController.FBehavior);
+            ++index;
+            cController.worker.index = index;
+            index_vec[cController.FBehavior] = index;
+         }
       }
    }
    Eigen::VectorXd result;
    for (size_t i = 0; i < opt.size(); ++i)
    {
-      if (single_worker)
+      if (!sharing)
       {
-         //size_t num_ID_features, size_t behav_dim
-         opt[i]->optimize_init_joint<ControllerEval>(found_faults.size(), normal_ID.size(), state_fun, VARIABLE_NOISE);
-         fill_combinedmap_with_identifier(found_faults.size(), {}, 100); // fill map with combinations of the best 100 solutions
+         opt[i]->optimize_init<ControllerEval>(0, i, state_fun, VARIABLE_NOISE);
+         fill_multimap_with_identifier({});
       }
       else
       {
-         opt[i]->optimize_init<ControllerEval>(normal_ID.size(), index_vec[found_faults[i]] + 1, state_fun, VARIABLE_NOISE);
-         fill_multimap_with_identifier({});
+         if (single_worker)
+         {
+            //size_t num_ID_features, size_t behav_dim
+            opt[i]->optimize_init_joint<ControllerEval>(found_faults.size(), 0, state_fun, VARIABLE_NOISE);
+            fill_combinedmap_with_identifier(found_faults.size(), {}, 100); // fill map with combinations of the best 100 solutions
+         }
+         else
+         {
+            opt[i]->optimize_init<ControllerEval>(0, index_vec[found_faults[i]] + 1, state_fun, VARIABLE_NOISE);
+            fill_multimap_with_identifier({});
+         }
       }
    }
    if (single_worker)
@@ -368,24 +387,42 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double
       {
          argos::CThymioEntity *cThym = m_pcvecRobot[i];
          ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
-         auto found = std::find(found_faults.begin(), found_faults.end(), cController.FBehavior);
-         size_t opt_idx = found - found_faults.begin();
-         size_t worker_idx = count.at(cController.FBehavior);
-         cController.worker = ForagingThymioNN::Worker(num_subtrials, worker_idx, opt_idx);
-         worker_idx++;
-         count[cController.FBehavior] = worker_idx;
-         cController.worker.opt_index = opt_idx;
-         Eigen::VectorXd result = opt[opt_idx]->select_sample<ControllerEval>({});
-         opt[opt_idx]->worker_samples[cController.worker.index] = result;
-         cController.worker.new_sample = result.head(BEHAV_DIM);
-         std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
-         cController.select_net(bd, num_subtrials, ticks_per_subtrial);
-         std::string sim_cmd = "rm " + cController.savefile;
-         if (system(sim_cmd.c_str()) != 0)
+         if (!sharing)
          {
-            std::cerr << "Error removing nvp " << std::endl
-                      << sim_cmd << std::endl;
-            exit(-1);
+            cController.worker = ForagingThymioNN::Worker(num_subtrials, 0, i);
+            Eigen::VectorXd result = opt[i]->select_sample<ControllerEval>({});
+            opt[i]->worker_samples[cController.worker.index] = result;
+            cController.worker.new_sample = result.head(BEHAV_DIM);
+            std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+            cController.select_net(bd, num_subtrials, ticks_per_subtrial);
+            std::string sim_cmd = "rm " + cController.savefile;
+            if (system(sim_cmd.c_str()) != 0)
+            {
+               std::cerr << "Error removing nvp " << std::endl
+                         << sim_cmd << std::endl;
+               exit(-1);
+            }
+         }
+         else
+         {
+            auto found = std::find(found_faults.begin(), found_faults.end(), cController.FBehavior);
+            size_t opt_idx = found - found_faults.begin();
+            size_t worker_idx = count.at(cController.FBehavior);
+            cController.worker = ForagingThymioNN::Worker(num_subtrials, worker_idx, opt_idx);
+            worker_idx++;
+            count[cController.FBehavior] = worker_idx;
+            Eigen::VectorXd result = opt[opt_idx]->select_sample<ControllerEval>({});
+            opt[opt_idx]->worker_samples[cController.worker.index] = result;
+            cController.worker.new_sample = result.head(BEHAV_DIM);
+            std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
+            cController.select_net(bd, num_subtrials, ticks_per_subtrial);
+            std::string sim_cmd = "rm " + cController.savefile;
+            if (system(sim_cmd.c_str()) != 0)
+            {
+               std::cerr << "Error removing nvp " << std::endl
+                         << sim_cmd << std::endl;
+               exit(-1);
+            }
          }
          // reset the controller (food_items_collected,)
          cController.Reset();
@@ -395,6 +432,7 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, std::vector<double
 
 void CForagingLoopFunctions::init_randomsearch()
 {
+   opt.push_back(new Opt_t());
    opt[0]->optimize_init<ControllerEval>(0, m_unNumberRobots, state_fun); //just to get some useful stats
    for (size_t i = 0; i < m_unNumberRobots; ++i)
    {
@@ -434,10 +472,10 @@ void CForagingLoopFunctions::food_scarcity()
    ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN *>(get_controller(0)); // index 0 because any index will do
    if (cController->FBehavior == BaseController::FaultBehavior::FAULT_FOOD_SCARCITY)
    {
-      float rad = 0.040 *scale*(float)(cController->foodID + 1);
-      m_fFoodSquareRadius = {rad * rad};                        // only one small food item
-      float food_x = m_pcRNG->Uniform(CRange<Real>(scale*1.7, scale*1.85)); // very far from nest_x but not against the border
-      float food_y = m_pcRNG->Uniform(CRange<Real>(scale*0.3, scale*1.8));  // y does not matter so much
+      float rad = 0.040 * scale * (float)(cController->foodID + 1);
+      m_fFoodSquareRadius = {rad * rad};                                        // only one small food item
+      float food_x = m_pcRNG->Uniform(CRange<Real>(scale * 1.7, scale * 1.85)); // very far from nest_x but not against the border
+      float food_y = m_pcRNG->Uniform(CRange<Real>(scale * 0.3, scale * 1.8));  // y does not matter so much
       m_cFoodPos = {CVector2(food_x, food_y)};
    }
 }
