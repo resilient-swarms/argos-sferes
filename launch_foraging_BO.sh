@@ -5,8 +5,8 @@
 data=$1
 
 if [ -z "${data}" ]; then
-	echo "Error: no datafolder given"
-	exit 125
+    echo "Error: no datafolder given"
+    exit 125
 fi
 run_type=$2
 
@@ -14,158 +14,158 @@ load_ID_map=false
 
 if [ "$run_type" = "virtual" ]; then
     UseVirtual="True"
-	TopOutputFolder="virtual_energy_exp"
+    TopOutputFolder="virtual_energy_exp"
     command="bin/ite_swarms_"
     SimTime=120
     trials=8
 elif [ "$run_type" = "virtual_single" ]; then
     UseVirtual="True"
-	TopOutputFolder="virtual_energy_exp"
+    TopOutputFolder="virtual_energy_exp"
     command="bin/behaviour_evol"
     SimTime=960
     trials=1
 elif [ "$run_type" = "BO_single" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp"
+    TopOutputFolder="single_exp"
     command="bin/behaviour_evol"
-    SimTime=96000  # 960*max_evals=96,000 with 100 evals
+    SimTime=96000 # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
-	num_subtrials=8
-	network_binary=bin/BO3DREAL
+    num_subtrials=8
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop=$4
+    stop=$4
     optimisation="BO"
     reset=true
     variable_noise=false
 elif [ "$run_type" = "BO_single_IDprior" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp_IDprior"
+    TopOutputFolder="single_exp_IDprior"
     command="bin/behaviour_evol"
-    SimTime=96000  # 960*max_evals=96,000 with 100 evals
+    SimTime=96000 # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
-	num_subtrials=8
-	network_binary=bin/BO3DREAL
+    num_subtrials=8
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop=$4
+    stop=$4
     optimisation="BO"
     reset=true
     variable_noise=false
     load_ID_map=true
 elif [ "$run_type" = "BO_single_noID" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp"
+    TopOutputFolder="single_exp"
     command="bin/behaviour_evol"
-    SimTime=96000  # 960*max_evals=96,000 with 100 evals
+    SimTime=96000 # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
-	num_subtrials=8
-	network_binary=bin/BO3DREAL
+    num_subtrials=8
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop=$4
+    stop=$4
     optimisation="BO_noID"
     reset=true
     variable_noise=false
 elif [ "$run_type" = "BO_single_multi" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp"
+    TopOutputFolder="single_exp"
     command="bin/behaviour_evol"
-    SimTime=28800  # 960*max_evals=96,000 with 100 evals
+    SimTime=28800 # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
-	num_subtrials=8
-	network_binary=bin/BO3DREAL
+    num_subtrials=8
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop=$4
+    stop=$4
     optimisation="BO_multi"
     reset=true
     variable_noise=false
-elif [ "$run_type" = "BO_single_joint" ];then
+elif [ "$run_type" = "BO_single_joint" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp_joint"
+    TopOutputFolder="single_exp_joint"
     command="bin/behaviour_evol"
-    SimTime=96000  # 960*max_evals=96,000 with 100 evals
+    SimTime=96000 # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
-	num_subtrials=8
-	network_binary=bin/BO3DREAL
+    num_subtrials=8
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop=$4
+    stop=$4
     optimisation="BO_joint"
     reset=true
     variable_noise=true
 elif [ "$run_type" = "BO_single_random" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp_random"
+    TopOutputFolder="single_exp_random"
     command="bin/behaviour_evol"
-    SimTime=96000  # 960*max_evals=96,000 with 100 evals
+    SimTime=96000 # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
-	num_subtrials=8
-	network_binary=bin/BO3DREAL
+    num_subtrials=8
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop=$4
+    stop=$4
     optimisation="BO"
     reset=true
     variable_noise=false
 elif [ "$run_type" = "BO_single_known" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp_known"
+    TopOutputFolder="single_exp_known"
     command="bin/behaviour_evol"
-    SimTime=96000  # 960*max_evals=96,000 with 100 evals
+    SimTime=96000 # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
-	num_subtrials=8
-	network_binary=bin/BO3DREAL
+    num_subtrials=8
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop=$4
+    stop=$4
     optimisation="BO"
     reset=true
     variable_noise=true
 elif [ "$run_type" = "BO_single_known_record" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp_known"
+    TopOutputFolder="single_exp_known"
     command="bin/behaviour_evol"
-    SimTime=120  
+    SimTime=120
     trials=8
-	network_binary=bin/BO3DREAL
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop="" # will default to false stopping criterion always
+    stop="" # will default to false stopping criterion always
 
 elif [ "$run_type" = "random_single" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp_randomsearch"
+    TopOutputFolder="single_exp_randomsearch"
     command="bin/behaviour_evol"
-    SimTime=96000  # 960*max_evals=96,000 with 100 evals
+    SimTime=96000 # 960*max_evals=96,000 with 100 evals
     trials=1
     ticks_per_subtrial=600 #120*5
-	num_subtrials=8
-	network_binary=bin/BO3DREAL
+    num_subtrials=8
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop=""
+    stop=""
     optimisation="random"
     reset=true
 elif [ "$run_type" = "random_single_record" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp_randomsearch"
+    TopOutputFolder="single_exp_randomsearch"
     command="bin/behaviour_evol"
-    SimTime=120 
+    SimTime=120
     trials=8
-	network_binary=bin/BO3DREAL
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop="" # will default to false stopping criterion always
+    stop="" # will default to false stopping criterion always
 elif [ "$run_type" = "BO_single_record" ]; then
     UseVirtual="False"
-	TopOutputFolder="single_exp"
+    TopOutputFolder="single_exp"
     command="bin/behaviour_evol"
-    SimTime=120 
+    SimTime=120
     trials=8
-	network_binary=bin/BO3DREAL
+    network_binary=bin/BO3DREAL
     network_config=harvesting_printnetwork.argos
-	stop="" # will default to false stopping criterion always
+    stop="" # will default to false stopping criterion always
 elif [ "$run_type" = "uniform" ]; then
-	TopOutputFolder="uniform"
+    TopOutputFolder="uniform"
     command="bin/ite_swarms_uniform_"
     SimTime=120
     trials=8
@@ -188,17 +188,24 @@ else
 fi
 output_tag=$3
 large=$5
+scale=$6
 if [[ $large == "Large" ]]; then
-	echo "will do large arena"
-	TemplateFile="experiments/harvesting/harvesting_template_large.argos"
-	echo "using template: ${TemplateFile}" 
+    echo "will do large arena"
+
+    if [ ! -z $scale ]; then
+        TemplateFile="experiments/harvesting/harvesting_template_large${scale}X.argos"
+        echo "using template: ${TemplateFile}"
+    else
+        TemplateFile="experiments/harvesting/harvesting_template_large.argos"
+        echo "using template: ${TemplateFile}"
+        scale="0"
+    fi
 else
-	echo "will do small arena"
-	TemplateFile="experiments/harvesting/harvesting_template.argos"
-	echo "using template: ${TemplateFile}" 
+    echo "will do small arena"
+    TemplateFile="experiments/harvesting/harvesting_template.argos"
+    echo "using template: ${TemplateFile}"
+    
 fi
-
-
 
 export Generation=20000
 
@@ -224,7 +231,6 @@ declare -A behav
 # voronoi["cvt_spirit"]="cvt"
 # voronoi["cvt_sdbc_all_std"]="cvt"
 
-
 bo_executable="bin/"
 # note: cvt and 10D does not really matter since we are not evolving
 
@@ -243,8 +249,6 @@ voronoi["history"]=""
 # descriptors["baseline"]=""
 # voronoi["baseline"]=""
 
-
-
 echo "doing generation ${FINALGEN_ARCHIVE}"
 sleep 2.5
 
@@ -261,10 +265,10 @@ faultnum["sensor"]=$(seq 1 30)
 faultnum["proximity_sensor"]=$(seq 1 20)
 faultnum["ground_sensor"]=$(seq 1 20)
 faultnum["actuator"]=$(seq 1 20)
-faultnum["software"]=$(seq 1 6)   # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
+faultnum["software"]=$(seq 1 6)      # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
-faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
-faultnum["agents"]="3 12 24"      # {1,2,...,12} agents included
+faultnum["food_scarcity"]=1          # (will loop over food as a dummy)
+faultnum["agents"]="3 12 24"         # {1,2,...,12} agents included
 
 for FaultCategory in food_scarcity; do
     faults=${faultnum[${FaultCategory}]}
@@ -288,13 +292,13 @@ for FaultCategory in food_scarcity; do
                 elif [ "$run_type" = "BO_single_random" ]; then
                     tag=${CVT}${BD_DIMS}DREAL${EXPERIMENT_TAG}
                     bd="random_identification"
-                elif [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ] ; then
+                elif [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ]; then
                     tag=${CVT}${BD_DIMS}DREAL${EXPERIMENT_TAG}
                     bd="empty"
                 elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="identification"
-		        elif [ "$run_type" = "BO_single_known_record" ]; then
+                elif [ "$run_type" = "BO_single_known_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="perfect_identificationsorted"
                 else
@@ -348,9 +352,10 @@ for FaultCategory in food_scarcity; do
                     FaultID=-1
                     echo "other category (e.g., sensor or actuator)"
                 fi
-
-
-                echo "fault ${fault}   robots ${robots}  FaultID  $FaultID "
+                # apply scale to number of robots and simulation time; arenasize depends on template
+                robots=$(($scale*$robots))
+                SimTime=$(($scale*${SimTime}))
+                echo "fault ${fault}   robots ${robots}  FaultID  $FaultID SimTime $SimTime"
                 for food in ${food_loop}; do
                     echo "doing food ${food}"
                     if [ "${food}" != "-1" ]; then
@@ -368,32 +373,30 @@ for FaultCategory in food_scarcity; do
                     export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
 
                     echo "Outfolder ${Outfolder}"
-                    if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ] \
-                    || [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ] ||
-                    [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ] || [ "$run_type" = "BO_single_known_record" ] \
-		            || [ "$run_type" = "BO_single_known" ] || [ "$run_type" = "BO_single_random" ] || [ "$run_type" = "BO_single_IDprior" ] \
-                    || [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ];  then
+                    if [ "$run_type" = "BO" ] || [ "$run_type" = "virtual" ] || [ "$run_type" = "uniform" ] ||
+                        [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ] ||
+                        [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ] || [ "$run_type" = "BO_single_known_record" ] ||
+                        [ "$run_type" = "BO_single_known" ] || [ "$run_type" = "BO_single_random" ] || [ "$run_type" = "BO_single_IDprior" ] ||
+                        [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
-                    else 
+                    else
                         export BO_OutputFolder=${Outfolder}${output_tag}
                     fi
-		    echo "BO outputfolder = ${BO_OutputFolder}"
+                    echo "BO outputfolder = ${BO_OutputFolder}"
                     mkdir -p $BO_OutputFolder
-		    rm ${BO_OutputFolder}/fitness
+                    rm ${BO_OutputFolder}/fitness
                     #rm ${Outfolder}/fitness
                     ConfigFile=${BO_OutputFolder}/exp_${SUFFIX}.argos
                     echo "config ${ConfigFile}"
                     touch ${ConfigFile}
-		    if [ -f "${ConfigFile}" ]; then
-                         echo "CREATED CONFIGFILE ${ConfigFile}"
-		    else
-			 echo "FAILED TO CREATE CONFIGFILE ${ConfigFile}"
-			 exit 1
+                    if [ -f "${ConfigFile}" ]; then
+                        echo "CREATED CONFIGFILE ${ConfigFile}"
+                    else
+                        echo "FAILED TO CREATE CONFIGFILE ${ConfigFile}"
+                        exit 1
                     fi
 
-                    
-		    
-		    sed -e "s|THREADS|0|" \
+                    sed -e "s|THREADS|0|" \
                         -e "s|TRIALS|${trials}|" \
                         -e "s|ROBOTS|${robots}|" \
                         -e "s|EXPERIMENT_LENGTH|${SimTime}|" \
@@ -412,23 +415,23 @@ for FaultCategory in food_scarcity; do
                         -e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
                         -e "s|USE_VIRTUAL|${UseVirtual}|" \
                         -e "s|TICKS_PER_SUB|${ticks_per_subtrial}|" \
-		                -e "s|NUM_SUB|${num_subtrials}|" \
-		                -e "s|NETWORK_BINARY|${network_binary}|" \
+                        -e "s|NUM_SUB|${num_subtrials}|" \
+                        -e "s|NETWORK_BINARY|${network_binary}|" \
                         -e "s|NETWORK_CONFIG|${BO_OutputFolder}/${network_config}|" \
-		                -e "s|STOP|${stop}|" \
-                        -e "s|OPTIMISATION|${optimisation}|"  \
+                        -e "s|STOP|${stop}|" \
+                        -e "s|OPTIMISATION|${optimisation}|" \
                         -e "s|RESET|${reset}|" \
                         -e "s|LOAD_ID_MAP|${load_ID_map}|" \
-                        ${TemplateFile}  \
+                        ${TemplateFile} \
                         >${ConfigFile}
-                        if [ ! -z "${network_config}" ]; then
+                    if [ ! -z "${network_config}" ]; then
 
-                            touch ${BO_OutputFolder}/${network_config}
-			                sed -e "s|OUTPUTFOLDER|${BO_OutputFolder}|" \
-                                -e "s|CENTROIDSFOLDER|experiments/centroids|" \
-                                experiments/harvesting/harvesting_printnetwork_template.argos \
-                                > ${BO_OutputFolder}/${network_config}
-                        fi 
+                        touch ${BO_OutputFolder}/${network_config}
+                        sed -e "s|OUTPUTFOLDER|${BO_OutputFolder}|" \
+                            -e "s|CENTROIDSFOLDER|experiments/centroids|" \
+                            experiments/harvesting/harvesting_printnetwork_template.argos \
+                            >${BO_OutputFolder}/${network_config}
+                    fi
                     if [ ! -z "${CVT}" ]; then
                         echo ${CVT}
                     fi
@@ -439,17 +442,16 @@ for FaultCategory in food_scarcity; do
                     export BO_Executable=${bo_executable}${tag}
                     export ConfigFile
 
-                   
-                    if [[ "$run_type" == BO_single* ]] || [[ "$run_type" == random_single* ]];then
-                         echo "submitting single job"
-                         #sleep 1sh
-                         bash submit_single.sh
+                    if [[ "$run_type" == BO_single* ]] || [[ "$run_type" == random_single* ]]; then
+                        echo "submitting single job"
+                        #sleep 1sh
+                        bash submit_single.sh
                     else
                         echo "submitting ite job"
                         #sleep 10
                         bash submit_ite.sh
                     fi
-		
+
                 done
             done
         done

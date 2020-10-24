@@ -61,6 +61,7 @@
 		  stop="collision"
 		  optimisation="BO_noID"
 		  reset="true"
+		  scale="1"
                     />
 
   <!-- *********************** -->

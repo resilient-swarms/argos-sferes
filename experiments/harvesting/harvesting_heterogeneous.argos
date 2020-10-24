@@ -62,6 +62,7 @@
 		  optimisation="BO"
 		  reset="true"
 		  load_ID_map="true"
+		  scale="1"
                     />
 
   <!-- *********************** -->

@@ -175,6 +175,24 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
    }
+
+   try
+   {
+      GetNodeAttribute(t_node, "scale", scale);
+      if (scale != 1.0f)
+      {
+         for (size_t i=0; i < m_fFoodSquareRadius.size(); ++i)
+         {
+            m_fFoodSquareRadius[i]=(std::sqrt(m_fFoodSquareRadius[i])*scale);
+            m_fFoodSquareRadius[i]*=m_fFoodSquareRadius[i];
+            m_cFoodPos[i]*=scale;
+         }
+      }
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error setting scale ", ex);
+   }
    if (optimisation == "BO" || optimisation == "BO_noID")
    {
       init_BO(normal_ID);
@@ -416,10 +434,10 @@ void CForagingLoopFunctions::food_scarcity()
    ForagingThymioNN *cController = dynamic_cast<ForagingThymioNN *>(get_controller(0)); // index 0 because any index will do
    if (cController->FBehavior == BaseController::FaultBehavior::FAULT_FOOD_SCARCITY)
    {
-      float rad = 0.040 * (float)(cController->foodID + 1);
+      float rad = 0.040 *scale*(float)(cController->foodID + 1);
       m_fFoodSquareRadius = {rad * rad};                        // only one small food item
-      float food_x = m_pcRNG->Uniform(CRange<Real>(1.7, 1.85)); // very far from nest_x but not against the border
-      float food_y = m_pcRNG->Uniform(CRange<Real>(0.3, 1.8));  // y does not matter so much
+      float food_x = m_pcRNG->Uniform(CRange<Real>(scale*1.7, scale*1.85)); // very far from nest_x but not against the border
+      float food_y = m_pcRNG->Uniform(CRange<Real>(scale*0.3, scale*1.8));  // y does not matter so much
       m_cFoodPos = {CVector2(food_x, food_y)};
    }
 }

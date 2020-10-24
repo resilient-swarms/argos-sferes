@@ -61,6 +61,7 @@
 		  optimisation="BO_noID"
 		  reset="true"
 		  load_ID_map="false"
+		  scale="1"
                     />
 
   <!-- *********************** -->

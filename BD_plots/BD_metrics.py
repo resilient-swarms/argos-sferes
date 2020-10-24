@@ -1165,7 +1165,7 @@ if __name__ == "__main__":
 
 
 
-    single_development_plots("Foraging", "", runs, times, bd_type, legend_labels)
+    single_development_plots("ForagingLarge", "", runs, times, bd_type, legend_labels)
 
 
     # runs = range(1, 6)

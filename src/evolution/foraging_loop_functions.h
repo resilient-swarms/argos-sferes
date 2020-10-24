@@ -18,6 +18,7 @@ public:
     ForagingStats *stats;
     VirtualEnergy *virtual_energy;
     CFloorEntity *m_pcFloor;
+    float scale = 1.0f;// scale of the arena
 #if HETEROGENEOUS & !RECORD_FIT
     std::string optimisation;
     bool load_ID_map;

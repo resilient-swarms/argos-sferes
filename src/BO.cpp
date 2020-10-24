@@ -24,6 +24,8 @@ int main(int argc, char **argv)
     cSimulator.LoadExperiment();
 
     static MainLoopFunctions &cLoopFunctions = dynamic_cast<MainLoopFunctions &>(cSimulator.GetLoopFunctions());
+    
+    
     cLoopFunctions.savefile = cLoopFunctions.output_folder + "/BOOST_SERIALIZATION_NVP";
 
 #ifdef CVT

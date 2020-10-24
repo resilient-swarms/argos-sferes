@@ -6,7 +6,7 @@ if [ -z "${datafolder}" ]; then
 	exit 125
 fi
 declare -A acq_funs
-acq_funs[0]="UCB"
+acq_funs[0]="UCB_LOCAL"
 #acq_funs[1]="UCB_ID"
 declare -A BO_exps
 BO_exps["UCB"]="BO"
@@ -17,11 +17,11 @@ for alpha in 0.93; do
         for acq in ${!acq_funs[@]}; do
 			#bash cmake_scripts/make_all_heterosim.sh $acq 0 $alpha $l
 			acq_string=${acq_funs[${acq}]}
-			#export EXPERIMENT_TAG="alpha${alpha}_l${l}_${acq_string}_M52VarNoise"
+			export EXPERIMENT_TAG="alpha${alpha}_l${l}_${acq_string}_M52VarNoise"
 			echo "start runs with experiment tag: ${EXPERIMENT_TAG}"
 			experiment_type=${BO_exps[${acq_string}]}
 			echo "and experiment type: ${experiment_type}"
-			bash launch_foraging_BO.sh "${datafolder}" "${experiment_type}" "${EXPERIMENT_TAG}" "" "Large"
+			bash launch_foraging_BO.sh "${datafolder}" "${experiment_type}" "${EXPERIMENT_TAG}" "" "Large" "4"
 	done
     done
 done
