@@ -11,7 +11,7 @@ utilities to check:
 from os import path
 from process_archive_data import *
 
-from foraging_params import *
+from foraging.foraging_params import *
 
 def check_archives_complete(finalgen,datadir,fitfuns, descriptors,runs, perturbations,translation):
 
@@ -83,7 +83,7 @@ def check_archives_complete_foraging(finalgen,datadir,descriptors,runs, translat
 
     for desc in descriptors:
         print(desc)
-        filename = datadir + "/Foraging/" +  desc
+        filename = datadir + "/ForagingLarge/" +  desc
         for run in runs:
 
             unperturbed = filename + "/results" + str(run)+"/archive_"+str(finalgen)+".dat"
@@ -119,7 +119,7 @@ def check_BO_complete_foraging(datadir,descriptors,runs):
 
     for desc in descriptors:
         print(desc)
-        filename = datadir + "/Foraging/" +  desc
+        filename = datadir + "/ForagingLarge/" +  desc
         for run in runs:
 
             for perturbation in foraging_perturbations:
@@ -134,7 +134,7 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
 
     for desc in descriptors:
         print(desc)
-        filename = datadir + "/Foraging/" +  desc
+        filename = datadir + "/ForagingLarge/" +  desc
         for method in methods:
             print("--------------")
             print(method)
@@ -142,7 +142,7 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
             for run in runs:
                 print("run ",run)
                 print("-------")
-                for perturbation in foraging_perturbations:
+                for perturbation in foraging_perturbations["decentralised"]:
 
                     # perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/"+method+"/BO_output"+tag+"/fitness"
                     # if not path.exists(perturbed):
@@ -167,7 +167,7 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
                         # print("performance 1st controller: ", first_line[-1])
                         # print("-------")
                         if len(lines)!=100:
-                            print("only %d lines at: %s"%(len(lines),perturbed))
+                             print("only %d lines at: %s"%(len(lines),perturbed))
 
 if __name__ == "__main__":
     # check_archives_complete(30000,
@@ -189,8 +189,13 @@ if __name__ == "__main__":
     check_BO_single_complete_foraging( "/home/david/Data",
                             ["history"],
                             range(1,6),
-                            ["single_exp_joint"],
-                            "")
+                            ["single_exp"],
+                            "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise")
+    check_BO_single_complete_foraging( "/home/david/Data",
+                            ["history"],
+                            range(1,6),
+                            ["single_exp"],
+                            "alpha0.93_l0.12_UCB_M52VarNoise")
     # check_BO_single_complete_foraging("/home/david/Data",
     #                                   ["history"],
     #                                   range(1, 6),

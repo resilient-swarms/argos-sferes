@@ -1,6 +1,6 @@
 
 from process_archive_data import *
-from foraging_params import *
+from foraging.foraging_params import *
 
 from plots import *
 
@@ -88,15 +88,15 @@ def plot_best_data():
         y3.append(lines3)
 
     createPlot(y1, np.array(t), colors, markers, xlabel="Generations", ylabel="Time lost on food source ($s$)",
-               xlim=[0,22000], ylim=[0,20], save_filename="results/time_best_food.pdf",
+               xlim=[0,22000], ylim=[0,20], save_filename="../results/time_best_food.pdf",
                legend_labels=legend_labels, scatter=False, force=True,
                ax=None, title="")
     createPlot(y2, np.array(t), colors, markers, xlabel="Generations", ylabel="Time without holding food ($s$)",
-               xlim=[0, 22000], ylim=[0,120], save_filename="results/time_best_notholding.pdf",
+               xlim=[0, 22000], ylim=[0,120], save_filename="../results/time_best_notholding.pdf",
                legend_labels=legend_labels, scatter=False, force=True,
                ax=None, title="")
     createPlot(y3, np.array(t), colors, markers, xlabel="Generations", ylabel="Time lost in nest ($s$)",
-               xlim=[0, 22000], ylim=[0,120], save_filename="results/time_best_nest.pdf",
+               xlim=[0, 22000], ylim=[0,120], save_filename="../results/time_best_nest.pdf",
                legend_labels=legend_labels, scatter=False, force=True,
                ax=None, title="")
 
@@ -143,15 +143,15 @@ def plot_worst_data():
         y3.append(lines3)
 
     createPlot(y1, np.array(t), colors, markers, xlabel="Generations", ylabel="Time lost on food source ($s$)",
-               xlim=[0,22000], ylim=[0,20], save_filename="results/time_worst_food.pdf",
+               xlim=[0,22000], ylim=[0,20], save_filename="../results/time_worst_food.pdf",
                legend_labels=legend_labels, scatter=False, force=True,
                ax=None, title="")
     createPlot(y2, np.array(t), colors, markers, xlabel="Generations", ylabel="Time without holding food ($s$)",
-               xlim=[0, 22000], ylim=[0,120], save_filename="results/time_worst_notholding.pdf",
+               xlim=[0, 22000], ylim=[0,120], save_filename="../results/time_worst_notholding.pdf",
                legend_labels=legend_labels, scatter=False, force=True,
                ax=None, title="")
     createPlot(y3, np.array(t), colors, markers, xlabel="Generations", ylabel="Time lost in nest ($s$)",
-               xlim=[0, 22000], ylim=[0,120], save_filename="results/time_worst_nest.pdf",
+               xlim=[0, 22000], ylim=[0,120], save_filename="../results/time_worst_nest.pdf",
                legend_labels=legend_labels, scatter=False, force=True,
                ax=None, title="")
 

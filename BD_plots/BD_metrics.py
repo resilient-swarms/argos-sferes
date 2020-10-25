@@ -1147,7 +1147,7 @@ if __name__ == "__main__":
     legend_labels = ["HBD", "SDBC"]
     bd_type=["history", "Gomes_sdbc_walls_and_robots_std"]
     bybin_list=["bd","bd"]
-    times=range(0,40500, 500)
+    times=range(0,20500, 500)
 
     #make_translation_table("CORRECT", [get_bd_dir(f) for f in fitfuns], runs,times=[generation],source="best")
 

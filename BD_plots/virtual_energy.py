@@ -1,6 +1,5 @@
-from plots import *
-from perturbation_analysis_foraging import *
-from signature_plot import plot
+from foraging.perturbation_analysis_foraging import *
+
 
 def gather_data_normal():
     x=[]

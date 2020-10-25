@@ -209,6 +209,7 @@ if [[ $large == "Large" ]]; then
     if [ ! -z $scale ]; then
         TemplateFile="experiments/harvesting/harvesting_template_large${scale}X.argos"
         echo "using template: ${TemplateFile}"
+	output_tag=${output_tag}_${scale}X
     else
         TemplateFile="experiments/harvesting/harvesting_template_large.argos"
         echo "using template: ${TemplateFile}"
