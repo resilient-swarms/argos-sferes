@@ -1,0 +1,125 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <system threads="0" />
+    <experiment length="EXPERIMENT_LENGTH"
+                ticks_per_second="5"
+                random_seed="SEED" />
+  </framework>
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+
+    <foraging_nn_controllerBEHAVIOUR_TAG id="tnn"
+                               library="lib/libforaging_nn_controllerBEHAVIOUR_TAG.so">
+      <actuators>
+        <differential_steering implementation="default" />
+	<!-- <thymio_led            implementation="default" medium="leds"/>   -->
+      </actuators>
+      <sensors>
+	<Thymio_proximity implementation="default"    show_rays="false"  range="SENSOR_RANGE" noise_level="NOISE_LEVEL"/>
+	<Thymio_ground implementation="rot_z_only" show_rays="false" noise_level="GROUND_NOISE" />
+	<differential_steering implementation="default" />
+      </sensors>
+      <params>
+      <wheel_turning max_speed="10" />
+      <experiment_run swarm_behavior="SWARM_BEHAV"
+			fault_behavior="FAULT_TYPE" 
+	                id_faulty_robot="FAULT_ID"
+			id_food_source="FOOD_ID"
+			savefile="OUTPUTFOLDER/BOOST_SERIALIZATION_NVP"
+     />
+        
+      </params>  
+      </foraging_nn_controllerBEHAVIOUR_TAG>
+  </controllers>
+
+  <!-- ****************** -->
+  <!-- * Loop functions * -->
+  <!-- ****************** -->
+  <loop_functions library="lib/libforaging_loopfunctionsBEHAVIOUR_TAG.so"
+                  label="foraging_loopfunctionsBEHAVIOUR_TAG"
+                  trials="TRIALS"
+                  robots="ROBOTS"
+                  descriptortype="DESCRIPTOR_TYPE"    
+                  fitfuntype="Foraging"
+                  output_folder="OUTPUTFOLDER"
+                centroids_folder="CENTROIDSFOLDER"
+		  use_virtual="USE_VIRTUAL"
+		  track_stats="TRACK_STATS"
+		  ticks_per_subtrial="TICKS_PER_SUB"
+		  num_subtrials="NUM_SUB"
+		  network_binary="NETWORK_BINARY"
+		  network_config="NETWORK_CONFIG"
+		  stop="STOP"
+		  optimisation="OPTIMISATION"
+		  reset="RESET"
+	          load_ID_map="LOAD_ID_MAP"
+		  scale="2"
+                    />
+
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+<!-- 2.1+2,4.2+2 -> 4.2+2,8.4+2 -->
+  <arena size="6.2,10.4, 1" center="2.1,4.2,0.5">
+
+    <floor id="floor"
+           source="loop_functions"
+           pixels_per_meter="50" />
+
+   <box id="wall_north" size="6.2,1.0,0.5" movable="false">
+      <body position="2.1,8.9,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_south" size="6.2,1.0,0.5" movable="false">
+      <body position="2.1,-0.5,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_east" size="1.0,10.4,0.5" movable="false">
+      <body position="4.7,4.2,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_west" size="1.0,10.4,0.5" movable="false">
+      <body position="-0.5,4.2,0" orientation="0,0,0" />
+    </box>
+
+
+        <distribute>
+      <position method="uniform" min="1.0,1.0,0" max="3,7,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="ROBOTS" max_trials="1000">
+        <Thymio id="thymio" rab_data_size="4" rab_range="1">    <!-- data size in bytes; range in m -->
+          <controller config="tnn" />
+        </Thymio>
+      </entity>
+        </distribute>
+
+</arena>
+
+
+
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <dynamics2d id="dyn2d" />
+  </physics_engines>
+
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+  </media>  
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <!-- <visualization>
+    <qt-opengl />
+  </visualization> -->
+
+</argos-configuration>
