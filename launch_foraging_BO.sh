@@ -209,7 +209,7 @@ if [[ $large == "Large" ]]; then
     if [ ! -z $scale ]; then
         TemplateFile="experiments/harvesting/harvesting_template_large${scale}X.argos"
         echo "using template: ${TemplateFile}"
-	output_tag=${output_tag}_${scale}X
+	    output_tag=${output_tag}_${scale}X
     else
         TemplateFile="experiments/harvesting/harvesting_template_large.argos"
         echo "using template: ${TemplateFile}"
@@ -308,7 +308,7 @@ for FaultCategory in proximity_sensor; do
                 elif [ "$run_type" = "BO_single_random" ]; then
                     tag=${CVT}${BD_DIMS}DREAL${EXPERIMENT_TAG}
                     bd="random_identification"
-                elif [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ]; then
+                elif [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ] || [ "$run_type" = "BO_single_multi_independent" ]; then
                     tag=${CVT}${BD_DIMS}DREAL${EXPERIMENT_TAG}
                     bd="empty"
                 elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
@@ -393,7 +393,8 @@ for FaultCategory in proximity_sensor; do
                         [ "$run_type" = "BO_single" ] || [ "$run_type" = "virtual_single" ] || [ "$run_type" = "BO_single_record" ] ||
                         [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ] || [ "$run_type" = "BO_single_known_record" ] ||
                         [ "$run_type" = "BO_single_known" ] || [ "$run_type" = "BO_single_random" ] || [ "$run_type" = "BO_single_IDprior" ] ||
-                        [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ]; then
+                        [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ] ||
+                        [ "$run_type" = "BO_single_multi_independent" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else
                         export BO_OutputFolder=${Outfolder}${output_tag}

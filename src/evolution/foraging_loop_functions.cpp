@@ -329,7 +329,7 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, bool sharing)
    {
       if (!sharing)
       {
-         opt[i]->optimize_init<ControllerEval>(0, i, state_fun, VARIABLE_NOISE);
+         opt[i]->optimize_init<ControllerEval>(0, 1, state_fun, VARIABLE_NOISE);
          fill_multimap_with_identifier({});
       }
       else
@@ -1135,7 +1135,7 @@ void CForagingLoopFunctions::PostStep()
          {
             update_model(cController, j, alltrialsfinished, false);
          }
-         else if (optimisation == "BO_multi")
+         else if (optimisation == "BO_multi" || optimisation == "BO_multi_independent")
          {
             update_model(cController, cController.worker.opt_index, alltrialsfinished, true); // stat-index = opt-index
          }
@@ -1180,7 +1180,7 @@ void CForagingLoopFunctions::PostStep()
       {
          select_new_controller(cController, finished[j]);
       }
-      else if (optimisation == "BO_multi")
+      else if (optimisation == "BO_multi" || optimisation == "BO_multi_independent")
       {
          select_new_controller(cController, finished[j]);
       }

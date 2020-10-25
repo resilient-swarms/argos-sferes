@@ -190,12 +190,17 @@ if __name__ == "__main__":
                             ["history"],
                             range(1,6),
                             ["single_exp"],
-                            "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise")
+                            "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_4X")
     check_BO_single_complete_foraging( "/home/david/Data",
                             ["history"],
                             range(1,6),
                             ["single_exp"],
-                            "alpha0.93_l0.12_UCB_M52VarNoise")
+                            "alpha0.93_l0.12_UCB_M52VarNoise_4X")
+    check_BO_single_complete_foraging( "/home/david/Data",
+                            ["history"],
+                            range(1,6),
+                            ["single_exp_randomsearch"],
+                            "alpha0.93_l0.12_UCB_M52VarNoise_4X")
     # check_BO_single_complete_foraging("/home/david/Data",
     #                                   ["history"],
     #                                   range(1, 6),
