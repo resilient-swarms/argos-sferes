@@ -445,7 +445,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         VE_tags = ["_VE_init" + str(j) for j in range(20)]
         num_VE_conditions = 20
     elif comparison=="decentralised":
-        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","Random-Dec"]
+        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
@@ -453,12 +453,13 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         settings = [
                     ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise"),
                     ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
-                    ("single_exp_randomsearch",False, "")
+                    ("single_exp_independent", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
+                    ("single_exp_randomsearch",False, "alpha0.93_l0.12_UCB_M52VarNoise")
         ]
         plottag="LARGE_DECENTRALISED"
-        VE_tags = ["_VE_init" + str(j) for j in [3, 4]]
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4,5, 6]]
         CENT = "decentralised"
-        num_VE_conditions=2
+        num_VE_conditions=4
     elif comparison=="fest":
         conditions = ["SMBO", "VE-SMBO E(0)=3","VE-SMBO E(0)=4","VE-SMBO E(0)=5","VE-SMBO E(0)=6","VE-SMBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
@@ -590,5 +591,5 @@ if __name__ == "__main__":
 
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="centralised",estimate=False)
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30],from_file=False,comparison="decentralised",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised",estimate=False)
 

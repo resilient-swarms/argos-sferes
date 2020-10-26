@@ -18,9 +18,11 @@ public:
     ForagingStats *stats;
     VirtualEnergy *virtual_energy;
     CFloorEntity *m_pcFloor;
-    float scale = 1.0f;// scale of the arena
-#if HETEROGENEOUS & !RECORD_FIT
+    float scale = 1.0f; // scale of the arena
+#if HETEROGENEOUS
     std::string optimisation;
+#if !RECORD_FIT
+
     bool load_ID_map;
     size_t num_subtrials;
     size_t ticks_per_subtrial;
@@ -54,23 +56,23 @@ public:
     }
     void reset_controller(size_t j, bool reset, bool alltrialsfinished);
     void update_model(ForagingThymioNN &cController, size_t stat_index, bool alltrialsfinished, bool multi);
-    void select_new_controller(ForagingThymioNN &cController,bool alltrialsfinished);
+    void select_new_controller(ForagingThymioNN &cController, bool alltrialsfinished);
     void select_new_joint_controller(bool alltrialsfinished);
-    void select_new_controller_random(ForagingThymioNN &cController,bool alltrialsfinished);
+    void select_new_controller_random(ForagingThymioNN &cController, bool alltrialsfinished);
     void update_joint_model(bool alltrialsfinished);
     void check_ID_map(std::vector<float> ident);
     void init_BO(std::vector<double> normal_ID);
     void init_randomsearch();
-    void init_multiBO(bool single_worker,bool sharing);
+    void init_multiBO(bool single_worker, bool sharing);
     void init_BOjoint();
-
+#endif
 #endif
     const float nest_x = 0.32;
 #ifdef LARGE_ARENA
     const int HARVEST_TIME = 0; // no delay
     std::vector<float> m_fFoodSquareRadius = {
         0.10 * 0.10, 0.10 * 0.10, 0.20 * 0.20, 0.20 * 0.20, 0.30 * 0.30,
-         0.10 * 0.10, 0.10 * 0.10, 0.20 * 0.20, 0.20 * 0.20, 0.30 * 0.30};
+        0.10 * 0.10, 0.10 * 0.10, 0.20 * 0.20, 0.20 * 0.20, 0.30 * 0.30};
     std::vector<CVector2> m_cFoodPos = {
 
         CVector2(0.80, 1.20),
@@ -78,11 +80,11 @@ public:
         CVector2(1.3, 1.0),
         CVector2(1.5, 0.5),
         CVector2(1.6, 1.70),
-        CVector2(0.80, 2.1+1.20),
-        CVector2(0.80, 2.1+0.50),
-        CVector2(1.3, 2.1+1.0),
-        CVector2(1.5, 2.1+0.5),
-        CVector2(1.6, 2.1+1.70)
+        CVector2(0.80, 2.1 + 1.20),
+        CVector2(0.80, 2.1 + 0.50),
+        CVector2(1.3, 2.1 + 1.0),
+        CVector2(1.5, 2.1 + 0.5),
+        CVector2(1.6, 2.1 + 1.70)
 
     };
 
@@ -117,10 +119,11 @@ public:
 
     virtual bool try_robot_position(CVector3 &Position, CQuaternion &Orientation, const CRange<Real> x_range, const CRange<Real> y_range, const size_t m_unRobot, size_t &num_tries);
     virtual std::vector<size_t> priority_robotplacement();
-    virtual float get_robot_fitness(size_t i){
-        return m_unNumberRobots * m_numFoodCollected[i]/(float) m_unNumberTrials;
+    virtual float get_robot_fitness(size_t i)
+    {
+        return m_unNumberRobots * m_numFoodCollected[i] / (float)m_unNumberTrials;
     };
-
+    std::vector<int> get_fault_indexmap();
 #ifdef RECORD_FIT
     /* write fitness to file */
     virtual void write_fitness(float fFitness)

@@ -1168,8 +1168,6 @@ std::vector<double> get_best_bd(std::string stats_filename)
     read.open(stats_filename.c_str());
     if (read.is_open())
     {
-
-        // loop backward over the file
         int i = 0;
         std::vector<double> numbers;
         std::string line;
@@ -1198,7 +1196,50 @@ std::vector<double> get_best_bd(std::string stats_filename)
     throw std::runtime_error("did not find anything");
     return std::vector<double>();
 }
-
+std::vector<double> get_best_bd_multi(std::string stats_filename)
+{
+    std::ifstream read;
+    read.open(stats_filename.c_str());
+    std::vector<double> best_bd;
+    double best_fit = -INFINITY;
+    if (read.is_open())
+    {
+        int i = 0;
+        std::string line;
+        while (std::getline(read, line))
+        {
+            std::istringstream iss(line);
+            double num;
+            int j = 0;
+            std::vector<double> numbers;
+            double fit;
+            while (iss >> num)
+            {
+                if (j >= 1 && j <= global::behav_dim)
+                {
+                    numbers.push_back(num);
+                }
+                else{
+                    if(j == global::behav_dim + 1) // no id feature in multibo
+                    {
+                        fit = num;
+                    }
+                }
+                ++j;
+            }
+            if(fit >= best_fit)
+            {
+                best_fit = fit;
+                best_bd = numbers;
+            }
+            ++i;
+        }
+        read.close();
+        return best_bd;
+    }
+    throw std::runtime_error("did not find anything");
+    return std::vector<double>();
+}
 #endif
 
 #else
@@ -1226,7 +1267,7 @@ typedef bayes_opt::BOptimizer<Params, modelfun<GP_t>, initfun<Init_t>, acquifun<
 void run_ite(const std::string &newname)
 {
     Opt_t opt;
-    global::results_path = const_cast<char*>(opt.res_dir().c_str());
+    global::results_path = const_cast<char *>(opt.res_dir().c_str());
     std::cout << "will use results path: " << global::results_path << std::endl;
     global::current_config = global::argossim_config_name[0];
 #ifdef REAL_EXP

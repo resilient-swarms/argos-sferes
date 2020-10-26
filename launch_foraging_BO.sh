@@ -37,7 +37,6 @@ elif [ "$run_type" = "BO_single" ]; then
     stop=$4
     optimisation="BO"
     reset=true
-    variable_noise=false
 elif [ "$run_type" = "BO_single_IDprior" ]; then
     UseVirtual="False"
     TopOutputFolder="single_exp_IDprior"
@@ -51,7 +50,6 @@ elif [ "$run_type" = "BO_single_IDprior" ]; then
     stop=$4
     optimisation="BO"
     reset=true
-    variable_noise=false
     load_ID_map=true
 elif [ "$run_type" = "BO_single_noID" ]; then
     UseVirtual="False"
@@ -66,7 +64,6 @@ elif [ "$run_type" = "BO_single_noID" ]; then
     stop=$4
     optimisation="BO_noID"
     reset=true
-    variable_noise=false
 elif [ "$run_type" = "BO_single_multi" ]; then
     UseVirtual="False"
     TopOutputFolder="single_exp"
@@ -80,7 +77,16 @@ elif [ "$run_type" = "BO_single_multi" ]; then
     stop=$4
     optimisation="BO_multi"
     reset=true
-    variable_noise=false
+elif [ "$run_type" = "BO_single_multi_record" ]; then
+    UseVirtual="False"
+    TopOutputFolder="single_exp"
+    command="bin/behaviour_evol"
+    SimTime=120
+    trials=8
+    network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+    optimisation="BO_multi"
+    stop=""
 elif [ "$run_type" = "BO_single_multi_independent" ]; then
     UseVirtual="False"
     TopOutputFolder="single_exp_independent"
@@ -94,7 +100,6 @@ elif [ "$run_type" = "BO_single_multi_independent" ]; then
     stop=$4
     optimisation="BO_multi_independent"
     reset=true
-    variable_noise=false
 elif [ "$run_type" = "BO_single_joint" ]; then
     UseVirtual="False"
     TopOutputFolder="single_exp_joint"
@@ -108,7 +113,6 @@ elif [ "$run_type" = "BO_single_joint" ]; then
     stop=$4
     optimisation="BO_joint"
     reset=true
-    variable_noise=true
 elif [ "$run_type" = "BO_single_random" ]; then
     UseVirtual="False"
     TopOutputFolder="single_exp_random"
@@ -122,7 +126,6 @@ elif [ "$run_type" = "BO_single_random" ]; then
     stop=$4
     optimisation="BO"
     reset=true
-    variable_noise=false
 elif [ "$run_type" = "BO_single_known" ]; then
     UseVirtual="False"
     TopOutputFolder="single_exp_known"
@@ -136,7 +139,6 @@ elif [ "$run_type" = "BO_single_known" ]; then
     stop=$4
     optimisation="BO"
     reset=true
-    variable_noise=true
 elif [ "$run_type" = "BO_single_known_record" ]; then
     UseVirtual="False"
     TopOutputFolder="single_exp_known"
@@ -209,7 +211,7 @@ if [[ $large == "Large" ]]; then
     if [ ! -z $scale ]; then
         TemplateFile="experiments/harvesting/harvesting_template_large${scale}X.argos"
         echo "using template: ${TemplateFile}"
-	    output_tag=${output_tag}_${scale}X
+        output_tag=${output_tag}_${scale}X
     else
         TemplateFile="experiments/harvesting/harvesting_template_large.argos"
         echo "using template: ${TemplateFile}"
@@ -286,7 +288,7 @@ faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,
 faultnum["food_scarcity"]=1          # (will loop over food as a dummy)
 faultnum["agents"]="3 12 24"         # {1,2,...,12} agents included
 
-for FaultCategory in food_scarcity; do
+for FaultCategory in proximity_sensor; do
     faults=${faultnum[${FaultCategory}]}
     for FaultIndex in ${faults}; do
         for key in ${!descriptors[@]}; do
@@ -314,6 +316,9 @@ for FaultCategory in food_scarcity; do
                 elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="identification"
+                elif [ "$run_type" = "BO_single_multi_record" ]; then
+                    tag=${CVT}${BD_DIMS}DREAL_RECORD
+                    bd="empty"
                 elif [ "$run_type" = "BO_single_known_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="perfect_identificationsorted"
@@ -394,7 +399,7 @@ for FaultCategory in food_scarcity; do
                         [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ] || [ "$run_type" = "BO_single_known_record" ] ||
                         [ "$run_type" = "BO_single_known" ] || [ "$run_type" = "BO_single_random" ] || [ "$run_type" = "BO_single_IDprior" ] ||
                         [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ] ||
-                        [ "$run_type" = "BO_single_multi_independent" ]; then
+                        [ "$run_type" = "BO_single_multi_independent" ] || [ "$run_type" = "BO_single_multi_record" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else
                         export BO_OutputFolder=${Outfolder}${output_tag}

@@ -134,7 +134,7 @@ if(LARGE)
 
 endif()
 
-if(HETEROGENEOUS AND NOT BO)
+if(HETEROGENEOUS AND NOT BO AND NOT ${RECORD_FIT})
             option(BO_ACQ "Acquisition function for heterogeneous optimisation" OFF)
             option(BO_KERN "Kernel function for heterogeneous optimisation" OFF)
             add_definitions(-DBO_ACQUISITION=${BO_ACQ})
@@ -163,9 +163,7 @@ if(HETEROGENEOUS AND NOT BO)
                 message("using BO kernel: KERN_M52")
             else()
                 message(FATAL_ERROR "BO_KERN not set correctly")
-            endif()
-
-            
+            endif()           
 endif()
 
     

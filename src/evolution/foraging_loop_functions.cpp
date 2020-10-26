@@ -92,9 +92,8 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       THROW_ARGOSEXCEPTION_NESTED("Error initializing network binary", ex);
    }
    std::vector<double> normal_ID;
-#if RECORD_FIT
-   normal_ID = {};
-#else
+
+   Params::archiveparams::archive = load_archive(std::string(global::archive_path) + "/archive_" + std::to_string(global::gen_to_load) + ".dat", normal_ID);
    try
    {
       GetNodeAttribute(t_node, "optimisation", optimisation);
@@ -115,6 +114,33 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       normal_ID = {};
    }
+#if RECORD_FIT
+   if (optimisation == "BO_multi")
+   {
+      std::vector<int> stat_indexmap = get_fault_indexmap();
+      for (size_t i = 0; i < m_unNumberRobots; ++i)
+      {
+         int index = stat_indexmap[i];
+         std::string stats_filename = output_folder + "/async_stats_best" + std::to_string(index) + ".dat";
+         std::vector<double> bd = get_best_bd_multi(stats_filename);
+         argos::CThymioEntity *cThym = m_pcvecRobot[i];
+         ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+         cController.select_net(bd);
+      }
+   }
+   else
+   {
+      for (size_t i = 0; i < m_unNumberRobots; ++i)
+      {
+         // get the best bd
+         std::string stats_filename = output_folder + "/async_stats_best" + std::to_string(i) + ".dat";
+         std::vector<double> bd = get_best_bd(stats_filename);
+         argos::CThymioEntity *cThym = m_pcvecRobot[i];
+         ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+         cController.select_net(bd);
+      }
+   }
+#else
    load_ID_map = false;
    try
    {
@@ -124,23 +150,6 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error loading ID map", ex);
    }
-
-#endif
-
-   Params::archiveparams::archive = load_archive(std::string(global::archive_path) + "/archive_" + std::to_string(global::gen_to_load) + ".dat", normal_ID);
-
-#if RECORD_FIT
-
-   for (size_t i = 0; i < m_unNumberRobots; ++i)
-   {
-      // get the best bd
-      std::string stats_filename = output_folder + "/async_stats_best" + std::to_string(i) + ".dat";
-      std::vector<double> bd = get_best_bd(stats_filename);
-      argos::CThymioEntity *cThym = m_pcvecRobot[i];
-      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
-      cController.select_net(bd);
-   }
-#else
    try
    {
       GetNodeAttribute(t_node, "ticks_per_subtrial", ticks_per_subtrial);
@@ -218,7 +227,28 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
 #endif
 #endif
 }
+std::vector<int> CForagingLoopFunctions::get_fault_indexmap()
+{
+   std::vector<BaseController::FaultBehavior> found_faults;
+   std::vector<int> indexmap;
+   for (size_t i = 0; i < m_unNumberRobots; ++i)
+   {
+      argos::CThymioEntity *cThym = m_pcvecRobot[i];
+      ForagingThymioNN &cController = dynamic_cast<ForagingThymioNN &>(cThym->GetControllableEntity().GetController());
+      auto found = std::find(found_faults.begin(), found_faults.end(), cController.FBehavior);
 
+      if (found == found_faults.end())
+      {
+         indexmap.push_back(found_faults.size());// final index of the new foundfaults
+         found_faults.push_back(cController.FBehavior);
+      }
+      else{
+         indexmap.push_back(found - found_faults.begin());
+      }
+
+   }
+   return indexmap;
+}
 #if HETEROGENEOUS & !RECORD_FIT
 void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID)
 {
