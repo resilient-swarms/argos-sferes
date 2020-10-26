@@ -453,7 +453,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         settings = [
                     ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise"),
                     ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
-                    ("single_exp_random",False, "")
+                    ("single_exp_randomsearch",False, "")
         ]
         plottag="LARGE_DECENTRALISED"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4]]
