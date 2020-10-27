@@ -221,6 +221,9 @@ if [[ $large == "Large" ]]; then
         TemplateFile="experiments/harvesting/harvesting_template_large${scale}X.argos"
         echo "using template: ${TemplateFile}"
         output_tag=${output_tag}_${scale}X
+        SimTime=$(($scale * ${SimTime}))
+        ticks_per_subtrial=$(($scale * ${ticks_per_subtrial}))
+        fault_tag="${scale}X"
     else
         TemplateFile="experiments/harvesting/harvesting_template_large.argos"
         echo "using template: ${TemplateFile}"
@@ -281,6 +284,7 @@ sleep 2.5
 
 FitfunType="Foraging"
 echo "simtime "${SimTime}
+echo "ticks "$ticks_per_subtrial
 echo "FitfunType "${FitfunType}
 perturbations_folder="experiments/harvesting/perturbations"
 # for FaultType in "FAULT_PROXIMITYSENSORS_SETMIN" "FAULT_PROXIMITYSENSORS_SETMAX" "FAULT_PROXIMITYSENSORS_SETRANDOM" \
@@ -297,7 +301,7 @@ faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,
 faultnum["food_scarcity"]=1          # (will loop over food as a dummy)
 faultnum["agents"]="3 12 24"         # {1,2,...,12} agents included
 
-for FaultCategory in food_scarcity proximity_sensor; do
+for FaultCategory in proximity_sensor; do
     faults=${faultnum[${FaultCategory}]}
     for FaultIndex in ${faults}; do
         for key in ${!descriptors[@]}; do
@@ -352,7 +356,7 @@ for FaultCategory in food_scarcity proximity_sensor; do
                 # look at archive dir at FAULT_NONE; config includes perturbations
 
                 # look at archive dir at previous perturbation results; config is at FAULT_NONE
-                FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}p${FaultIndex}.txt"
+                FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}${scale}Xp${FaultIndex}.txt"
                 food_loop="-1"
                 if [ "$FaultCategory" = "agents" ]; then
                     robots=$FaultIndex
@@ -384,7 +388,6 @@ for FaultCategory in food_scarcity proximity_sensor; do
                 fi
                 # apply scale to number of robots and simulation time; arenasize depends on template
                 robots=$(($scale * $robots))
-                SimTime=$(($scale * ${SimTime}))
                 echo "fault ${fault}   robots ${robots}  FaultID  $FaultID SimTime $SimTime"
                 for food in ${food_loop}; do
                     echo "doing food ${food}"
@@ -482,7 +485,7 @@ for FaultCategory in food_scarcity proximity_sensor; do
                         #sleep 10
                         bash submit_ite.sh
                     fi
-
+                    sleep 10
                 done
             done
         done

@@ -6,12 +6,12 @@ if [ -z "${datafolder}" ]; then
 	exit 125
 fi
 declare -A acq_funs
-acq_funs[0]="UCB"
+acq_funs[0]="UCB_LOCAL"
 #acq_funs[1]="UCB_LOCAL"
 #acq_funs[3]="UCB"
 #acq_funs[1]="UCB_ID"
 declare -A BO_exps
-BO_exps["UCB"]="BO_single_multi"
+BO_exps["UCB_LOCAL"]="BO_single_multi"
 #BO_exps["UCB_LOCAL"]="BO_single_multi"
 BO_exps["UCB_ID"]="BO_single_IDprior"
 for alpha in 0.93; do
@@ -23,7 +23,7 @@ for alpha in 0.93; do
 			echo "start runs with experiment tag: ${EXPERIMENT_TAG}"
 			experiment_type=${BO_exps[${acq_string}]}
 			echo "and experiment type: ${experiment_type}"
-			bash launch_foraging_BO.sh "${datafolder}" "${experiment_type}" "${EXPERIMENT_TAG}" "" "Large" ""
+			bash launch_foraging_BO.sh "${datafolder}" "${experiment_type}" "${EXPERIMENT_TAG}" "" "Large" "2"
 	done
     done
 done
