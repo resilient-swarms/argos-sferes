@@ -24,6 +24,12 @@ namespace limbo
                 int best_index;
                 size_t constraint_size = constraint.size();
                 archive_it_t best_it;
+                int map_index;
+                if (Params::multi)
+                {
+                    map_index = Params::map_index;
+                    Params::archiveparams::archive = Params::archiveparams::multimap[map_index];
+                }
                 for (archive_it_t it = Params::archiveparams::archive.begin(); it != Params::archiveparams::archive.end(); ++it)
                 {
 
@@ -48,7 +54,7 @@ namespace limbo
                     }
 
                     auto el = Params::archiveparams::archive.at(it->first);
-                    bool checked = Params::archiveparams::checked_constraints[vec_to_check] ;
+                    bool checked = Params::archiveparams::checked_constraints[vec_to_check];
                     if (checked)
                     {
                         continue; // no need to check again, assuming static environment
@@ -79,7 +85,14 @@ namespace limbo
                 }
                 std::cout << "best UCB " << best_acqui << std::endl;
                 std::cout << "vector " << result << std::endl;
-                Params::archiveparams::checked_constraints[checked_vec] = true;
+                if (checked_vec.size() != 0)
+                {
+                    Params::archiveparams::checked_constraints[checked_vec] = true;
+                }
+                if (Params::multi)
+                {
+                    Params::archiveparams::multimap[map_index] = Params::archiveparams::archive;
+                }
                 return result;
             }
         };

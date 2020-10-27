@@ -52,13 +52,13 @@ if __name__ == "__main__":
     # for run in range(1,6):
     #     write_superset(home+"/argos-sferes/experiments/perturbations/run"+str(run)+"_",BASIC_PERTURBATIONS,10,range(0,100))
 
-    num_agents=6
+    num_agents=24
     for run in range(1, 6):
-        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_proximity_sensor", PROXIMITY_SENSOR_PERTURBATIONS, num_agents,
+        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_proximity_sensor4X", PROXIMITY_SENSOR_PERTURBATIONS, num_agents,
                        range(0, 20))
-        write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_ground_sensor",
-                       GROUND_SENSOR_PERTURBATIONS, num_agents,
-                       range(0, 20))
+        # write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_ground_sensor",
+        #                GROUND_SENSOR_PERTURBATIONS, num_agents,
+        #                range(0, 20))
         #write_superset(home + "/argos-sferes/experiments/harvesting/perturbations/run" + str(run) + "_actuator", ACT_PERTURBATIONS, num_agents,
         #               range(0, 20))
 

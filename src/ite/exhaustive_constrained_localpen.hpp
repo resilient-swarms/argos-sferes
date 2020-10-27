@@ -32,7 +32,7 @@ namespace limbo
                     map_index = Params::map_index;
                     Params::archiveparams::archive = Params::archiveparams::multimap[map_index];
                 }
-                Params::M = f.get_M();//get_M<F>(f, constraint); // set to max observation instead
+                Params::M = f.get_M(); //get_M<F>(f, constraint); // set to max observation instead
                 Params::L = get_L<F>(f, constraint);
                 if (Params::L < 1e-7)
                 {
@@ -90,7 +90,10 @@ namespace limbo
                 }
                 std::cout << "best UCB " << best_acqui << std::endl;
                 std::cout << "vector " << result << std::endl;
-                Params::archiveparams::archive.at(best_it->first).checked = true;
+                if (best_it->first.size() != 0)
+                {
+                    Params::archiveparams::archive.at(best_it->first).checked = true;
+                }
                 if (Params::multi)
                 {
                     Params::archiveparams::multimap[map_index] = Params::archiveparams::archive;

@@ -100,6 +100,15 @@ elif [ "$run_type" = "BO_single_multi_independent" ]; then
     stop=$4
     optimisation="BO_multi_independent"
     reset=true
+elif [ "$run_type" = "BO_single_multi_independent_record" ]; then
+    UseVirtual="False"
+    TopOutputFolder="single_exp_independent"
+    command="bin/behaviour_evol"
+    SimTime=120
+    trials=8
+    network_binary=bin/BO3DREAL
+    network_config=harvesting_printnetwork.argos
+    stop=""
 elif [ "$run_type" = "BO_single_joint" ]; then
     UseVirtual="False"
     TopOutputFolder="single_exp_joint"
@@ -288,7 +297,7 @@ faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,
 faultnum["food_scarcity"]=1          # (will loop over food as a dummy)
 faultnum["agents"]="3 12 24"         # {1,2,...,12} agents included
 
-for FaultCategory in proximity_sensor; do
+for FaultCategory in food_scarcity proximity_sensor; do
     faults=${faultnum[${FaultCategory}]}
     for FaultIndex in ${faults}; do
         for key in ${!descriptors[@]}; do
@@ -313,10 +322,10 @@ for FaultCategory in proximity_sensor; do
                 elif [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ] || [ "$run_type" = "BO_single_multi_independent" ]; then
                     tag=${CVT}${BD_DIMS}DREAL${EXPERIMENT_TAG}
                     bd="empty"
-                elif [ "$run_type" = "BO_single_record" ] || [ "$run_type" = "random_single_record" ]; then
+                elif [ "$run_type" = "BO_single_record" ] ; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="identification"
-                elif [ "$run_type" = "BO_single_multi_record" ]; then
+                elif [ "$run_type" = "random_single_record" ] || [ "$run_type" = "BO_single_multi_record" ] || [ "$run_type" = "BO_single_multi_independent_record" ]; then
                     tag=${CVT}${BD_DIMS}DREAL_RECORD
                     bd="empty"
                 elif [ "$run_type" = "BO_single_known_record" ]; then
@@ -399,7 +408,7 @@ for FaultCategory in proximity_sensor; do
                         [ "$run_type" = "random_single" ] || [ "$run_type" = "random_single_record" ] || [ "$run_type" = "BO_single_known_record" ] ||
                         [ "$run_type" = "BO_single_known" ] || [ "$run_type" = "BO_single_random" ] || [ "$run_type" = "BO_single_IDprior" ] ||
                         [ "$run_type" = "BO_single_noID" ] || [ "$run_type" = "BO_single_multi" ] || [ "$run_type" = "BO_single_joint" ] ||
-                        [ "$run_type" = "BO_single_multi_independent" ] || [ "$run_type" = "BO_single_multi_record" ]; then
+                        [ "$run_type" = "BO_single_multi_independent" ] || [ "$run_type" = "BO_single_multi_record" ] || [ "$run_type" = "BO_single_multi_independent_record" ]; then
                         export BO_OutputFolder=${Outfolder}/BO_output${output_tag}
                     else
                         export BO_OutputFolder=${Outfolder}${output_tag}

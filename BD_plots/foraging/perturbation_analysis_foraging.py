@@ -53,7 +53,12 @@ def add_development_of_fault_performance(num_evals,bd_t, r, gener, faultpath,
     else:
         normal_folder ="/results" + str(runs[r])
     path=faultpath+"/fitness" if baseline else faultpath+normal_folder+"/analysis" + str(gener) + "_handcrafted.dat"
-    if title_tag.startswith("BO"):
+    if title_tag.endswith("record"):
+        title_tag=title_tag[:-6]
+        lines = read_spacedelimited(faultpath + normal_folder + "/" + title_tag + "/BO_output" + VE_tag + "/fitness")
+        fitness=float(lines[-1][0])
+        return [fitness],  [3600.]
+    elif title_tag.startswith("BO"):
         return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform,estimate)
     elif "single_exp" in title_tag:
         normal_folder+="/"+title_tag
@@ -300,14 +305,17 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
         table30_file.write("\n")
         additional_lines = [(time[0], [min_reference for t in time[0]]), (time[0], [max_reference for t in time[0]])]
         print("index with maximal performance is ",np.argmax(np.mean(performances30,axis=1)))
-        createPlot(mean_lines, x_values=time,
-                   save_filename="recovery_fault_"+str(foraging_fault_types[CENT][fault_category])+plottag+".pdf", legend_labels=conditions,
-                   colors=colors, markers=markers, xlabel="Time ($s$)",
-                   ylabel="Best performance",
-                   xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,4.0],
-                   legendbox=(0.10,1.10), annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
-                   legend_cols=1, legend_fontsize=24, legend_indexes=[], additional_lines=additional_lines, index_x=[],
-                   xaxis_style="plain", y_err=[], force=True)#, fill_between=(sd_lines1, sd_lines2))
+        if plottag.endswith("record"):
+            print("NOT PLOTTING: only one datapoint")
+        else:
+            createPlot(mean_lines, x_values=time,
+                       save_filename="recovery_fault_"+str(foraging_fault_types[CENT][fault_category])+plottag+".pdf", legend_labels=conditions,
+                       colors=colors, markers=markers, xlabel="Time ($s$)",
+                       ylabel="Best performance",
+                       xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,4.0],
+                       legendbox=(0.10,1.10), annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
+                       legend_cols=1, legend_fontsize=24, legend_indexes=[], additional_lines=additional_lines, index_x=[],
+                       xaxis_style="plain", y_err=[], force=True)#, fill_between=(sd_lines1, sd_lines2))
 def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],from_file=False, comparison=False, estimate=True):
     """
 
@@ -460,6 +468,38 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         VE_tags = ["_VE_init" + str(j) for j in [3, 4,5, 6]]
         CENT = "decentralised"
         num_VE_conditions=4
+    elif comparison=="decentralised2X":
+        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+        settings = [
+                    ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_2X"),
+                    ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
+                    ("single_exp_independent", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
+                    ("single_exp_randomsearch",False, "alpha0.93_l0.12_UCB_M52VarNoise_2X")
+        ]
+        plottag="LARGE_DECENTRALISED2X"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4,5, 6]]
+        CENT = "decentralised"
+        num_VE_conditions=4
+    elif comparison=="decentralised_record":
+        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+        settings = [
+                    ("single_exprecord", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise"),
+                    ("single_exprecord", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
+                    ("single_exp_independentrecord", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
+                    ("single_exp_randomsearchrecord",False, "alpha0.93_l0.12_UCB_M52VarNoise")
+        ]
+        plottag="record"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4,5, 6]]
+        CENT = "decentralised"
+        num_VE_conditions=4
     elif comparison=="fest":
         conditions = ["SMBO", "VE-SMBO E(0)=3","VE-SMBO E(0)=4","VE-SMBO E(0)=5","VE-SMBO E(0)=6","VE-SMBO E(0)=8"]
         settings = [("BO", False, None), ("BO", True, 0), ("BO", True, 1), ("BO", True, 2), ("BO", True, 3),("BO", True, 4)]
@@ -591,5 +631,5 @@ if __name__ == "__main__":
 
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="centralised",estimate=False)
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,1,1],from_file=False,comparison="decentralised2X",estimate=False)
 

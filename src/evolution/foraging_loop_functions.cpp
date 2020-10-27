@@ -673,6 +673,11 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       Eigen::VectorXd old_x = cController.worker.get_sample();
       size_t opt_index = cController.worker.opt_index;
       Eigen::VectorXd new_x = opt[opt_index]->select_sample<ControllerEval>(cController.worker.F);
+      if(new_x.size() == 0)
+      {
+         std::cout<< "FOUND NO REMAINING CONTROLLER IN THE MAP; WILL STOP NOW" << std::endl;
+         argos::CSimulator::GetInstance().Terminate();
+      }
       size_t worker_idx = cController.worker.index;
       opt[opt_index]->worker_samples[worker_idx] = new_x;
       std::cout << "old_x " << old_x.transpose() << std::endl;
