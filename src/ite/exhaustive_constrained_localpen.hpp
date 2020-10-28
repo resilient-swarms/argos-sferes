@@ -32,7 +32,7 @@ namespace limbo
                     map_index = Params::map_index;
                     Params::archiveparams::archive = Params::archiveparams::multimap[map_index];
                 }
-                Params::M = f.get_M(); //get_M<F>(f, constraint); // set to max observation instead
+                Params::M = get_M<F>(f, constraint); //get_M<F>(f, constraint); // set to max observation instead
                 Params::L = get_L<F>(f, constraint);
                 if (Params::L < 1e-7)
                 {

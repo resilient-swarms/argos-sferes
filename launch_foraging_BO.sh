@@ -356,7 +356,7 @@ for FaultCategory in proximity_sensor; do
                 # look at archive dir at FAULT_NONE; config includes perturbations
 
                 # look at archive dir at previous perturbation results; config is at FAULT_NONE
-                FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}${scale}Xp${FaultIndex}.txt"
+                FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}.txt"
                 food_loop="-1"
                 if [ "$FaultCategory" = "agents" ]; then
                     robots=$FaultIndex

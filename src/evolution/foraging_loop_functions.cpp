@@ -1193,6 +1193,7 @@ void CForagingLoopFunctions::PostStep()
       }
 #endif
    }
+   
    for (size_t f = 0; f < m_cVisitedFood.size(); ++f)
    {
       m_cVisitedFood[f] = std::max(0, m_cVisitedFood[f] - 1);

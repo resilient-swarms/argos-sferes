@@ -72,6 +72,10 @@ def add_development_of_fault_performance(num_evals,bd_t, r, gener, faultpath,
                     num_workers=int(faultpath[-1])
                 else:
                     num_workers=int(faultpath[-2:])
+            elif VE_tag.endswith("2X"):
+                num_workers=2*NUM_AGENTS
+            elif VE_tag.endswith("4X"):
+                num_workers = 4 * NUM_AGENTS
             else:
                 num_workers=NUM_AGENTS
         if CENT=="decentralised" and title_tag=="single_exp": # otherwise randomsearch or one GP per robot
@@ -207,6 +211,12 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
 
         for c, condition in enumerate(conditions):
             tag, VE, VE_tag_index = settings[c]
+            if VE_tag_index.endswith("2X"):
+                scale = 2
+            elif VE_tag_index.endswith("4X"):
+                scale =4
+            else:
+                scale = 1
             # if VE_tag_index is not None:
             #     percentage[fault_category].append(np.mean(percentage_eval_data[VE_tag_index][fault_category]))
             #     m_p = np.mean(percentage_eval_data[VE_tag_index][fault_category]) * 100.0
@@ -251,7 +261,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                 #         p_sd_120 = sd
                 #         mindist_120= dist
                 #         performances1[c] = data
-                if max_evals[c] == 1 or (consumed >29*NUM_SECONDS and consumed <31*NUM_SECONDS): # try to find closest to 360
+                if max_evals[c] == 1 or (consumed >(30*scale - 1)*NUM_SECONDS and consumed <(30*scale + 1)*NUM_SECONDS): # try to find closest to 360
                     dist = abs(consumed - 100*NUM_SECONDS)
                     if dist < mindist_3600:
                         t_3600 = consumed
@@ -275,7 +285,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                 #         p_sd_2400 = sd
                 #         mindist_2400 = dist
                 #         performances20[c] = data
-                elif VE and consumed >= 30*NUM_SECONDS:
+                elif VE and consumed >= 30*scale*NUM_SECONDS:
                     final_performances=np.append(final_performances,mean - min_reference)
                     break
             # print(str(t_1200) + " " + str(p_1200) + " " + str(p_sd_1200))
@@ -312,7 +322,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                        save_filename="recovery_fault_"+str(foraging_fault_types[CENT][fault_category])+plottag+".pdf", legend_labels=conditions,
                        colors=colors, markers=markers, xlabel="Time ($s$)",
                        ylabel="Best performance",
-                       xlim=[0, 4000], xscale="linear", yscale="linear", ylim=[0,4.0],
+                       xlim=[0, 4000*scale], xscale="linear", yscale="linear", ylim=[0,4.0],
                        legendbox=(0.10,1.10), annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                        legend_cols=1, legend_fontsize=24, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                        xaxis_style="plain", y_err=[], force=True)#, fill_between=(sd_lines1, sd_lines2))
@@ -478,9 +488,25 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
                     ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_2X"),
                     ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
                     ("single_exp_independent", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
-                    ("single_exp_randomsearch",False, "alpha0.93_l0.12_UCB_M52VarNoise_2X")
+                   ("single_exp_randomsearch",False, "alpha0.93_l0.12_UCB_M52VarNoise_2X")
         ]
         plottag="LARGE_DECENTRALISED2X"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4,5, 6]]
+        CENT = "decentralised"
+        num_VE_conditions=4
+    elif comparison=="decentralised4X":
+        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+        settings = [
+                    ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_4X"),
+                    ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise_4X"),
+                    ("single_exp_independent", False, "alpha0.93_l0.12_UCB_M52VarNoise_4X"),
+                   ("single_exp_randomsearch",False, "alpha0.93_l0.12_UCB_M52VarNoise_4X")
+        ]
+        plottag="LARGE_DECENTRALISED4X"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4,5, 6]]
         CENT = "decentralised"
         num_VE_conditions=4
@@ -493,7 +519,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         settings = [
                     ("single_exprecord", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise"),
                     ("single_exprecord", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
-                    ("single_exp_independentrecord", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
+                    ("single_exp_independentrecord", False, "alpha0.93_l0.12_UCB_M52VarNoise")#,
                     ("single_exp_randomsearchrecord",False, "alpha0.93_l0.12_UCB_M52VarNoise")
         ]
         plottag="record"
@@ -629,7 +655,7 @@ def determine_noise():
 
 if __name__ == "__main__":
 
-    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="centralised",estimate=False)
-
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,1,1],from_file=False,comparison="decentralised2X",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised2X",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[20,20,20,20],from_file=False,comparison="decentralised4X",estimate=False)
 
