@@ -222,7 +222,9 @@ if [[ $large == "Large" ]]; then
         echo "using template: ${TemplateFile}"
         output_tag=${output_tag}_${scale}X
         SimTime=$(($scale * ${SimTime}))
-        ticks_per_subtrial=$(($scale * ${ticks_per_subtrial}))
+        if [ ! -z $ticks_per_subtrial ]; then
+            ticks_per_subtrial=$(($scale * ${ticks_per_subtrial}))
+        fi
         fault_tag="${scale}X"
     else
         TemplateFile="experiments/harvesting/harvesting_template_large.argos"

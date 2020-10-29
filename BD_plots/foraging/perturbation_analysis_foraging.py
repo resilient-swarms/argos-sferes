@@ -56,7 +56,11 @@ def add_development_of_fault_performance(num_evals,bd_t, r, gener, faultpath,
     if title_tag.endswith("record"):
         title_tag=title_tag[:-6]
         lines = read_spacedelimited(faultpath + normal_folder + "/" + title_tag + "/BO_output" + VE_tag + "/fitness")
-        fitness=float(lines[-1][0])
+        try:
+            fitness=float(lines[-1][0])
+        except:
+            print(faultpath + normal_folder + "/" + title_tag + "/BO_output" + VE_tag + "/fitness")
+            raise Exception()
         return [fitness],  [3600.]
     elif title_tag.startswith("BO"):
         return get_BO_development(bd_t, r, gener, path, faultpath, best_performances,time_lost, normal_folder,virtual_folder,virtual_energy,uniform,estimate)
@@ -519,8 +523,24 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         settings = [
                     ("single_exprecord", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise"),
                     ("single_exprecord", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
-                    ("single_exp_independentrecord", False, "alpha0.93_l0.12_UCB_M52VarNoise")#,
+                    ("single_exp_independentrecord", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
                     ("single_exp_randomsearchrecord",False, "alpha0.93_l0.12_UCB_M52VarNoise")
+        ]
+        plottag="record"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4,5, 6]]
+        CENT = "decentralised"
+        num_VE_conditions=4
+    elif comparison=="decentralised_record2X":
+        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+        settings = [
+                    ("single_exprecord", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_2X"),
+                    ("single_exprecord", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
+                    ("single_exp_independentrecord", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X")#,
+                    ("single_exp_randomsearchrecord",False, "alpha0.93_l0.12_UCB_M52VarNoise_2X")
         ]
         plottag="record"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4,5, 6]]
@@ -657,5 +677,11 @@ if __name__ == "__main__":
 
     development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised",estimate=False)
     development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised2X",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[20,20,20,20],from_file=False,comparison="decentralised4X",estimate=False)
+
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1, 1, 1, 1], from_file=False,
+                     comparison="decentralised_record", estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1, 1, 1, 1], from_file=False,
+                     comparison="decentralised_record2X", estimate=False)
+
+    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[20,20,20,20],from_file=False,comparison="decentralised4X",estimate=False)
 
