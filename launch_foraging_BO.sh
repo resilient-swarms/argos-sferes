@@ -303,7 +303,7 @@ faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,
 faultnum["food_scarcity"]=1          # (will loop over food as a dummy)
 faultnum["agents"]="3 12 24"         # {1,2,...,12} agents included
 
-for FaultCategory in proximity_sensor; do
+for FaultCategory in proximity_sensor food_scarcity; do
     faults=${faultnum[${FaultCategory}]}
     for FaultIndex in ${faults}; do
         for key in ${!descriptors[@]}; do

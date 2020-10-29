@@ -539,7 +539,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         settings = [
                     ("single_exprecord", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_2X"),
                     ("single_exprecord", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
-                    ("single_exp_independentrecord", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X")#,
+                    ("single_exp_independentrecord", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
                     ("single_exp_randomsearchrecord",False, "alpha0.93_l0.12_UCB_M52VarNoise_2X")
         ]
         plottag="record"
@@ -675,13 +675,12 @@ def determine_noise():
 
 if __name__ == "__main__":
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised",estimate=False)
+    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised",estimate=False)
     development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised2X",estimate=False)
 
     development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1, 1, 1, 1], from_file=False,
-                     comparison="decentralised_record", estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1, 1, 1, 1], from_file=False,
-                     comparison="decentralised_record2X", estimate=False)
+                      comparison="decentralised_record2X", estimate=False)
+
 
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[20,20,20,20],from_file=False,comparison="decentralised4X",estimate=False)
 

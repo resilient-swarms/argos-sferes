@@ -204,6 +204,7 @@ public:
     virtual void write_fitness(float fFitness)
     {
         fitness_writer << fFitness << std::endl;
+        fitness_writer.close();
     }
 #endif
     virtual float get_robot_fitness(size_t i){return 0.0;};

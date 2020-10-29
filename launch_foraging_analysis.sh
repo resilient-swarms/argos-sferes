@@ -2,29 +2,54 @@
 
 data=$1
 if [ -z "${data}" ]; then
-	echo "Error: no datafolder given"
-	exit 125
+    echo "Error: no datafolder given"
+    exit 125
 fi
-video=$3
-UseVirtual=$4
+large=$3
+scale=$4
+video=$5
+UseVirtual=$6
+
+SimTime=120
+
 if [ "$UseVirtual" = "True" ]; then
-	VirtualFolder="virtual_energy_exp/exhaustive"
+    VirtualFolder="virtual_energy_exp/exhaustive"
 fi
 
 if [ "$video" = "video" ]; then
     if [ "$2" = "best" ] || [ "$2" = "impact" ]; then # testing faulty best or normal best on faulty scenario  -> give numbers to track faults
-        template_file="experiments/experiment_template_perturbation_with_visual_numbered.argos"
+        TemplateFile="experiments/harvesting/experiment_harvesting_template_perturbation_with_visual_numbered.argos"
     else
-        template_file="experiments/experiment_template_perturbation_with_visual.argos" # testing on normal environment; no need to track
+        TemplateFile="experiments/harvesting/experiment_harvesting_template_perturbation_with_visual.argos" # testing on normal environment; no need to track
     fi
 
 else
-    template_file="experiments/experiment_template_perturbation.argos"
-fi
-echo "will use template file ${template_file}"
+    if [[ $large == "Large" ]]; then
+        echo "will do large arena"
 
-export FINALGEN_ARCHIVE=2500 # never forget zero-padding for generation file, not for archive file
-export FINALGEN_GENFILE=2500
+        if [ ! -z $scale ]; then
+            TemplateFile="experiments/harvesting/harvesting_template_large${scale}X.argos"
+            echo "using template: ${TemplateFile}"
+            output_tag=${output_tag}_${scale}X
+            SimTime=$(($scale * ${SimTime}))
+            fault_tag="${scale}X"
+        else
+            TemplateFile="experiments/harvesting/harvesting_template_large.argos"
+            echo "using template: ${TemplateFile}"
+            scale="1"
+        fi
+    else
+        echo "will do small arena"
+        TemplateFile="experiments/harvesting/harvesting_template.argos"
+        echo "using template: ${TemplateFile}"
+        scale="1"
+
+    fi
+fi
+echo "will use template file ${TemplateFile}"
+
+export FINALGEN_ARCHIVE=20000 # never forget zero-padding for generation file, not for archive file
+export FINALGEN_GENFILE=20000
 
 echo "doing generation ${FINALGEN_ARCHIVE}"
 sleep 2.5
@@ -49,16 +74,15 @@ declare -A behav
 
 command="bin/analysis" # note: cvt and 10D does not really matter since we are not evolving
 
-descriptors["cvt_ground_spirit"]=768
-voronoi["cvt_ground_spirit"]="cvt"
+#descriptors["cvt_ground_spirit"]=768
+#voronoi["cvt_ground_spirit"]="cvt"
 
 #descriptors["Gomes_sdbc_walls_and_robots_std"]=10
 #voronoi["Gomes_sdbc_walls_and_robots_std"]="cvt"
 
-#descriptors["history"]=3
-#voronoi["history"]=""
+descriptors["history"]=3
+voronoi["history"]=""
 
-SimTime=120
 FitfunType="Foraging"
 echo "simtime "${SimTime}
 echo "FitfunType "${FitfunType}
@@ -79,9 +103,10 @@ faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
 faultnum["agents"]=12       # {1,2,...,12} agents included
 
-for FaultCategory in lwheel_set_half rwheel_set_half; do
+for FaultCategory in proximity_sensor ground_sensor actuator software software_food food_scarcity agents; do
     numfaults=${faultnum[${FaultCategory}]}
-    for FaultIndex in $(seq 1 1); do
+    echo "numfaults ${numfaults}"
+    for FaultIndex in $(seq 1 ${numfaults}); do
         for key in ${!descriptors[@]}; do
             DescriptorType=${key}
             EffectiveDescriptorType=${DescriptorType}
@@ -106,11 +131,11 @@ for FaultCategory in lwheel_set_half rwheel_set_half; do
                 SUFFIX=${Replicates}
 
                 #read the data from the original experiment
-                Base=${data}/${FitfunType}/${DescriptorType}
+                Base=${data}/${FitfunType}${large}/${DescriptorType}
                 # look at archive dir at FAULT_NONE; config includes perturbations
 
                 # look at archive dir at previous perturbation results; config is at FAULT_NONE
-                FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}p${FaultIndex}.txt"
+                FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}.txt"
 
                 food_loop="-1"
                 if [ "$FaultCategory" = "agents" ]; then
@@ -150,8 +175,8 @@ for FaultCategory in lwheel_set_half rwheel_set_half; do
                     echo "other category (e.g., sensor or actuator)"
                 fi
 
-
-                echo "fault ${fault}   robots ${robots}  FaultID  $FaultID "
+                robots=$(($scale * $robots))
+                echo "fault ${fault}   robots ${robots}  FaultID  $FaultID SimTime $SimTime"
                 for food in ${food_loop}; do
                     echo "doing food ${food}"
                     if [ "${food}" != "-1" ]; then
@@ -167,39 +192,39 @@ for FaultCategory in lwheel_set_half rwheel_set_half; do
                     if [ "$2" = "best" ]; then
                         echo "will look for perturbations at run${Replicates}_${FaultCategory}p${FaultIndex}"
                         ConfigFolder=${Base}
-                        ConfigFile=${ConfigFolder}/history_exp_${Replicates}_${FaultCategory}p${FaultIndex}.argos # just to write the history
-                        ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}/
-                        export Outfolder=${ArchiveDir}/${video}/results${SUFFIX} # where to output the results
-                        export Searchfolder=${ArchiveDir}/results${SUFFIX}       # where to search for best indiv
+                        ConfigFile=${ConfigFolder}/history_exp_${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}.argos # just to write the history
+                        ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}${food_tag}/
+                        export Outfolder=${ArchiveDir}/${video}/results${SUFFIX}_${fault_tag} # where to output the results
+                        export Searchfolder=${ArchiveDir}/results${SUFFIX}      # where to search for best indiv
                         FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}p${FaultIndex}.txt"
                     elif [ "$2" = "best_compare" ]; then # compare the best one but evaluate it in the no-fault environment
                         echo "will look for perturbations at run${Replicates}_${FaultCategory}p${FaultIndex}"
                         ConfigFolder=${Base}
-                        ConfigFile=${ConfigFolder}/history_exp_${Replicates}_${FaultCategory}p${FaultIndex}.argos # just to write the history
-                        ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}/
-                        export Outfolder=${ArchiveDir}/${video}/results${SUFFIX} # where to output the results
+                        ConfigFile=${ConfigFolder}/history_exp_${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}.argos # just to write the history
+                        ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}${food_tag}/
+                        export Outfolder=${ArchiveDir}/${video}/results${SUFFIX}_${fault_tag} # where to output the results
                         export Searchfolder=${ArchiveDir}/results${SUFFIX}       # where to search for best indiv
                         FaultType="FAULT_NONE"
                     elif [ "$2" = "impact" ]; then # assess impact of fault on the normal individual
-                        echo "will look for perturbations at run${Replicates}_${FaultCategory}p${FaultIndex}"
-                        FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}p${FaultIndex}.txt"
+                        echo "will look for perturbations at run${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}"
+                        FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}.txt"
                         ConfigFolder=${Base}/faultyrun${Replicates}_p${FaultIndex}${food_tag}
                         mkdir -p ${ConfigFolder}
                         ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
                         ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_p${FaultIndex}/
-                        export Outfolder=${ArchiveDir}/${video}/results${SUFFIX} # where to output the results
+                        export Outfolder=${ArchiveDir}/${video}/results${SUFFIX}_${fault_tag} # where to output the results
                         export Searchfolder=${Base}/FAULT_NONE/results${SUFFIX}  # where to search for best indiv (here search for the FAULT_NONE)
                     else
                         # look at archive dir at previous perturbation results; config is at FAULT_NONE
-                        FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}p${FaultIndex}.txt"
+                        FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}.txt"
                         ConfigFolder=${Base}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}
                         mkdir -p ${ConfigFolder}
                         ConfigFile=${ConfigFolder}/exp_${SUFFIX}.argos
                         export ArchiveDir=${Base}/results${SUFFIX} # point to the generation file and archive
                         export archivefile="${ArchiveDir}/archive_${FINALGEN_ARCHIVE}.dat"
-                        Outfolder=${ConfigFolder}/results${SUFFIX}
+                        Outfolder=${ConfigFolder}/results${SUFFIX}_${fault_tag}
                     fi
-		            mkdir -p $Outfolder
+                    mkdir -p $Outfolder
                     echo "config ${ConfigFile}"
                     touch ${ConfigFile}
                     sed -e "s|THREADS|0|" \
@@ -220,7 +245,7 @@ for FaultCategory in lwheel_set_half rwheel_set_half; do
                         -e "s|FOOD_ID|${food}|" \
                         -e "s|SWARM_BEHAV|${SwarmBehaviour}|" \
                         -e "s|USE_VIRTUAL|${UseVirtual}|" \
-                        experiments/harvesting/harvesting_template.argos \
+                        ${TemplateFile} \
                         >${ConfigFile}
 
                     if [ "$DescriptorType" = "baseline" ]; then
