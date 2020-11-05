@@ -24,17 +24,22 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
     :param baseline:
     :return:
     """
+    #SCALE=""
+    SCALE=""
     virtual_folder="/results" + str(runs[r]) + "/virtual_energy_exp"
     exhaustive_virtual_folder="/results" + str(runs[r]) + "/virtual_energy_exp/exhaustive"
     normal_folder ="/results" + str(runs[r])
-    path=faultpath+"/fitness" if baseline else faultpath+normal_folder+"/analysis" + str(gener) + "_handcrafted.dat"
+    #path = faultpath + "/fitness" if baseline else faultpath + normal_folder + "/analysis" + str(
+    #    gener) + "_handcrafted.dat"
+    path=faultpath+"/fitness" if baseline else faultpath+normal_folder+"_"+SCALE+"/analysis" + str(gener) + "_handcrafted.dat"
+    #path = faultpath + "/fitness" if baseline else faultpath + normal_folder + "/analysis" + str(gener) + "_handcrafted.dat"
     virtualpath = faultpath + virtual_folder + "/fitness"
     if baseline:
 
         best_performance=get_baseline_fitness(path)
     else:
 
-        temp = np.array(list(get_ind_performances_uniquearchive(path).values())).flatten()
+        temp = get_ind_performances_uniquearchive(path)
         #performances = np.append(performances, temp)
 
         if title_tag.startswith("BO"):
@@ -78,7 +83,7 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
                 time_loss = num_trials * NUM_SECONDS
 
         else:
-            maxind, best_performance = get_best_individual(path, add_performance=True, index_based=True)
+            maxind, best_performance = get_best_individual(path, add_performance=True, index_based=False)
             time_loss=None
             performance_loss=None
             num_trials=None
@@ -86,8 +91,10 @@ def add_fault_performance(bd_t, r, gener, nofaultperfs,best_nofaultperfs,maxinds
         # all performances vs all nofaultperformances
         # for k in range(len(nofaultperfs[r])):
         #     transfer = np.append(transfer, [(temp[k] - nofaultperfs[r][k]) / baseline_performances[fitfuns[j]]])  # avoid NANs
-
-        best_transfer = np.append(best_transfer,temp[maxindsnofault[r]])
+        try:
+            best_transfer = np.append(best_transfer,temp[maxindsnofault[r]])
+        except Exception as E:
+            print(E)
 
     best_performances = np.append(best_performances, best_performance)
 
@@ -117,7 +124,7 @@ def reference_archive(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
     :return:
     """
     global CENT
-    CENT="centralised"
+    CENT="decentralised"
     if virtual_energy:
         title_tag += "VE"
 
@@ -269,7 +276,7 @@ def reference_archive(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
     :param gener:
     :return:
     """
-    CENT="centralised"
+    CENT="decentralised"
     if virtual_energy:
         title_tag += "VE"
 
@@ -407,6 +414,6 @@ def reference_archive(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
                             median=True)
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     reference_archive(fitfuns, fitfunlabels, bd_type, runs, generation, by_faulttype=True, load_existing=False,
                       title_tag="", virtual_energy=False)

@@ -91,6 +91,6 @@ def convert_fault_type(faultindex,centralised):
         if faultindex==0:
             return 0
         elif faultindex==1:
-            return 5
+            return 1
     else:
         return faultindex

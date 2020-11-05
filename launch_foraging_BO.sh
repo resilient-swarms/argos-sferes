@@ -303,9 +303,9 @@ faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,
 faultnum["food_scarcity"]=1          # (will loop over food as a dummy)
 faultnum["agents"]="3 12 24"         # {1,2,...,12} agents included
 
-for FaultCategory in proximity_sensor food_scarcity; do
+for FaultCategory in food_scarcity; do
     faults=${faultnum[${FaultCategory}]}
-    for FaultIndex in ${faults}; do
+    for FaultIndex in 1; do
         for key in ${!descriptors[@]}; do
             DescriptorType=${key}
             BD_DIMS=${descriptors[${key}]}
@@ -348,7 +348,7 @@ for FaultCategory in proximity_sensor food_scarcity; do
             echo "has ${BD_DIMS} dimensions"
             echo "tag is ${tag}"
 
-            for Replicates in $(seq 1 5); do
+            for Replicates in $(seq 1 1); do
 
                 # Take template.argos and make an .argos file for this experiment
                 SUFFIX=${Replicates}
@@ -379,7 +379,7 @@ for FaultCategory in proximity_sensor food_scarcity; do
                 elif [ "$FaultCategory" = "food_scarcity" ]; then
                     robots=6
                     fault=FAULT_FOOD_SCARCITY
-                    food_loop="0 1 2 3 4 5"
+                    food_loop="5"
                     FaultID=$(($FaultIndex - 1))
                     echo "food scarcity"
                 else

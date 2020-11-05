@@ -71,7 +71,23 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error in virtual init ", ex);
    }
-
+   try
+   {
+      GetNodeAttribute(t_node, "scale", scale);
+      if (scale != 1.0f)
+      {
+         for (size_t i = 0; i < m_fFoodSquareRadius.size(); ++i)
+         {
+            m_fFoodSquareRadius[i] = (std::sqrt(m_fFoodSquareRadius[i]) * scale);
+            m_fFoodSquareRadius[i] *= m_fFoodSquareRadius[i];
+            m_cFoodPos[i] *= scale;
+         }
+      }
+   }
+   catch (CARGoSException &ex)
+   {
+      THROW_ARGOSEXCEPTION_NESTED("Error setting scale ", ex);
+   }
 #if HETEROGENEOUS
    std::string network_config, network_binary;
    try
@@ -114,6 +130,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    {
       normal_ID = {};
    }
+
 #if RECORD_FIT
    if (optimisation == "BO_multi")
    {
@@ -185,23 +202,6 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
       THROW_ARGOSEXCEPTION_NESTED("Error resetting ", ex);
    }
 
-   try
-   {
-      GetNodeAttribute(t_node, "scale", scale);
-      if (scale != 1.0f)
-      {
-         for (size_t i = 0; i < m_fFoodSquareRadius.size(); ++i)
-         {
-            m_fFoodSquareRadius[i] = (std::sqrt(m_fFoodSquareRadius[i]) * scale);
-            m_fFoodSquareRadius[i] *= m_fFoodSquareRadius[i];
-            m_cFoodPos[i] *= scale;
-         }
-      }
-   }
-   catch (CARGoSException &ex)
-   {
-      THROW_ARGOSEXCEPTION_NESTED("Error setting scale ", ex);
-   }
    if (optimisation == "BO" || optimisation == "BO_noID")
    {
       init_BO(normal_ID);
@@ -239,13 +239,13 @@ std::vector<int> CForagingLoopFunctions::get_fault_indexmap()
 
       if (found == found_faults.end())
       {
-         indexmap.push_back(found_faults.size());// final index of the new foundfaults
+         indexmap.push_back(found_faults.size()); // final index of the new foundfaults
          found_faults.push_back(cController.FBehavior);
       }
-      else{
+      else
+      {
          indexmap.push_back(found - found_faults.begin());
       }
-
    }
    return indexmap;
 }
@@ -673,9 +673,9 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
       Eigen::VectorXd old_x = cController.worker.get_sample();
       size_t opt_index = cController.worker.opt_index;
       Eigen::VectorXd new_x = opt[opt_index]->select_sample<ControllerEval>(cController.worker.F);
-      if(new_x.size() == 0)
+      if (new_x.size() == 0)
       {
-         std::cout<< "FOUND NO REMAINING CONTROLLER IN THE MAP; WILL STOP NOW" << std::endl;
+         std::cout << "FOUND NO REMAINING CONTROLLER IN THE MAP; WILL STOP NOW" << std::endl;
          argos::CSimulator::GetInstance().Terminate();
       }
       size_t worker_idx = cController.worker.index;
@@ -1193,7 +1193,7 @@ void CForagingLoopFunctions::PostStep()
       }
 #endif
    }
-   
+
    for (size_t f = 0; f < m_cVisitedFood.size(); ++f)
    {
       m_cVisitedFood[f] = std::max(0, m_cVisitedFood[f] - 1);

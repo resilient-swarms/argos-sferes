@@ -220,7 +220,7 @@ def xticks_development(ax):
 def xticks_additional(ax,xticks):
     ax.set_xticks(xticks)
 def add_line(x,y,plt):
-    l, = plt.plot(x,y, color='k', linestyle='-', linewidth=2)
+    l, = plt.plot(x,y, color='k', linestyle='-', linewidth=5)
     l.set_dashes([2, 2, 10, 2])
     return l
 

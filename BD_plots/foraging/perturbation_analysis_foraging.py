@@ -118,7 +118,7 @@ def prepare_data(VE_tags, conditions, settings, max_evals,num_VE_conditions, gen
             if "single_exp" in title_tag:
                 VE_tag = VE_tag_index # a string
             else:
-                if VE_tag_index is not None:
+                if VE_tag_index:
                     VE_tag = VE_tags[VE_tag_index]
                 else:
                     VE_tag = None
@@ -322,14 +322,43 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
         if plottag.endswith("record"):
             print("NOT PLOTTING: only one datapoint")
         else:
+            fig, axs = plt.subplots(1,1, figsize=(10,10))  # coverage, avg perf., global perf., global reliability
+            savefile="recovery_fault_"+str(foraging_fault_types[CENT][fault_category])+plottag+".pdf"
             createPlot(mean_lines, x_values=time,
-                       save_filename="recovery_fault_"+str(foraging_fault_types[CENT][fault_category])+plottag+".pdf", legend_labels=conditions,
+                       save_filename=savefile, legend_labels=conditions,
                        colors=colors, markers=markers, xlabel="Time ($s$)",
                        ylabel="Best performance",
                        xlim=[0, 4000*scale], xscale="linear", yscale="linear", ylim=[0,4.0],
                        legendbox=(0.10,1.10), annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                        legend_cols=1, legend_fontsize=24, legend_indexes=[], additional_lines=additional_lines, index_x=[],
-                       xaxis_style="plain", y_err=[], force=True)#, fill_between=(sd_lines1, sd_lines2))
+                       xaxis_style="plain", y_err=[], force=True,ax=axs,skip_legend=True)#, fill_between=(sd_lines1, sd_lines2))
+            handles, labels = axs.get_legend_handles_labels()
+            fig.tight_layout()
+            fig.savefig(savefile)
+            leg = axs.legend(handles, labels=labels, loc="upper center", ncol=len(labels),
+                                     bbox_to_anchor=(0.5, -0.250),
+                                     prop={'size': 24},
+                                     fancybox=True)
+            leg.set_alpha(0.20)
+            fig.savefig("legend.pdf", bbox_extra_artists=(leg,),
+                        bbox_inches='tight')
+            fig, axs = plt.subplots(1,1, figsize=(10,10))  # coverage, avg perf., global perf., global reliability
+            savefile="recovery_fault_"+str(foraging_fault_types[CENT][fault_category])+plottag+"_norefs.pdf"
+            createPlot(mean_lines, x_values=time,
+                       save_filename=savefile, legend_labels=conditions,
+                       colors=colors, markers=markers, xlabel="Time ($s$)",
+                       ylabel="Best performance",
+                       xlim=[0, 4000*scale], xscale="linear", yscale="linear", ylim=[0,2.0],
+                       legendbox=(0.10,1.10), annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
+                       legend_cols=1, legend_fontsize=24, legend_indexes=[], additional_lines=[], index_x=[],
+                       xaxis_style="plain", y_err=[], force=True,ax=axs,skip_legend=True)#, fill_between=(sd_lines1, sd_lines2))
+            handles, labels = axs.get_legend_handles_labels()
+            fig.tight_layout()
+            fig.savefig(savefile)
+            # fig.subplots_adjust(bottom=0.08, wspace=0.33)
+
+
+
 def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],from_file=False, comparison=False, estimate=True):
     """
 
@@ -355,10 +384,10 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
     if comparison=="centralised":
         conditions = ["SMBO","SMBO-Uniform",
                       "Random", "Gradient-ascent"]
-        settings = [("BO", False, None), ("BO",False,None),
-                   ("random", False, None), ("gradient_closest", False, None)]
+        settings = [("BO", False,""), ("BO",False,""),
+                   ("random", False,""), ("gradient_closest", False,"")]
         plottag="LARGE_ALL"
-        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5]]
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5,6]]
 
         CENT="centralised"
         num_VE_conditions=4
@@ -467,7 +496,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         VE_tags = ["_VE_init" + str(j) for j in range(20)]
         num_VE_conditions = 20
     elif comparison=="decentralised":
-        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
+        conditions = ["SMBO-Dec","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
@@ -483,7 +512,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         CENT = "decentralised"
         num_VE_conditions=4
     elif comparison=="decentralised2X":
-        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
+        conditions = ["SMBO-Dec","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
@@ -499,7 +528,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         CENT = "decentralised"
         num_VE_conditions=4
     elif comparison=="decentralised4X":
-        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
+        conditions = ["SMBO-Dec","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
@@ -515,7 +544,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         CENT = "decentralised"
         num_VE_conditions=4
     elif comparison=="decentralised_record":
-        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
+        conditions = ["SMBO-Dec","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
@@ -531,7 +560,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         CENT = "decentralised"
         num_VE_conditions=4
     elif comparison=="decentralised_record2X":
-        conditions = ["SMBO-Dec Local","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
+        conditions = ["SMBO-Dec","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
         # settings = [("single_exp", False, "noID"),
         #             ("single_exp_known", False, "final"),
         #             ("single_exp_random", False, "final"),
@@ -671,16 +700,18 @@ def determine_noise():
 
 
 
-    #
+
 
 if __name__ == "__main__":
 
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised2X",estimate=False)
+    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised2X",estimate=False)
 
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1, 1, 1, 1], from_file=False,
-                      comparison="decentralised_record2X", estimate=False)
+    # development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1, 1, 1, 1], from_file=False,
+    #                   comparison="decentralised_record2X", estimate=False)
 
 
     #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[20,20,20,20],from_file=False,comparison="decentralised4X",estimate=False)
 
+    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,1,1],from_file=False,comparison="decentralised",estimate=False)

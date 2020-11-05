@@ -16,14 +16,7 @@ if [ "$UseVirtual" = "True" ]; then
     VirtualFolder="virtual_energy_exp/exhaustive"
 fi
 
-if [ "$video" = "video" ]; then
-    if [ "$2" = "best" ] || [ "$2" = "impact" ]; then # testing faulty best or normal best on faulty scenario  -> give numbers to track faults
-        TemplateFile="experiments/harvesting/experiment_harvesting_template_perturbation_with_visual_numbered.argos"
-    else
-        TemplateFile="experiments/harvesting/experiment_harvesting_template_perturbation_with_visual.argos" # testing on normal environment; no need to track
-    fi
 
-else
     if [[ $large == "Large" ]]; then
         echo "will do large arena"
 
@@ -45,7 +38,7 @@ else
         scale="1"
 
     fi
-fi
+
 echo "will use template file ${TemplateFile}"
 
 export FINALGEN_ARCHIVE=20000 # never forget zero-padding for generation file, not for archive file
@@ -92,6 +85,7 @@ perturbations_folder="experiments/harvesting/perturbations"
 
 declare -A faultnum
 
+faultnum["FAULT_NONE"]=30
 faultnum["sensor"]=30
 faultnum["lwheel_set_half"]=1
 faultnum["rwheel_set_half"]=1
@@ -103,10 +97,10 @@ faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
 faultnum["agents"]=12       # {1,2,...,12} agents included
 
-for FaultCategory in proximity_sensor ground_sensor actuator software software_food food_scarcity agents; do
+for FaultCategory in software; do
     numfaults=${faultnum[${FaultCategory}]}
     echo "numfaults ${numfaults}"
-    for FaultIndex in $(seq 1 ${numfaults}); do
+    for FaultIndex in 6; do
         for key in ${!descriptors[@]}; do
             DescriptorType=${key}
             EffectiveDescriptorType=${DescriptorType}
@@ -126,7 +120,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
             echo "has ${BD_DIMS} dimensions"
             echo "tag is ${tag}"
 
-            for Replicates in $(seq 1 5); do
+            for Replicates in 1; do
                 # Take template.argos and make an .argos file for this experiment
                 SUFFIX=${Replicates}
 
@@ -226,7 +220,7 @@ for FaultCategory in proximity_sensor ground_sensor actuator software software_f
                     fi
                     mkdir -p $Outfolder
                     echo "config ${ConfigFile}"
-                    touch ${ConfigFile}
+                    touch ${Config0File}
                     sed -e "s|THREADS|0|" \
                         -e "s|TRIALS|8|" \
                         -e "s|ROBOTS|${robots}|" \

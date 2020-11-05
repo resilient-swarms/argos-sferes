@@ -394,7 +394,7 @@ def get_nofault_performances(nofaultpath,gener,runs):
         maxindsnofault = []
         for f in range(len(nofaultfilenames)):
             maxindnofault, best_performance = get_best_individual(nofaultfilenames[f], add_performance=True,
-                                                                  index_based=True)
+                                                                  index_based=False)
             maxindsnofault.append(maxindnofault)
             assert best_performance == best_nofaultperfs[f]
         return nofaultperfs,best_nofaultperfs,maxindsnofault
