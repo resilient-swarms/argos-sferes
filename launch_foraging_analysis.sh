@@ -85,7 +85,6 @@ perturbations_folder="experiments/harvesting/perturbations"
 
 declare -A faultnum
 
-faultnum["FAULT_NONE"]=30
 faultnum["sensor"]=30
 faultnum["lwheel_set_half"]=1
 faultnum["rwheel_set_half"]=1
@@ -97,10 +96,10 @@ faultnum["software_food"]=6 # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
 faultnum["food_scarcity"]=1 # (will loop over food as a dummy)
 faultnum["agents"]=12       # {1,2,...,12} agents included
 
-for FaultCategory in software; do
+for FaultCategory in proximity_sensor; do
     numfaults=${faultnum[${FaultCategory}]}
     echo "numfaults ${numfaults}"
-    for FaultIndex in 6; do
+    for FaultIndex in 4; do
         for key in ${!descriptors[@]}; do
             DescriptorType=${key}
             EffectiveDescriptorType=${DescriptorType}
@@ -151,7 +150,7 @@ for FaultCategory in software; do
                 elif [ "$FaultCategory" = "food_scarcity" ]; then
                     robots=6
                     fault=FAULT_FOOD_SCARCITY
-                    food_loop="0 1 2 3 4 5"
+                    food_loop="5"
                     FaultID=$(($FaultIndex - 1))
                     echo "food scarcity"
                 elif [ "$FaultCategory" = "lwheel_set_half" ] || [ "$FaultCategory" = "rwheel_set_half" ]; then
@@ -186,21 +185,21 @@ for FaultCategory in software; do
                     if [ "$2" = "best" ]; then
                         echo "will look for perturbations at run${Replicates}_${FaultCategory}p${FaultIndex}"
                         ConfigFolder=${Base}
-                        ConfigFile=${ConfigFolder}/history_exp_${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}.argos # just to write the history
-                        ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}${food_tag}/
+                        ConfigFile=${ConfigFolder}/history_exp_${Replicates}_${FaultCategory}p${FaultIndex}.argos # just to write the history
+                        ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}/
                         export Outfolder=${ArchiveDir}/${video}/results${SUFFIX}_${fault_tag} # where to output the results
                         export Searchfolder=${ArchiveDir}/results${SUFFIX}      # where to search for best indiv
                         FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}p${FaultIndex}.txt"
                     elif [ "$2" = "best_compare" ]; then # compare the best one but evaluate it in the no-fault environment
                         echo "will look for perturbations at run${Replicates}_${FaultCategory}p${FaultIndex}"
                         ConfigFolder=${Base}
-                        ConfigFile=${ConfigFolder}/history_exp_${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}.argos # just to write the history
-                        ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}${food_tag}/
+                        ConfigFile=${ConfigFolder}/history_exp_${Replicates}_${FaultCategory}p${FaultIndex}.argos # just to write the history
+                        ArchiveDir=${ConfigFolder}/faultyrun${Replicates}_${FaultCategory}p${FaultIndex}${food_tag}/
                         export Outfolder=${ArchiveDir}/${video}/results${SUFFIX}_${fault_tag} # where to output the results
                         export Searchfolder=${ArchiveDir}/results${SUFFIX}       # where to search for best indiv
                         FaultType="FAULT_NONE"
                     elif [ "$2" = "impact" ]; then # assess impact of fault on the normal individual
-                        echo "will look for perturbations at run${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}"
+                        echo "will look for perturbations at run${Replicates}_${FaultCategory}p${FaultIndex}"
                         FaultType="FILE:${perturbations_folder}/run${Replicates}_${FaultCategory}${fault_tag}p${FaultIndex}.txt"
                         ConfigFolder=${Base}/faultyrun${Replicates}_p${FaultIndex}${food_tag}
                         mkdir -p ${ConfigFolder}

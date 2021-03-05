@@ -305,7 +305,7 @@ faultnum["agents"]="3 12 24"         # {1,2,...,12} agents included
 
 for FaultCategory in food_scarcity; do
     faults=${faultnum[${FaultCategory}]}
-    for FaultIndex in 1; do
+    for FaultIndex in 1;do
         for key in ${!descriptors[@]}; do
             DescriptorType=${key}
             BD_DIMS=${descriptors[${key}]}
@@ -348,7 +348,7 @@ for FaultCategory in food_scarcity; do
             echo "has ${BD_DIMS} dimensions"
             echo "tag is ${tag}"
 
-            for Replicates in $(seq 1 1); do
+	    for Replicates in 2; do
 
                 # Take template.argos and make an .argos file for this experiment
                 SUFFIX=${Replicates}

@@ -237,6 +237,8 @@ def get_plot(ax,index, xx, stats, colors, markers, markers_on,y_err=[],fill_betw
             y1,y2=fill_between
             y_temp=y1[index]
             y_temp2=y2[index]
+            print(y_temp)
+            print(y_temp2)
             ax.fill_between(xx, y_temp, y_temp2, where=y_temp2 >= y_temp, facecolor=colors[index], interpolate=True,alpha=0.5)
     return line
 
@@ -308,7 +310,7 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
             #num_steps = len(x) if len(x) < 20 else 20
             #interval_width = int(len(x) // num_steps)
             if scatter:
-                line = ax.scatter(x, stats[index], color=colors[index], marker=markers[index],s=1500)
+                line = ax.scatter(x, stats[index], color=colors[index], marker=markers[index],s=100)
             else:
                 if index_x:
                     xx=index_x[index]
@@ -319,9 +321,9 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
 
             lines.append(line)
         #axes = PLT.gca()
-        ax.set_xlabel(xlabel, fontsize=46)
+        ax.set_xlabel(xlabel, fontsize=28)
 
-        ax.set_ylabel(ylabel, fontsize=46)
+        ax.set_ylabel(ylabel, fontsize=28)
 
         if ylim is not None:
             ax.set_ylim(ylim)
@@ -329,13 +331,13 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
             ax.set_xlim(xlim)
 
         if title:
-            ax.set_title(title, fontsize=50)
+            ax.set_title(title, fontsize=30)
 
 
-        ax.tick_params(axis='both', which='major', labelsize=40)
-        ax.tick_params(axis='both', which='minor', labelsize=40)
-        ax.xaxis.offsetText.set_fontsize(40)
-        ax.yaxis.offsetText.set_fontsize(40)
+        ax.tick_params(axis='both', which='major', labelsize=28)
+        ax.tick_params(axis='both', which='minor', labelsize=28)
+        ax.xaxis.offsetText.set_fontsize(28)
+        ax.yaxis.offsetText.set_fontsize(28)
 
 
         for (xc,F) in task_markers:

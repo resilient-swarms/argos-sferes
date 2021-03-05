@@ -4,7 +4,7 @@ import matplotlib.pyplot as PLT
 
 from process_archive_data import *
 ro=0.10
-
+KAPPA=0.80
 
 def euclid(x,y):
     return np.sqrt(np.sum(np.square(x-y)))
@@ -28,6 +28,8 @@ def small_k(x,samp,transpose=False):
         return mat
 
 def sigma(x,samp,K_inv):
+    if not samp:
+        return k(x,x)
     print("k(x,x)"+str(k(x,x)))
     print("kKk" + str(small_k(x,samp).dot(K_inv).dot(small_k(x,samp,True))))
     return k(x,x) - small_k(x,samp).dot(K_inv).dot(small_k(x,samp,True))
@@ -52,7 +54,42 @@ def load_archive():
         bds.append(b)
         priors.append(performance)
     return bds,priors
+def phi(x,xj):
+    print("WARNING: local penalisation phi not implemented yet")
+    dist=np.sum(np.square(x - xj))
+    return  1.0 if dist > 0.1 else dist*2.
 
+def get_max_acquisition(bds,priors,ys,xs,queried_priors,K_inv,excluded_indexes=[],get_all=False,busy_samples=[]):
+    # compute the mean for all the points in the archive
+
+    indexes=range(len(bds))
+    max_ind = None
+    max_acq = -float("inf")
+    evaluated_mu=[]
+    evaluated_sd=[]
+    for i in range(len(indexes)):
+        x = bds[i]
+        M = mu(priors[i], x, xs, np.array(ys), np.array(queried_priors), K_inv).flatten()[0]
+        print("mu =" + str(M))
+        s = sigma(x, xs, K_inv).flatten()[0]
+        print("update effect = ", M - priors[i])  # inverse relation between update effect size and noise
+        if i not in excluded_indexes:
+            UCB = M + KAPPA*s
+            if busy_samples:
+                UCB = UCB * np.prod([phi(x,bds[bs])  for bs in busy_samples])
+            if UCB > max_acq:
+                max_acq =UCB
+                max_ind = i
+
+        if get_all:
+            evaluated_mu.append(M)
+            evaluated_sd.append(s)
+
+    print("checked the archive")
+    print("max acq = " + str(max_acq))
+    # select index in the remaining list
+    if get_all:return max_ind, np.array(evaluated_mu), np.array(evaluated_sd)
+    return max_ind
 
 if __name__ == "__main__":
     noise=0.01
@@ -81,34 +118,16 @@ if __name__ == "__main__":
     print("checking prior\n----\n")
 
     bds,priors=load_archive()
-    remaining_indexes=list(range(len(bds)))
+    excluded_indexes=[]
     samples=[]
     observations=[]
     queried_priors=[]
     noises=[]
-    while remaining_indexes:
-
-        print("remaining: ", len(remaining_indexes))
-
-        # compute the mean for all the points in the archive
-        max_ind=None
-        max_acq=-float("inf")
-        for i in range(len(remaining_indexes)):
-            x = bds[i]
-            M = mu(priors[i],x,samples,np.array(observations),np.array(queried_priors),K_inv)
-            print("mu =" + str(M))
-            s = sigma(x,samples,K_inv)
-            print("update effect = " , M-priors[i]) # inverse relation between update effect size and noise
-            if M > max_acq:
-                max_acq=M
-                max_ind=i
-
-        print("checked the archive")
-        print("max acq = " + str(max_acq))
-        # select index in the remaining list
-        j=remaining_indexes[max_ind] # get the corresponding index
-        x=bds[j]
-        del remaining_indexes[max_ind] # delete that item
+    K_inv=[]
+    while len(excluded_indexes) < len(bds):
+        j = get_max_acquisition(bds,priors,observations,samples,queried_priors,K_inv,excluded_indexes,get_all=False)
+        x = bds[j]
+        excluded_indexes.append(j) # delete that item
         # now add to the observations
         prior=priors[j]
 

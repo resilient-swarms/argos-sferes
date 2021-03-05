@@ -703,15 +703,4 @@ def determine_noise():
 
 
 if __name__ == "__main__":
-
-    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised",estimate=False)
-    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised2X",estimate=False)
-
-    # development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1, 1, 1, 1], from_file=False,
-    #                   comparison="decentralised_record2X", estimate=False)
-
-
-    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[20,20,20,20],from_file=False,comparison="decentralised4X",estimate=False)
-
-    #development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[30,30,30,30],from_file=False,comparison="decentralised",estimate=False)
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,1,1],from_file=False,comparison="decentralised",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,1,1],from_file=False,comparison="decentralised_record",estimate=False)
