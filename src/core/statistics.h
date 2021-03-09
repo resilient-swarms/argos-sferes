@@ -96,14 +96,22 @@ struct Factorial
 class RunningStat
 {
 public:
-    size_t n;
-    float _M, _S;
-    RunningStat() : n(0), _M(0.), _S(0.)
+    size_t n, _old_n;
+    float _M, _old_M, _S, _old_S;
+    bool delayed = false; // if delayed, then maintain _M and  _S
+    RunningStat() : n(0), _M(0.), _S(0.),_old_n(0), _old_M(0.), _old_S(0.)
     {
     }
 
     void push(float x)
     {
+        if (delayed)
+        {
+            _old_M = _M;
+            _old_S = _S;
+            _old_n = n;
+            //std::cout << "delayed estimates " << _old_M << "+/-"<<_old_S<<" n:"<<_old_n<<std::endl;
+        }
         ++n;
         if (n == 1)
         {
@@ -115,20 +123,37 @@ public:
             _M += (x - oldM) / (float)n;
             _S = _S + (x - oldM) * (x - _M);
         }
+        //std::cout << "actual estimates " << _M << "+/-"<<_S<<" n:"<< n<<std::endl;
     }
     float mean()
     {
+        if (delayed)
+        {
+            return _old_M;
+        }
         return _M;
     }
     float var()
     {
-
-        return n > 1 ? _S / (float)(n - 1) : _M * _M;
+        if (delayed)
+        {
+            return _old_n > 1 ? _old_S / (float)(_old_n - 1) : _old_M * _old_M;
+        }
+        else
+        {
+            return n > 1 ? _S / (float)(n - 1) : _M * _M;
+        }
     }
     float standard_error()
     {
-
-        return var() / (float)n;
+        if (delayed)
+        {
+            return var() / (float)_old_n;
+        }
+        else
+        {
+            return var() / (float)n;
+        }
     }
     float std()
     {

@@ -8,6 +8,7 @@ std::vector<Eigen::VectorXd> Params::busy_samples;
 double Params::L;
 double Params::M;
 size_t Params::count;
+int Params::DELAY_PROB;
 std::vector<Params::archiveparams::archive_t> Params::archiveparams::multimap;
 std::map<std::vector<double>, bool, Params::archiveparams::classcomp> Params::archiveparams::checked_constraints; // for each constraint, whether or not it was checked
 
@@ -183,6 +184,17 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    catch (CARGoSException &ex)
    {
       THROW_ARGOSEXCEPTION_NESTED("Error initializing number of subtrials", ex);
+   }
+
+   try
+   {
+      GetNodeAttribute(t_node, "delay_prob", Params::DELAY_PROB);
+       std::cout << "delay_prob=" << Params::DELAY_PROB << std::endl;
+   }
+   catch (CARGoSException &ex)
+   {
+      Params::DELAY_PROB = 0;
+      std::cout << "WARNING: no delay_prob in config; will assume DELAY_PROB=0" << std::endl;
    }
 
    try

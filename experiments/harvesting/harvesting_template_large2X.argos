@@ -62,6 +62,7 @@
 		  reset="RESET"
 	          load_ID_map="LOAD_ID_MAP"
 		  scale="2"
+		  delay_prob="DELAY_PROB"
                     />
 
   <!-- *********************** -->

@@ -55,7 +55,7 @@
                   centroids_folder="CENTROIDSFOLDER"
 		  use_virtual="False"
 		  track_stats="False"
-		scale="2"
+		scale="1"
 
                     />
 

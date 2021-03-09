@@ -62,6 +62,7 @@
 		  reset="RESET"
 	          load_ID_map="LOAD_ID_MAP"
 		  scale="1"
+		  delay_prob="DELAY_PROB"
                     />
 
   <!-- *********************** -->
@@ -117,13 +118,13 @@
   <!-- ****************** -->
   <!-- * Visualization * -->
   <!-- ****************** -->
-<visualization>
+<!--  <visualization>
  <qt-opengl>
         <user_functions label="robotid_vis" />
 	<camera>
         <placement idx="0" position="-0.15,2.1,2.0" look_at="1,2.1,0" lens_focal_length="20" />
       </camera>
     </qt-opengl>
-  </visualization> 
+  </visualization>   -->
 
 </argos-configuration>

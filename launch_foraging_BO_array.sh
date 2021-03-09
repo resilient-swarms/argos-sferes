@@ -24,7 +24,7 @@ for alpha in 0.93; do
 			experiment_type=${BO_exps[${acq_string}]}
 			echo "and experiment type: ${experiment_type}"
 			#bash launch_foraging_BO.sh "${datafolder}" "${experiment_type}" "${EXPERIMENT_TAG}" "" "Large" ""
-			bash launch_foraging_BO.sh "${datafolder}" "${experiment_type}" "${EXPERIMENT_TAG}" "" "Large" "2"
+			bash launch_foraging_BO.sh "${datafolder}" "${experiment_type}" "${EXPERIMENT_TAG}" "" "Large" "2" "50"
 	done
     done
 done

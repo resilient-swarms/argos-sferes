@@ -183,6 +183,7 @@ struct Params
     static double M;
     static size_t count;
     static size_t map_index;
+    static int DELAY_PROB;
     static bool multi;
     static void remove_from_busysamples(const Eigen::VectorXd &sample)
     {

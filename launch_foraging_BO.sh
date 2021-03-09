@@ -214,6 +214,7 @@ fi
 output_tag=$3
 large=$5
 scale=$6
+DelayProb=$7
 if [[ $large == "Large" ]]; then
     echo "will do large arena"
 
@@ -458,6 +459,7 @@ for FaultCategory in food_scarcity; do
                         -e "s|OPTIMISATION|${optimisation}|" \
                         -e "s|RESET|${reset}|" \
                         -e "s|LOAD_ID_MAP|${load_ID_map}|" \
+                        -e "s|DELAY_PROB|${DelayProb}|" \
                         ${TemplateFile} \
                         >${ConfigFile}
                     if [ ! -z "${network_config}" ]; then
