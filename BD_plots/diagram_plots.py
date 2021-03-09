@@ -88,7 +88,8 @@ def application(B,P):
                ylabel=r"Performance posterior ($f(\mathbf{x})$)",
                ylim=None,save_filename="diagram_SMBO-Dec.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
                scatter=False,title=r"SMBO-Dec, $\mathcal{D}=(\mathbf{x}_1,f(\mathbf{x}_1))$ and $\mathcal{B}=\{\mathbf{x}_2\}$",
-               fill_between=fill_between,annotations=[annot,annot2,annot3])
+               fill_between=fill_between,
+               annotations=[annot,annot2,annot3])
     print()
 
 

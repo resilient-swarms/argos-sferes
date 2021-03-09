@@ -76,7 +76,7 @@ ENDIF()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lboost_system -fPIC")
 add_definitions( -DNDEBUG ) # non-debug mode
-add_definitions( -DVERSION="\(const char*\)\\"f731bfb04a48a475dfedbfdb180d77054498557f\\"" ) #value not important. added to prevent compilation error in sferes/run.hpp
+add_definitions( -DVERSION="\(const char*\)\\'f731bfb04a48a475dfedbfdb180d77054498557f\\'" ) #value not important. added to prevent compilation error in sferes/run.hpp
 
 # Check whether all the necessary libs have been installed to compile the
 # code that depends on Qt and OpenGL
@@ -149,6 +149,9 @@ if(HETEROGENEOUS AND NOT BO AND NOT RECORD_FITNESS)
             elseif(${BO_ACQ} EQUAL 2)
                 message("using BO acquisition: ACQ_UCB_LOCAL")
                 set(OPT_TAG ${OPT_TAG}UCB_LOCAL_)
+            elseif(${BO_ACQ} EQUAL 3)
+                message("using BO acquisition: ACQ_UCB_LOCAL2")
+                set(OPT_TAG ${OPT_TAG}UCB_LOCAL2_)
             else()
                 message(FATAL_ERROR "BO_ACQ not set correctly: ${BO_ACQ}")
             endif()

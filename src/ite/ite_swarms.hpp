@@ -1110,6 +1110,7 @@ Params::archiveparams::archive_t Params::archiveparams::old_archive;
 #define ACQ_UCB 0 // default
 #define ACQ_UCB_ID 1
 #define ACQ_UCB_LOCAL 2
+#define ACQ_UCB_LOCAL2 3
 
 #if BO_KERNEL == KERN_M52_VarNoise
 typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
@@ -1141,6 +1142,9 @@ typedef acqui::UCB_ID<Params, GP_t> Acqui_t;
 typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
 #elif BO_ACQUISITION == ACQ_UCB_LOCAL
 typedef acqui::UCB_LocalPenalisation<Params, GP_t> Acqui_t;
+typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
+#elif BO_ACQUISITION == ACQ_UCB_LOCAL2
+typedef acqui::UCB_LocalPenalisation2<Params, GP_t> Acqui_t;
 typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
 #else
 typedef acqui::UCB<Params, GP_t> Acqui_t;

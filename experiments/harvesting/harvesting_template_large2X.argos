@@ -118,13 +118,13 @@
   <!-- ****************** -->
   <!-- * Visualization * -->
   <!-- ****************** -->
-   <visualization>
+ <!--   <visualization>
  <qt-opengl>
         <user_functions label="robotid_vis" />
 	<camera>
         <placement idx="0" position="-0.30,4.2,4.0" look_at="2,4.2,0" lens_focal_length="20" />
       </camera>
     </qt-opengl> 
-  </visualization>
+  </visualization>      -->
 
 </argos-configuration>
