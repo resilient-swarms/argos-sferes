@@ -41,8 +41,8 @@ def application(B,P):
     # update F
     i, F, sds = approximate(P, excluded_indexes, B, samples=[],observations=[],queried_priors=[],K_inv=[])
     excluded_indexes.append(i)
-    annot= {"text": r"$\mathbf{x}_1 = argmax_{\mathbf{x} \in \mathcal{M}} UCB(\mathbf{x})$",
-           "xy":(B[i],F[i]+sds[i]), "xytext":(B[i]-0.3,F[i]+sds[i]-0.2),"align":"center","fontsize":25}
+    annot= {"text": r"$\mathbf{x}_1 = argmax \, UCB(\mathbf{x})$",
+           "xy":(B[i],F[i]+sds[i]), "xytext":(B[i]-0.35,F[i]+sds[i]-0.65),"align":"center","fontsize":29}
     createPlot([F],B,colors=["grey"],markers=".",xlabel=r"Behaviour ($\mathbf{x}$)",
                ylabel=r"Performance prior ($f(\mathbf{x})$)",
                ylim=None,save_filename="diagram_select_prior.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
@@ -64,10 +64,10 @@ def application(B,P):
     j, F, sds = approximate(P, excluded_indexes, B, samples=samples,
                             observations=observations,queried_priors=queried_priors,K_inv=K_inv)
     excluded_indexes.append(j)
-    annot= {"text": r"$\mathbf{x}_2 = argmax_{\mathbf{x} \in \mathcal{M}} UCB(\mathbf{x})$",
-           "xy":(B[j],F[j]+sds[j]), "xytext":(B[j]-0.3,F[j]+sds[j]-0.2),"align":"center","fontsize":25}
+    annot= {"text": r"$\mathbf{x}_2 = argmax \, UCB(\mathbf{x})$",
+           "xy":(B[j],F[j]+sds[j]), "xytext":(B[j]-0.35,F[j]+sds[j]-0.25),"align":"center","fontsize":29}
     annot2={"text": r"update $f(\mathbf{x}_1)$",
-           "xy":(B[i],F[i]+sds[i]), "xytext":(B[i],F[i]+sds[i]-1.8),"align":"center","fontsize":25}
+           "xy":(B[i],F[i]+sds[i]), "xytext":(B[i],F[i]+sds[i]-1.8),"align":"center","fontsize":29}
     createPlot([F],B,colors=["grey"],markers=".",xlabel=r"Behaviour ($\mathbf{x}$)",
                ylabel=r"Performance posterior ($f(\mathbf{x})$)",
                ylim=None,save_filename="diagram_SMBO.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
@@ -79,8 +79,8 @@ def application(B,P):
     l, F, sds = approximate(P, excluded_indexes, B, samples=samples, observations=observations,
                             queried_priors=queried_priors, K_inv=K_inv,busy_samples=[j])
     excluded_indexes.append(l)
-    annot3= {"text": r"$\mathbf{x}_3 = argmax_{\mathbf{x} \in \mathcal{M}} UCB(\mathbf{x}) \phi(\mathbf{x},\mathbf{x}_2)$",
-           "xy":(B[l],F[l]+sds[l]), "xytext":(B[l]-0.16,F[l]+sds[l]+0.01),"align":"center","fontsize":25}
+    annot3= {"text": r"$\mathbf{x}_3 = argmax \, UCB(\mathbf{x}) \phi(\mathbf{x},\mathbf{x}_2)$",
+           "xy":(B[l],F[l]+sds[l]), "xytext":(B[l]-0.15,F[l]+sds[l]+0.09),"align":"center","fontsize":29}
     fill_between=[[F-sds],[F+sds]]
     print(F-sds)
     print(F + sds)

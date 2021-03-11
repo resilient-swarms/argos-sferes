@@ -5,10 +5,12 @@
 
 #if HETEROGENEOUS
 std::vector<Eigen::VectorXd> Params::busy_samples;
+std::vector<double> Params::LL;
 double Params::L;
 double Params::M;
 size_t Params::count;
 int Params::DELAY_PROB;
+bool Params::LOCAL_L=false;
 std::vector<Params::archiveparams::archive_t> Params::archiveparams::multimap;
 std::map<std::vector<double>, bool, Params::archiveparams::classcomp> Params::archiveparams::checked_constraints; // for each constraint, whether or not it was checked
 

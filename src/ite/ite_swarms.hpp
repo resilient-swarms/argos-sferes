@@ -13,7 +13,15 @@
 #include <src/ite/exhaustive_constrained_localpen.hpp>
 #include <src/ite/exhaustive_search_multimap.hpp>
 #include <ios>
+#define KERN_M52_VarNoise 0 // default
+#define KERN_M52_VarNoiseAndScale 1
+#define KERN_M52 2
 
+#define ACQ_UCB 0 // default
+#define ACQ_UCB_ID 1
+#define ACQ_UCB_LOCAL 2
+#define ACQ_UCB_LOCAL2 3
+#define ACQ_UCB_LOCAL3 4
 #else
 #include <src/ite/exhaustive_search_archive.hpp>
 #endif
@@ -179,6 +187,8 @@ struct Params
 #ifdef HETEROGENEOUS
     static std::vector<Eigen::VectorXd> busy_samples; // busy samples for each group of robots
     static constexpr double gamma = 1.0f;
+    static std::vector<double> LL;
+    static bool LOCAL_L;
     static double L;
     static double M;
     static size_t count;
@@ -1104,14 +1114,6 @@ Params::archiveparams::archive_t Params::archiveparams::archive;
 
 #if HETEROGENEOUS
 Params::archiveparams::archive_t Params::archiveparams::old_archive;
-#define KERN_M52_VarNoise 0 // default
-#define KERN_M52_VarNoiseAndScale 1
-#define KERN_M52 2
-
-#define ACQ_UCB 0 // default
-#define ACQ_UCB_ID 1
-#define ACQ_UCB_LOCAL 2
-#define ACQ_UCB_LOCAL2 3
 
 #if BO_KERNEL == KERN_M52_VarNoise
 typedef kernel::MaternFiveHalvesVariableNoise<Params> Kernel_t;
@@ -1144,8 +1146,11 @@ typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
 #elif BO_ACQUISITION == ACQ_UCB_LOCAL
 typedef acqui::UCB_LocalPenalisation<Params, GP_t> Acqui_t;
 typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
-#elif BO_ACQUISITION == ACQ_UCB_LOCAL2
+#elif BO_ACQUISITION == ACQ_UCB_LOCAL2 
 typedef acqui::UCB_LocalPenalisation2<Params, GP_t> Acqui_t;
+typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
+#elif BO_ACQUISITION == ACQ_UCB_LOCAL3 
+typedef acqui::UCB_LocalPenalisation3<Params, GP_t> Acqui_t;
 typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
 #else
 typedef acqui::UCB<Params, GP_t> Acqui_t;
