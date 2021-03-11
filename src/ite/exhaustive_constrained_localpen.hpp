@@ -46,7 +46,7 @@ namespace limbo
                     Params::L = get_L<F>(f, constraint);
                     std::cout << "using L=" << Params::L << std::endl;
                 }
-                Params::M = get_M<F>(f, constraint); //get_M<F>(f, constraint); // set to max observation instead
+                // Params::M = get_M<F>(f, constraint); //get_M<F>(f, constraint); // set to max observation instead
 
                 for (archive_it_t it = Params::archiveparams::archive.begin(); it != Params::archiveparams::archive.end(); ++it)
                 {
