@@ -32,6 +32,7 @@ public:
     ControllerEval state_fun;          //state function; just for its parameters
     Eigen::VectorXd current_sample;
     std::string stop_crit;
+    bool wait_until_allfinished=false;
 
     //std::string network_config, network_binary, archive_file;
     bool stop_criterion(ForagingThymioNN &cController)

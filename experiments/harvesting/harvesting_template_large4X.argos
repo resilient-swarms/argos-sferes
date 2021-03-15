@@ -62,6 +62,8 @@
 		  reset="RESET"
 	          load_ID_map="LOAD_ID_MAP"
 		  scale="4"
+                  delay_prob="DELAY_PROB"
+		  wait_until_allfinished="WAIT_UNTIL_ALLFINISHED"
                     />
 
   <!-- *********************** -->

@@ -215,7 +215,7 @@ output_tag=$3
 large=$5
 scale=$6
 DelayProb=$7
-Delay2Prob=$7
+WaitUntil=$8
 if [[ $large == "Large" ]]; then
     echo "will do large arena"
 
@@ -239,6 +239,14 @@ else
     echo "using template: ${TemplateFile}"
     scale="1"
 
+fi
+
+if [ ! -z $DelayProb ]; then
+	output_tag=${output_tag}_delay${DelayProb}
+fi
+
+if [ $WaitUntil == "true" ]; then
+	output_tag=${output_tag}_wait
 fi
 
 export Generation=20000
@@ -461,6 +469,7 @@ for FaultCategory in food_scarcity; do
                         -e "s|RESET|${reset}|" \
                         -e "s|LOAD_ID_MAP|${load_ID_map}|" \
                         -e "s|DELAY_PROB|${DelayProb}|" \
+			-e "s|WAIT_UNTIL_ALLFINISHED|${WaitUntil}|" \
                         ${TemplateFile} \
                         >${ConfigFile}
                     if [ ! -z "${network_config}" ]; then
