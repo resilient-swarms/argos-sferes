@@ -328,7 +328,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                        save_filename=savefile, legend_labels=conditions,
                        colors=colors, markers=markers, xlabel="Time ($s$)",
                        ylabel="Best performance",
-                       xlim=[0, 4000*scale], xscale="linear", yscale="linear", ylim=[0,4.0],
+                       xlim=[0, 4000*scale], xscale="linear", yscale="linear", ylim=[0,2.0],
                        legendbox=(0.10,1.10), annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                        legend_cols=1, legend_fontsize=24, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                        xaxis_style="plain", y_err=[], force=True,ax=axs,skip_legend=True)#, fill_between=(sd_lines1, sd_lines2))
@@ -502,15 +502,15 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
         settings = [
-                    ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise"),
-                    ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
-                    ("single_exp_independent", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
-                    ("single_exp_randomsearch",False, "alpha0.93_l0.12_UCB_M52VarNoise")
+            ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL3_M52VarNoise"),
+            ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
+            ("single_exp_independent", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
+            ("single_exp_randomsearch",False, "alpha0.93_l0.12_UCB_M52VarNoise")
         ]
         plottag="LARGE_DECENTRALISED"
-        VE_tags = ["_VE_init" + str(j) for j in [3, 4,5, 6]]
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6]]
         CENT = "decentralised"
-        num_VE_conditions=4
+        num_VE_conditions = 4
     elif comparison=="decentralised2X":
         conditions = ["SMBO-Dec","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
         # settings = [("single_exp", False, "noID"),
@@ -518,10 +518,10 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
         settings = [
-                    ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_2X"),
-                    ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
-                    ("single_exp_independent", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
-                   ("single_exp_randomsearch",False, "alpha0.93_l0.12_UCB_M52VarNoise_2X")
+            ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL3_M52VarNoise_2X"),
+            ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
+            ("single_exp_independent", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
+            ("single_exp_randomsearch",False, "alpha0.93_l0.12_UCB_M52VarNoise_2X")
         ]
         plottag="LARGE_DECENTRALISED2X"
         VE_tags = ["_VE_init" + str(j) for j in [3, 4,5, 6]]
@@ -534,7 +534,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
         settings = [
-                    ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_4X"),
+                    ("single_exp", False, "alpha0.93_l0.12_UCB_LOCAL3_M52VarNoise_4X"),
                     ("single_exp", False, "alpha0.93_l0.12_UCB_M52VarNoise_4X"),
                     ("single_exp_independent", False, "alpha0.93_l0.12_UCB_M52VarNoise_4X"),
                    ("single_exp_randomsearch",False, "alpha0.93_l0.12_UCB_M52VarNoise_4X")
@@ -550,7 +550,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
         settings = [
-                    ("single_exprecord", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise"),
+                    ("single_exprecord", False, "alpha0.93_l0.12_UCB_LOCAL3_M52VarNoise"),
                     ("single_exprecord", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
                     ("single_exp_independentrecord", False, "alpha0.93_l0.12_UCB_M52VarNoise"),
                     ("single_exp_randomsearchrecord",False, "alpha0.93_l0.12_UCB_M52VarNoise")
@@ -566,7 +566,7 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         #             ("single_exp_random", False, "final"),
         #             ("single_exp_randomsearch", False, "final")]
         settings = [
-                    ("single_exprecord", False, "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_2X"),
+                    ("single_exprecord", False, "alpha0.93_l0.12_UCB_LOCAL3_M52VarNoise_2X"),
                     ("single_exprecord", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
                     ("single_exp_independentrecord", False, "alpha0.93_l0.12_UCB_M52VarNoise_2X"),
                     ("single_exp_randomsearchrecord",False, "alpha0.93_l0.12_UCB_M52VarNoise_2X")
@@ -703,4 +703,13 @@ def determine_noise():
 
 
 if __name__ == "__main__":
-    development_data(bd_type, runs, 20000, by_faulttype=True, max_evals=[1,1,1,1],from_file=False,comparison="decentralised_record",estimate=False)
+    development_data(bd_type, runs, 20000, by_faulttype=True,
+                    max_evals=[30, 30, 30, 30], from_file=False, comparison="centralised", estimate=False)
+    # development_data(bd_type, runs, 20000, by_faulttype=True,
+    #                 max_evals=[30, 30, 30, 30], from_file=False, comparison="decentralised", estimate=False)
+    # development_data(bd_type, runs, 20000, by_faulttype=True,
+    #                 max_evals=[30,30,30,30],from_file=False,comparison="decentralised2X",estimate=False)
+    # development_data(bd_type, runs, 20000, by_faulttype=True,
+    #                  max_evals=[1, 1, 1, 1], from_file=False, comparison="decentralised_record", estimate=False)
+    #development_data(bd_type, runs, 20000, by_faulttype=True,
+    #                 max_evals=[1,1,1,1],from_file=False,comparison="decentralised_record2X",estimate=False)

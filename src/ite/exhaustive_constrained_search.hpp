@@ -57,7 +57,33 @@ namespace limbo
                     bool checked = Params::archiveparams::checked_constraints[vec_to_check];
                     if (checked)
                     {
-                        continue; // no need to check again, assuming static environment
+                       bool checked = false;
+                        for (const Eigen::VectorXd &samp : Params::samples) // confirm it was checked for this robot
+                        {
+                            if (samp == temp)
+                            {
+                                checked = true;
+                                // std::cout << "confirmed check " << std::endl;
+                            }
+                        }
+                        for (const Eigen::VectorXd &samp : Params::busy_samples) // confirm it was checked for this robot
+                        {
+                            if (samp == temp)
+                            {
+                                checked = true;
+                                // std::cout << "confirmed check " << std::endl;
+                            }
+                        }
+                        if (checked)
+                        {
+                            continue; // no need to check again, assuming static environment
+                        }
+                        else
+                        {
+                            // std::cout << "check not confirmed; must be some delay " << std::endl;
+                            // std::ofstream log("samples_log.txt",std::ios::app);
+                            // log << "delayed sample " << temp.transpose() << std::endl; 
+                        }
                     }
                     //std::cout << "not checked yet" << std::endl;
                     //std::cout << "will compare to constraint" << std::endl;

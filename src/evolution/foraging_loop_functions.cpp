@@ -4,13 +4,14 @@
 #include <argos3/plugins/robots/thymio/simulator/thymio_entity.h>
 
 #if HETEROGENEOUS
+std::vector<Eigen::VectorXd> Params::samples;
 std::vector<Eigen::VectorXd> Params::busy_samples;
 std::vector<double> Params::LL;
 double Params::L;
 double Params::M;
 size_t Params::count;
 int Params::DELAY_PROB;
-bool Params::LOCAL_L=false;
+bool Params::LOCAL_L = false;
 std::vector<Params::archiveparams::archive_t> Params::archiveparams::multimap;
 std::map<std::vector<double>, bool, Params::archiveparams::classcomp> Params::archiveparams::checked_constraints; // for each constraint, whether or not it was checked
 
@@ -191,7 +192,7 @@ void CForagingLoopFunctions::Init(TConfigurationNode &t_node)
    try
    {
       GetNodeAttribute(t_node, "delay_prob", Params::DELAY_PROB);
-       std::cout << "delay_prob=" << Params::DELAY_PROB << std::endl;
+      std::cout << "delay_prob=" << Params::DELAY_PROB << std::endl;
    }
    catch (CARGoSException &ex)
    {
@@ -288,7 +289,7 @@ void CForagingLoopFunctions::init_BO(std::vector<double> normal_ID)
       Eigen::VectorXd id_vec = Eigen::VectorXd(normal_ID.size());
       for (size_t i = 0; i < normal_ID.size(); ++i)
          id_vec(i) = normal_ID[i];
-      result = opt[0]->select_sample<ControllerEval>(id_vec);
+      result = opt[0]->select_sample<ControllerEval>(-1,id_vec);
    }
    Params::archiveparams::checked_constraints = {};
    /* initial phase: select controller for one robot and then put others with the same as well */
@@ -393,7 +394,7 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, bool sharing)
    }
    if (single_worker)
    {
-      Eigen::VectorXd new_x = opt[0]->select_sample<ControllerEval>({});
+      Eigen::VectorXd new_x = opt[0]->select_sample<ControllerEval>(-1,{});
       current_sample = new_x;
       std::vector<double> bd;
       for (size_t i = 0; i < current_sample.size(); ++i)
@@ -434,8 +435,8 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, bool sharing)
          if (!sharing)
          {
             cController.worker = ForagingThymioNN::Worker(num_subtrials, 0, i);
-            Eigen::VectorXd result = opt[i]->select_sample<ControllerEval>({});
-            opt[i]->worker_samples[cController.worker.index] = result;
+            Eigen::VectorXd result = opt[i]->select_sample<ControllerEval>(-1,{});
+            opt[i]->set_worker_samples(cController.worker.index,result);
             cController.worker.new_sample = result.head(BEHAV_DIM);
             std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
             cController.select_net(bd, num_subtrials, ticks_per_subtrial);
@@ -455,8 +456,8 @@ void CForagingLoopFunctions::init_multiBO(bool single_worker, bool sharing)
             cController.worker = ForagingThymioNN::Worker(num_subtrials, worker_idx, opt_idx);
             worker_idx++;
             count[cController.FBehavior] = worker_idx;
-            Eigen::VectorXd result = opt[opt_idx]->select_sample<ControllerEval>({});
-            opt[opt_idx]->worker_samples[cController.worker.index] = result;
+            Eigen::VectorXd result = opt[opt_idx]->select_sample<ControllerEval>(-1,{});
+            opt[opt_idx]->set_worker_samples(cController.worker.index,result);
             cController.worker.new_sample = result.head(BEHAV_DIM);
             std::vector<double> bd(result.data(), result.data() + result.rows() * result.cols());
             cController.select_net(bd, num_subtrials, ticks_per_subtrial);
@@ -686,14 +687,15 @@ void CForagingLoopFunctions::select_new_controller(ForagingThymioNN &cController
    {
       Eigen::VectorXd old_x = cController.worker.get_sample();
       size_t opt_index = cController.worker.opt_index;
-      Eigen::VectorXd new_x = opt[opt_index]->select_sample<ControllerEval>(cController.worker.F);
+      int worker_idx = (int) cController.worker.index;
+      Eigen::VectorXd new_x = opt[opt_index]->select_sample<ControllerEval>(worker_idx, cController.worker.F);
       if (new_x.size() == 0)
       {
          std::cout << "FOUND NO REMAINING CONTROLLER IN THE MAP; WILL STOP NOW" << std::endl;
          argos::CSimulator::GetInstance().Terminate();
       }
-      size_t worker_idx = cController.worker.index;
-      opt[opt_index]->worker_samples[worker_idx] = new_x;
+      
+      opt[opt_index]->set_worker_samples(worker_idx,new_x);
       std::cout << "old_x " << old_x.transpose() << std::endl;
       std::cout << "new_x " << new_x.transpose() << std::endl;
       cController.worker.new_sample = new_x.head(BEHAV_DIM);
@@ -714,7 +716,7 @@ void CForagingLoopFunctions::select_new_joint_controller(bool alltrialsfinished)
 {
    if (alltrialsfinished)
    {
-      Eigen::VectorXd new_x = opt[0]->select_sample<ControllerEval>({});
+      Eigen::VectorXd new_x = opt[0]->select_sample<ControllerEval>(-1,{});
       argos::LOG << "new sample" << new_x << std::endl;
       std::vector<double> bd;
       for (size_t i = 0; i < new_x.size(); ++i)

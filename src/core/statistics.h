@@ -105,13 +105,6 @@ public:
 
     void push(float x)
     {
-        if (delayed)
-        {
-            _old_M = _M;
-            _old_S = _S;
-            _old_n = n;
-            //std::cout << "delayed estimates " << _old_M << "+/-"<<_old_S<<" n:"<<_old_n<<std::endl;
-        }
         ++n;
         if (n == 1)
         {
@@ -127,34 +120,20 @@ public:
     }
     float mean()
     {
-        if (delayed)
-        {
-            return _old_M;
-        }
+
         return _M;
     }
+
     float var()
     {
-        if (delayed)
-        {
-            return _old_n > 1 ? _old_S / (float)(_old_n - 1) : _old_M * _old_M;
-        }
-        else
-        {
-            return n > 1 ? _S / (float)(n - 1) : _M * _M;
-        }
+        return n > 1 ? _S / (float)(n - 1) : _M * _M;
     }
+
     float standard_error()
     {
-        if (delayed)
-        {
-            return var() / (float)_old_n;
-        }
-        else
-        {
-            return var() / (float)n;
-        }
+        return var() / (float)n;
     }
+
     float std()
     {
         return sqrt(var());

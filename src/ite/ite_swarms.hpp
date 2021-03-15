@@ -185,6 +185,7 @@ struct Params
 #endif
     };
 #ifdef HETEROGENEOUS
+    static std::vector<Eigen::VectorXd> samples; // all samples for a robot
     static std::vector<Eigen::VectorXd> busy_samples; // busy samples for each group of robots
     static constexpr double gamma = 1.0f;
     static std::vector<double> LL;
@@ -222,6 +223,7 @@ struct Params
     static void add_to_busysamples(const Eigen::VectorXd &sample)
     {
         //std::ofstream busylog("busy_samples.txt",std::ios::app);
+
         busy_samples.push_back(sample);
         //busylog << "after pushing, there are now " << busy_samples.size() << " samples" << std::endl;
         // for(size_t i=0; i < busy_samples.size(); ++i)
@@ -1146,10 +1148,10 @@ typedef opt::ExhaustiveConstrainedSearchArchive<Params> InnerOpt_t;
 #elif BO_ACQUISITION == ACQ_UCB_LOCAL
 typedef acqui::UCB_LocalPenalisation<Params, GP_t> Acqui_t;
 typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
-#elif BO_ACQUISITION == ACQ_UCB_LOCAL2 
+#elif BO_ACQUISITION == ACQ_UCB_LOCAL2
 typedef acqui::UCB_LocalPenalisation2<Params, GP_t> Acqui_t;
 typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
-#elif BO_ACQUISITION == ACQ_UCB_LOCAL3 
+#elif BO_ACQUISITION == ACQ_UCB_LOCAL3
 typedef acqui::UCB_LocalPenalisation3<Params, GP_t> Acqui_t;
 typedef opt::ExhaustiveConstrainedLocalPenalty<Params> InnerOpt_t;
 #else
@@ -1229,15 +1231,16 @@ std::vector<double> get_best_bd_multi(std::string stats_filename)
                 {
                     numbers.push_back(num);
                 }
-                else{
-                    if(j == global::behav_dim + 1) // no id feature in multibo
+                else
+                {
+                    if (j == global::behav_dim + 1) // no id feature in multibo
                     {
                         fit = num;
                     }
                 }
                 ++j;
             }
-            if(fit >= best_fit)
+            if (fit >= best_fit)
             {
                 best_fit = fit;
                 best_bd = numbers;

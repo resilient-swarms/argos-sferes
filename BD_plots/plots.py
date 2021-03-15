@@ -321,9 +321,9 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
 
             lines.append(line)
         #axes = PLT.gca()
-        ax.set_xlabel(xlabel, fontsize=29)
+        ax.set_xlabel(xlabel, fontsize=42)
 
-        ax.set_ylabel(ylabel, fontsize=29)
+        ax.set_ylabel(ylabel, fontsize=42)
 
         if ylim is not None:
             ax.set_ylim(ylim)

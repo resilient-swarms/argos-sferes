@@ -215,6 +215,7 @@ output_tag=$3
 large=$5
 scale=$6
 DelayProb=$7
+Delay2Prob=$7
 if [[ $large == "Large" ]]; then
     echo "will do large arena"
 
@@ -306,7 +307,7 @@ faultnum["agents"]="3 12 24"         # {1,2,...,12} agents included
 
 for FaultCategory in food_scarcity; do
     faults=${faultnum[${FaultCategory}]}
-    for FaultIndex in 1;do
+    for FaultIndex in $faults ;do
         for key in ${!descriptors[@]}; do
             DescriptorType=${key}
             BD_DIMS=${descriptors[${key}]}
@@ -380,7 +381,7 @@ for FaultCategory in food_scarcity; do
                 elif [ "$FaultCategory" = "food_scarcity" ]; then
                     robots=6
                     fault=FAULT_FOOD_SCARCITY
-                    food_loop="5"
+                    food_loop="0 1 2 3 4 5"
                     FaultID=$(($FaultIndex - 1))
                     echo "food scarcity"
                 else

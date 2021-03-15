@@ -91,9 +91,9 @@ def check_archives_complete_foraging(finalgen,datadir,descriptors,runs, translat
 
             U_list = set(get_ind_performances_uniquearchive(unperturbed).keys())
 
-            for perturbation in foraging_perturbations:
+            for perturbation in foraging_perturbations["centralised"]:
 
-                perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/analysis"+str(finalgen)+"_"+translation+".dat"
+                perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"_/analysis"+str(finalgen)+"_"+translation+".dat"
                 try:
                     P_list = set(get_ind_performances_uniquearchive(perturbed).keys())
                     file_length3 = len(read_spacedelimited(perturbed))
@@ -103,6 +103,28 @@ def check_archives_complete_foraging(finalgen,datadir,descriptors,runs, translat
                     file_length3=0
                 if file_length!=file_length3:
                     print(perturbed)
+                    print("file length not the same")
+
+                missing =  U_list - P_list
+                if missing:
+                    # find missing individuals
+                    print("missing : " + str(missing))
+                too_much = P_list - U_list
+                if too_much:
+                    print("too much : "+str(too_much))
+                if not missing and not too_much and file_length!=file_length3:
+                    print("must have duplicates")
+            for perturbation in foraging_perturbations["decentralised"]:
+                perturbed2 = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"_2X/analysis"+str(finalgen)+"_"+translation+".dat"
+                try:
+                    P_list = set(get_ind_performances_uniquearchive(perturbed2).keys())
+                    file_length3 = len(read_spacedelimited(perturbed2))
+                except Exception as e:
+                    print(e)
+                    P_list=set([])
+                    file_length3=0
+                if file_length!=file_length3:
+                    print(perturbed2)
                     print("file length not the same")
 
                 missing =  U_list - P_list
@@ -153,7 +175,8 @@ def check_BO_single_complete_foraging(datadir,descriptors,runs,methods,tag):
                     #     print("no line(s) found ", perturbed)
 
                     for i in range(1):
-                        perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+str(run)+"/"+method+"/BO_output"+tag+"/async_stats_best"+str(i)+".dat"
+                        perturbed = filename + "/faultyrun"+str(run)+"_"+perturbation+"/results"+\
+                                    str(run)+"/"+method+"/BO_output"+tag+"/async_stats_best"+str(i)+".dat"
                         if not path.exists(perturbed):
                             print("could not find:")
                             print(perturbed)
@@ -179,28 +202,28 @@ if __name__ == "__main__":
     #                         translation="handcrafted"
     #                         )
 
-    # check_archives_complete_foraging(20000,
-    #                         "/home/david/Data",
+    check_archives_complete_foraging(20000,
+                            "/home/david/Data",
+                            ["history"],
+                            range(1,6),
+                            translation="handcrafted"
+                            )
+
+    # check_BO_single_complete_foraging( "/home/david/Data",
     #                         ["history"],
     #                         range(1,6),
-    #                         translation="handcrafted"
-    #                         )
-
-    check_BO_single_complete_foraging( "/home/david/Data",
-                            ["history"],
-                            range(1,6),
-                            ["single_exp"],
-                            "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_2X")
-    check_BO_single_complete_foraging( "/home/david/Data",
-                            ["history"],
-                            range(1,6),
-                            ["single_exp"],
-                            "alpha0.93_l0.12_UCB_M52VarNoise_2X")
-    check_BO_single_complete_foraging( "/home/david/Data",
-                            ["history"],
-                            range(1,6),
-                            ["single_exp_randomsearch"],
-                            "alpha0.93_l0.12_UCB_M52VarNoise")
+    #                         ["single_exp"],
+    #                         "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_2X")
+    # check_BO_single_complete_foraging( "/home/david/Data",
+    #                         ["history"],
+    #                         range(1,6),
+    #                         ["single_exp"],
+    #                         "alpha0.93_l0.12_UCB_M52VarNoise_2X")
+    # check_BO_single_complete_foraging( "/home/david/Data",
+    #                         ["history"],
+    #                         range(1,6),
+    #                         ["single_exp_randomsearch"],
+    #                         "alpha0.93_l0.12_UCB_M52VarNoise")
     # check_BO_single_complete_foraging("/home/david/Data",
     #                                   ["history"],
     #                                   range(1, 6),

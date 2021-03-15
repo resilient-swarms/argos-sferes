@@ -63,7 +63,7 @@
 	          load_ID_map="LOAD_ID_MAP"
 		  scale="1"
 		  delay_prob="DELAY_PROB"
-                    />
+	                    />
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
