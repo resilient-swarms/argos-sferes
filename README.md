@@ -3,9 +3,11 @@ argos-sferes
 
 An interface for using the ARGoS swarm robotics simulator with the Sferes evolutionary algorithm framework.
 
-The argos-sferes repository has been used in the paper:
+The argos-sferes repository has been used in the papers:
 
-Bossens, D. M., & Tarapore, D. (2020). QED: using Quality-Environment-Diversity to evolve resilient robot swarms. ArXiv:2003.02341 Preprint. Retrieved from http://arxiv.org/abs/2003.02341
+Bossens, D. M., & Tarapore, D. (2020). QED: using Quality-Environment-Diversity to evolve resilient robot swarms. IEEE Transactions on Evolutionary Computation. https://doi.org/10.1109/TEVC.2020.3036578
+
+Bossens, D. M., & Tarapore, D. (2020). Rapidly adapting robot swarms with Swarm Map-based Bayesian Optimisation. Retrieved from http://arxiv.org/abs/2012.11444
 
 
 Instruction for compilation (using MAP-Elites and neural-network modules)
