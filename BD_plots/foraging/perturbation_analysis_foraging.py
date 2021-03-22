@@ -171,7 +171,69 @@ def prepare_data(VE_tags, conditions, settings, max_evals,num_VE_conditions, gen
     return all_data
 
 
+def analyse_final_data(best_performance_data,learners,conditions, delays, plottag,
+                                 reference_faultinjection_data, reference_performance_data, settings):
+    final_performances = []
+    bd_index=0
 
+    for fault_category in range(num_fault_types[CENT]):
+        print(fault_category)
+        performances30 = [None for c in conditions]
+        mean_lines = [[] for c in conditions]
+        sd_lines1 = [[] for c in conditions]
+        sd_lines2 = [[] for c in conditions]
+        reference_category = convert_fault_type(fault_category, CENT)
+        min_reference = np.mean(reference_faultinjection_data[bd_index][reference_category]) / NUM_AGENTS
+        max_reference = np.mean(reference_performance_data[bd_index][reference_category]) / NUM_AGENTS
+        colors = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]  # colors for the lines
+        # (numsides, style, angle)
+        markers = ["*", "o", "D", "X", "v", "+", "$\dagger$", "^", "$\spadesuit$", "^"]  # markers for the lines
+        num_legend=len(conditions)//(len(delays))
+        mean_lines=[[] for i in range(num_legend)]
+        for c, condition in enumerate(conditions):
+            ci = c // len(delays)
+            tag, VE, VE_tag_index = settings[c]
+            if VE_tag_index.endswith("2X"):
+                scale = 2
+            elif VE_tag_index.endswith("4X"):
+                scale = 4
+            else:
+                scale = 1
+
+            data = best_performance_data[c][fault_category][-1] / NUM_AGENTS
+            mean = np.mean(data)
+            mean_lines[ci].append(mean)
+            sd = np.std(data)
+            sd_lines1[ci].append(mean - sd)
+            sd_lines2[ci].append(mean + sd)
+
+
+
+        additional_lines = [(delays, [min_reference for d in delays]), (delays, [max_reference for d in delays])]
+
+
+        fig, axs = plt.subplots(1, 1, figsize=(10, 10))  # coverage, avg perf., global perf., global reliability
+        savefile = "recovery_fault_" + str(foraging_fault_types[CENT][fault_category]) + plottag + ".pdf"
+        createPlot(mean_lines, x_values=np.array(delays),
+                   save_filename=savefile, legend_labels=learners,
+                   colors=colors, markers=markers, xlabel="Delay probability ($\%$)",
+                   ylabel="Final performance",
+                   xlim=[0,100], xscale="linear", yscale="linear", ylim=[1.5, 3.5],
+                   legendbox=(0.10, 1.10), annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
+                   legend_cols=1, legend_fontsize=24, legend_indexes=[], additional_lines=additional_lines,
+                   index_x=[],
+                   xaxis_style="plain", y_err=[], force=True, ax=axs,
+                   skip_legend=True)  # , fill_between=(sd_lines1, sd_lines2))
+        handles, labels = axs.get_legend_handles_labels()
+        fig.tight_layout()
+        fig.savefig(savefile)
+        leg = axs.legend(handles, labels=labels, loc="upper center", ncol=len(labels),
+                         bbox_to_anchor=(0.5, -0.250),
+                         prop={'size': 24},
+                         fancybox=True)
+        leg.set_alpha(0.20)
+        fig.savefig("legend.pdf", bbox_extra_artists=(leg,),
+                    bbox_inches='tight')
 
 def analyse_development_data(best_performance_data,percentage_eval_data,time_loss,max_evals,conditions, plottag, reference_faultinjection_data, reference_performance_data, settings):
     final_performances=[]
@@ -328,14 +390,14 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                        save_filename=savefile, legend_labels=conditions,
                        colors=colors, markers=markers, xlabel="Time ($s$)",
                        ylabel="Best performance",
-                       xlim=[0, 4000*scale], xscale="linear", yscale="linear", ylim=[0,2.0],
+                       xlim=[0, 4000*scale], xscale="linear", yscale="linear", ylim=[0.0,1.0],
                        legendbox=(0.10,1.10), annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                        legend_cols=1, legend_fontsize=24, legend_indexes=[], additional_lines=additional_lines, index_x=[],
                        xaxis_style="plain", y_err=[], force=True,ax=axs,skip_legend=True)#, fill_between=(sd_lines1, sd_lines2))
             handles, labels = axs.get_legend_handles_labels()
             fig.tight_layout()
             fig.savefig(savefile)
-            leg = axs.legend(handles, labels=labels, loc="upper center", ncol=len(labels),
+            leg = axs.legend(handles, labels=labels, loc="upper center", ncol=len(labels)//2,
                                      bbox_to_anchor=(0.5, -0.250),
                                      prop={'size': 24},
                                      fancybox=True)
@@ -348,7 +410,7 @@ def analyse_development_data(best_performance_data,percentage_eval_data,time_los
                        save_filename=savefile, legend_labels=conditions,
                        colors=colors, markers=markers, xlabel="Time ($s$)",
                        ylabel="Best performance",
-                       xlim=[0, 4000*scale], xscale="linear", yscale="linear", ylim=[0,2.0],
+                       xlim=[0, 4000*scale], xscale="linear", yscale="linear", ylim=[0.0,1.0],
                        legendbox=(0.10,1.10), annotations=[], xticks=[], yticks=[], task_markers=[], scatter=False,
                        legend_cols=1, legend_fontsize=24, legend_indexes=[], additional_lines=[], index_x=[],
                        xaxis_style="plain", y_err=[], force=True,ax=axs,skip_legend=True)#, fill_between=(sd_lines1, sd_lines2))
@@ -511,6 +573,74 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
         VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6]]
         CENT = "decentralised"
         num_VE_conditions = 4
+    elif comparison=="decentralised_delay":
+        #conditions = ["SMBO-Dec","SMBO-Dec Wait","SMBO-Dec Naive","SMBO-Dec Naive"]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+        settings=[]
+        conditions=[]
+
+        for learner,condition in [("UCB_LOCAL3","SMBO-Dec"),("UCB","SMBO-Dec Naive")]:
+            if learner=="UCB":
+                w="_wait"
+            else:
+                w=""
+            for delay in ["delay0", "delay20",  "delay40","delay80"]:
+                #for wait in ["", "_wait"]:
+                    settings.append(("single_exp", False, "alpha0.93_l0.12_"+learner+"_M52VarNoise_"+delay+w)) #+wait
+                    conditions.append(condition+ " " + delay ) #+ " " + wait
+
+        plottag="DELAY_DEVELOP"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6]]
+        CENT = "decentralised"
+        num_VE_conditions = 8
+    elif comparison=="decentralised_delay2X":
+        #conditions = ["SMBO-Dec","SMBO-Dec Wait","SMBO-Dec Naive","SMBO-Dec Naive"]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+        settings=[]
+        conditions=[]
+
+        for learner,condition in [("UCB_LOCAL3","SMBO-Dec"),("UCB","SMBO-Dec Naive")]:
+            if learner=="UCB":
+                w="_wait"
+            else:
+                w=""
+            for delay in ["delay0", "delay20", "delay40", "delay80"]:
+                #for wait in ["", "_wait"]:
+                    settings.append(("single_exp", False, "alpha0.93_l0.12_"+learner+"_M52VarNoise_2X_"+delay+w)) #+wait
+                    conditions.append(condition+ " " + delay ) #+ " " + wait
+
+        plottag="DELAY_DEVELOP2X"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6]]
+        CENT = "decentralised"
+        num_VE_conditions = 6
+    elif comparison=="decentralised_delay_final":
+        #conditions = ["SMBO-Dec","SMBO-Dec Wait","SMBO-Dec Naive","SMBO-Dec Naive"]
+        # settings = [("single_exp", False, "noID"),
+        #             ("single_exp_known", False, "final"),
+        #             ("single_exp_random", False, "final"),
+        #             ("single_exp_randomsearch", False, "final")]
+        settings=[]
+        conditions=[]
+        learners=[]
+        delays=[0,20,40,60,80]
+        waits=[""," wait"]
+        for learner,condition in [("UCB_LOCAL3","SMBO-Dec"),("UCB","SMBO-Dec Naive")]:
+            for w, wait in enumerate(["", "_wait"]):
+                learners.append(condition+ " "+ waits[w])
+                for delay in ["delay0", "delay20", "delay40", "delay60", "delay80"]:
+                    settings.append(("single_exp", False, "alpha0.93_l0.12_"+learner+"_M52VarNoise_"+delay+wait))
+                    conditions.append(condition+ " " + delay + " " + wait)
+
+        plottag="DELAY"
+        VE_tags = ["_VE_init" + str(j) for j in [3, 4, 5, 6]]
+        CENT = "decentralised"
+        num_VE_conditions = 20
     elif comparison=="decentralised2X":
         conditions = ["SMBO-Dec","SMBO-Dec Naive","SMBO No Sharing","Random No sharing"]
         # settings = [("single_exp", False, "noID"),
@@ -598,7 +728,13 @@ def development_data(bd_type,runs,gener, by_faulttype=True, max_evals=[30,100],f
     else:
         best_performance_data, time_loss, percentage_eval_data = prepare_data(VE_tags,conditions, settings, max_evals,num_VE_conditions, gener, estimate,by_faulttype)
 
-    analyse_development_data(best_performance_data,percentage_eval_data,time_loss,max_evals,conditions, plottag, reference_faultinjection_data, reference_performance_data, settings)
+
+    if comparison=="decentralised_delay_final":
+         analyse_final_data(best_performance_data,learners,conditions, delays, plottag,
+                                 reference_faultinjection_data, reference_performance_data, settings)
+
+    else:
+        analyse_development_data(best_performance_data,percentage_eval_data,time_loss,max_evals,conditions, plottag, reference_faultinjection_data, reference_performance_data, settings)
 
 
     #r = np.corrcoef(percentage, final_performances)
@@ -704,7 +840,7 @@ def determine_noise():
 
 if __name__ == "__main__":
     development_data(bd_type, runs, 20000, by_faulttype=True,
-                    max_evals=[30, 30, 30, 30], from_file=False, comparison="centralised", estimate=False)
+                    max_evals=[30]*20, from_file=False, comparison="decentralised_delay", estimate=False)
     # development_data(bd_type, runs, 20000, by_faulttype=True,
     #                 max_evals=[30, 30, 30, 30], from_file=False, comparison="decentralised", estimate=False)
     # development_data(bd_type, runs, 20000, by_faulttype=True,

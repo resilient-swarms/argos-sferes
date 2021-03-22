@@ -202,18 +202,25 @@ if __name__ == "__main__":
     #                         translation="handcrafted"
     #                         )
 
-    check_archives_complete_foraging(20000,
-                            "/home/david/Data",
-                            ["history"],
-                            range(1,6),
-                            translation="handcrafted"
-                            )
-
-    # check_BO_single_complete_foraging( "/home/david/Data",
+    # check_archives_complete_foraging(20000,
+    #                         "/home/david/Data",
     #                         ["history"],
     #                         range(1,6),
-    #                         ["single_exp"],
-    #                         "alpha0.93_l0.12_UCB_LOCAL_M52VarNoise_2X")
+    #                         translation="handcrafted"
+    #                         )
+    for delay in ["delay0","delay20","delay40","delay60","delay80"]:
+        for wait in ["","_wait"]:
+
+            check_BO_single_complete_foraging( "/home/david/Data",
+                                    ["history"],
+                                    range(1,6),
+                                    ["single_exp"],
+                                    "alpha0.93_l0.12_UCB_LOCAL3_M52VarNoise_"+delay + wait)
+            check_BO_single_complete_foraging( "/home/david/Data",
+                                    ["history"],
+                                    range(1,6),
+                                    ["single_exp"],
+                                    "alpha0.93_l0.12_UCB_M52VarNoise_"+delay + wait)
     # check_BO_single_complete_foraging( "/home/david/Data",
     #                         ["history"],
     #                         range(1,6),

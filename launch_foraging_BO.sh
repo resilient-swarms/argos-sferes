@@ -245,7 +245,7 @@ if [ ! -z $DelayProb ]; then
 	output_tag=${output_tag}_delay${DelayProb}
 fi
 
-if [ $WaitUntil == "true" ]; then
+if [[ $WaitUntil == "true" ]]; then
 	output_tag=${output_tag}_wait
 fi
 
@@ -305,7 +305,7 @@ perturbations_folder="experiments/harvesting/perturbations"
 declare -A faultnum
 
 faultnum["sensor"]=$(seq 1 30)
-faultnum["proximity_sensor"]=$(seq 1 20)
+faultnum["proximity_sensor"]=5 # $(seq 1 20)
 faultnum["ground_sensor"]=$(seq 1 20)
 faultnum["actuator"]=$(seq 1 20)
 faultnum["software"]=$(seq 1 6)      # number of agents  (1,0,0,0,0,0),(0,1,0,0,0,0), ...
@@ -313,7 +313,7 @@ faultnum["software_food"]=$(seq 1 6) # number of agents  (1,0,0,0,0,0),(0,1,0,0,
 faultnum["food_scarcity"]=1          # (will loop over food as a dummy)
 faultnum["agents"]="3 12 24"         # {1,2,...,12} agents included
 
-for FaultCategory in food_scarcity; do
+for FaultCategory in proximity_sensor; do
     faults=${faultnum[${FaultCategory}]}
     for FaultIndex in $faults ;do
         for key in ${!descriptors[@]}; do
@@ -496,10 +496,10 @@ for FaultCategory in food_scarcity; do
                         bash submit_single.sh
                     else
                         echo "submitting ite job"
-                        #sleep 10
+                        #sleep 1sh0
                         bash submit_ite.sh
                     fi
-                    sleep 10
+                    #sleep 10
                 done
             done
         done

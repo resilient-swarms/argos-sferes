@@ -93,6 +93,7 @@ def get_workergroup_developments(num_evals,num_workers,path):
     mean_y=[[] for i in range(num_evals)]
     past_workers = 0
     for worker in range(num_workers):
+        print("past_workers ", past_workers)
         if past_workers == num_workers:
             break # finished all workers
         BOfile = path + "/async_stats_best"+str(worker)+".dat"

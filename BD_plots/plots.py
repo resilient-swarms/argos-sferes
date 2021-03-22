@@ -1,6 +1,10 @@
 
 import numpy as np 
 import matplotlib.pyplot as PLT
+import matplotlib
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
+matplotlib.rcParams['text.usetex'] = True
 from scipy.stats import *
 
 # ================    ===============================
@@ -276,7 +280,7 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
             return
     print("start plotting "+str(ylabel))
     print("")
-    figx=10
+    figx=10 # 14 for diagram plots
     figy=10
 
     # legend_labels=[legend_labels[i] for i in legend_indexes]
@@ -321,9 +325,9 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
 
             lines.append(line)
         #axes = PLT.gca()
-        ax.set_xlabel(xlabel, fontsize=42)
+        ax.set_xlabel(xlabel, fontsize=60)
 
-        ax.set_ylabel(ylabel, fontsize=42)
+        ax.set_ylabel(ylabel, fontsize=60)
 
         if ylim is not None:
             ax.set_ylim(ylim)
@@ -331,13 +335,13 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
             ax.set_xlim(xlim)
 
         if title:
-            ax.set_title(title, fontsize=30)
+            ax.set_title(title, fontsize=52, y=1.1)
 
 
-        ax.tick_params(axis='both', which='major', labelsize=29)
-        ax.tick_params(axis='both', which='minor', labelsize=29)
-        ax.xaxis.offsetText.set_fontsize(29)
-        ax.yaxis.offsetText.set_fontsize(29)
+        ax.tick_params(axis='both', which='major', labelsize=43)
+        ax.tick_params(axis='both', which='minor', labelsize=43)
+        ax.xaxis.offsetText.set_fontsize(43)
+        ax.yaxis.offsetText.set_fontsize(43)
 
 
         for (xc,F) in task_markers:
@@ -379,9 +383,9 @@ def createPlot(stats,x_values,colors,markers,xlabel,ylabel,ylim,save_filename,le
                 labelbottom=False)  # labels along the bottom edge are off
             ax.set_yticks(yticks)
 
-        ax.grid(True)
+        ax.grid(True) # for diagram alpha=0.0
         if not skip_legend:
-            leg = ax.legend(lines,labels=legend_labels, loc="best",ncol=legend_cols,
+            leg = ax.legend(lines,labels=legend_labels, loc="upper left",ncol=legend_cols,
                        prop={'size':legend_fontsize},
                        fancybox=True)
             leg.set_alpha(0.20)

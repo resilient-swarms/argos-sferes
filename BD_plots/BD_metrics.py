@@ -1094,7 +1094,7 @@ def single_development_plots(fitfun,title, runs, times, bd_type, legend_labels):
     j = 0
 
     for label in y_labels:
-        ylim = None#[0, 1000] if label in ["Map_coverage", "Global_coverage"] else [0.0, 4.0]
+        ylim=[0,600]#[0, 1000] if label in ["Map_coverage", "Global_coverage"] else [0.0, 4.0]
         axis = None  # if ax is None else ax[j]
         temp_labels = copy.copy(legend_labels)
 

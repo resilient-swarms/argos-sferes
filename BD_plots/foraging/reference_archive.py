@@ -124,7 +124,7 @@ def reference_archive(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
     :return:
     """
     global CENT
-    CENT="centralised"
+    CENT="decentralised"
     if virtual_energy:
         title_tag += "VE"
 
@@ -276,7 +276,7 @@ def reference_archive(fitfuns,fitfunlabels,bd_type,runs,gener, by_faulttype=True
     :param gener:
     :return:
     """
-    CENT="centralised"
+    CENT="decentralised"
     if virtual_energy:
         title_tag += "VE"
 

@@ -14,7 +14,7 @@ def behaviour_performance_map():
     B = np.linspace(0,0.99,100)
     P = BP_prior(B)
     createPlot([P],B,colors=["grey"],markers=".",xlabel=r"Behaviour ($\mathbf{x}$)",ylabel=r"Performance ($f(\mathcal{M}[\mathbf{x}]$)",
-               ylim=None,save_filename="diagram_behaviour_performance_map.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
+               ylim=[0,15.8],save_filename="diagram_behaviour_performance_map.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
                scatter=True,title="Behaviour-performance map")
     print("now do the prior")
     # \mu(x) set to the mean
@@ -24,7 +24,7 @@ def behaviour_performance_map():
     top   =[P + sigma]
     createPlot([P],B,colors=["grey"],markers=".",xlabel=r"Behaviour ($\mathbf{x}$)",
                ylabel=r"Performance prior ($f(\mathbf{x})$)",
-               ylim=None,save_filename="diagram_behaviour_prior.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
+               ylim=[0,15.8],save_filename="diagram_behaviour_prior.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
                scatter=False,title="Bayesian prior",fill_between=[bottom,top])
     return B,P
 
@@ -41,11 +41,11 @@ def application(B,P):
     # update F
     i, F, sds = approximate(P, excluded_indexes, B, samples=[],observations=[],queried_priors=[],K_inv=[])
     excluded_indexes.append(i)
-    annot= {"text": r"$\mathbf{x}_1 = argmax \, UCB(\mathbf{x})$",
-           "xy":(B[i],F[i]+sds[i]), "xytext":(B[i]-0.35,F[i]+sds[i]-0.65),"align":"center","fontsize":29}
+    annot= {"text": r"$\mathbf{x}_1 = \arg \max \, UCB(\mathbf{x})$",
+           "xy":(B[i],F[i]+sds[i]), "xytext":(B[i]-0.35,F[i]+sds[i]-0.65),"align":"center","fontsize":45}
     createPlot([F],B,colors=["grey"],markers=".",xlabel=r"Behaviour ($\mathbf{x}$)",
                ylabel=r"Performance prior ($f(\mathbf{x})$)",
-               ylim=None,save_filename="diagram_select_prior.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
+               ylim=[0,15.8],save_filename="diagram_select_prior.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
                scatter=False,title=r"Prior ",fill_between=[[F-sds],[F+sds]],annotations=[annot])
 
     # now add the sample and update
@@ -64,14 +64,14 @@ def application(B,P):
     j, F, sds = approximate(P, excluded_indexes, B, samples=samples,
                             observations=observations,queried_priors=queried_priors,K_inv=K_inv)
     excluded_indexes.append(j)
-    annot= {"text": r"$\mathbf{x}_2 = argmax \, UCB(\mathbf{x})$",
-           "xy":(B[j],F[j]+sds[j]), "xytext":(B[j]-0.35,F[j]+sds[j]-0.25),"align":"center","fontsize":29}
+    annot= {"text": r"$\mathbf{x}_2 = \arg \max \, UCB(\mathbf{x})$",
+           "xy":(B[j],F[j]+sds[j]), "xytext":(B[j]-0.35,F[j]+sds[j]+1.4),"align":"center","fontsize":45}
     annot2={"text": r"update $f(\mathbf{x}_1)$",
-           "xy":(B[i],F[i]+sds[i]), "xytext":(B[i],F[i]+sds[i]-1.8),"align":"center","fontsize":29}
+           "xy":(B[i],F[i]+sds[i]), "xytext":(B[i],F[i]-4.6),"align":"center","fontsize":45}
     createPlot([F],B,colors=["grey"],markers=".",xlabel=r"Behaviour ($\mathbf{x}$)",
                ylabel=r"Performance posterior ($f(\mathbf{x})$)",
-               ylim=None,save_filename="diagram_SMBO.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
-               scatter=False,title=r"SMBO, $\mathcal{D}=(\mathbf{x}_1,f(\mathbf{x}_1))$",
+               ylim=[0,15.8],save_filename="diagram_SMBO.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
+               scatter=False,title=r"SMBO     $\mathcal{D}=(\mathbf{x}_1,f(\mathbf{x}_1))$",
                fill_between=[[F-sds],[F+sds]],annotations=[annot,annot2])
     print()
 
@@ -79,15 +79,15 @@ def application(B,P):
     l, F, sds = approximate(P, excluded_indexes, B, samples=samples, observations=observations,
                             queried_priors=queried_priors, K_inv=K_inv,busy_samples=[j])
     excluded_indexes.append(l)
-    annot3= {"text": r"$\mathbf{x}_3 = argmax \, UCB(\mathbf{x}) \phi(\mathbf{x},\mathbf{x}_2)$",
-           "xy":(B[l],F[l]+sds[l]), "xytext":(B[l]-0.15,F[l]+sds[l]+0.09),"align":"center","fontsize":29}
+    annot3= {"text": r"$\mathbf{x}_3 = \arg \max \, UCB(\mathbf{x}) \, \phi(\mathbf{x},\mathbf{x}_2)$",
+           "xy":(B[l],F[l]+sds[l]), "xytext":(B[l]-0.15,F[l]+sds[l]+0.70),"align":"center","fontsize":45}
     fill_between=[[F-sds],[F+sds]]
     print(F-sds)
     print(F + sds)
     createPlot([F],B,colors=["grey"],markers=".",xlabel=r"Behaviour ($\mathbf{x}$)",
                ylabel=r"Performance posterior ($f(\mathbf{x})$)",
-               ylim=None,save_filename="diagram_SMBO-Dec.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
-               scatter=False,title=r"SMBO-Dec, $\mathcal{D}=(\mathbf{x}_1,f(\mathbf{x}_1))$ and $\mathcal{B}=\{\mathbf{x}_2\}$",
+               ylim=[0,15.8],save_filename="diagram_SMBO-Dec.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
+               scatter=False,title=r"SMBO-Dec     $\mathcal{D}=(\mathbf{x}_1,f(\mathbf{x}_1))$, $\mathcal{B}=\{\mathbf{x}_2\}$",
                fill_between=fill_between,
                annotations=[annot,annot2,annot3])
     print()
@@ -103,7 +103,7 @@ def application(B,P):
     max_ind = get_max_acquisition(priors=P,ys=observations,xs=samples,queried_priors=[],K_inv=K_inv,remaining_indexes=remaining_indexes,get_all=True)
     createPlot([P],B,colors=["grey"],markers=".",xlabel=r"Behaviour ($\mathbf{x}$)",
                ylabel=r"Performance prior ($f(\mathbf{x})$)",
-               ylim=None,save_filename="behaviour_prior.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
+               ylim=[0,15.8],save_filename="behaviour_prior.pdf",legend_labels=["nothing"],skip_legend=True,force=True,
                scatter=False,title="Bayesian prior",fill_between=[bottom,top])
 
 

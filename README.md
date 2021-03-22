@@ -42,11 +42,12 @@ B. clone limbo for bayesian optimisation (optional):
 
     cd ../..
     
-    git clone https://github.com/resibots/limbo.git
+    git clone https://github.com/resilient-swarms/limbo.git
     
 
 
-5. Compilation:
+5. Compilation of evolution experiments:
+
 (a) To compile serial evolution experiments:
 
    
@@ -63,27 +64,100 @@ B. clone limbo for bayesian optimisation (optional):
 
 
     bash cmake_scripts/make_all_envirparallel.sh
-    
 
-(d) To compile Bayesian optimisation:
+
+6. To compile baseline behaviours useful for comparison on Dispersion, Aggregation, etc.:
+
+
+    bash make_baseline.sh    
+
+7. Compilation of Swarm Map-based Bayesian Optimisation (SMBO):
 
 
     bash cmake_scripts/make_all_BO.sh
     
     
+8. Compilation of SMBO-Decentralised:
 
-(e) To compile baseline behaviours:
+(a) To compile SMBO-Dec on a small foraging environment:
+
+   
+    bash cmake_scripts/make_all_heterosim.sh
 
 
-    bash make_baseline.sh
+(b) To compile SMBO-Dec on a larger foraging environment:
+
+   
+    bash cmake_scripts/make_all_largeheterosim.sh
+
+
+(c) To compile SMBO-Dec on a larger foraging environment:
+
+   
+    bash cmake_scripts/make_all_largeheterosim.sh
+
+
+
+(d) To compile a few binaries based on different acquisition functions and hyperparameters:
+
     
+    bash cmake_scripts/make_all_heteroexps.sh ${acq} ${kern} ${alpha} ${lengthscale}
+
+where ${acq} is the acquisition function in {0 (=UCB),1 (=UCB_LOCAL),2 (=UCB_LOCAL2),3 (=UCB_LOCAL3)}, ${kern} is the kernel in {0 (Matern52 with variable noise), 2 (Matern52)}, $alpha is the exploration exploitation parameter for UCB, and ${lengthscale} is the lengthscale of the kernel (see more info below in Compilation macros). 
+
+
+9. Compile performance recording of a particular swarm:
+
+    bash cmake_scripts/make_all_recording.sh
+
+
     
+
+Compilation macros for further customisation
+-------------
+
+It is best to start of with some of the above scripts and then modify their parameters for customisation. The following macros can be used for further customisation of the compilation scripts:
+
+    * `NN_INPUT_TYPE`: type of neural network control
+      - 0: NN control based on proximity and RAB sensors    (all tasks except Foraging)
+      - 1: NN control based on proximity and ground sensors (Foraging task)
+      - 2: NN with RAB control (experimental; all tasks except Foraging)
+
+    * `BD`: integer denoting the number of dimensions in the behaviour space
+
+    * `CVT_USAGE`: whether or not to use CVT to organise behaviour space
+	-ON: use CVT  (for high-dimensional behaviour spaces)
+	-OFF: do not use CVT (for low-dimensional behaviour spaces)
+
+    * `ARGOS_PAR`: serial or parallel evolution (only for evolution, not adaptation)
+      - 0: serial evolution
+      - 1: parallelisation of individuals in the population of an evolutionary algorithm
+      - 2: parallelisation of environments with Quality-Environment-Diversity evolution (see reference mentioned at start of README)
+    
+    * `NUM_CORES`: integer denoting the number of cores (1 by default; only for evolution)
+
+    * `LARGE`: size of arena (only for Foraging task)
+      - "ON": 4.2m x 2.1m Foraging arena
+      - "OFF": 2.1m x 2.1m Foraging arena
+
+    * `BO_ACQ`: set the type of acquisition function in SMBO (only for adaptation)
+      - 0: traditional UCB
+      - 2: UCB with soft local penalisation
+      - 3: UCB with hard local penalisation
+      - 4: UCB with hard local penalisation and local Lipschitz constants
+
+
+    * `BO_KERN`: the type of kernel     (only for adaptation)
+      - 0: Matern 5/2 with variable noise
+      - 2: Matern 5/2 with fixed noise
+
+    * `LIMBO_ALPHA`: positive float denoting the exploration-exploitation tradeoff parameter in UCB  (only for adaptation)
+
+    * `LIMBO_L`: positive float denoting the lengthscale parameter in UCB   (only for adaptation)
 
 
 Instruction for running
 -------------
-
-
 
 
 Evolution in the normal operating environment can be run using:
@@ -121,7 +195,13 @@ To try out an evolved solution
 
      ./bin/behaviour_evol2D experiments/history.argos --load <path to generation file>/gen_<number> -o <output file> -n <index of individual in MAP>
 
-To try out Bayesian Optimisation do:
+To try out Bayesian Optimisation for a homogeneous swarm, do:
 
      bin/ite_swarms_3D -m <data_directory> 20000 -e bin/BO3D 
      experiments/history_BO.argos
+
+Finally, to set up SMBO-Dec for Bayesian Optimisation for a heterogeneous swarm, the launch script may be most useful due to the many arguments:
+
+     bash launch_foraging_BO_array.sh <data_directory>
+
+A wide variety of other launch scripts can also be found in the main directory, each of them prefixed by "launch_"
