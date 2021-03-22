@@ -79,16 +79,16 @@ B. clone limbo for bayesian optimisation (optional):
     
 8. Compilation of SMBO-Decentralised:
 
-(a) To compile SMBO-Dec on a small foraging environment:
+(a) To support heterogeneous swarms in a single run, one needs to compile a binary for printing the correct network to file:
+
+
+   bash cmake_scripts/make_all_printnet.sh
+
+
+(b) To compile SMBO-Dec on a small foraging environment:
 
    
     bash cmake_scripts/make_all_heterosim.sh
-
-
-(b) To compile SMBO-Dec on a larger foraging environment:
-
-   
-    bash cmake_scripts/make_all_largeheterosim.sh
 
 
 (c) To compile SMBO-Dec on a larger foraging environment:
@@ -97,11 +97,18 @@ B. clone limbo for bayesian optimisation (optional):
     bash cmake_scripts/make_all_largeheterosim.sh
 
 
+(d) To compile SMBO-Dec on a larger foraging environment:
 
-(d) To compile a few binaries based on different acquisition functions and hyperparameters:
+   
+    bash cmake_scripts/make_all_largeheterosim.sh
+
+
+
+(e) To compile a few binaries based on different acquisition functions and hyperparameters:
 
     
     bash cmake_scripts/make_all_heteroexps.sh ${acq} ${kern} ${alpha} ${lengthscale}
+
 
 where ${acq} is the acquisition function in {0 (=UCB),1 (=UCB_LOCAL),2 (=UCB_LOCAL2),3 (=UCB_LOCAL3)}, ${kern} is the kernel in {0 (Matern52 with variable noise), 2 (Matern52)}, $alpha is the exploration exploitation parameter for UCB, and ${lengthscale} is the lengthscale of the kernel (see more info below in Compilation macros). 
 

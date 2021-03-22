@@ -180,9 +180,13 @@ endif()
 # process baseline option and others, to define controller, loopfunction and executable
 
 if(BASELINE)
+    if(NOT ${BD})
+        set(BD 2)
+    endif()
+    add_definitions(-DBEHAV_DIM=${BD})
     message("will use baseline behaviours rather than evolution")
     add_definitions(-DBASELINEBEHAVS)
-    
+
     set(CONTROL "baseline-behavs")
      add_library(baseline-behavs SHARED
         src/baseline-behavs/baseline-behavs.h
@@ -614,21 +618,31 @@ endif()
 add_library(statistics SHARED
     src/core/statistics.h
     src/core/statistics.cpp)
+if(BASELINE)
+	add_library(base_loopfunctions${tag} SHARED
+	    src/core/base_loop_functions.h
+	    src/core/base_loop_functions.cpp
+	    src/core/fitness_functions.h 
+	    src/core/fitness_functions.cpp
+	    src/core/statistics.h 
+	    src/core/statistics.cpp
+	)
+else(NOT BASELINE)
+	add_library(base_loopfunctions${tag} SHARED
+	    src/evolution/base_evol_loop_functions.h
+	    src/evolution/base_evol_loop_functions.cpp
+	    src/core/base_loop_functions.h
+	    src/core/base_loop_functions.cpp
+	    src/core/fitness_functions.h # added as error argos3: symbol lookup error: [path removed]/libbase_loopfunctions.so: undefined symbol: _ZN11AggregationC1Ev
+	    src/core/fitness_functions.cpp
+	    src/core/statistics.h # added as error argos3: symbol lookup error: [path removed] libbase_loopfunctions.so: undefined symbol: _ZN8StatFuns12get_avg_distESt6vectorIN5argos8CVector3ESaIS2_EES2_
+	    src/core/statistics.cpp
+	    src/core/environment_generator.h
+	    src/core/environment_generator.cpp
+	    #src/evolution/descriptors.cpp
 
-add_library(base_loopfunctions${tag} SHARED
-    src/evolution/base_evol_loop_functions.h
-    src/evolution/base_evol_loop_functions.cpp
-    src/core/base_loop_functions.h
-    src/core/base_loop_functions.cpp
-    src/core/fitness_functions.h # added as error argos3: symbol lookup error: [path removed]/libbase_loopfunctions.so: undefined symbol: _ZN11AggregationC1Ev
-    src/core/fitness_functions.cpp
-    src/core/statistics.h # added as error argos3: symbol lookup error: [path removed] libbase_loopfunctions.so: undefined symbol: _ZN8StatFuns12get_avg_distESt6vectorIN5argos8CVector3ESaIS2_EES2_
-    src/core/statistics.cpp
-    src/core/environment_generator.h
-    src/core/environment_generator.cpp
-    #src/evolution/descriptors.cpp
-
-)
+	)
+endif()
 
 add_library(base_controller SHARED
     src/core/base_controller.h
@@ -694,9 +708,8 @@ target_link_libraries(${LOOPFUN}
 if(BASELINE)      
     target_link_libraries(${EXECUTABLE}
         ${LOOPFUN}
-        base_loopfunctions${tag}
         ${CONTROL}
-        descriptors${tag}
+	descriptors${tag}
         fitness_functions${tag}
         arena_utils${tag}
         statistics
