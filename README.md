@@ -10,6 +10,7 @@ Bossens, D. M., & Tarapore, D. (2020). QED: using Quality-Environment-Diversity 
 Bossens, D. M., & Tarapore, D. (2020). Rapidly adapting robot swarms with Swarm Map-based Bayesian Optimisation. Retrieved from http://arxiv.org/abs/2012.11444
 
 
+
 Instruction for compilation (using MAP-Elites and neural-network modules)
 -------------
 
@@ -48,7 +49,9 @@ B. clone limbo for bayesian optimisation (optional):
     
 
 
+
 5. Compilation of evolution experiments:
+
 
 (a) To compile serial evolution experiments:
 
@@ -65,13 +68,17 @@ B. clone limbo for bayesian optimisation (optional):
 (c) To compile evolution experiments with parallel environments:
 
 
-    bash cmake_scripts/make_all_envirparallel.sh
 
+    bash cmake_scripts/make_all_envirparallel.sh
+   
+    
 
 6. To compile baseline behaviours useful for comparison on Dispersion, Aggregation, etc.:
 
 
-    bash make_baseline.sh    
+
+    bash make_baseline.sh
+    
 
 7. Compilation of Swarm Map-based Bayesian Optimisation (SMBO):
 
@@ -88,6 +95,7 @@ B. clone limbo for bayesian optimisation (optional):
 
 
 (b) To compile SMBO-Dec on a small foraging environment:
+
 
    
     bash cmake_scripts/make_all_heterosim.sh
@@ -124,6 +132,7 @@ where ${acq} is the acquisition function in {0 (=UCB),1 (=UCB_LOCAL),2 (=UCB_LOC
 
 Compilation macros for further customisation
 -------------
+
 
 It is best to start of with some of the above scripts and then modify their parameters for customisation. The following macros can be used for further customisation of the compilation scripts:
 
@@ -186,7 +195,7 @@ Hand-crafted behaviours can also be experimented with just to see how well evolu
    
 
 
-Running the experiments from the above-mentioned paper can be done using the "launch" scripts:
+Running the experiments from the QED paper (Aggregation, Dispersion, Flocking, Patrolling, Border-patrolling) can be done using the "launch" scripts:
 
 
 For QED, this is:
@@ -209,7 +218,7 @@ To try out Bayesian Optimisation for a homogeneous swarm, do:
      bin/ite_swarms_3D -m <data_directory> 20000 -e bin/BO3D 
      experiments/history_BO.argos
 
-Finally, to set up SMBO-Dec for Bayesian Optimisation for a heterogeneous swarm, the launch script may be most useful due to the many arguments:
+Finally, to set up SMBO-Dec for Bayesian Optimisation with a heterogeneous swarm (on the Foraging tasks), the launch script may be most useful due to the many arguments:
 
      bash launch_foraging_BO_array.sh <data_directory>
 

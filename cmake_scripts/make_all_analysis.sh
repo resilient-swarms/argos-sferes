@@ -12,6 +12,7 @@ for dim in 3; do   # 10 14 21 400
     else
     cmake -DLARGE=ON -DRECORD_FITNESS=ON -DNN_INPUT_TYPE=1 -DANALYSIS=ON -DBD=${dim} ..
     fi
+
    make 
 
 

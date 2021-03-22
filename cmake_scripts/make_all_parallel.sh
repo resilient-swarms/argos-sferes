@@ -12,6 +12,7 @@ for dim in 3 10 1024 ; do   # 10 14 21 400
     cmake -DNN_INPUT_TYPE=1 -DARGOS_PAR=1 -DBD=${dim} ..
     fi
    make -j 8
+   cd ..
 
 
 done 
