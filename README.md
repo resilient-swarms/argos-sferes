@@ -5,9 +5,13 @@ An interface for using the ARGoS swarm robotics simulator with the Sferes evolut
 
 The argos-sferes repository has been used in the papers:
 
-Bossens, D. M., & Tarapore, D. (2020). QED: using Quality-Environment-Diversity to evolve resilient robot swarms. IEEE Transactions on Evolutionary Computation. https://doi.org/10.1109/TEVC.2020.3036578
+Bossens, D. M., & Tarapore, D. (2020). QED: using Quality-Environment-Diversity to evolve resilient robot swarms. IEEE Transactions on Evolutionary Computation. https://doi.org/10.1109/TEVC.2020.3036578  
+
+NOTE: see also [QED VIDEO from argos-sferes](https://www.youtube.com/watch?v=BN6i-NugCGg&t=134s)
 
 Bossens, D. M., & Tarapore, D. (2020). Rapidly adapting robot swarms with Swarm Map-based Bayesian Optimisation. Retrieved from http://arxiv.org/abs/2012.11444
+
+NOTE: see also [SMBO VIDEO from argos-sferes](https://www.youtube.com/watch?v=I1HcRn0pOf4)
 
 
 
