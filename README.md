@@ -9,7 +9,7 @@ Bossens, D. M., & Tarapore, D. (2020). QED: using Quality-Environment-Diversity 
 
 NOTE: see also [QED VIDEO from argos-sferes](https://www.youtube.com/watch?v=BN6i-NugCGg&t=134s)
 
-Bossens, D. M., & Tarapore, D. (2020). Rapidly adapting robot swarms with Swarm Map-based Bayesian Optimisation. Retrieved from http://arxiv.org/abs/2012.11444
+Bossens, D. M., & Tarapore, D. (2021). Rapidly adapting robot swarms with Swarm Map-based Bayesian Optimisation. The 2021 International Conference on Robotics and Automation (ICRA 2021). [arXiv link at http://arxiv.org/abs/2012.11444; IEEE Explore link at https://ieeexplore.ieee.org/abstract/document/9560958]
 
 NOTE: see also [SMBO VIDEO from argos-sferes](https://www.youtube.com/watch?v=I1HcRn0pOf4)
 
